@@ -133,7 +133,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.55 }}
-            className="flex flex-wrap gap-12 mt-14 pt-10 border-t"
+            className="grid grid-cols-3 gap-4 mt-14 pt-10 border-t"
             style={{ borderColor: "rgba(255,255,255,0.08)" }}
           >
             {stats.map((s) => (
