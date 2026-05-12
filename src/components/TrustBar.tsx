@@ -34,7 +34,7 @@ export default function TrustBar() {
         borderColor: "rgba(255,255,255,0.08)",
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 flex flex-wrap items-center justify-center gap-8 lg:gap-14">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-center gap-6 lg:gap-14">
         {items.map((item, i) => {
           const Icon = item.icon;
           return (
@@ -46,7 +46,6 @@ export default function TrustBar() {
                 />
               )}
               <div className="flex items-center gap-4">
-                {/* ไอคอนใหญ่ขึ้น */}
                 <div
                   className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: "rgba(255,107,0,0.1)" }}
@@ -54,7 +53,6 @@ export default function TrustBar() {
                   <Icon size={28} style={{ color: "#FF6B00" }} />
                 </div>
                 <div>
-                  {/* ข้อความใหญ่ขึ้น */}
                   <div className="text-lg font-semibold text-white">
                     {item.main}
                   </div>
