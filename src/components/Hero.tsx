@@ -133,13 +133,13 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.55 }}
-            className="grid grid-cols-3 gap-4 mt-14 pt-10 border-t"
+            className="flex flex-col sm:flex-row sm:flex-wrap gap-6 sm:gap-12 mt-14 pt-10 border-t"
             style={{ borderColor: "rgba(255,255,255,0.08)" }}
           >
             {stats.map((s) => (
               <div key={s.label}>
                 <div
-                  className="font-kanit font-bold text-5xl"
+                  className="font-kanit font-bold text-3xl sm:text-5xl"
                   style={{ color: "#FF6B00" }}
                 >
                   {s.num}
