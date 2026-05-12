@@ -55,6 +55,24 @@ export async function POST(req: NextRequest) {
       }),
     });
 
+    // แจ้งเตือนทาง LINE
+    await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: process.env.LINE_USER_ID,
+        messages: [
+          {
+            type: "text",
+            text: `📋 ใบเสนอราคาใหม่!\n👤 ชื่อ: ${name}\n📞 โทร: ${phone}\n💬 LINE: ${lineId || "-"}\n🖨️ บริการ: ${serviceType}\n📐 ขนาด: ${width || "-"} x ${height || "-"} cm\n🔢 จำนวน: ${quantity || 1} ชิ้น\n📅 วันที่ต้องการ: ${needDate || "-"}\n📝 รายละเอียด: ${details || "-"}`,
+          },
+        ],
+      }),
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error(error);
