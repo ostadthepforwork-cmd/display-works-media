@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --orange: #FF6B00;
+  --orange-light: #FF8C33;
+  --bg: #0B0F19;
+  --card: #141A24;
+  --card2: #1A2233;
+  --white: #FFFFFF;
+  --muted: #A8B0C0;
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Prompt', sans-serif;
+  background-color: #0B0F19;
+  color: #FFFFFF;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0B0F19; }
+::-webkit-scrollbar-thumb { background: #FF6B00; border-radius: 3px; }
+
+/* Selection */
+::selection { background: rgba(255,107,0,0.3); color: #fff; }
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 text-white px-8 py-4 rounded-lg font-semibold text-base transition-all duration-200 hover:-translate-y-0.5;
+    background-color: #FF6B00;
+    box-shadow: 0 4px 20px rgba(255,107,0,0.2);
+  }
+  .btn-primary:hover {
+    background-color: #FF8C33;
+    box-shadow: 0 8px 30px rgba(255,107,0,0.35);
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 bg-transparent text-white px-8 py-4 rounded-lg font-medium text-base border border-white/25 transition-all duration-200 hover:border-white/60 hover:bg-white/5;
+  }
+  .section-label {
+    @apply text-xs font-semibold tracking-widest uppercase mb-3;
+    color: #FF6B00;
+  }
+  .section-title {
+    @apply font-kanit text-4xl md:text-5xl font-bold leading-tight mb-4;
+  }
+  .section-sub {
+    @apply text-base leading-relaxed max-w-xl;
+    color: #A8B0C0;
+  }
+  .card {
+    @apply border border-white/[0.08] rounded-xl p-8;
+    background-color: #141A24;
+  }
+}
