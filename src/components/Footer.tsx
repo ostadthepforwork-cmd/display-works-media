@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { MessageCircle, Facebook, Instagram, Phone, Mail } from "lucide-react";
+import { MessageCircle, Facebook, Instagram, Phone, Mail, MapPin } from "lucide-react";
 
 const navLinks = [
   { label: "หน้าแรก", href: "#hero" },
@@ -9,15 +9,37 @@ const navLinks = [
   { label: "ผลงานของเรา", href: "#portfolio" },
   { label: "ขั้นตอนการทำงาน", href: "#process" },
   { label: "เกี่ยวกับเรา", href: "#about" },
-  { label: "ติดต่อเรา", href: "#contact" },
+  { label: "FAQ", href: "#faq" },
 ];
 
 const serviceLinks = [
   "ป้ายไวนิล",
   "Sticker Indoor / Outdoor",
-  "PP Board",
-  "Roll up / X-stand",
-  "Backdrop / Standee",
+  "PP Board / Standee",
+  "Roll Up / X-stand",
+  "Backdrop",
+  "ฉลากสินค้า",
+];
+
+const socials = [
+  {
+    icon: Facebook,
+    href: "https://www.facebook.com/profile.php?id=61581015452518",
+    label: "Facebook",
+    hoverBg: "#1877F2",
+  },
+  {
+    icon: MessageCircle,
+    href: "https://lin.ee/O0nPl03",
+    label: "LINE",
+    hoverBg: "#06C755",
+  },
+  {
+    icon: Instagram,
+    href: "https://instagram.com",
+    label: "Instagram",
+    hoverBg: "#E1306C",
+  },
 ];
 
 export default function Footer() {
@@ -29,14 +51,55 @@ export default function Footer() {
         borderTop: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-8">
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
+      {/* Top CTA strip */}
+      <div
+        className="py-8 px-6 lg:px-8"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p className="font-kanit font-bold text-white text-lg">
+              พร้อมเริ่มโปรเจกต์แล้วหรือยัง?
+            </p>
+            <p className="text-sm" style={{ color: "#A8B0C0" }}>
+              ประเมินราคาฟรี ตอบกลับภายใน 24 ชั่วโมง
+            </p>
+          </div>
+          <div className="flex gap-3 flex-shrink-0">
+            <a
+              href="https://lin.ee/O0nPl03"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: "#06C755",
+                boxShadow: "0 4px 16px rgba(6,199,85,0.25)",
+              }}
+            >
+              <MessageCircle size={16} />
+              LINE
+            </a>
+            <a
+              href="#quote"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-black transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: "#FF6B00",
+                boxShadow: "0 4px 16px rgba(255,107,0,0.25)",
+              }}
+            >
+              ขอใบเสนอราคา
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Main footer grid */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-14 pb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
 
           {/* Brand */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-3 mb-4">
-              {/* โลโก้รูปภาพ */}
+            <div className="flex items-center gap-3 mb-5">
               <div className="relative w-10 h-10 flex-shrink-0">
                 <Image
                   src="/images/logo.png"
@@ -57,34 +120,30 @@ export default function Footer() {
                 </div>
               </div>
             </div>
-            <p className="text-muted text-sm leading-relaxed mb-5">
+
+            <p className="text-sm leading-relaxed mb-6" style={{ color: "#A8B0C0" }}>
               บริการสั่งป้ายและงานพิมพ์ออนไลน์ครบวงจร
-              <br />
               ง่าย เร็ว มืออาชีพ ส่งทั่วประเทศ
             </p>
 
-            {/* Social */}
-            <div className="flex gap-3">
-              {[
-                { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61581015452518", label: "Facebook", hoverColor: "#1877F2" },
-                { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverColor: "#06C755" },
-                { icon: Instagram, href: "https://instagram.com", label: "Instagram", hoverColor: "#E1306C" },
-              ].map(({ icon: Icon, href, label, hoverColor }) => (
+            {/* Social icons */}
+            <div className="flex gap-2.5">
+              {socials.map(({ icon: Icon, href, label, hoverBg }) => (
                 <a
                   key={label}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200"
                   style={{
                     background: "#141A24",
                     border: "1px solid rgba(255,255,255,0.08)",
                     color: "#A8B0C0",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.background = hoverColor;
-                    (e.currentTarget as HTMLElement).style.borderColor = hoverColor;
+                    (e.currentTarget as HTMLElement).style.background = hoverBg;
+                    (e.currentTarget as HTMLElement).style.borderColor = hoverBg;
                     (e.currentTarget as HTMLElement).style.color = "#fff";
                   }}
                   onMouseLeave={(e) => {
@@ -99,9 +158,9 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Nav Links */}
+          {/* Nav links */}
           <div>
-            <h4 className="text-xs font-semibold tracking-widest uppercase mb-5 text-white">
+            <h4 className="text-xs font-bold tracking-widest uppercase mb-5 text-white">
               เมนู
             </h4>
             <div className="flex flex-col gap-3">
@@ -109,7 +168,8 @@ export default function Footer() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-muted text-sm transition-colors hover:text-white"
+                  className="text-sm transition-colors duration-200 hover:text-white"
+                  style={{ color: "#A8B0C0" }}
                 >
                   {link.label}
                 </a>
@@ -119,7 +179,7 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <h4 className="text-xs font-semibold tracking-widest uppercase mb-5 text-white">
+            <h4 className="text-xs font-bold tracking-widest uppercase mb-5 text-white">
               บริการของเรา
             </h4>
             <div className="flex flex-col gap-3">
@@ -127,7 +187,8 @@ export default function Footer() {
                 <a
                   key={s}
                   href="#services"
-                  className="text-muted text-sm transition-colors hover:text-white"
+                  className="text-sm transition-colors duration-200 hover:text-white"
+                  style={{ color: "#A8B0C0" }}
                 >
                   {s}
                 </a>
@@ -137,7 +198,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="text-xs font-semibold tracking-widest uppercase mb-5 text-white">
+            <h4 className="text-xs font-bold tracking-widest uppercase mb-5 text-white">
               ติดต่อเรา
             </h4>
             <div className="flex flex-col gap-4">
@@ -145,48 +206,76 @@ export default function Footer() {
                 href="https://lin.ee/O0nPl03"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 text-muted text-sm hover:text-white transition-colors"
+                className="flex items-start gap-3 text-sm transition-colors hover:text-white"
+                style={{ color: "#A8B0C0" }}
               >
-                <MessageCircle size={15} style={{ color: "#06C755", flexShrink: 0 }} />
+                <MessageCircle
+                  size={16}
+                  style={{ color: "#06C755", flexShrink: 0, marginTop: "2px" }}
+                />
                 LINE @displayworks
               </a>
               <a
-                href="tel:0959161539"
-                className="flex items-center gap-3 text-muted text-sm hover:text-white transition-colors"
+                href="tel:0659161539"
+                className="flex items-start gap-3 text-sm transition-colors hover:text-white"
+                style={{ color: "#A8B0C0" }}
               >
-                <Phone size={15} style={{ color: "#FF6B00", flexShrink: 0 }} />
+                <Phone
+                  size={16}
+                  style={{ color: "#FF6B00", flexShrink: 0, marginTop: "2px" }}
+                />
                 065-916-1539
               </a>
               <a
-                href="mailto:info.displayworksmedia@gmail.com
-"
-                className="flex items-center gap-3 text-muted text-sm hover:text-white transition-colors"
+                href="mailto:info.displayworksmedia@gmail.com"
+                className="flex items-start gap-3 text-sm transition-colors hover:text-white"
+                style={{ color: "#A8B0C0" }}
               >
-                <Mail size={15} style={{ color: "#FF6B00", flexShrink: 0 }} />
+                <Mail
+                  size={16}
+                  style={{ color: "#FF6B00", flexShrink: 0, marginTop: "2px" }}
+                />
                 info.displayworksmedia@gmail.com
-
               </a>
+              <div
+                className="flex items-start gap-3 text-sm"
+                style={{ color: "#A8B0C0" }}
+              >
+                <MapPin
+                  size={16}
+                  style={{ color: "#FF6B00", flexShrink: 0, marginTop: "2px" }}
+                />
+                ให้บริการทั่วประเทศไทย
+              </div>
             </div>
 
-            <a
-              href="#quote"
-              className="mt-8 inline-flex items-center gap-2 px-5 py-3 rounded-lg text-white text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+            {/* Hours */}
+            <div
+              className="mt-5 p-4 rounded-xl text-xs"
               style={{
-                background: "#FF6B00",
-                boxShadow: "0 4px 20px rgba(255,107,0,0.2)",
+                background: "#141A24",
+                border: "1px solid rgba(255,255,255,0.06)",
+                color: "#A8B0C0",
               }}
             >
-              ขอใบเสนอราคา
-            </a>
+              <div className="font-semibold text-white mb-1.5">
+                เวลาทำการ
+              </div>
+              <div>จันทร์ – เสาร์: 9:00 – 18:00</div>
+              <div>ตอบ LINE ทุกวัน ตลอด 24 ชม.</div>
+            </div>
           </div>
         </div>
 
-        {/* Bottom */}
+        {/* Bottom bar */}
         <div
-          className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t text-xs text-muted"
-          style={{ borderColor: "rgba(255,255,255,0.06)" }}
+          className="flex flex-col md:flex-row justify-between items-center gap-3 pt-8 border-t text-xs"
+          style={{
+            borderColor: "rgba(255,255,255,0.06)",
+            color: "#A8B0C0",
+          }}
         >
-          <span>© 2024 Display Works Media. All Rights Reserved.</span>
+          <span>© 2025 Display Works Media. All Rights Reserved.</span>
           <span>ออกแบบและพัฒนาโดยทีมงาน Display Works Media</span>
         </div>
       </div>
