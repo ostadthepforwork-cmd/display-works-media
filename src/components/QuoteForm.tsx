@@ -58,7 +58,7 @@ export default function QuoteForm() {
       } else {
         alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
       }
-    } catch (error) {
+    } catch (_error) {
       alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
       setLoading(false);
