@@ -11,6 +11,7 @@ import QuoteForm from "@/components/QuoteForm";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 import FloatingButtons from "@/components/FloatingButtons";
+import BlogSection from "@/components/BlogSection";
 
 export default function Home() {
   return (
@@ -23,6 +24,7 @@ export default function Home() {
       <WhyUs />
       <Process />
       <Reviews />
+      <BlogSection />
       <FAQ />
       <QuoteForm />
       <CTA />
