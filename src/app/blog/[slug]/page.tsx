@@ -10,10 +10,10 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = await reader.collections.posts.read(params.slug);
+export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await reader.collections.posts.read(slug);
   if (!post) return notFound();
-  const { node } = await post.content();
   return (
     <main style={{ background: '#0b0f19', minHeight: '100vh', color: '#fff', padding: '80px 24px' }}>
       <article style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -25,9 +25,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         <p style={{ color: '#f97316', fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase' }}>{post.category}</p>
         <h1 style={{ fontSize: '36px', fontWeight: 700, margin: '12px 0 8px', fontFamily: 'Kanit, sans-serif' }}>{post.title}</h1>
         <p style={{ color: '#666', fontSize: '13px', marginBottom: '40px' }}>{post.date}</p>
-        <div style={{ lineHeight: 1.8, fontSize: '16px', color: '#ccc' }}>
-          {post.excerpt}
-        </div>
+        <p style={{ lineHeight: 1.8, fontSize: '16px', color: '#ccc' }}>{post.excerpt}</p>
       </article>
     </main>
   );
