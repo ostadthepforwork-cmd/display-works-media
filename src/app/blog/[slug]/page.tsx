@@ -33,7 +33,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           <h1 style={{ fontSize: '36px', fontWeight: 700, margin: '0 0 12px', fontFamily: 'Kanit, sans-serif', lineHeight: 1.3 }}>{post.title}</h1>
           <p style={{ color: '#666', fontSize: '13px', marginBottom: '48px', fontFamily: 'Kanit, sans-serif' }}>{post.date}</p>
           <div style={{ lineHeight: 1.9, fontSize: '16px', color: '#ccc', fontFamily: 'Kanit, sans-serif' }}>
-            <DocumentRenderer document={content.document} />
+            <DocumentRenderer document={content.node} />
           </div>
         </article>
       </main>
