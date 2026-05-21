@@ -1,12 +1,7 @@
 import { config, collection, fields } from '@keystatic/core';
 
 export default config({
-  storage: {
-    kind: 'cloud',
-  },
-  cloud: {
-    project: 'ostadthepforwork-cmd/display-works-media',
-  },
+  storage: { kind: 'github', repo: 'ostadthepforwork-cmd/display-works-media' },
   collections: {
     posts: collection({
       label: 'Posts',
