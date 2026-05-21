@@ -17,8 +17,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const post = await reader.collections.posts.read(slug);
   if (!post) return notFound();
-  const content = await post.content();
-  const html = content.toString();
   return (
     <>
       <Navbar />
@@ -31,8 +29,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           )}
           <p style={{ color: '#f97316', fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}>{post.category}</p>
           <h1 style={{ fontSize: '36px', fontWeight: 700, margin: '0 0 12px', fontFamily: 'Kanit, sans-serif', lineHeight: 1.3 }}>{post.title}</h1>
-          <p style={{ color: '#666', fontSize: '13px', marginBottom: '48px', fontFamily: 'Kanit, sans-serif' }}>{post.date}</p>
-          <div style={{ lineHeight: 1.9, fontSize: '16px', color: '#ccc', fontFamily: 'Kanit, sans-serif' }} dangerouslySetInnerHTML={{ __html: html }} />
+          <p style={{ color: '#666', fontSize: '13px', marginBottom: '48px' }}>{post.date}</p>
+          <p style={{ lineHeight: 1.9, fontSize: '16px', color: '#ccc' }}>{post.excerpt}</p>
         </article>
       </main>
       <Footer />
