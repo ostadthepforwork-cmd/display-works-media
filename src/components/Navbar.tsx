@@ -10,6 +10,7 @@ const navLinks = [
   { label: "บริการของเรา", href: "#services" },
   { label: "ผลงานของเรา", href: "#portfolio" },
   { label: "ขั้นตอนการทำงาน", href: "#process" },
+  { label: "บทความ", href: "/blog" },
   { label: "เกี่ยวกับเรา", href: "#about" },
   { label: "ติดต่อเรา", href: "#contact" },
 ];
@@ -51,7 +52,7 @@ export default function Navbar() {
             <div className="font-kanit font-bold text-sm tracking-wider leading-none">
               DISPLAY WORKS
             </div>
-            <div className="font-kanit font-bold text-sm tracking-wider text-orange-DEFAULT leading-none">
+            <div className="font-kanit font-bold text-sm tracking-wider leading-none" style={{ color: "#FF6B00" }}>
               MEDIA
             </div>
           </div>
