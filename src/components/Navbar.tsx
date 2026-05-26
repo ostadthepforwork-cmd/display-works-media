@@ -3,21 +3,23 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X, MessageCircle, Facebook } from "lucide-react";
 
 const navLinks = [
-  { label: "หน้าแรก", href: "#hero" },
-  { label: "บริการของเรา", href: "#services" },
-  { label: "ผลงานของเรา", href: "#portfolio" },
-  { label: "ขั้นตอนการทำงาน", href: "#process" },
+  { label: "หน้าแรก", href: "/" },
+  { label: "บริการของเรา", href: "/#services" },
+  { label: "ผลงานของเรา", href: "/#portfolio" },
+  { label: "ขั้นตอนการทำงาน", href: "/#process" },
   { label: "บทความ", href: "/blog" },
-  { label: "เกี่ยวกับเรา", href: "#about" },
-  { label: "ติดต่อเรา", href: "#contact" },
+  { label: "เกี่ยวกับเรา", href: "/#about" },
+  { label: "ติดต่อเรา", href: "/#contact" },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -43,13 +45,12 @@ export default function Navbar() {
               fill
               className="object-contain"
               onError={(e) => {
-                // Fallback if logo not found
                 e.currentTarget.style.display = "none";
               }}
             />
           </div>
           <div>
-            <div className="font-kanit font-bold text-sm tracking-wider leading-none">
+            <div className="font-kanit font-bold text-sm tracking-wider leading-none text-white">
               DISPLAY WORKS
             </div>
             <div className="font-kanit font-bold text-sm tracking-wider leading-none" style={{ color: "#FF6B00" }}>
@@ -61,13 +62,13 @@ export default function Navbar() {
         {/* Desktop Links */}
         <div className="hidden lg:flex items-center gap-6">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="text-muted hover:text-white text-sm font-normal transition-colors duration-200"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
 
@@ -93,13 +94,13 @@ export default function Navbar() {
               <Facebook size={18} />
             </a>
           </div>
-          <a
-            href="#quote"
-            className="bg-orange-DEFAULT hover:bg-orange-light text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
-            style={{ boxShadow: "0 4px 20px rgba(255,107,0,0.2)" }}
+          <Link
+            href="/#quote"
+            className="text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+            style={{ backgroundColor: "#FF6B00", boxShadow: "0 4px 20px rgba(255,107,0,0.2)" }}
           >
             ขอใบเสนอราคา
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Hamburger */}
@@ -116,22 +117,23 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="lg:hidden bg-bg-card border-t border-white/[0.08] px-6 py-6 flex flex-col gap-4">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="text-muted hover:text-white text-base py-2 border-b border-white/[0.05] transition-colors"
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
-          <a
-            href="#quote"
-            className="mt-2 bg-orange-DEFAULT text-white text-center py-3 rounded-lg font-semibold text-sm"
+          <Link
+            href="/#quote"
+            className="mt-2 text-white text-center py-3 rounded-lg font-semibold text-sm"
+            style={{ backgroundColor: "#FF6B00" }}
             onClick={() => setMobileOpen(false)}
           >
             ขอใบเสนอราคา
-          </a>
+          </Link>
         </div>
       )}
     </nav>
