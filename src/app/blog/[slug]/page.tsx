@@ -152,11 +152,12 @@ export default function BlogPostPage() {
       const raw = localStorage.getItem("cms_posts");
       if (!raw) { setNotFound(true); return; }
       const all: Post[] = JSON.parse(raw);
-      const found = all.find((p) => p.slug === slug && p.published);
+      const decodedSlug = decodeURIComponent(slug);
+      const found = all.find((p) => p.slug === decodedSlug && p.published);
       if (!found) { setNotFound(true); return; }
       setPost(found);
       // บทความที่เกี่ยวข้อง — หมวดเดียวกัน ไม่เอาตัวเอง
-      const rel = all.filter((p) => p.published && p.slug !== slug && p.category === found.category).slice(0, 3);
+      const rel = all.filter((p) => p.published && p.slug !== decodedSlug && p.category === found.category).slice(0, 3);
       setRelated(rel);
     } catch {
       setNotFound(true);
