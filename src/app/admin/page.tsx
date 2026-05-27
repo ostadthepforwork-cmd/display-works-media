@@ -698,7 +698,7 @@ function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit,
 // CUSTOMER PAGE
 // ============================================================
 function CustomerPage({ customers, setCustomers, showToast }: any) {
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "" };
   const filtered = customers.filter(c => c.name.includes(search) || c.contact?.includes(search) || c.phone?.includes(search));
@@ -766,7 +766,7 @@ function CustomerForm({ data, onSave, onCancel }: any) {
 // PRODUCT PAGE — แก้ไข/ลบได้
 // ============================================================
 function ProductPage({ products, setProducts, showToast }: any) {
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", unit: "ชิ้น", cost: "", price: "" };
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
@@ -886,7 +886,7 @@ function CompanyPage({ company, setCompany, showToast }: any) {
 // DOCUMENT PAGE
 // ============================================================
 function DocumentPage({ type, documents, allDocuments, setDocuments, customers, products, company, showToast }: any) {
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const dt = DOC_TYPES[type];
@@ -1167,7 +1167,7 @@ function Modal({ title, onClose, children, width = 500 }: any) {
 
 function BlogManager({ showToast }: any) {
   const [posts, setPosts] = useState([]);
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -1471,7 +1471,7 @@ function ServicesManager({ showToast }: any) {
     { id: "5", name: "Backdrop", icon: "🖼", desc: "ป้าย Backdrop ขนาดใหญ่สำหรับงานอีเวนต์ ถ่ายรูป และงานแถลงข่าว", price: "ชุดละ 3,500฿", url: "/services/backdrop" },
     { id: "6", name: "ฉลากสินค้า", icon: "🏷", desc: "พิมพ์ฉลากสินค้าคุณภาพสูง ทั้งแบบม้วนและแผ่น รองรับทุกขนาด", price: "100 ชิ้นละ 400฿", url: "/services/label" },
   ]));
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<any>(null);
 
   const save = (s) => {
     const newSvc = s.id ? services.map(x => x.id === s.id ? s : x) : [...services, { ...s, id: Date.now().toString() }];
@@ -1534,7 +1534,7 @@ function ReviewsManager({ showToast }: any) {
     { id: "2", name: "คุณนงนุช", company: "ร้านเสื้อผ้า Fashion Plus", stars: 5, text: "ทำป้ายหน้าร้านสวยมากค่ะ ลูกค้าเห็นแล้วชอบกันเยอะเลย" },
     { id: "3", name: "คุณวิชัย", company: "บริษัทออแกนิก", stars: 4, text: "งานคุณภาพดี ทีมงานให้คำปรึกษาเรื่องขนาดและวัสดุได้ดีมาก" },
   ]));
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<any>(null);
 
   const save = (r) => {
     const nr = r.id ? reviews.map(x => x.id === r.id ? r : x) : [...reviews, { ...r, id: Date.now().toString() }];
@@ -1599,7 +1599,7 @@ function ReviewsManager({ showToast }: any) {
 // ============================================================
 function PortfolioManager({ showToast }: any) {
   const [items, setItems] = useState(() => loadLocal("portfolio", []));
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef();
 
