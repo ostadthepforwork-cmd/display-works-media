@@ -29,21 +29,21 @@ const genId = () =>
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2) + Date.now().toString(36);
 const today = () => new Date().toISOString().slice(0, 10);
-const addDays = (d, n) => {
+const addDays = (d: string, n: number) => {
   const dt = new Date(d);
   dt.setDate(dt.getDate() + n);
   return dt.toISOString().slice(0, 10);
 };
-const fmtDate = (d) => {
+const fmtDate = (d: string) => {
   if (!d) return "-";
   const dt = new Date(d + "T00:00:00");
   return dt.toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "numeric" });
 };
-const fmtMoney = (n) =>
+const fmtMoney = (n: number) =>
   Number(n || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 // ── Shared calculation utility — ใช้ร่วมกันทุกจุด ──────────
-const calcDocTotal = (doc) => {
+const calcDocTotal = (doc: any) => {
   const subtotal    = (doc.items || []).reduce((s, i) => s + (i.qty || 0) * (i.price || 0), 0);
   const discountAmt = subtotal * ((doc.discount || 0) / 100);
   const afterDisc   = subtotal - discountAmt;
@@ -98,7 +98,7 @@ function saveStore(key: string, val: unknown) {
 // ============================================================
 // PRINT / PDF helper — Premium A4 Design (Display Works Media)
 // ============================================================
-function printDocument(doc, customers, company) {
+function printDocument(doc: any, customers: any[], company: any) {
   const cust = customers.find((c) => c.id === doc.customerId) || {};
   const dt = DOC_TYPES[doc.type];
 
@@ -525,7 +525,7 @@ export default function AdminPage() {
 // ─── ERP COMPONENTS ───────────────────────────────────────────────────────────
 // SIDEBAR
 // ============================================================
-function ErpSidebar({ page, setPage, docCounts }) {
+function ErpSidebar({ page, setPage, docCounts }: any) {
   const navItems = [
     { id: "dashboard", icon: "⊞", label: "ภาพรวม" },
     { id: "customers", icon: "👥", label: "ลูกค้า" },
@@ -575,7 +575,7 @@ function ErpSidebar({ page, setPage, docCounts }) {
 // ============================================================
 // DASHBOARD — เพิ่มกำไร/ขาดทุน
 // ============================================================
-function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit, docCounts, setPage }) {
+function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit, docCounts, setPage }: any) {
   const pendingDocs = documents.filter((d) => ["draft", "sent"].includes(d.status));
   const recentDocs = [...documents].sort((a, b) => b.createdAt - a.createdAt).slice(0, 6);
   const profitMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0;
@@ -696,7 +696,7 @@ function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit,
 // ============================================================
 // CUSTOMER PAGE
 // ============================================================
-function CustomerPage({ customers, setCustomers, showToast }) {
+function CustomerPage({ customers, setCustomers, showToast }: any) {
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "" };
@@ -740,7 +740,7 @@ function CustomerPage({ customers, setCustomers, showToast }) {
     </div>
   );
 }
-function CustomerForm({ data, onSave, onCancel }) {
+function CustomerForm({ data, onSave, onCancel }: any) {
   const [f, setF] = useState(data);
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   return (
@@ -764,7 +764,7 @@ function CustomerForm({ data, onSave, onCancel }) {
 // ============================================================
 // PRODUCT PAGE — แก้ไข/ลบได้
 // ============================================================
-function ProductPage({ products, setProducts, showToast }) {
+function ProductPage({ products, setProducts, showToast }: any) {
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", unit: "ชิ้น", cost: "", price: "" };
@@ -828,7 +828,7 @@ function ProductPage({ products, setProducts, showToast }) {
     </div>
   );
 }
-function ProductForm({ data, onSave, onCancel }) {
+function ProductForm({ data, onSave, onCancel }: any) {
   const [f, setF] = useState({ ...data, cost: data.cost || "", price: data.price || "" });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const margin = (parseFloat(f.price) || 0) - (parseFloat(f.cost) || 0);
@@ -860,7 +860,7 @@ function ProductForm({ data, onSave, onCancel }) {
 // ============================================================
 // COMPANY PAGE
 // ============================================================
-function CompanyPage({ company, setCompany, showToast }) {
+function CompanyPage({ company, setCompany, showToast }: any) {
   const [f, setF] = useState(company);
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const save = () => { setCompany(f); showToast("บันทึกข้อมูลบริษัทแล้ว"); };
@@ -884,7 +884,7 @@ function CompanyPage({ company, setCompany, showToast }) {
 // ============================================================
 // DOCUMENT PAGE
 // ============================================================
-function DocumentPage({ type, documents, allDocuments, setDocuments, customers, products, company, showToast }) {
+function DocumentPage({ type, documents, allDocuments, setDocuments, customers, products, company, showToast }: any) {
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -1004,7 +1004,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
 // ============================================================
 // DOC FORM
 // ============================================================
-function DocForm({ doc, type, customers, products, onSave, onCancel }) {
+function DocForm({ doc, type, customers, products, onSave, onCancel }: any) {
   const [f, setF] = useState({ ...doc });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const setN = (k) => (e) => setF(prev => ({ ...prev, [k]: parseFloat(e.target.value) || 0 }));
@@ -1106,7 +1106,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel }) {
   );
 }
 
-function SumRow({ label, value, bold, color, big }) {
+function SumRow({ label, value, bold, color, big }: any) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <span style={{ fontSize: big ? 14 : 13, color: "#A8B0C0" }}>{label}</span>
@@ -1117,9 +1117,9 @@ function SumRow({ label, value, bold, color, big }) {
   );
 }
 
-function Field({ label, children }) { return <div><label>{label}</label>{children}</div>; }
+function Field({ label, children }: any) { return <div><label>{label}</label>{children}</div>; }
 
-function Btn({ onClick, children, color, outline, small, style }) {
+function Btn({ onClick, children, color, outline, small, style }: any) {
   return (
     <button onClick={onClick} style={{
       background: outline ? "transparent" : (color || "#FF6B00"),
@@ -1134,7 +1134,7 @@ function Btn({ onClick, children, color, outline, small, style }) {
   );
 }
 
-function IconBtn({ onClick, children, danger, small }) {
+function IconBtn({ onClick, children, danger, small }: any) {
   return (
     <button onClick={onClick} style={{
       background: danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
@@ -1148,7 +1148,7 @@ function IconBtn({ onClick, children, danger, small }) {
   );
 }
 
-function Modal({ title, onClose, children, width = 500 }) {
+function Modal({ title, onClose, children, width = 500 }: any) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -1164,7 +1164,7 @@ function Modal({ title, onClose, children, width = 500 }) {
 }
 
 
-function BlogManager({ showToast }) {
+function BlogManager({ showToast }: any) {
   const [posts, setPosts] = useState([]);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
@@ -1265,7 +1265,7 @@ function BlogManager({ showToast }) {
   );
 }
 
-function BlogForm({ data, onSave, onCancel, showToast }) {
+function BlogForm({ data, onSave, onCancel, showToast }: any) {
   const [f, setF] = useState({ ...data });
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef();
@@ -1364,7 +1364,7 @@ function BlogForm({ data, onSave, onCancel, showToast }) {
 // ============================================================
 // HERO MANAGER
 // ============================================================
-function HeroManager({ showToast }) {
+function HeroManager({ showToast }: any) {
   const [hero, setHero] = useState(() => loadLocal("hero", {
     headline1: "ผลิตสื่อโฆษณา",
     headlineHighlight: "ครบวงจร",
@@ -1461,7 +1461,7 @@ function HeroManager({ showToast }) {
 // ============================================================
 // SERVICES MANAGER
 // ============================================================
-function ServicesManager({ showToast }) {
+function ServicesManager({ showToast }: any) {
   const [services, setServices] = useState(() => loadLocal("services", [
     { id: "1", name: "ป้ายไวนิล", icon: "🪟", desc: "พิมพ์งานคุณภาพสูง ทนต่อแสงและฝน เหมาะสำหรับป้ายหน้าร้าน ป้ายโฆษณา ขนาดใหญ่", price: "ตร.ม.ละ 200฿", url: "/services/vinyl" },
     { id: "2", name: "สติ๊กเกอร์", icon: "🏷️", desc: "สติ๊กเกอร์กันน้ำ indoor/outdoor พิมพ์สี 4 สี คมชัด ติดทนนาน", price: "ตร.ม.ละ 350฿", url: "/services/sticker" },
@@ -1527,7 +1527,7 @@ function ServicesManager({ showToast }) {
 // ============================================================
 // REVIEWS MANAGER
 // ============================================================
-function ReviewsManager({ showToast }) {
+function ReviewsManager({ showToast }: any) {
   const [reviews, setReviews] = useState(() => loadLocal("reviews", [
     { id: "1", name: "คุณสมชาย", company: "ร้านอาหารครัวบ้าน", stars: 5, text: "บริการดีมาก งานออกมาสวยงาม ส่งตรงเวลา ราคาเป็นธรรม" },
     { id: "2", name: "คุณนงนุช", company: "ร้านเสื้อผ้า Fashion Plus", stars: 5, text: "ทำป้ายหน้าร้านสวยมากค่ะ ลูกค้าเห็นแล้วชอบกันเยอะเลย" },
@@ -1596,7 +1596,7 @@ function ReviewsManager({ showToast }) {
 // ============================================================
 // PORTFOLIO MANAGER
 // ============================================================
-function PortfolioManager({ showToast }) {
+function PortfolioManager({ showToast }: any) {
   const [items, setItems] = useState(() => loadLocal("portfolio", []));
   const [editing, setEditing] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -1686,7 +1686,7 @@ function PortfolioManager({ showToast }) {
 // ============================================================
 // CONTACT MANAGER
 // ============================================================
-function ContactManager({ showToast }) {
+function ContactManager({ showToast }: any) {
   const [c, setC] = useState(() => loadLocal("contact", {
     phone: "065-916-1539", line: "https://lin.ee/O0nPl03", email: "info@displayworksmedia.com",
     address: "123 ถ.ตัวอย่าง กรุงเทพฯ 10110", facebook: "", instagram: "", hours: "จ-ศ 9:00-18:00 น.",
@@ -1720,16 +1720,16 @@ function ContactManager({ showToast }) {
 // ============================================================
 // UI COMPONENTS
 // ============================================================
-function Card({ children }) {
+function Card({ children }: any) {
   return <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 24 }}>{children}</div>;
 }
-function SectionTitle({ children }) {
+function SectionTitle({ children }: any) {
   return <div style={{ fontSize: 12, fontWeight: 600, color: "#FF6B00", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>{children}</div>;
 }
-function CField({ label, children }) {
+function CField({ label, children }: any) {
   return <div><label>{label}</label>{children}</div>;
 }
-function CBtn({ onClick, children, color, outline, small, style, disabled }) {
+function CBtn({ onClick, children, color, outline, small, style, disabled }: any) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
       background: outline ? "transparent" : (color || "#FF6B00"),
@@ -1742,7 +1742,7 @@ function CBtn({ onClick, children, color, outline, small, style, disabled }) {
     }}>{children}</button>
   );
 }
-function CIconBtn({ onClick, children, danger, small }) {
+function CIconBtn({ onClick, children, danger, small }: any) {
   return (
     <button onClick={onClick} style={{
       background: danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
@@ -1753,7 +1753,7 @@ function CIconBtn({ onClick, children, danger, small }) {
     }}>{children}</button>
   );
 }
-function CModal({ title, onClose, children, width = 500 }) {
+function CModal({ title, onClose, children, width = 500 }: any) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -1767,7 +1767,7 @@ function CModal({ title, onClose, children, width = 500 }) {
     </div>
   );
 }
-function EmptyState({ icon, text }) {
+function EmptyState({ icon, text }: any) {
   return (
     <div style={{ gridColumn: "1/-1", padding: 60, textAlign: "center", color: "#555" }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>{icon}</div>
