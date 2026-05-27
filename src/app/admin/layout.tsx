@@ -8,11 +8,10 @@ export default async function AdminLayout({
 }) {
   try {
     const supabase = await createSupabaseServerClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    // ใช้ getUser() แทน getSession() — getSession() ไม่ validate token จาก cookie ใน server component
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       redirect("/login");
     }
   } catch {
