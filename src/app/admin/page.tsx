@@ -1276,7 +1276,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
     if (!file) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop().toLowerCase();
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
       const path = `blog/${Date.now()}.${ext}`;
 
       // อัปโหลดไฟล์
@@ -1384,7 +1384,7 @@ function HeroManager({ showToast }: any) {
     if (!file) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
+      const ext = file.name.split(".").pop() ?? "jpg";
       const path = `hero/bg.${ext}`;
       const { error } = await supabase.storage.from("cms-media").upload(path, file, { upsert: true });
       if (error) throw error;
@@ -1606,7 +1606,7 @@ function PortfolioManager({ showToast }: any) {
   const uploadImg = async (file: File | undefined, callback: (url: string) => void) => {
     if (!file) return;
     try {
-      const ext = file.name.split(".").pop();
+      const ext = file.name.split(".").pop() ?? "jpg";
       const path = `portfolio/${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("cms-media").upload(path, file, { upsert: true });
       if (error) throw error;
