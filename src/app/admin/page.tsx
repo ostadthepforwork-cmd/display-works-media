@@ -1182,7 +1182,7 @@ function BlogManager({ showToast }: any) {
     setLoading(false);
   };
 
-  useState(() => { fetchPosts(); }, []);
+  useEffect(() => { fetchPosts(); }, []);
 
   const save = async (p) => {
     if (p.id) {
