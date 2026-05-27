@@ -437,11 +437,16 @@ export default function AdminPage() {
   const [documents, setDocuments] = useState(() => loadStore("documents", []));
   const [company, setCompany] = useState(() =>
     loadStore("company", {
-      name: "Display Works Media",
-      address: "123 ถ.ตัวอย่าง กรุงเทพฯ 10110",
-      phone: "088-888-8888",
+      name: "บริษัท ดิสเพลย์ เวิร์คส์ มีเดีย จำกัด",
+      address: "88/8 ซอยบางกรวย-ไทรน้อย 17 ตำบลบางรักพัฒนา อำเภอบางบัวทอง นนทบุรี 11110",
+      phone: "02-123-4567",
       email: "info@displayworksmedia.com",
       taxId: "0105550000000",
+      salesPerson: "",
+      bankName: "บริษัท ดิสเพลย์ เวิร์คส์ มีเดีย จำกัด",
+      bankBranch: "ธนาคารกสิกรไทย สาขาบางบัวทอง",
+      bankAccount: "123-4-56789-0",
+      bankType: "ออมทรัพย์",
     })
   );
 
@@ -1169,22 +1174,47 @@ function ProductForm({ data, onSave, onCancel }: any) {
 // COMPANY PAGE
 // ============================================================
 function CompanyPage({ company, setCompany, showToast }: any) {
-  const [f, setF] = useState(company);
+  const [f, setF] = useState({ bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", salesPerson: "", ...company });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const save = () => { setCompany(f); showToast("บันทึกข้อมูลบริษัทแล้ว"); };
+  const secStyle = { background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 24, display: "flex" as const, flexDirection: "column" as const, gap: 14 };
+  const barStyle = (color: string) => ({ width: 4, height: 20, background: color, borderRadius: 2, marginRight: 8, display: "inline-block", flexShrink: 0 });
+  const secTitle = (icon: string, text: string, color = "#FF6B00") => (
+    <div style={{ display: "flex", alignItems: "center", marginBottom: 4, fontSize: 14, fontWeight: 700 }}>
+      <span style={barStyle(color)} />{icon} {text}
+    </div>
+  );
   return (
-    <div style={{ maxWidth: 540, animation: "fadeIn 0.3s ease" }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>ข้อมูลบริษัท</h2>
-      <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
-        <Field label="ชื่อบริษัท"><input value={f.name} onChange={set("name")} /></Field>
-        <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
+    <div style={{ maxWidth: 580, animation: "fadeIn 0.3s ease", display: "flex", flexDirection: "column", gap: 20 }}>
+      <h2 style={{ fontSize: 20, fontWeight: 700 }}>⚙️ ตั้งค่าบริษัท</h2>
+
+      {/* Section 1: บริษัท */}
+      <div style={secStyle}>
+        {secTitle("🏢", "ข้อมูลบริษัทผู้เสนอราคา")}
+        <Field label="ชื่อบริษัท / ร้านค้า"><input value={f.name} onChange={set("name")} /></Field>
+        <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={3} style={{ resize: "vertical" }} /></Field>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="โทรศัพท์"><input value={f.phone} onChange={set("phone")} /></Field>
-          <Field label="อีเมล"><input value={f.email} onChange={set("email")} /></Field>
+          <Field label="โทรศัพท์"><input value={f.phone || ""} onChange={set("phone")} placeholder="02-xxx-xxxx" /></Field>
+          <Field label="อีเมล"><input value={f.email || ""} onChange={set("email")} placeholder="info@company.com" /></Field>
         </div>
-        <Field label="เลขประจำตัวผู้เสียภาษี"><input value={f.taxId} onChange={set("taxId")} /></Field>
-        <Btn onClick={save} color="#FF6B00">💾 บันทึกข้อมูล</Btn>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="เลขผู้เสียภาษี"><input value={f.taxId || ""} onChange={set("taxId")} placeholder="0105550000000" /></Field>
+          <Field label="พนักงานขาย (Default)"><input value={f.salesPerson || ""} onChange={set("salesPerson")} placeholder="ชื่อพนักงาน" /></Field>
+        </div>
       </div>
+
+      {/* Section 2: ธนาคาร */}
+      <div style={secStyle}>
+        {secTitle("🏦", "ข้อมูลบัญชีรับชำระเงิน", "#3B82F6")}
+        <Field label="ชื่อบัญชีรับเงิน"><input value={f.bankName || ""} onChange={set("bankName")} placeholder="ชื่อบัญชีธนาคาร" /></Field>
+        <Field label="ธนาคาร & สาขา"><input value={f.bankBranch || ""} onChange={set("bankBranch")} placeholder="เช่น ธนาคารกสิกรไทย สาขาบางบัวทอง" /></Field>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="เลขที่บัญชี"><input value={f.bankAccount || ""} onChange={set("bankAccount")} placeholder="xxx-x-xxxxx-x" /></Field>
+          <Field label="ประเภทบัญชี"><input value={f.bankType || ""} onChange={set("bankType")} placeholder="ออมทรัพย์ / กระแสรายวัน" /></Field>
+        </div>
+      </div>
+
+      <Btn onClick={save} color="#FF6B00">💾 บันทึกข้อมูลทั้งหมด</Btn>
     </div>
   );
 }
@@ -1214,7 +1244,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     return `${prefix}${String(maxSeq + 1).padStart(4, "0")}`;
   };
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", reference: "", items: [], discount: 0, vat: true, wht: false, whtRate: 3, status: "draft", notes: "" });
+    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, wht: false, whtRate: 3, status: "draft", notes: "" });
   };
   const save = (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
@@ -1302,7 +1332,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       </div>
       {editing && (
         <Modal title={`${editing.id ? "แก้ไข" : "สร้าง"}${dt.label}`} onClose={() => setEditing(null)} width={760}>
-          <DocForm doc={editing} type={type} customers={customers} products={products} onSave={save} onCancel={() => setEditing(null)} />
+          <DocForm doc={editing} type={type} customers={customers} products={products} onSave={save} onCancel={() => setEditing(null)} allDocuments={allDocuments} />
         </Modal>
       )}
     </div>
@@ -1312,100 +1342,207 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
 // ============================================================
 // DOC FORM
 // ============================================================
-function DocForm({ doc, type, customers, products, onSave, onCancel }: any) {
-  const [f, setF] = useState({ ...doc });
+function DocForm({ doc, type, customers, products, onSave, onCancel, allDocuments }: any) {
+  const [f, setF] = useState({ salesPerson: "", orderId: "", ...doc });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const setN = (k) => (e) => setF(prev => ({ ...prev, [k]: parseFloat(e.target.value) || 0 }));
   const setBool = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.checked }));
   const dt = DOC_TYPES[type];
-  const setCust = (id) => { const c = customers.find(c => c.id === id); setF(prev => ({ ...prev, customerId: id, customerName: c?.name || "" })); };
-  const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", unit: "ชิ้น", qty: 1, price: 0 }] }));
+
+  // ── ลูกค้า ──────────────────────────────────────────────
+  const setCust = (id) => {
+    const c = customers.find(c => c.id === id);
+    setF(prev => ({ ...prev, customerId: id, customerName: c?.name || "" }));
+  };
+
+  // ── รายการสินค้า ─────────────────────────────────────────
+  const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0 }] }));
   const removeItem = (id) => setF(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
-  const setItem = (id, k, v) => setF(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, [k]: k === "qty" || k === "price" ? parseFloat(v) || 0 : v } : i) }));
+  const setItem = (id, k, v) => setF(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, [k]: (k === "qty" || k === "price") ? parseFloat(v) || 0 : v } : i) }));
   const pickProduct = (itemId, prodId) => {
     const p = products.find(p => p.id === prodId);
     if (!p) return;
     setF(prev => ({ ...prev, items: prev.items.map(i => i.id === itemId ? { ...i, name: p.name, unit: p.unit, price: p.price } : i) }));
   };
-  const { subtotal, discAmt, afterDisc, vatAmt, total, whtAmt, netPay } = (() => {
-    const r = calcDocTotal(f);
-    return { ...r, discAmt: r.discountAmt, afterDisc: r.afterDisc };
-  })();
+
+  // ── คำนวณ ────────────────────────────────────────────────
+  const { subtotal, discountAmt: discAmt, afterDisc, vatAmt, total, whtAmt, netPay } = calcDocTotal(f);
+
+  // ── เอกสารอ้างอิง (Order linking) ─────────────────────────
+  const relatedOrders = (allDocuments || []).filter(d => d.id !== doc.id && d.customerId === f.customerId);
+
+  // ── Styles ───────────────────────────────────────────────
+  const card = { background: "#1A2233", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "18px 20px", display: "flex" as const, flexDirection: "column" as const, gap: 14 };
+  const sectionBar = (color: string) => ({ width: 4, height: 20, background: color, borderRadius: 2, display: "inline-block", marginRight: 8, flexShrink: 0 });
+  const secHead = (num: string, text: string, color = "#FF6B00") => (
+    <div style={{ display: "flex", alignItems: "center", fontSize: 14, fontWeight: 700, marginBottom: 2 }}>
+      <span style={sectionBar(color)} />
+      <span style={{ background: color + "22", color, fontSize: 11, padding: "2px 8px", borderRadius: 99, marginRight: 8 }}>{num}</span>
+      {text}
+    </div>
+  );
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-        <Field label="เลขที่เอกสาร *"><input value={f.docNo} onChange={set("docNo")} /></Field>
-        <Field label="วันที่"><input type="date" value={f.date} onChange={set("date")} /></Field>
-        <Field label="วันครบกำหนด"><input type="date" value={f.dueDate} onChange={set("dueDate")} /></Field>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+      {/* ── SECTION 1: ข้อมูลเอกสาร ── */}
+      <div style={card}>
+        {secHead("1", "ข้อมูลเอกสาร")}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <Field label="เลขที่เอกสาร *"><input value={f.docNo} onChange={set("docNo")} /></Field>
+          <Field label="วันที่ออกเอกสาร"><input type="date" value={f.date} onChange={set("date")} /></Field>
+          <Field label={DOC_TYPES[type]?.prefix === "QT" ? "ยืนยันราคาถึงวันที่" : "วันครบกำหนด"}><input type="date" value={f.dueDate} onChange={set("dueDate")} /></Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="พนักงานขาย"><input value={f.salesPerson || ""} onChange={set("salesPerson")} placeholder="ชื่อพนักงาน" /></Field>
+          <Field label="โครงการ / ชื่องาน"><input value={f.projectName || ""} onChange={set("projectName")} placeholder="ระบุชื่อโครงการ" /></Field>
+        </div>
+        {/* Order Reference Linking */}
+        <Field label="🔗 อ้างอิงเอกสาร (Order เดียวกัน)">
+          <select value={f.orderId || ""} onChange={set("orderId")}>
+            <option value="">-- ไม่อ้างอิง --</option>
+            {relatedOrders.map(d => (
+              <option key={d.id} value={d.id}>
+                {d.docNo} · {DOC_TYPES[d.type]?.label} · {d.customerName} ({STATUS_LABELS[d.status]})
+              </option>
+            ))}
+          </select>
+        </Field>
+        {f.orderId && (() => {
+          const ref = (allDocuments || []).find(d => d.id === f.orderId);
+          if (!ref) return null;
+          const linkedDocs = (allDocuments || []).filter(d => d.orderId === f.orderId || d.id === f.orderId);
+          return (
+            <div style={{ background: "#0B0F19", borderRadius: 8, padding: "10px 14px", fontSize: 12, display: "flex", flexDirection: "column" as const, gap: 6 }}>
+              <div style={{ color: "#FF6B00", fontWeight: 700, fontSize: 11, marginBottom: 4 }}>📋 เอกสารในชุดเดียวกัน</div>
+              {linkedDocs.map(d => (
+                <div key={d.id} style={{ display: "flex", justifyContent: "space-between", color: d.id === f.orderId ? "#fff" : "#A8B0C0" }}>
+                  <span>{DOC_TYPES[d.type]?.label} — <span style={{ fontFamily: "monospace", color: DOC_TYPES[d.type]?.color }}>{d.docNo}</span></span>
+                  <span style={{ background: STATUS_COLORS[d.status] + "22", color: STATUS_COLORS[d.status], padding: "1px 8px", borderRadius: 99, fontSize: 10 }}>{STATUS_LABELS[d.status]}</span>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+
+      {/* ── SECTION 2: ลูกค้า ── */}
+      <div style={card}>
+        {secHead("2", "ข้อมูลลูกค้า", "#3B82F6")}
         <Field label="ลูกค้า *">
           <select value={f.customerId} onChange={e => setCust(e.target.value)}>
             <option value="">-- เลือกลูกค้า --</option>
             {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </Field>
-        <Field label="โครงการ/อ้างอิง"><input value={f.projectName} onChange={set("projectName")} placeholder="ชื่อโครงการ" /></Field>
+        {f.customerId && (() => {
+          const c = customers.find(c => c.id === f.customerId);
+          if (!c) return null;
+          return (
+            <div style={{ background: "#0B0F19", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#A8B0C0", display: "flex", flexDirection: "column" as const, gap: 4 }}>
+              {c.address && <div>📍 {c.address}</div>}
+              {c.phone && <div>📞 {c.phone}</div>}
+              {c.taxId && <div>🪪 เลขผู้เสียภาษี: {c.taxId}</div>}
+            </div>
+          );
+        })()}
       </div>
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <label style={{ fontSize: 13, color: "#A8B0C0", fontWeight: 600 }}>รายการสินค้า/บริการ</label>
+
+      {/* ── SECTION 3: รายการสินค้า ── */}
+      <div style={card}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          {secHead("3", "รายการสินค้าและบริการ", "#10B981")}
           <Btn onClick={addItem} color={dt.color} small>+ เพิ่มรายการ</Btn>
         </div>
-        <div style={{ background: "#1A2233", borderRadius: 10, overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 80px 110px 110px 32px" }}>
-            {["รายการ", "หน่วย", "จำนวน", "ราคา/หน่วย", "รวม", ""].map((h, i) => (
-              <div key={i} style={{ padding: "8px 10px", fontSize: 11, color: "#555", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>{h}</div>
-            ))}
-          </div>
-          {f.items.map((item) => (
-            <div key={item.id} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 80px 110px 110px 32px", borderBottom: "1px solid rgba(255,255,255,0.04)", alignItems: "center" }}>
-              <div style={{ padding: "6px 8px", display: "flex", gap: 4 }}>
-                <select onChange={e => pickProduct(item.id, e.target.value)} style={{ width: 90, fontSize: 11, padding: "4px 4px" }} defaultValue="">
-                  <option value="">เลือก</option>
-                  {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-                <input value={item.name} onChange={e => setItem(item.id, "name", e.target.value)} placeholder="รายละเอียด" style={{ flex: 1 }} />
-              </div>
-              <div style={{ padding: "6px 6px" }}><input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} /></div>
-              <div style={{ padding: "6px 6px" }}><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" /></div>
-              <div style={{ padding: "6px 6px" }}><input type="number" value={item.price} onChange={e => setItem(item.id, "price", e.target.value)} min="0" step="0.01" /></div>
-              <div style={{ padding: "6px 10px", fontSize: 13, fontWeight: 600, color: dt.color, textAlign: "right" }}>฿{fmtMoney(item.qty * item.price)}</div>
-              <div style={{ padding: "6px 4px" }}><IconBtn onClick={() => removeItem(item.id)} danger small>✕</IconBtn></div>
+
+        {f.items.length === 0 && (
+          <div style={{ padding: "20px", textAlign: "center", color: "#555", fontSize: 13 }}>กด "+ เพิ่มรายการ" เพื่อเพิ่มสินค้า</div>
+        )}
+
+        {f.items.map((item, idx) => (
+          <div key={item.id} style={{ background: "#0B0F19", borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column" as const, gap: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: dt.color }}>รายการ #{String(idx + 1).padStart(2, "0")}</span>
+              <IconBtn onClick={() => removeItem(item.id)} danger small>🗑 ลบออก</IconBtn>
             </div>
-          ))}
-          {f.items.length === 0 && <div style={{ padding: "20px", textAlign: "center", color: "#555", fontSize: 13 }}>กด "+ เพิ่มรายการ" เพื่อเพิ่มสินค้า</div>}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <Field label="รายการหลัก (EN)">
+                <div style={{ display: "flex", gap: 6 }}>
+                  <select onChange={e => pickProduct(item.id, e.target.value)} style={{ width: 100, fontSize: 11, padding: "4px 6px" }} defaultValue="">
+                    <option value="">เลือก</option>
+                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                  <input value={item.name} onChange={e => setItem(item.id, "name", e.target.value)} placeholder="ชื่อรายการ" style={{ flex: 1 }} />
+                </div>
+              </Field>
+              <Field label="รายการรอง (TH)">
+                <input value={item.subTitle || ""} onChange={e => setItem(item.id, "subTitle", e.target.value)} placeholder="ชื่อภาษาไทย" />
+              </Field>
+            </div>
+            <Field label="รายละเอียดทางเทคนิค (พิมพ์บรรทัดละหัวข้อ)">
+              <textarea value={item.detail || ""} onChange={e => setItem(item.id, "detail", e.target.value)} rows={3} style={{ resize: "vertical", fontFamily: "inherit" }} placeholder={"ขนาด 120 x 300 cm.\nโครงสร้างอลูมิเนียม\nติดตั้งหน้างาน"} />
+            </Field>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 10 }}>
+              <Field label="จำนวน"><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
+              <Field label="หน่วย"><input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} style={{ textAlign: "center" }} /></Field>
+              <Field label="ราคาต่อหน่วย">
+                <div style={{ position: "relative" }}>
+                  <input type="number" value={item.price} onChange={e => setItem(item.id, "price", e.target.value)} min="0" step="0.01" style={{ textAlign: "right", paddingRight: 36 }} />
+                  <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#555" }}>THB</span>
+                </div>
+              </Field>
+            </div>
+            <div style={{ textAlign: "right", fontSize: 13, fontWeight: 700, color: dt.color }}>
+              รวม: ฿{fmtMoney(item.qty * item.price)}
+            </div>
+          </div>
+        ))}
+
+        {/* ส่วนลด */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 12 }}>
+          <Field label="จำนวนส่วนลด (%)">
+            <input type="number" value={f.discount} onChange={setN("discount")} min="0" max="100" style={{ borderColor: "#FF6B0044", color: "#FF6B00", fontWeight: 700 }} />
+          </Field>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <Field label="ส่วนลด (%)"><input type="number" value={f.discount} onChange={setN("discount")} min="0" max="100" /></Field>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
-              <input type="checkbox" checked={f.vat} onChange={setBool("vat")} style={{ width: "auto" }} />คิด VAT 7%
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
-              <input type="checkbox" checked={f.wht} onChange={setBool("wht")} style={{ width: "auto" }} />หัก ณ ที่จ่าย
-            </label>
-            {f.wht && <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+
+      {/* ── SECTION 4: ชำระเงิน & หมายเหตุ ── */}
+      <div style={card}>
+        {secHead("4", "ข้อมูลชำระเงิน & หมายเหตุ", "#8B5CF6")}
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
+            <input type="checkbox" checked={f.vat} onChange={setBool("vat")} style={{ width: "auto" }} />คิด VAT 7%
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
+            <input type="checkbox" checked={f.wht} onChange={setBool("wht")} style={{ width: "auto" }} />หัก ณ ที่จ่าย
+          </label>
+          {f.wht && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <input type="number" value={f.whtRate} onChange={setN("whtRate")} min="0" max="10" style={{ width: 60 }} />
               <span style={{ fontSize: 13, color: "#ccc" }}>%</span>
-            </div>}
-          </div>
-          <Field label="หมายเหตุ"><textarea value={f.notes} onChange={set("notes")} rows={2} style={{ resize: "vertical" }} placeholder="เงื่อนไขการชำระเงิน..." /></Field>
+            </div>
+          )}
         </div>
-        <div style={{ background: "#1A2233", borderRadius: 10, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
-          <SumRow label="มูลค่ารวม" value={subtotal} />
-          {f.discount > 0 && <SumRow label={`ส่วนลด ${f.discount}%`} value={-discAmt} />}
-          {f.discount > 0 && <SumRow label="หลังหักส่วนลด" value={afterDisc} />}
-          {f.vat && <SumRow label="VAT 7%" value={vatAmt} />}
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 4, paddingTop: 8 }}>
-            <SumRow label="ยอดรวมสุทธิ" value={total} bold color={dt.color} big />
-          </div>
-          {f.wht && <SumRow label={`หัก ณ ที่จ่าย ${f.whtRate}%`} value={-whtAmt} />}
-          {f.wht && <SumRow label="ยอดที่ต้องชำระ" value={netPay} bold color="#10b981" />}
-        </div>
+        <Field label="หมายเหตุ / เงื่อนไข (ใส่ข้อละ 1 บรรทัด)">
+          <textarea value={f.notes} onChange={set("notes")} rows={4} style={{ resize: "vertical", fontFamily: "inherit" }}
+            placeholder={"ราคานี้รวมภาษีมูลค่าเพิ่ม 7% แล้ว\nระยะเวลาดำเนินงาน 7-14 วันทำการ\nมัดจำ 50% ก่อนเริ่มงาน"} />
+        </Field>
       </div>
+
+      {/* ── Summary ── */}
+      <div style={{ background: "#1A2233", borderRadius: 12, padding: "16px 20px", display: "flex", flexDirection: "column" as const, gap: 8 }}>
+        <SumRow label="มูลค่ารวม (Subtotal)" value={subtotal} />
+        {f.discount > 0 && <SumRow label={`ส่วนลด ${f.discount}%`} value={-discAmt} />}
+        {f.discount > 0 && <SumRow label="หลังหักส่วนลด" value={afterDisc} />}
+        {f.vat && <SumRow label="VAT 7%" value={vatAmt} />}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 4, paddingTop: 8 }}>
+          <SumRow label="ยอดรวมสุทธิ" value={total} bold color={dt.color} big />
+        </div>
+        {f.wht && <SumRow label={`หัก ณ ที่จ่าย ${f.whtRate}%`} value={-whtAmt} />}
+        {f.wht && <SumRow label="ยอดที่ต้องชำระ" value={netPay} bold color="#10b981" />}
+      </div>
+
+      {/* ── Actions ── */}
       <div style={{ display: "flex", gap: 10 }}>
         <Btn onClick={() => onSave(f)} color={dt.color} style={{ flex: 1 }}>💾 บันทึกเอกสาร</Btn>
         <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
