@@ -1166,7 +1166,7 @@ function Modal({ title, onClose, children, width = 500 }: any) {
 
 
 function BlogManager({ showToast }: any) {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -1178,7 +1178,7 @@ function BlogManager({ showToast }: any) {
       .from("posts")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!error) setPosts(data || []);
+    if (!error) setPosts((data as any[]) || []);
     setLoading(false);
   };
 
