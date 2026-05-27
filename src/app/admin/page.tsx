@@ -582,110 +582,356 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
 // DASHBOARD — เพิ่มกำไร/ขาดทุน
 // ============================================================
 function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit, docCounts, setPage }: any) {
-  const pendingDocs = documents.filter((d) => ["draft", "sent"].includes(d.status));
-  const recentDocs = [...documents].sort((a, b) => b.createdAt - a.createdAt).slice(0, 6);
-  const profitMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0;
+  const [chartRange, setChartRange] = useState<"7d"|"30d"|"12m">("30d");
+
+  // ─── คำนวณข้อมูลหลัก ───────────────────────────────────────────
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+  const lastMonthEnd   = thisMonthStart - 1;
+
+  const paidDocs = documents.filter((d: any) => d.status === "paid");
+
+  const calcRev = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcDocTotal(d).total, 0);
+  const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
+    s + d.items.reduce((ss: number, i: any) => ss + i.qty * (i.costSnapshot ?? 0), 0), 0);
+
+  const thisMonthDocs = paidDocs.filter((d: any) => new Date(d.date).getTime() >= thisMonthStart);
+  const lastMonthDocs = paidDocs.filter((d: any) => {
+    const t = new Date(d.date).getTime();
+    return t >= lastMonthStart && t <= lastMonthEnd;
+  });
+
+  const revThisMonth  = calcRev(thisMonthDocs);
+  const revLastMonth  = calcRev(lastMonthDocs);
+  const costThisMonth = calcCost(thisMonthDocs);
+  const profitThis    = revThisMonth - costThisMonth;
+  const marginThis    = revThisMonth > 0 ? (profitThis / revThisMonth) * 100 : 0;
+  const revChange     = revLastMonth > 0 ? ((revThisMonth - revLastMonth) / revLastMonth) * 100 : null;
+  const profitMarginAll = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : "0";
+
+  // ─── Pending & alerts ─────────────────────────────────────────
+  const pendingDocs = documents.filter((d: any) => ["draft","sent"].includes(d.status));
+  const overdueCount = pendingDocs.filter((d: any) => {
+    const due = new Date(d.dueDate || d.date);
+    due.setDate(due.getDate() + 30);
+    return due < now;
+  }).length;
+
+  // ─── Top Products by profit ───────────────────────────────────
+  const productProfit: Record<string, { revenue: number; cost: number }> = {};
+  paidDocs.forEach((d: any) => {
+    d.items.forEach((i: any) => {
+      if (!productProfit[i.name]) productProfit[i.name] = { revenue: 0, cost: 0 };
+      productProfit[i.name].revenue += i.qty * i.price;
+      productProfit[i.name].cost    += i.qty * (i.costSnapshot ?? 0);
+    });
+  });
+  const topProducts = Object.entries(productProfit)
+    .map(([name, { revenue, cost }]) => ({ name, profit: revenue - cost, margin: revenue > 0 ? ((revenue-cost)/revenue)*100 : 0 }))
+    .sort((a, b) => b.profit - a.profit).slice(0, 5);
+
+  // ─── Chart data ────────────────────────────────────────────────
+  const chartData = (() => {
+    const points: { label: string; rev: number; cost: number; profit: number }[] = [];
+    if (chartRange === "7d") {
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const ds = d.toISOString().slice(0,10);
+        const dayDocs = paidDocs.filter((x: any) => x.date === ds);
+        points.push({ label: d.toLocaleDateString("th-TH",{weekday:"short"}), rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
+      }
+    } else if (chartRange === "30d") {
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const ds = d.toISOString().slice(0,10);
+        const dayDocs = paidDocs.filter((x: any) => x.date === ds);
+        points.push({ label: i % 5 === 0 ? d.toLocaleDateString("th-TH",{day:"numeric",month:"short"}) : "", rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
+      }
+    } else {
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+        const start = d.getTime();
+        const end   = new Date(d.getFullYear(), d.getMonth()+1, 1).getTime();
+        const mDocs = paidDocs.filter((x: any) => { const t = new Date(x.date).getTime(); return t >= start && t < end; });
+        points.push({ label: d.toLocaleDateString("th-TH",{month:"short"}), rev: calcRev(mDocs), cost: calcCost(mDocs), profit: calcRev(mDocs)-calcCost(mDocs) });
+      }
+    }
+    return points;
+  })();
+
+  const maxVal = Math.max(...chartData.map(p => Math.max(p.rev, p.cost, 1)));
+  const recentDocs = [...documents].sort((a: any, b: any) => b.createdAt - a.createdAt).slice(0, 5);
+
+  // ─── Alerts ───────────────────────────────────────────────────
+  const alerts: { type: "warn"|"error"|"info"; text: string }[] = [];
+  if (overdueCount > 0) alerts.push({ type: "error", text: `มีเอกสารค้างชำระเกินกำหนด ${overdueCount} รายการ` });
+  if (revChange !== null && revChange < -10) alerts.push({ type: "warn", text: `ยอดขายเดือนนี้ลดลง ${Math.abs(revChange).toFixed(1)}% จากเดือนก่อน` });
+  if (+profitMarginAll < 20 && totalRevenue > 0) alerts.push({ type: "warn", text: `Margin รวม ${profitMarginAll}% ต่ำกว่าเกณฑ์ (20%)` });
+  if (pendingDocs.length > 5) alerts.push({ type: "info", text: `มีเอกสารรอดำเนินการ ${pendingDocs.length} รายการ` });
+
+  // ─── Styles ───────────────────────────────────────────────────
+  const card = (extra = {}) => ({ background: "rgba(20,26,36,0.8)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, ...extra });
+  const fmtB = (n: number) => n >= 1000000 ? `${(n/1000000).toFixed(2)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : fmtMoney(n);
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff" }}>ภาพรวมระบบ</h2>
-        <p style={{ fontSize: 13, color: "#555", marginTop: 4 }}>
-          วันนี้ {new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-        </p>
+    <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
+
+      {/* ── HEADER ──────────────────────────────────────────────── */}
+      <div style={{ marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 3, color: "#FF6B00", textTransform: "uppercase", marginBottom: 6 }}>BUSINESS COMMAND CENTER</div>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1.2 }}>ภาพรวมธุรกิจ</h1>
+          <p style={{ fontSize: 13, color: "#4B5563", marginTop: 4 }}>
+            {now.toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[{k:"7d",l:"7 วัน"},{k:"30d",l:"30 วัน"},{k:"12m",l:"12 เดือน"}].map(({k,l}) => (
+            <button key={k} onClick={() => setChartRange(k as any)} style={{
+              padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)",
+              background: chartRange === k ? "#FF6B00" : "transparent",
+              color: chartRange === k ? "#fff" : "#6B7280", fontSize: 12, fontWeight: 600,
+              cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s",
+            }}>{l}</button>
+          ))}
+        </div>
       </div>
 
-      {/* Stats row 1 */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 16 }}>
-        {[
-          { label: "รายได้ (ชำระแล้ว)", value: "฿" + fmtMoney(totalRevenue), color: "#10B981", icon: "💰" },
-          { label: "ต้นทุนรวม", value: "฿" + fmtMoney(totalCost), color: "#EF4444", icon: "📦" },
-          { label: "กำไรสุทธิ", value: "฿" + fmtMoney(totalProfit), color: totalProfit >= 0 ? "#10B981" : "#EF4444", icon: totalProfit >= 0 ? "📈" : "📉" },
-          { label: "Margin", value: profitMargin + "%", color: totalProfit >= 0 ? "#F59E0B" : "#EF4444", icon: "🎯" },
-        ].map((s) => (
-          <div key={s.label} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "18px 20px" }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>{s.icon}</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: "#A8B0C0", marginTop: 4 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
+      {/* ── HERO KPI ─────────────────────────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
+        {/* Revenue */}
+        <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #10B981", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>฿</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#10B981", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>REVENUE / เดือนนี้</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>฿{fmtB(revThisMonth)}</div>
+          {revChange !== null && (
+            <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, fontSize: 12 }}>
+              <span style={{ color: revChange >= 0 ? "#10B981" : "#EF4444", fontWeight: 700 }}>{revChange >= 0 ? "▲" : "▼"} {Math.abs(revChange).toFixed(1)}%</span>
+              <span style={{ color: "#4B5563" }}>vs เดือนก่อน</span>
+            </div>
+          )}
+        </div>
 
-      {/* Stats row 2 */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 28 }}>
-        {[
-          { label: "รอดำเนินการ", value: pendingDocs.length + " รายการ", color: "#F59E0B", icon: "⏳" },
-          { label: "ลูกค้าทั้งหมด", value: customers.length + " ราย", color: "#3B82F6", icon: "👥" },
-          { label: "เอกสารทั้งหมด", value: documents.length + " ฉบับ", color: "#8B5CF6", icon: "📁" },
-        ].map((s) => (
-          <div key={s.label} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "18px 20px" }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>{s.icon}</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: "#A8B0C0", marginTop: 4 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
+        {/* Net Profit */}
+        <div style={{ ...card(), padding: "22px 24px", borderTop: `2px solid ${profitThis >= 0 ? "#10B981" : "#EF4444"}`, position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>P</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: profitThis >= 0 ? "#10B981" : "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>NET PROFIT</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: profitThis >= 0 ? "#10B981" : "#EF4444", lineHeight: 1 }}>฿{fmtB(profitThis)}</div>
+          <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>Margin เดือนนี้ <span style={{ color: "#fff", fontWeight: 700 }}>{marginThis.toFixed(1)}%</span></div>
+        </div>
 
-      {/* Profit bar */}
-      {totalRevenue > 0 && (
-        <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "20px 24px", marginBottom: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: "#A8B0C0" }}>สัดส่วนกำไร/ต้นทุน</div>
-          <div style={{ height: 12, borderRadius: 99, background: "#1A2233", overflow: "hidden", marginBottom: 10 }}>
-            <div style={{ height: "100%", width: profitMargin + "%", background: "linear-gradient(90deg, #10B981, #34D399)", borderRadius: 99, transition: "width 0.5s" }} />
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#555" }}>
-            <span style={{ color: "#EF4444" }}>ต้นทุน ฿{fmtMoney(totalCost)}</span>
-            <span style={{ color: "#10B981" }}>กำไร ฿{fmtMoney(totalProfit)} ({profitMargin}%)</span>
+        {/* Expense */}
+        <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #EF4444", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>E</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>EXPENSE / ต้นทุน</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>฿{fmtB(costThisMonth)}</div>
+          <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>รวมทั้งหมด <span style={{ color: "#EF4444", fontWeight: 700 }}>฿{fmtB(totalCost)}</span></div>
+        </div>
+
+        {/* Margin All-time */}
+        <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #F59E0B", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>%</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#F59E0B", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>PROFIT MARGIN</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "#F59E0B", lineHeight: 1 }}>{profitMarginAll}%</div>
+          <div style={{ marginTop: 10 }}>
+            <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${Math.min(+profitMarginAll, 100)}%`, background: "linear-gradient(90deg,#F59E0B,#FBBF24)", borderRadius: 99, transition: "width 0.6s ease" }} />
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Doc type cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 28 }}>
-        {Object.entries(DOC_TYPES).map(([key, dt]) => (
-          <button key={key} onClick={() => setPage(key)} style={{
-            background: "#141A24", border: `1px solid ${dt.color}33`, borderRadius: 10,
-            padding: "14px 16px", textAlign: "left", cursor: "pointer", color: "#fff", fontFamily: "inherit",
-          }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: dt.color }}>{docCounts[key] || 0}</div>
-            <div style={{ fontSize: 12, color: "#A8B0C0", marginTop: 2 }}>{dt.label}</div>
-          </button>
-        ))}
       </div>
 
-      {/* Recent docs */}
-      <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-          <span style={{ fontWeight: 600, fontSize: 14 }}>เอกสารล่าสุด</span>
+      {/* ── CHART + ALERTS ────────────────────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 14, marginBottom: 20 }}>
+
+        {/* Revenue Chart */}
+        <div style={{ ...card(), padding: "22px 24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Revenue vs Expense vs Profit</div>
+              <div style={{ fontSize: 11, color: "#4B5563", marginTop: 2 }}>ยอดขาย · ต้นทุน · กำไร</div>
+            </div>
+            <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
+              {[{c:"#10B981",l:"Revenue"},{c:"#EF4444",l:"Expense"},{c:"#3B82F6",l:"Profit"}].map(({c,l}) => (
+                <div key={l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 99, background: c }} />
+                  <span style={{ color: "#6B7280" }}>{l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bar Chart */}
+          <div style={{ display: "flex", alignItems: "flex-end", gap: chartRange === "30d" ? 2 : 6, height: 160, paddingBottom: 24, position: "relative" }}>
+            {/* Y-axis lines */}
+            {[0,25,50,75,100].map(p => (
+              <div key={p} style={{ position: "absolute", left: 0, right: 0, bottom: 24 + (p/100)*(160-24), borderTop: "1px dashed rgba(255,255,255,0.04)", fontSize: 9, color: "#4B5563" }}>
+                {p > 0 && <span style={{ position: "absolute", right: "100%", paddingRight: 4 }}>฿{fmtB(maxVal * p/100)}</span>}
+              </div>
+            ))}
+            {chartData.map((pt, i) => (
+              <div key={i} style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 1, position: "relative" }}>
+                <div title={`Revenue: ฿${fmtMoney(pt.rev)}`} style={{ flex: 1, height: `${maxVal > 0 ? (pt.rev/maxVal)*100 : 0}%`, background: "rgba(16,185,129,0.7)", borderRadius: "3px 3px 0 0", minHeight: pt.rev > 0 ? 2 : 0, transition: "height 0.4s ease", cursor: "pointer" }}
+                  onMouseEnter={e => { (e.currentTarget as any).style.background = "#10B981"; }}
+                  onMouseLeave={e => { (e.currentTarget as any).style.background = "rgba(16,185,129,0.7)"; }} />
+                <div title={`Expense: ฿${fmtMoney(pt.cost)}`} style={{ flex: 1, height: `${maxVal > 0 ? (pt.cost/maxVal)*100 : 0}%`, background: "rgba(239,68,68,0.6)", borderRadius: "3px 3px 0 0", minHeight: pt.cost > 0 ? 2 : 0, transition: "height 0.4s ease", cursor: "pointer" }}
+                  onMouseEnter={e => { (e.currentTarget as any).style.background = "#EF4444"; }}
+                  onMouseLeave={e => { (e.currentTarget as any).style.background = "rgba(239,68,68,0.6)"; }} />
+                <div title={`Profit: ฿${fmtMoney(pt.profit)}`} style={{ flex: 1, height: `${maxVal > 0 ? (Math.max(pt.profit,0)/maxVal)*100 : 0}%`, background: "rgba(59,130,246,0.7)", borderRadius: "3px 3px 0 0", minHeight: pt.profit > 0 ? 2 : 0, transition: "height 0.4s ease", cursor: "pointer" }}
+                  onMouseEnter={e => { (e.currentTarget as any).style.background = "#3B82F6"; }}
+                  onMouseLeave={e => { (e.currentTarget as any).style.background = "rgba(59,130,246,0.7)"; }} />
+                {pt.label && (
+                  <div style={{ position: "absolute", bottom: -18, left: "50%", transform: "translateX(-50%)", fontSize: 9, color: "#4B5563", whiteSpace: "nowrap" }}>{pt.label}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Alerts Panel */}
+        <div style={{ ...card(), padding: "22px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 4 }}>⚡ Business Alerts</div>
+          {alerts.length === 0 ? (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <div style={{ fontSize: 32 }}>✅</div>
+              <div style={{ fontSize: 12, color: "#4B5563", textAlign: "center" }}>ธุรกิจดำเนินไปปกติ ไม่มีสัญญาณเตือน</div>
+            </div>
+          ) : (
+            alerts.map((a, i) => (
+              <div key={i} style={{
+                padding: "10px 12px", borderRadius: 10, fontSize: 12, lineHeight: 1.5,
+                background: a.type === "error" ? "rgba(239,68,68,0.08)" : a.type === "warn" ? "rgba(245,158,11,0.08)" : "rgba(59,130,246,0.08)",
+                border: `1px solid ${a.type === "error" ? "rgba(239,68,68,0.2)" : a.type === "warn" ? "rgba(245,158,11,0.2)" : "rgba(59,130,246,0.2)"}`,
+                color: a.type === "error" ? "#FCA5A5" : a.type === "warn" ? "#FCD34D" : "#93C5FD",
+              }}>
+                {a.type === "error" ? "🔴" : a.type === "warn" ? "🟡" : "🔵"} {a.text}
+              </div>
+            ))
+          )}
+
+          {/* Quick stats */}
+          <div style={{ marginTop: "auto", paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 8 }}>
+            {[
+              { l: "รอดำเนินการ", v: pendingDocs.length + " รายการ", c: "#F59E0B" },
+              { l: "ลูกค้าทั้งหมด", v: customers.length + " ราย", c: "#3B82F6" },
+            ].map(({ l, v, c }) => (
+              <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                <span style={{ color: "#4B5563" }}>{l}</span>
+                <span style={{ color: c, fontWeight: 700 }}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── INSIGHTS ROW ──────────────────────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
+
+        {/* Top Products */}
+        <div style={{ ...card(), padding: "22px 24px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 16 }}>🏆 Top Products by Profit</div>
+          {topProducts.length === 0 ? (
+            <div style={{ textAlign: "center", color: "#4B5563", fontSize: 12, padding: "20px 0" }}>ยังไม่มีข้อมูล</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {topProducts.map((p, i) => (
+                <div key={p.name}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: ["#F59E0B","#9CA3AF","#CD7F32","#6B7280","#6B7280"][i], minWidth: 16 }}>#{i+1}</span>
+                      <span style={{ fontSize: 13, color: "#E2E8F0" }}>{p.name}</span>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>฿{fmtB(p.profit)}</div>
+                      <div style={{ fontSize: 10, color: "#4B5563" }}>{p.margin.toFixed(1)}% margin</div>
+                    </div>
+                  </div>
+                  <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${(p.profit / (topProducts[0]?.profit || 1)) * 100}%`, background: i === 0 ? "linear-gradient(90deg,#F59E0B,#FBBF24)" : "rgba(255,255,255,0.2)", borderRadius: 99 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Document Shortcuts */}
+        <div style={{ ...card(), padding: "22px 24px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 16 }}>📁 เอกสาร</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+            {Object.entries(DOC_TYPES).map(([key, dt]: [string, any]) => (
+              <button key={key} onClick={() => setPage(key)} style={{
+                padding: "14px 16px", borderRadius: 12, textAlign: "left", cursor: "pointer", fontFamily: "inherit",
+                background: "rgba(255,255,255,0.02)", border: `1px solid ${dt.color}20`,
+                transition: "all 0.2s", color: "#fff",
+              }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${dt.color}10`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${dt.color}40`; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.02)"; (e.currentTarget as HTMLButtonElement).style.borderColor = `${dt.color}20`; }}
+              >
+                <div style={{ fontSize: 22, fontWeight: 800, color: dt.color }}>{docCounts[key] || 0}</div>
+                <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{dt.label}</div>
+              </button>
+            ))}
+          </div>
+          {/* Profit bar */}
+          {totalRevenue > 0 && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#4B5563", marginBottom: 5 }}>
+                <span>สัดส่วนกำไร / ต้นทุน</span>
+                <span style={{ color: "#10B981", fontWeight: 700 }}>{profitMarginAll}%</span>
+              </div>
+              <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+                <div style={{ height: "100%", display: "flex", borderRadius: 99, overflow: "hidden" }}>
+                  <div style={{ width: `${100 - +profitMarginAll}%`, background: "rgba(239,68,68,0.5)", transition: "width 0.5s" }} />
+                  <div style={{ width: `${+profitMarginAll}%`, background: "linear-gradient(90deg,#10B981,#34D399)", transition: "width 0.5s" }} />
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#4B5563", marginTop: 4 }}>
+                <span style={{ color: "#EF4444" }}>ต้นทุน ฿{fmtB(totalCost)}</span>
+                <span style={{ color: "#10B981" }}>กำไร ฿{fmtB(totalProfit)}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── LATEST ORDERS ─────────────────────────────────────────── */}
+      <div style={{ ...card(), overflow: "hidden" }}>
+        <div style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>🕐 Latest Orders</div>
+          <span style={{ fontSize: 11, color: "#4B5563" }}>5 รายการล่าสุด</span>
         </div>
         {recentDocs.length === 0 ? (
-          <div style={{ padding: 40, textAlign: "center", color: "#555" }}>ยังไม่มีเอกสาร</div>
+          <div style={{ padding: "32px", textAlign: "center", color: "#4B5563", fontSize: 13 }}>ยังไม่มีเอกสาร</div>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ background: "#1A2233" }}>
-                {["เลขที่", "ประเภท", "ลูกค้า", "วันที่", "ยอดรวม", "สถานะ"].map(h => (
-                  <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, color: "#A8B0C0", fontWeight: 500 }}>{h}</th>
+              <tr style={{ background: "rgba(255,255,255,0.02)" }}>
+                {["เลขที่","ประเภท","ลูกค้า","วันที่","ยอดรวม","สถานะ"].map(h => (
+                  <th key={h} style={{ padding: "10px 20px", textAlign: "left", fontSize: 11, color: "#4B5563", fontWeight: 600, letterSpacing: 0.5 }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {recentDocs.map((doc) => {
+              {recentDocs.map((doc: any, i: number) => {
                 const { total } = calcDocTotal(doc);
                 return (
-                  <tr key={doc.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <td style={{ padding: "10px 16px", fontSize: 13, fontFamily: "monospace", color: "#FF6B00" }}>{doc.docNo}</td>
-                    <td style={{ padding: "10px 16px" }}>
-                      <span style={{ background: DOC_TYPES[doc.type]?.color + "22", color: DOC_TYPES[doc.type]?.color, fontSize: 11, padding: "2px 8px", borderRadius: 99 }}>
-                        {DOC_TYPES[doc.type]?.label}
+                  <tr key={doc.id} style={{ borderTop: "1px solid rgba(255,255,255,0.03)", transition: "background 0.15s" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = "rgba(255,255,255,0.02)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = "transparent"; }}>
+                    <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "monospace", color: "#FF6B00", fontWeight: 600 }}>{doc.docNo}</td>
+                    <td style={{ padding: "12px 20px" }}>
+                      <span style={{ background: (DOC_TYPES as any)[doc.type]?.color + "20", color: (DOC_TYPES as any)[doc.type]?.color, fontSize: 11, padding: "3px 10px", borderRadius: 99, fontWeight: 600 }}>
+                        {(DOC_TYPES as any)[doc.type]?.label}
                       </span>
                     </td>
-                    <td style={{ padding: "10px 16px", fontSize: 13, color: "#ccc" }}>{doc.customerName || "-"}</td>
-                    <td style={{ padding: "10px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.date)}</td>
-                    <td style={{ padding: "10px 16px", fontSize: 13, fontWeight: 600 }}>฿{fmtMoney(total)}</td>
-                    <td style={{ padding: "10px 16px" }}>
-                      <span style={{ background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], fontSize: 11, padding: "2px 8px", borderRadius: 99 }}>
-                        {STATUS_LABELS[doc.status]}
+                    <td style={{ padding: "12px 20px", fontSize: 13, color: "#CBD5E1" }}>{doc.customerName || "-"}</td>
+                    <td style={{ padding: "12px 20px", fontSize: 12, color: "#6B7280" }}>{fmtDate(doc.date)}</td>
+                    <td style={{ padding: "12px 20px", fontSize: 13, fontWeight: 700, color: "#fff" }}>฿{fmtMoney(total)}</td>
+                    <td style={{ padding: "12px 20px" }}>
+                      <span style={{ background: (STATUS_COLORS as any)[doc.status] + "20", color: (STATUS_COLORS as any)[doc.status], fontSize: 11, padding: "3px 10px", borderRadius: 99, fontWeight: 600 }}>
+                        {(STATUS_LABELS as any)[doc.status]}
                       </span>
                     </td>
                   </tr>
@@ -698,6 +944,7 @@ function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit,
     </div>
   );
 }
+
 
 // ============================================================
 // CUSTOMER PAGE
