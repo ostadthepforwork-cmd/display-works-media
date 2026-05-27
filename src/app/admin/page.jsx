@@ -10,8 +10,6 @@ const supabase = createBrowserClient(
 );
 
 // ─── ERP HELPERS + DATA ───────────────────────────────────────────────────────
-"use client";
-import { useState, useEffect, useRef, useCallback } from "react";
 
 // ============================================================
 // HELPERS
