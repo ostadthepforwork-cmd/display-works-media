@@ -160,10 +160,6 @@ ${doc.notes ? `<div style="margin-top:20px;padding:12px 16px;background:#fffbf5;
 // ============================================================
 
 // ─── CMS HELPERS ─────────────────────────────────────────────────────────────
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 
 // ============================================================
 // HELPERS
@@ -180,14 +176,6 @@ function saveLocal(key, val) {
 // ============================================================
 // MAIN CMS
 // ============================================================
-export default function CMSPage() {
-  const [tab, setTab] = useState("blog");
-  const [toast, setToast] = useState(null);
-
-  const showToast = (msg, type = "success") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const tabs = [
     { id: "blog", icon: "📝", label: "บทความ" },
