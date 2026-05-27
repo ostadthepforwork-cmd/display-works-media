@@ -24,7 +24,10 @@ function saveLocal(key, val) {
 // ============================================================
 // HELPERS
 // ============================================================
-const genId = () => Math.random().toString(36).slice(2, 10);
+const genId = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2) + Date.now().toString(36);
 const today = () => new Date().toISOString().slice(0, 10);
 const addDays = (d, n) => {
   const dt = new Date(d);
@@ -38,6 +41,18 @@ const fmtDate = (d) => {
 };
 const fmtMoney = (n) =>
   Number(n || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// ── Shared calculation utility — ใช้ร่วมกันทุกจุด ──────────
+const calcDocTotal = (doc) => {
+  const subtotal    = (doc.items || []).reduce((s, i) => s + (i.qty || 0) * (i.price || 0), 0);
+  const discountAmt = subtotal * ((doc.discount || 0) / 100);
+  const afterDisc   = subtotal - discountAmt;
+  const vatAmt      = doc.vat  ? afterDisc * 0.07                        : 0;
+  const total       = afterDisc + vatAmt;
+  const whtAmt      = doc.wht  ? afterDisc * ((doc.whtRate || 0) / 100)  : 0;
+  const netPay      = total - whtAmt;
+  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay };
+};
 
 const DOC_TYPES = {
   quote: { label: "ใบเสนอราคา", short: "QT", color: "#3B82F6", prefix: "QT" },
@@ -81,88 +96,268 @@ function saveStore(key, val) {
 }
 
 // ============================================================
-// PRINT / PDF helper
+// PRINT / PDF helper — Premium A4 Design (Display Works Media)
 // ============================================================
 function printDocument(doc, customers, company) {
   const cust = customers.find((c) => c.id === doc.customerId) || {};
   const dt = DOC_TYPES[doc.type];
-  const subtotal = doc.items.reduce((s, i) => s + i.qty * i.price, 0);
-  const discountAmt = subtotal * (doc.discount / 100);
-  const afterDiscount = subtotal - discountAmt;
-  const vatAmt = doc.vat ? afterDiscount * 0.07 : 0;
-  const total = afterDiscount + vatAmt;
-  const whtAmt = doc.wht ? afterDiscount * (doc.whtRate / 100) : 0;
-  const netPay = total - whtAmt;
 
+  // ── Calculations (shared utility) ─────────────────────────
+  const { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay } = calcDocTotal(doc);
+
+  // ── Label mapping per document type ───────────────────────
+  const DOC_LABELS = {
+    quote:   { en: "QUOTATION",    sub: "ใบเสนอราคา",     valid: "ยืนยันราคาถึง" },
+    bill:    { en: "BILLING NOTE", sub: "ใบวางบิล",        valid: "วันครบกำหนด" },
+    invoice: { en: "INVOICE",      sub: "ใบแจ้งหนี้",      valid: "วันครบกำหนด" },
+    receipt: { en: "RECEIPT",      sub: "ใบเสร็จรับเงิน",  valid: "วันที่ชำระ" },
+  };
+  const lbl = DOC_LABELS[doc.type] || DOC_LABELS.quote;
+
+  // ── Table rows ────────────────────────────────────────────
   const rows = doc.items.map((item, i) => `
-    <tr>
-      <td style="text-align:center;padding:6px 8px;border-bottom:1px solid #e5e7eb;">${i + 1}</td>
-      <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;">${item.name}</td>
-      <td style="text-align:center;padding:6px 8px;border-bottom:1px solid #e5e7eb;">${item.unit}</td>
-      <td style="text-align:right;padding:6px 8px;border-bottom:1px solid #e5e7eb;">${fmtMoney(item.qty)}</td>
-      <td style="text-align:right;padding:6px 8px;border-bottom:1px solid #e5e7eb;">${fmtMoney(item.price)}</td>
-      <td style="text-align:right;padding:6px 8px;border-bottom:1px solid #e5e7eb;">${fmtMoney(item.qty * item.price)}</td>
+    <tr style="border-bottom:1px solid #e5e7eb;">
+      <td style="padding:8px;text-align:center;color:#6b7280;font-size:10px;">${i + 1}</td>
+      <td style="padding:8px 10px;">
+        <div style="font-weight:600;font-size:11px;color:#1e293b;">${item.name}</div>
+      </td>
+      <td style="padding:8px;text-align:center;font-size:10px;color:#6b7280;">${item.unit}</td>
+      <td style="padding:8px;text-align:right;font-size:11px;">${fmtMoney(item.qty)}</td>
+      <td style="padding:8px;text-align:right;font-size:11px;">${fmtMoney(item.price)}</td>
+      <td style="padding:8px;text-align:right;font-size:11px;font-weight:600;color:#1e293b;">${fmtMoney(item.qty * item.price)}</td>
     </tr>`).join("");
 
-  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"/>
-<title>${dt.label} ${doc.docNo}</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Sarabun',sans-serif;font-size:13px;color:#111;background:#fff;padding:32px;}
-  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;}
-  .logo-area h1{font-size:22px;font-weight:700;color:#FF6B00;}
-  .logo-area p{font-size:11px;color:#666;margin-top:2px;line-height:1.6;}
-  .doc-type{text-align:right;}
-  .doc-type .badge{display:inline-block;padding:6px 18px;border-radius:4px;font-size:18px;font-weight:700;color:#fff;background:${dt.color};}
-  .doc-type .docno{font-size:13px;color:#555;margin-top:6px;}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:20px;}
-  .info-box{background:#f8f9fa;border:1px solid #e5e7eb;border-radius:6px;padding:12px 16px;}
-  .info-box .label{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-  table{width:100%;border-collapse:collapse;margin-bottom:16px;}
-  thead tr{background:${dt.color};color:#fff;}
-  thead th{padding:8px;text-align:left;font-weight:600;font-size:12px;}
-  thead th:nth-child(n+4){text-align:right;}
-  .summary{display:flex;justify-content:flex-end;margin-top:4px;}
-  .summary table{width:280px;}
-  .summary td{padding:4px 8px;font-size:13px;}
-  .summary .total-row td{font-weight:700;font-size:15px;color:${dt.color};border-top:2px solid ${dt.color};padding-top:8px;}
-  .sign-area{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px;}
-  .sign-box{text-align:center;padding-top:40px;border-top:1px solid #ccc;font-size:12px;color:#555;}
-</style></head><body>
-<div class="header">
-  <div class="logo-area"><h1>Display Works Media</h1>
-  <p>${company.address || ""}<br/>${company.phone ? "โทร: " + company.phone : ""}${company.email ? " | " + company.email : ""}<br/>${company.taxId ? "เลขประจำตัวผู้เสียภาษี: " + company.taxId : ""}</p></div>
-  <div class="doc-type"><div class="badge">${dt.label}</div>
-  <div class="docno">เลขที่: ${doc.docNo}</div><div class="docno">วันที่: ${fmtDate(doc.date)}</div>
-  ${doc.dueDate ? `<div class="docno">วันครบกำหนด: ${fmtDate(doc.dueDate)}</div>` : ""}</div>
-</div>
-<div class="grid2">
-  <div class="info-box"><div class="label">ลูกค้า</div>
-  <p><strong>${cust.name || "-"}</strong><br/>${cust.contact ? "ผู้ติดต่อ: " + cust.contact + "<br/>" : ""}${cust.address ? cust.address + "<br/>" : ""}${cust.phone ? "โทร: " + cust.phone + "<br/>" : ""}${cust.taxId ? "เลขผู้เสียภาษี: " + cust.taxId : ""}</p></div>
-  <div class="info-box"><div class="label">รายละเอียด</div>
-  <p>${doc.projectName ? "โครงการ: " + doc.projectName + "<br/>" : ""}สถานะ: ${STATUS_LABELS[doc.status] || doc.status}</p></div>
-</div>
-<table><thead><tr><th style="width:40px;">#</th><th>รายการ</th><th style="width:60px;text-align:center;">หน่วย</th><th style="width:70px;text-align:right;">จำนวน</th><th style="width:90px;text-align:right;">ราคา/หน่วย</th><th style="width:100px;text-align:right;">จำนวนเงิน</th></tr></thead><tbody>${rows}</tbody></table>
-<div class="summary"><table>
-  <tr><td>มูลค่ารวม</td><td style="text-align:right;">${fmtMoney(subtotal)} บาท</td></tr>
-  ${doc.discount > 0 ? `<tr><td>ส่วนลด ${doc.discount}%</td><td style="text-align:right;">-${fmtMoney(discountAmt)} บาท</td></tr>` : ""}
-  ${doc.vat ? `<tr><td>VAT 7%</td><td style="text-align:right;">${fmtMoney(vatAmt)} บาท</td></tr>` : ""}
-  ${doc.wht ? `<tr><td>หัก ณ ที่จ่าย ${doc.whtRate}%</td><td style="text-align:right;">-${fmtMoney(whtAmt)} บาท</td></tr>` : ""}
-  <tr class="total-row"><td>ยอดสุทธิ</td><td style="text-align:right;">${fmtMoney(netPay)} บาท</td></tr>
-</table></div>
-${doc.notes ? `<div style="margin-top:20px;padding:12px 16px;background:#fffbf5;border-left:3px solid ${dt.color};font-size:12px;color:#555;"><strong>หมายเหตุ:</strong> ${doc.notes}</div>` : ""}
-<div class="sign-area">
-  <div class="sign-box">ลงชื่อ ................................................ ผู้รับเอกสาร<br/>(${cust.name || "ลูกค้า"})<br/>วันที่ ................................</div>
-  <div class="sign-box">ลงชื่อ ................................................ ผู้มีอำนาจ<br/>(Display Works Media)<br/>วันที่ ................................</div>
-</div>
-</body></html>`;
+  // ── Summary rows ──────────────────────────────────────────
+  const summaryRows = `
+    <tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:6px 12px;color:#64748b;font-size:10px;font-weight:600;">SUBTOTAL</td>
+      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(subtotal)}</td>
+    </tr>
+    ${doc.discount > 0 ? `
+    <tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:6px 12px;color:#ef4444;font-size:10px;font-weight:600;">DISCOUNT ${doc.discount}%</td>
+      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#ef4444;">- ${fmtMoney(discountAmt)}</td>
+    </tr>` : ""}
+    ${doc.discount > 0 ? `
+    <tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:6px 12px;color:#64748b;font-size:10px;font-weight:600;">TOTAL BEFORE VAT</td>
+      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(afterDisc)}</td>
+    </tr>` : ""}
+    ${doc.vat ? `
+    <tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:6px 12px;color:#64748b;font-size:10px;font-weight:600;">VAT 7%</td>
+      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(vatAmt)}</td>
+    </tr>` : ""}
+    ${doc.wht ? `
+    <tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:6px 12px;color:#64748b;font-size:10px;font-weight:600;">หัก ณ ที่จ่าย ${doc.whtRate}%</td>
+      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#64748b;">- ${fmtMoney(whtAmt)}</td>
+    </tr>` : ""}
+    <tr style="background:#FF5500;">
+      <td style="padding:8px 12px;font-weight:800;font-size:11px;color:#fff;">
+        GRAND TOTAL<br/><span style="font-size:8px;font-weight:400;opacity:0.85;">${lbl.sub}</span>
+      </td>
+      <td style="padding:8px 12px;text-align:right;font-weight:800;font-size:14px;color:#fff;">
+        ${fmtMoney(netPay)} <span style="font-size:9px;font-weight:400;">THB</span>
+      </td>
+    </tr>`;
 
-  const w = window.open("", "_blank", "width=900,height=700");
+  // ── Notes list ────────────────────────────────────────────
+  const noteItems = doc.notes
+    ? doc.notes.split("\n").filter(Boolean).map(n =>
+        `<li style="margin-bottom:3px;">${n}</li>`).join("")
+    : "<li>ขอบคุณที่ไว้วางใจ Display Works Media</li>";
+
+  // ── Full HTML ─────────────────────────────────────────────
+  const html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<title>${lbl.sub} ${doc.docNo}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Prompt','Sarabun',sans-serif;font-size:12px;color:#1e293b;background:#f1f5f9;}
+  .page{background:#fff;width:210mm;min-height:297mm;padding:16mm 14mm 14mm;margin:0 auto;
+        box-shadow:0 10px 40px rgba(0,0,0,.12);display:flex;flex-direction:column;justify-content:space-between;}
+  @media print{
+    body{background:#fff!important;}
+    .page{width:100%!important;box-shadow:none!important;padding:10mm 8mm!important;margin:0!important;}
+    tr,section{page-break-inside:avoid;break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+  <div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:flex-start;
+                padding-bottom:14px;border-bottom:2px solid #f1f5f9;margin-bottom:16px;">
+      <!-- Brand left -->
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="background:#FF5500;color:#fff;font-weight:800;font-size:14px;
+                      padding:4px 8px;border-radius:5px;letter-spacing:1px;">DW</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#0f172a;letter-spacing:.5px;line-height:1;">
+              DISPLAY WORKS MEDIA
+            </div>
+            <div style="font-size:8px;color:#94a3b8;letter-spacing:1px;margin-top:1px;">
+              ${company.address || ""}
+            </div>
+          </div>
+        </div>
+        <div style="font-size:8.5px;color:#94a3b8;line-height:1.7;">
+          ${company.phone ? "โทร: " + company.phone + " &nbsp;|&nbsp; " : ""}
+          ${company.email ? company.email + " &nbsp;|&nbsp; " : ""}
+          ${company.taxId ? "เลขผู้เสียภาษี: " + company.taxId : ""}
+        </div>
+      </div>
+      <!-- Doc type right -->
+      <div style="text-align:right;position:relative;padding-right:12px;">
+        <div style="font-size:30px;font-weight:800;color:#0f172a;letter-spacing:2px;line-height:1;">
+          ${lbl.en}
+        </div>
+        <div style="font-size:10px;font-weight:500;color:#FF5500;letter-spacing:3px;margin-top:2px;">
+          ${lbl.sub}
+        </div>
+        <!-- Orange accent bar -->
+        <div style="position:absolute;right:-2px;top:0;width:4px;height:52px;
+                    background:#FF5500;border-radius:2px;transform:skewX(-8deg);"></div>
+      </div>
+    </div>
+
+    <!-- ═══ CLIENT + META ══════════════════════════════════ -->
+    <div style="display:grid;grid-template-columns:1fr auto;gap:0;
+                border-bottom:1px solid #f1f5f9;padding-bottom:14px;margin-bottom:16px;">
+      <!-- To / client -->
+      <div style="padding-right:20px;border-right:1px solid #e2e8f0;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span style="color:#FF5500;font-weight:800;font-size:11px;">TO</span>
+          <span style="color:#cbd5e1;font-size:10px;">/</span>
+          <span style="color:#94a3b8;font-size:9px;font-weight:500;">ลูกค้า</span>
+        </div>
+        <div style="font-weight:700;font-size:12px;color:#0f172a;margin-bottom:3px;">${cust.name || "-"}</div>
+        ${cust.contact ? `<div style="font-size:10px;color:#64748b;margin-bottom:2px;">ผู้ติดต่อ: ${cust.contact}</div>` : ""}
+        ${cust.address ? `<div style="font-size:10px;color:#64748b;line-height:1.6;margin-bottom:3px;white-space:pre-line;">${cust.address}</div>` : ""}
+        <div style="font-size:10px;color:#64748b;display:flex;flex-wrap:wrap;gap:8px;">
+          ${cust.phone ? `<span><b style="color:#475569;">โทร.</b> ${cust.phone}</span>` : ""}
+          ${cust.taxId ? `<span><b style="color:#475569;">เลขผู้เสียภาษี:</b> ${cust.taxId}</span>` : ""}
+        </div>
+        ${doc.projectName ? `<div style="margin-top:5px;font-size:10px;color:#64748b;"><b style="color:#475569;">โครงการ:</b> ${doc.projectName}</div>` : ""}
+      </div>
+      <!-- Meta right -->
+      <div style="padding-left:20px;min-width:190px;">
+        ${[
+          ["DOCUMENT NO.", doc.docNo, "#FF5500"],
+          ["DATE", fmtDate(doc.date), "#475569"],
+          [lbl.valid.toUpperCase(), fmtDate(doc.dueDate), "#FF5500"],
+          ["STATUS", STATUS_LABELS[doc.status] || doc.status, "#475569"],
+        ].map(([k, v, c]) => `
+          <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px dashed #f1f5f9;
+                      padding:4px 0;font-size:10px;">
+            <span style="font-weight:700;color:${c};">${k}</span>
+            <span style="font-weight:500;color:#0f172a;">${v || "-"}</span>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <!-- ═══ ITEMS TABLE ═════════════════════════════════════ -->
+    <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;margin-bottom:16px;">
+      <thead>
+        <tr style="background:#2c2d30;color:#fff;">
+          <th style="padding:8px;font-size:9px;font-weight:700;text-align:center;border-right:1px solid #444;width:5%;">
+            ITEM<br/><span style="font-size:7px;font-weight:400;opacity:.7;">ลำดับ</span>
+          </th>
+          <th style="padding:8px 10px;font-size:9px;font-weight:700;border-right:1px solid #444;width:42%;">
+            DESCRIPTION<br/><span style="font-size:7px;font-weight:400;opacity:.7;">รายการ</span>
+          </th>
+          <th style="padding:8px;font-size:9px;font-weight:700;text-align:center;border-right:1px solid #444;width:8%;">
+            UNIT<br/><span style="font-size:7px;font-weight:400;opacity:.7;">หน่วย</span>
+          </th>
+          <th style="padding:8px;font-size:9px;font-weight:700;text-align:right;border-right:1px solid #444;width:10%;">
+            QTY.<br/><span style="font-size:7px;font-weight:400;opacity:.7;">จำนวน</span>
+          </th>
+          <th style="padding:8px;font-size:9px;font-weight:700;text-align:right;border-right:1px solid #444;width:16%;">
+            UNIT PRICE<br/><span style="font-size:7px;font-weight:400;opacity:.7;">ราคา/หน่วย</span>
+          </th>
+          <th style="padding:8px;font-size:9px;font-weight:700;text-align:right;width:16%;">
+            AMOUNT<br/><span style="font-size:7px;font-weight:400;opacity:.7;">จำนวนเงิน</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+
+    <!-- ═══ LOWER: NOTES + PAYMENT + SUMMARY + SIGNATURES ══ -->
+    <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;">
+
+      <!-- Left: Remarks + Company payment info -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+
+        <!-- Remarks -->
+        ${doc.notes ? `
+        <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;background:#f8fafc;">
+          <div style="color:#FF5500;font-weight:700;font-size:8.5px;letter-spacing:1.5px;
+                      text-transform:uppercase;margin-bottom:6px;">REMARKS / หมายเหตุ</div>
+          <ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.8;">
+            ${noteItems}
+          </ul>
+        </div>` : ""}
+
+        <!-- Signatures -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto;">
+          ${["PREPARED BY / ผู้เสนอราคา", "AUTHORIZED BY / ผู้อนุมัติ"].map(label => `
+          <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px;
+                      text-align:center;min-height:90px;display:flex;flex-direction:column;
+                      justify-content:space-between;background:#fff;">
+            <div style="font-size:7.5px;font-weight:700;color:#94a3b8;letter-spacing:1px;">
+              ${label}
+            </div>
+            <div style="border-bottom:1px solid #cbd5e1;width:80%;margin:0 auto;"></div>
+            <div style="font-size:8px;color:#94a3b8;">( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )<br/>
+              <span style="font-size:7px;">วันที่ ...............................
+</span></div>
+          </div>`).join("")}
+        </div>
+      </div>
+
+      <!-- Right: Financial summary -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;">
+            <tbody>${summaryRows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+  <div style="margin-top:20px;padding-top:10px;border-top:2px solid #FF5500;
+              display:flex;justify-content:space-between;align-items:flex-end;">
+    <div style="font-size:9px;color:#94a3b8;font-style:italic;">
+      Thank you for your business.
+    </div>
+    <div style="text-align:right;position:relative;padding-right:10px;">
+      <div style="font-size:9px;font-weight:800;font-style:italic;color:#0f172a;letter-spacing:1px;">MAKE YOUR</div>
+      <div style="font-size:12px;font-weight:800;color:#FF5500;letter-spacing:1px;line-height:1.1;">BRAND SEEN</div>
+      <div style="position:absolute;right:0;bottom:0;width:3px;height:28px;background:#FF5500;
+                  border-radius:1px;transform:skewX(-8deg);"></div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>`;
+
+  const w = window.open("", "_blank", "width=960,height=780");
   w.document.write(html);
   w.document.close();
   w.focus();
-  setTimeout(() => w.print(), 600);
+  setTimeout(() => w.print(), 800);
 }
 
 // ============================================================
@@ -203,16 +398,16 @@ export default function AdminPage() {
     return acc;
   }, {});
 
-  const totalRevenue = documents.filter((d) => d.status === "paid").reduce((s, d) => {
-    const sub = d.items.reduce((ss, i) => ss + i.qty * i.price, 0);
-    const disc = sub * (d.discount / 100);
-    const vat = d.vat ? (sub - disc) * 0.07 : 0;
-    return s + sub - disc + vat;
-  }, 0);
+  const totalRevenue = documents
+    .filter((d) => d.status === "paid")
+    .reduce((s, d) => s + calcDocTotal(d).total, 0);
   const totalCost = documents.filter((d) => d.status === "paid").reduce((s, d) => {
     return s + d.items.reduce((ss, i) => {
-      const prod = products.find((p) => p.name === i.name);
-      return ss + i.qty * (prod ? prod.cost : 0);
+      // ใช้ costSnapshot (บันทึกตอน save) ถ้ามี — ไม่งั้นหาจาก products list (backward compat)
+      const cost = i.costSnapshot != null
+        ? i.costSnapshot
+        : (products.find((p) => p.name === i.name)?.cost || 0);
+      return ss + i.qty * cost;
     }, 0);
   }, 0);
   const totalProfit = totalRevenue - totalCost;
@@ -470,10 +665,7 @@ function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit,
             </thead>
             <tbody>
               {recentDocs.map((doc) => {
-                const sub = doc.items.reduce((s, i) => s + i.qty * i.price, 0);
-                const disc = sub * (doc.discount / 100);
-                const vat = doc.vat ? (sub - disc) * 0.07 : 0;
-                const total = sub - disc + vat;
+                const { total } = calcDocTotal(doc);
                 return (
                   <tr key={doc.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                     <td style={{ padding: "10px 16px", fontSize: 13, fontFamily: "monospace", color: "#FF6B00" }}>{doc.docNo}</td>
@@ -511,6 +703,8 @@ function CustomerPage({ customers, setCustomers, showToast }) {
   const filtered = customers.filter(c => c.name.includes(search) || c.contact?.includes(search) || c.phone?.includes(search));
   const save = (form) => {
     if (!form.name.trim()) return showToast("กรุณาใส่ชื่อลูกค้า", "error");
+    if (form.taxId && !/^\d{13}$/.test(form.taxId.replace(/-/g, "")))
+      return showToast("เลขผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก", "error");
     if (form.id) { setCustomers(prev => prev.map(c => c.id === form.id ? form : c)); showToast("แก้ไขข้อมูลลูกค้าแล้ว"); }
     else { setCustomers(prev => [...prev, { ...form, id: genId() }]); showToast("เพิ่มลูกค้าใหม่แล้ว"); }
     setEditing(null);
@@ -700,9 +894,16 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     (d.docNo?.includes(search) || d.customerName?.includes(search))
   );
   const nextDocNo = () => {
-    const count = allDocuments.filter(d => d.type === type).length + 1;
     const year = new Date().getFullYear() + 543;
-    return `${dt.prefix}${year}-${String(count).padStart(4, "0")}`;
+    const prefix = `${dt.prefix}${year}-`;
+    // หา running number สูงสุดที่มีอยู่แล้วในปีนี้ แทนการนับ .length
+    const maxSeq = allDocuments
+      .filter(d => d.type === type && d.docNo?.startsWith(prefix))
+      .reduce((max, d) => {
+        const seq = parseInt(d.docNo.replace(prefix, ""), 10);
+        return isNaN(seq) ? max : Math.max(max, seq);
+      }, 0);
+    return `${prefix}${String(maxSeq + 1).padStart(4, "0")}`;
   };
   const newDoc = () => {
     setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", reference: "", items: [], discount: 0, vat: true, wht: false, whtRate: 3, status: "draft", notes: "" });
@@ -710,9 +911,19 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const save = (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
     if (doc.items.length === 0) return showToast("กรุณาเพิ่มรายการสินค้า", "error");
+    if (doc.items.some(i => i.qty < 0 || i.price < 0))
+      return showToast("จำนวนและราคาต้องไม่ติดลบ", "error");
+    if (!doc.docNo?.trim()) return showToast("กรุณาระบุเลขที่เอกสาร", "error");
+    // Snapshot ต้นทุน ณ เวลาบันทึก — กันกำไรเปลี่ยนย้อนหลังเมื่อแก้ราคาสินค้า
+    const itemsWithCost = doc.items.map(item => {
+      if (item.costSnapshot != null) return item; // เอกสารเก่า ไม่ทับ
+      const prod = products.find(p => p.name === item.name);
+      return { ...item, costSnapshot: prod ? prod.cost : 0 };
+    });
     const now = Date.now();
-    if (doc.id) { setDocuments(prev => prev.map(d => d.id === doc.id ? { ...doc, updatedAt: now } : d)); showToast("บันทึกเอกสารแล้ว"); }
-    else { setDocuments(prev => [...prev, { ...doc, id: genId(), createdAt: now, updatedAt: now }]); showToast("สร้างเอกสารใหม่แล้ว"); }
+    const saved = { ...doc, items: itemsWithCost };
+    if (doc.id) { setDocuments(prev => prev.map(d => d.id === doc.id ? { ...saved, updatedAt: now } : d)); showToast("บันทึกเอกสารแล้ว"); }
+    else { setDocuments(prev => [...prev, { ...saved, id: genId(), createdAt: now, updatedAt: now }]); showToast("สร้างเอกสารใหม่แล้ว"); }
     setEditing(null);
   };
   const del = (id) => { if (!confirm("ลบเอกสารนี้?")) return; setDocuments(prev => prev.filter(d => d.id !== id)); showToast("ลบเอกสารแล้ว"); };
@@ -753,10 +964,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
             </thead>
             <tbody>
               {filtered.map(doc => {
-                const sub = doc.items.reduce((s, i) => s + i.qty * i.price, 0);
-                const disc = sub * (doc.discount / 100);
-                const vat = doc.vat ? (sub - disc) * 0.07 : 0;
-                const total = sub - disc + vat;
+                const { total } = calcDocTotal(doc);
                 return (
                   <tr key={doc.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                     <td style={{ padding: "12px 16px", fontSize: 13, fontFamily: "monospace", color: dt.color }}>{doc.docNo}</td>
@@ -811,13 +1019,10 @@ function DocForm({ doc, type, customers, products, onSave, onCancel }) {
     if (!p) return;
     setF(prev => ({ ...prev, items: prev.items.map(i => i.id === itemId ? { ...i, name: p.name, unit: p.unit, price: p.price } : i) }));
   };
-  const subtotal = f.items.reduce((s, i) => s + i.qty * i.price, 0);
-  const discAmt = subtotal * (f.discount / 100);
-  const afterDisc = subtotal - discAmt;
-  const vatAmt = f.vat ? afterDisc * 0.07 : 0;
-  const total = afterDisc + vatAmt;
-  const whtAmt = f.wht ? afterDisc * (f.whtRate / 100) : 0;
-  const netPay = total - whtAmt;
+  const { subtotal, discAmt, afterDisc, vatAmt, total, whtAmt, netPay } = (() => {
+    const r = calcDocTotal(f);
+    return { ...r, discAmt: r.discountAmt, afterDisc: r.afterDisc };
+  })();
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
