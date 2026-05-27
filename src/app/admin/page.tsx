@@ -368,7 +368,7 @@ function printDocument(doc: any, customers: any[], company: any) {
 export default function AdminPage() {
   const [mainTab, setMainTab] = useState("erp");
   const [tab, setTab] = useState("blog");
-  const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState<{ msg: string; type: string } | null>(null);
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2800);
