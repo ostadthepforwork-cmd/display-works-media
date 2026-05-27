@@ -1301,9 +1301,9 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
 
       setF(p => ({ ...p, cover: urlData.publicUrl }));
       showToast("อัปโหลดรูปสำเร็จ ✓");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Upload catch:", err);
-      showToast("เกิดข้อผิดพลาด: " + (err.message || err), "error");
+      showToast("เกิดข้อผิดพลาด: " + (err?.message || err), "error");
     }
     setUploading(false);
   };
