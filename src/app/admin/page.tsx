@@ -115,50 +115,53 @@ function printDocument(doc: any, customers: any[], company: any) {
   };
   const lbl = DOC_LABELS[doc.type] || DOC_LABELS.quote;
 
-  // ── Table rows ────────────────────────────────────────────
+  // ── Table rows — with bullet detail list ─────────────────
   const rows = doc.items.map((item, i) => `
-    <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:8px;text-align:center;color:#6b7280;font-size:10px;">${i + 1}</td>
-      <td style="padding:8px 10px;">
-        <div style="font-weight:600;font-size:11px;color:#1e293b;">${item.name}</div>
+    <tr style="border-bottom:1px solid #e5e7eb;vertical-align:top;">
+      <td style="padding:9px 6px;text-align:center;font-weight:700;font-size:13px;color:#FF5500;border-right:1px solid #e5e7eb;">${String(i + 1).padStart(2, "0")}</td>
+      <td style="padding:9px 10px;border-right:1px solid #e5e7eb;">
+        <div style="font-weight:700;font-size:11px;color:#1e293b;">${item.name}</div>
+        ${item.subTitle ? `<div style="font-size:9.5px;color:#94a3b8;margin-top:2px;">${item.subTitle}</div>` : ""}
       </td>
-      <td style="padding:8px;text-align:center;font-size:10px;color:#6b7280;">${item.unit}</td>
-      <td style="padding:8px;text-align:right;font-size:11px;">${fmtMoney(item.qty)}</td>
-      <td style="padding:8px;text-align:right;font-size:11px;">${fmtMoney(item.price)}</td>
-      <td style="padding:8px;text-align:right;font-size:11px;font-weight:600;color:#1e293b;">${fmtMoney(item.qty * item.price)}</td>
+      <td style="padding:9px 10px;border-right:1px solid #e5e7eb;">
+        ${item.detail ? `<ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.7;margin:0;">${item.detail.split("\n").filter(Boolean).map(d => `<li>${d}</li>`).join("")}</ul>` : ""}
+      </td>
+      <td style="padding:9px 6px;text-align:center;font-size:11px;color:#1e293b;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.qty)}</td>
+      <td style="padding:9px 6px;text-align:center;font-size:10px;color:#94a3b8;border-right:1px solid #e5e7eb;">${item.unit}</td>
+      <td style="padding:9px 8px;text-align:right;font-size:11px;color:#475569;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.price)}</td>
+      <td style="padding:9px 8px;text-align:right;font-size:11px;font-weight:700;color:#FF5500;">${fmtMoney(item.qty * item.price)}</td>
     </tr>`).join("");
 
   // ── Summary rows ──────────────────────────────────────────
   const summaryRows = `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:6px 12px;color:#64748b;font-size:10px;font-weight:600;">SUBTOTAL</td>
-      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(subtotal)}</td>
+      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">SUBTOTAL</td>
+      <td style="padding:7px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(subtotal)}</td>
     </tr>
     ${doc.discount > 0 ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:6px 12px;color:#ef4444;font-size:10px;font-weight:600;">DISCOUNT ${doc.discount}%</td>
-      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#ef4444;">- ${fmtMoney(discountAmt)}</td>
-    </tr>` : ""}
-    ${doc.discount > 0 ? `
+      <td style="padding:7px 12px;color:#ef4444;font-size:10px;font-weight:600;">DISCOUNT ${doc.discount}%</td>
+      <td style="padding:7px 12px;text-align:right;font-size:11px;color:#ef4444;">- ${fmtMoney(discountAmt)}</td>
+    </tr>
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:6px 12px;color:#64748b;font-size:10px;font-weight:600;">TOTAL BEFORE VAT</td>
-      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(afterDisc)}</td>
+      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">TOTAL BEFORE VAT</td>
+      <td style="padding:7px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(afterDisc)}</td>
     </tr>` : ""}
     ${doc.vat ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:6px 12px;color:#64748b;font-size:10px;font-weight:600;">VAT 7%</td>
-      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(vatAmt)}</td>
+      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">VAT 7%</td>
+      <td style="padding:7px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(vatAmt)}</td>
     </tr>` : ""}
     ${doc.wht ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:6px 12px;color:#64748b;font-size:10px;font-weight:600;">หัก ณ ที่จ่าย ${doc.whtRate}%</td>
-      <td style="padding:6px 12px;text-align:right;font-size:11px;color:#64748b;">- ${fmtMoney(whtAmt)}</td>
+      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">หัก ณ ที่จ่าย ${doc.whtRate}%</td>
+      <td style="padding:7px 12px;text-align:right;font-size:11px;color:#64748b;">- ${fmtMoney(whtAmt)}</td>
     </tr>` : ""}
     <tr style="background:#FF5500;">
-      <td style="padding:8px 12px;font-weight:800;font-size:11px;color:#fff;">
-        GRAND TOTAL<br/><span style="font-size:8px;font-weight:400;opacity:0.85;">${lbl.sub}</span>
+      <td style="padding:9px 12px;font-weight:800;font-size:12px;color:#fff;text-align:left;">
+        GRAND TOTAL<br/><span style="font-size:8px;font-weight:400;opacity:.85;">${lbl.sub}</span>
       </td>
-      <td style="padding:8px 12px;text-align:right;font-weight:800;font-size:14px;color:#fff;">
+      <td style="padding:9px 12px;text-align:right;font-weight:800;font-size:15px;color:#fff;">
         ${fmtMoney(netPay)} <span style="font-size:9px;font-weight:400;">THB</span>
       </td>
     </tr>`;
@@ -169,7 +172,7 @@ function printDocument(doc: any, customers: any[], company: any) {
         `<li style="margin-bottom:3px;">${n}</li>`).join("")
     : "<li>ขอบคุณที่ไว้วางใจ Display Works Media</li>";
 
-  // ── Full HTML ─────────────────────────────────────────────
+  // ── Full HTML — Premium quotation layout ─────────────────
   const html = `<!DOCTYPE html>
 <html lang="th">
 <head>
@@ -180,11 +183,11 @@ function printDocument(doc: any, customers: any[], company: any) {
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Prompt','Sarabun',sans-serif;font-size:12px;color:#1e293b;background:#f1f5f9;}
-  .page{background:#fff;width:210mm;min-height:297mm;padding:16mm 14mm 14mm;margin:0 auto;
+  .page{background:#fff;width:210mm;min-height:297mm;padding:18mm 12mm 15mm;margin:0 auto;
         box-shadow:0 10px 40px rgba(0,0,0,.12);display:flex;flex-direction:column;justify-content:space-between;}
   @media print{
     body{background:#fff!important;}
-    .page{width:100%!important;box-shadow:none!important;padding:10mm 8mm!important;margin:0!important;}
+    .page{width:100%!important;box-shadow:none!important;padding:10mm 5mm!important;margin:0!important;}
     tr,section{page-break-inside:avoid;break-inside:avoid;}
   }
 </style>
@@ -192,73 +195,75 @@ function printDocument(doc: any, customers: any[], company: any) {
 <body>
 <div class="page">
 
-  <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+  <!-- ═══ HEADER ════════════════════════════════════════════ -->
   <div>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:flex-start;
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:flex-start;
                 padding-bottom:14px;border-bottom:2px solid #f1f5f9;margin-bottom:16px;">
-      <!-- Brand left -->
+      <!-- Brand + address left -->
       <div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <div style="background:#FF5500;color:#fff;font-weight:800;font-size:14px;
-                      padding:4px 8px;border-radius:5px;letter-spacing:1px;">DW</div>
-          <div>
-            <div style="font-size:13px;font-weight:800;color:#0f172a;letter-spacing:.5px;line-height:1;">
-              DISPLAY WORKS MEDIA
-            </div>
-            <div style="font-size:8px;color:#94a3b8;letter-spacing:1px;margin-top:1px;">
-              ${company.address || ""}
+        <!-- Logo Image -->
+        <div style="margin-bottom:8px;">
+          <img src="/images/logo DWM PNG long.png" alt="Display Works Media"
+               style="height:48px;width:auto;max-width:280px;object-fit:contain;display:block;"
+               onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';">
+          <!-- Fallback if image not found -->
+          <div id="logoFallback" style="display:none;align-items:center;gap:8px;">
+            <div style="background:#FF5500;color:#fff;font-weight:800;font-size:16px;
+                        padding:5px 10px;border-radius:6px;letter-spacing:1px;line-height:1;">DW</div>
+            <div>
+              <div style="font-size:14px;font-weight:800;color:#0f172a;letter-spacing:.5px;line-height:1;">DISPLAY WORKS MEDIA</div>
+              <div style="font-size:8px;color:#94a3b8;letter-spacing:2px;margin-top:2px;">MAKE YOUR BRAND SEEN</div>
             </div>
           </div>
         </div>
-        <div style="font-size:8.5px;color:#94a3b8;line-height:1.7;">
-          ${company.phone ? "โทร: " + company.phone + " &nbsp;|&nbsp; " : ""}
-          ${company.email ? company.email + " &nbsp;|&nbsp; " : ""}
-          ${company.taxId ? "เลขผู้เสียภาษี: " + company.taxId : ""}
+        <div style="font-weight:700;font-size:11px;color:#334155;margin-bottom:3px;">${company.name || "DISPLAY WORKS MEDIA CO., LTD."}</div>
+        <div style="font-size:9.5px;color:#94a3b8;line-height:1.7;max-width:380px;">${company.address || ""}</div>
+        <div style="font-size:8.5px;color:#94a3b8;line-height:1.7;margin-top:2px;">
+          ${company.phone ? "โทร. " + company.phone : ""}
+          ${company.phone && company.email ? " &nbsp;|&nbsp; " : ""}
+          ${company.email ? company.email : ""}
+          ${company.taxId ? " &nbsp;|&nbsp; เลขผู้เสียภาษี: " + company.taxId : ""}
         </div>
       </div>
       <!-- Doc type right -->
-      <div style="text-align:right;position:relative;padding-right:12px;">
-        <div style="font-size:30px;font-weight:800;color:#0f172a;letter-spacing:2px;line-height:1;">
-          ${lbl.en}
-        </div>
-        <div style="font-size:10px;font-weight:500;color:#FF5500;letter-spacing:3px;margin-top:2px;">
-          ${lbl.sub}
-        </div>
+      <div style="text-align:right;position:relative;padding-right:14px;">
+        <div style="font-size:34px;font-weight:800;color:#0f172a;letter-spacing:2px;line-height:1;">${lbl.en}</div>
+        <div style="font-size:11px;font-weight:500;color:#FF5500;letter-spacing:3px;margin-top:4px;">${lbl.sub}</div>
         <!-- Orange accent bar -->
-        <div style="position:absolute;right:-2px;top:0;width:4px;height:52px;
-                    background:#FF5500;border-radius:2px;transform:skewX(-8deg);"></div>
+        <div style="position:absolute;right:-2px;top:0;width:5px;height:58px;
+                    background:#FF5500;border-radius:2px;transform:skewX(-8deg);opacity:.85;"></div>
       </div>
     </div>
 
     <!-- ═══ CLIENT + META ══════════════════════════════════ -->
-    <div style="display:grid;grid-template-columns:1fr auto;gap:0;
-                border-bottom:1px solid #f1f5f9;padding-bottom:14px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:7fr 5fr;gap:0;
+                border-bottom:1px solid #e2e8f0;padding-bottom:16px;margin-bottom:16px;">
       <!-- To / client -->
       <div style="padding-right:20px;border-right:1px solid #e2e8f0;">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-          <span style="color:#FF5500;font-weight:800;font-size:11px;">TO</span>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+          <span style="color:#FF5500;font-weight:800;font-size:12px;">TO</span>
           <span style="color:#cbd5e1;font-size:10px;">/</span>
-          <span style="color:#94a3b8;font-size:9px;font-weight:500;">ลูกค้า</span>
+          <span style="color:#94a3b8;font-size:10px;font-weight:500;">ลูกค้า</span>
         </div>
-        <div style="font-weight:700;font-size:12px;color:#0f172a;margin-bottom:3px;">${cust.name || "-"}</div>
-        ${cust.contact ? `<div style="font-size:10px;color:#64748b;margin-bottom:2px;">ผู้ติดต่อ: ${cust.contact}</div>` : ""}
-        ${cust.address ? `<div style="font-size:10px;color:#64748b;line-height:1.6;margin-bottom:3px;white-space:pre-line;">${cust.address}</div>` : ""}
-        <div style="font-size:10px;color:#64748b;display:flex;flex-wrap:wrap;gap:8px;">
-          ${cust.phone ? `<span><b style="color:#475569;">โทร.</b> ${cust.phone}</span>` : ""}
-          ${cust.taxId ? `<span><b style="color:#475569;">เลขผู้เสียภาษี:</b> ${cust.taxId}</span>` : ""}
+        <div style="font-weight:700;font-size:13px;color:#0f172a;margin-bottom:4px;">${cust.name || "-"}</div>
+        ${cust.address ? `<div style="font-size:10.5px;color:#64748b;line-height:1.7;margin-bottom:5px;white-space:pre-line;">${cust.address}</div>` : ""}
+        <div style="font-size:10.5px;color:#64748b;display:flex;flex-direction:column;gap:2px;">
+          ${cust.taxId ? `<div><span style="font-weight:600;color:#475569;">เลขประจำตัวผู้เสียภาษี</span> ${cust.taxId}</div>` : ""}
+          ${cust.phone ? `<div><span style="font-weight:600;color:#475569;">โทร.</span> ${cust.phone}</div>` : ""}
+          ${cust.email ? `<div><span style="font-weight:600;color:#475569;">อีเมล:</span> ${cust.email}</div>` : ""}
         </div>
-        ${doc.projectName ? `<div style="margin-top:5px;font-size:10px;color:#64748b;"><b style="color:#475569;">โครงการ:</b> ${doc.projectName}</div>` : ""}
+        ${doc.projectName ? `<div style="margin-top:6px;font-size:10px;color:#64748b;"><span style="font-weight:600;color:#475569;">โครงการ:</span> ${doc.projectName}</div>` : ""}
       </div>
       <!-- Meta right -->
-      <div style="padding-left:20px;min-width:190px;">
+      <div style="padding-left:20px;display:flex;flex-direction:column;justify-content:center;gap:0;">
         ${[
-          ["DOCUMENT NO.", doc.docNo, "#FF5500"],
-          ["DATE", fmtDate(doc.date), "#475569"],
+          ["QUOTATION NO.", doc.docNo, "#FF5500"],
+          ["DATE", fmtDate(doc.date), "#64748b"],
           [lbl.valid.toUpperCase(), fmtDate(doc.dueDate), "#FF5500"],
-          ["STATUS", STATUS_LABELS[doc.status] || doc.status, "#475569"],
+          ["SALE PERSON", doc.salesPerson || company.salesPerson || "-", "#64748b"],
         ].map(([k, v, c]) => `
           <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px dashed #f1f5f9;
-                      padding:4px 0;font-size:10px;">
+                      padding:5px 0;font-size:10.5px;">
             <span style="font-weight:700;color:${c};">${k}</span>
             <span style="font-weight:500;color:#0f172a;">${v || "-"}</span>
           </div>`).join("")}
@@ -268,23 +273,26 @@ function printDocument(doc: any, customers: any[], company: any) {
     <!-- ═══ ITEMS TABLE ═════════════════════════════════════ -->
     <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;margin-bottom:16px;">
       <thead>
-        <tr style="background:#2c2d30;color:#fff;">
-          <th style="padding:8px;font-size:9px;font-weight:700;text-align:center;border-right:1px solid #444;width:5%;">
+        <tr style="background:#2c2d30;color:#fff;text-align:center;">
+          <th style="padding:9px 6px;font-size:9px;font-weight:700;border-right:1px solid #444;width:6%;">
             ITEM<br/><span style="font-size:7px;font-weight:400;opacity:.7;">ลำดับ</span>
           </th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;border-right:1px solid #444;width:42%;">
+          <th style="padding:9px 10px;font-size:9px;font-weight:700;border-right:1px solid #444;text-align:left;width:20%;">
             DESCRIPTION<br/><span style="font-size:7px;font-weight:400;opacity:.7;">รายการ</span>
           </th>
-          <th style="padding:8px;font-size:9px;font-weight:700;text-align:center;border-right:1px solid #444;width:8%;">
-            UNIT<br/><span style="font-size:7px;font-weight:400;opacity:.7;">หน่วย</span>
+          <th style="padding:9px 10px;font-size:9px;font-weight:700;border-right:1px solid #444;text-align:left;width:30%;">
+            DETAIL<br/><span style="font-size:7px;font-weight:400;opacity:.7;">รายละเอียด</span>
           </th>
-          <th style="padding:8px;font-size:9px;font-weight:700;text-align:right;border-right:1px solid #444;width:10%;">
+          <th style="padding:9px 6px;font-size:9px;font-weight:700;border-right:1px solid #444;width:8%;">
             QTY.<br/><span style="font-size:7px;font-weight:400;opacity:.7;">จำนวน</span>
           </th>
-          <th style="padding:8px;font-size:9px;font-weight:700;text-align:right;border-right:1px solid #444;width:16%;">
-            UNIT PRICE<br/><span style="font-size:7px;font-weight:400;opacity:.7;">ราคา/หน่วย</span>
+          <th style="padding:9px 6px;font-size:9px;font-weight:700;border-right:1px solid #444;width:8%;">
+            UNIT<br/><span style="font-size:7px;font-weight:400;opacity:.7;">หน่วย</span>
           </th>
-          <th style="padding:8px;font-size:9px;font-weight:700;text-align:right;width:16%;">
+          <th style="padding:9px 6px;font-size:9px;font-weight:700;border-right:1px solid #444;width:14%;">
+            UNIT PRICE<br/><span style="font-size:7px;font-weight:400;opacity:.7;">ราคาต่อหน่วย</span>
+          </th>
+          <th style="padding:9px 6px;font-size:9px;font-weight:700;width:14%;">
             AMOUNT<br/><span style="font-size:7px;font-weight:400;opacity:.7;">จำนวนเงิน</span>
           </th>
         </tr>
@@ -292,41 +300,88 @@ function printDocument(doc: any, customers: any[], company: any) {
       <tbody>${rows}</tbody>
     </table>
 
-    <!-- ═══ LOWER: NOTES + PAYMENT + SUMMARY + SIGNATURES ══ -->
-    <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;">
+    <!-- ═══ LOWER: REMARKS + PAYMENT + SUMMARY + SIGNATURES ══ -->
+    <div style="display:grid;grid-template-columns:7fr 5fr;gap:16px;">
 
-      <!-- Left: Remarks + Company payment info -->
-      <div style="display:flex;flex-direction:column;gap:10px;">
+      <!-- Left: Remarks + Payment info + Signatures -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
 
         <!-- Remarks -->
-        ${doc.notes ? `
         <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;background:#f8fafc;">
           <div style="color:#FF5500;font-weight:700;font-size:8.5px;letter-spacing:1.5px;
                       text-transform:uppercase;margin-bottom:6px;">REMARKS / หมายเหตุ</div>
           <ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.8;">
             ${noteItems}
           </ul>
-        </div>` : ""}
+        </div>
+
+        <!-- Payment Info -->
+        <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;background:#fff;
+                    display:flex;justify-content:space-between;align-items:center;min-height:100px;">
+          <div style="flex:1;min-width:0;padding-right:10px;">
+            <div style="color:#FF5500;font-weight:700;font-size:8.5px;letter-spacing:1.5px;
+                        text-transform:uppercase;margin-bottom:6px;">PAYMENT INFORMATION</div>
+            <div style="font-size:10.5px;margin-bottom:2px;">
+              <span style="color:#94a3b8;">ชื่อบัญชี:</span>
+              <span style="font-weight:700;color:#1e293b;"> ${company.bankName || company.name || "-"}</span>
+            </div>
+            <div style="font-size:10px;color:#64748b;margin-bottom:2px;">
+              <span style="color:#94a3b8;">ธนาคาร:</span> ${company.bankBranch || "-"}
+            </div>
+            <div style="font-size:10px;color:#64748b;margin-bottom:2px;">
+              <span style="color:#94a3b8;">เลขบัญชี:</span>
+              <span style="font-weight:700;color:#1e293b;"> ${company.bankAccount || "-"}</span>
+            </div>
+            <div style="font-size:9px;color:#94a3b8;font-style:italic;">
+              <span style="color:#94a3b8;">ประเภท:</span> ${company.bankType || "ออมทรัพย์"}
+            </div>
+          </div>
+          <!-- QR Code placeholder -->
+          <div style="width:76px;height:76px;border:1px solid #e2e8f0;border-radius:6px;
+                      background:#f8fafc;display:flex;flex-direction:column;align-items:center;
+                      justify-content:center;flex-shrink:0;padding:6px;">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:52px;height:52px;">
+              <rect width="100" height="100" rx="4" fill="white"/>
+              <rect x="10" y="10" width="25" height="25" stroke="black" stroke-width="4" fill="none"/>
+              <rect x="16" y="16" width="13" height="13" fill="black"/>
+              <rect x="65" y="10" width="25" height="25" stroke="black" stroke-width="4" fill="none"/>
+              <rect x="71" y="16" width="13" height="13" fill="black"/>
+              <rect x="10" y="65" width="25" height="25" stroke="black" stroke-width="4" fill="none"/>
+              <rect x="16" y="71" width="13" height="13" fill="black"/>
+              <rect x="42" y="10" width="8" height="15" fill="black"/>
+              <rect x="42" y="32" width="15" height="8" fill="black"/>
+              <rect x="42" y="45" width="8" height="8" fill="black"/>
+              <rect x="75" y="45" width="15" height="12" fill="black"/>
+              <rect x="65" y="65" width="8" height="18" fill="black"/>
+              <rect x="78" y="75" width="12" height="15" fill="black"/>
+              <rect x="45" y="65" width="12" height="8" fill="black"/>
+              <rect x="48" y="80" width="12" height="10" fill="black"/>
+              <rect x="15" y="45" width="15" height="8" fill="black"/>
+            </svg>
+            <div style="font-size:7px;color:#94a3b8;margin-top:3px;">สแกนเพื่อชำระเงิน</div>
+          </div>
+        </div>
 
         <!-- Signatures -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto;">
-          ${["PREPARED BY / ผู้เสนอราคา", "AUTHORIZED BY / ผู้อนุมัติ"].map(label => `
+          ${["PREPARED BY / ผู้เสนอราคา", "AUTHORIZED BY / ผู้อนุมัติสั่งซื้อ"].map(label => `
           <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px;
                       text-align:center;min-height:90px;display:flex;flex-direction:column;
                       justify-content:space-between;background:#fff;">
-            <div style="font-size:7.5px;font-weight:700;color:#94a3b8;letter-spacing:1px;">
-              ${label}
+            <div style="font-size:7.5px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">
+              ${label.split(" / ")[0]}
             </div>
-            <div style="border-bottom:1px solid #cbd5e1;width:80%;margin:0 auto;"></div>
-            <div style="font-size:8px;color:#94a3b8;">( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )<br/>
-              <span style="font-size:7px;">วันที่ ...............................
-</span></div>
+            <div style="border-bottom:1px solid #cbd5e1;width:80%;margin:12px auto 8px;"></div>
+            <div style="font-size:8px;color:#94a3b8;">
+              ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )<br/>
+              <span style="font-size:7.5px;font-weight:600;color:#64748b;">${label.split(" / ")[1]}</span>
+            </div>
           </div>`).join("")}
         </div>
       </div>
 
       <!-- Right: Financial summary -->
-      <div style="display:flex;flex-direction:column;gap:10px;">
+      <div>
         <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
           <table style="width:100%;border-collapse:collapse;">
             <tbody>${summaryRows}</tbody>
@@ -336,16 +391,16 @@ function printDocument(doc: any, customers: any[], company: any) {
     </div>
   </div>
 
-  <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
-  <div style="margin-top:20px;padding-top:10px;border-top:2px solid #FF5500;
+  <!-- ═══ FOOTER ════════════════════════════════════════════ -->
+  <div style="margin-top:24px;padding-top:12px;border-top:2px solid #FF5500;
               display:flex;justify-content:space-between;align-items:flex-end;">
     <div style="font-size:9px;color:#94a3b8;font-style:italic;">
       Thank you for your business.
     </div>
-    <div style="text-align:right;position:relative;padding-right:10px;">
+    <div style="text-align:right;position:relative;padding-right:12px;">
       <div style="font-size:9px;font-weight:800;font-style:italic;color:#0f172a;letter-spacing:1px;">MAKE YOUR</div>
-      <div style="font-size:12px;font-weight:800;color:#FF5500;letter-spacing:1px;line-height:1.1;">BRAND SEEN</div>
-      <div style="position:absolute;right:0;bottom:0;width:3px;height:28px;background:#FF5500;
+      <div style="font-size:13px;font-weight:800;color:#FF5500;letter-spacing:1px;line-height:1.1;">BRAND SEEN</div>
+      <div style="position:absolute;right:0;bottom:0;width:3px;height:30px;background:#FF5500;
                   border-radius:1px;transform:skewX(-8deg);"></div>
     </div>
   </div>
