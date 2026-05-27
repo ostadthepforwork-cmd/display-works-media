@@ -68,11 +68,11 @@ export default function QuoteForm() {
   return (
     <section
       id="quote"
-      className="py-24 px-6 lg:px-8"
+      className="py-16 sm:py-24 px-5 sm:px-6 lg:px-8"
       style={{ background: "#0B0F19" }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-16 items-start">
           {/* Left info */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -171,7 +171,7 @@ export default function QuoteForm() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
                         ชื่อ-นามสกุล *

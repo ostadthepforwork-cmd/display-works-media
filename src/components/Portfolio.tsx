@@ -20,7 +20,7 @@ export default function Portfolio() {
   return (
     <section
       id="portfolio"
-      className="py-24 px-6 lg:px-8"
+      className="py-16 sm:py-24 px-5 sm:px-6 lg:px-8"
       style={{ background: "linear-gradient(180deg, #0B0F19 0%, #0d1220 100%)" }}
     >
       <div className="max-w-7xl mx-auto">
@@ -45,7 +45,7 @@ export default function Portfolio() {
         </motion.div>
 
         {/* Square Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {portfolioImages.map((src, i) => (
             <motion.div
               key={i}

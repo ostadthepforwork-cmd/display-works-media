@@ -4,7 +4,7 @@ import Image from "next/image";
 import { MessageCircle, Facebook, Instagram, Phone, Mail, MapPin } from "lucide-react";
 
 const navLinks = [
-  { label: "หน้าแรก", href: "#hero" },
+  { label: "หน้าแรก", href: "/" },
   { label: "บริการของเรา", href: "#services" },
   { label: "ผลงานของเรา", href: "#portfolio" },
   { label: "ขั้นตอนการทำงาน", href: "#process" },
@@ -94,8 +94,8 @@ export default function Footer() {
       </div>
 
       {/* Main footer grid */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-14 pb-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-10 sm:pt-14 pb-8 sm:pb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-10 mb-12">
 
           {/* Brand */}
           <div className="lg:col-span-1">
