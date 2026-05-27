@@ -1070,17 +1070,34 @@ function BlogForm({ data, onSave, onCancel, showToast }) {
     if (!file) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
+      const ext = file.name.split(".").pop().toLowerCase();
       const path = `blog/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("cms-media").upload(path, file, { upsert: true });
-      if (error) throw error;
+
+      // อัปโหลดไฟล์
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("cms-media")
+        .upload(path, file, { upsert: true, contentType: file.type });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        showToast("อัปโหลดไม่ได้: " + uploadError.message, "error");
+        setUploading(false);
+        return;
+      }
+
+      // ดึง public URL
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
+      if (!urlData?.publicUrl) {
+        showToast("ได้รูปแล้วแต่ URL ไม่ถูกต้อง", "error");
+        setUploading(false);
+        return;
+      }
+
       setF(p => ({ ...p, cover: urlData.publicUrl }));
-      showToast("อัปโหลดรูปสำเร็จ");
+      showToast("อัปโหลดรูปสำเร็จ ✓");
     } catch (err) {
-      // Fallback: use object URL for local preview
-      setF(p => ({ ...p, cover: URL.createObjectURL(file) }));
-      showToast("ใช้รูป preview (ยังไม่ได้อัปโหลดจริง - ตรวจสอบ Supabase Storage)", "error");
+      console.error("Upload catch:", err);
+      showToast("เกิดข้อผิดพลาด: " + (err.message || err), "error");
     }
     setUploading(false);
   };
