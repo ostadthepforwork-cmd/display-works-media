@@ -1269,7 +1269,7 @@ function BlogManager({ showToast }: any) {
 function BlogForm({ data, onSave, onCancel, showToast }: any) {
   const [f, setF] = useState({ ...data });
   const [uploading, setUploading] = useState(false);
-  const fileRef = useRef();
+  const fileRef = useRef<HTMLInputElement>(null);
   const set = k => e => setF(p => ({ ...p, [k]: e.target.value }));
 
   const uploadCover = async (file) => {
@@ -1324,7 +1324,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadCover(e.target.files[0])} />
-            <CBtn onClick={() => fileRef.current.click()} color="#3B82F6" small disabled={uploading}>
+            <CBtn onClick={() => fileRef.current?.click()} color="#3B82F6" small disabled={uploading}>
               {uploading ? "⏳ กำลังอัปโหลด..." : "📁 เลือกรูปภาพ"}
             </CBtn>
             <input value={f.cover} onChange={set("cover")} placeholder="หรือวาง URL รูปภาพ" style={{ fontSize: 12 }} />
@@ -1377,7 +1377,7 @@ function HeroManager({ showToast }: any) {
     bgImage: "/images/hero-bg.jpg",
   }));
   const [uploading, setUploading] = useState(false);
-  const fileRef = useRef();
+  const fileRef = useRef<HTMLInputElement>(null);
   const set = k => e => setHero(p => ({ ...p, [k]: e.target.value }));
 
   const uploadBg = async (file) => {
@@ -1421,7 +1421,7 @@ function HeroManager({ showToast }: any) {
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadBg(e.target.files[0])} />
-            <CBtn onClick={() => fileRef.current.click()} color="#3B82F6" small disabled={uploading}>
+            <CBtn onClick={() => fileRef.current?.click()} color="#3B82F6" small disabled={uploading}>
               {uploading ? "⏳ กำลังอัปโหลด..." : "📁 เปลี่ยนรูปพื้นหลัง"}
             </CBtn>
             <input value={hero.bgImage} onChange={set("bgImage")} placeholder="หรือวาง URL รูปภาพ" />
@@ -1601,7 +1601,7 @@ function PortfolioManager({ showToast }: any) {
   const [items, setItems] = useState(() => loadLocal("portfolio", []));
   const [editing, setEditing] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
-  const fileRef = useRef();
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const uploadImg = async (file, callback) => {
     setUploading(true);
@@ -1663,7 +1663,7 @@ function PortfolioManager({ showToast }: any) {
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
                   <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadImg(e.target.files[0], url => setEditing(p => ({ ...p, img: url })))} />
-                  <CBtn onClick={() => fileRef.current.click()} color="#3B82F6" small disabled={uploading}>{uploading ? "⏳..." : "📁 เลือกรูป"}</CBtn>
+                  <CBtn onClick={() => fileRef.current?.click()} color="#3B82F6" small disabled={uploading}>{uploading ? "⏳..." : "📁 เลือกรูป"}</CBtn>
                   <input value={editing.img} onChange={e => setEditing(p => ({ ...p, img: e.target.value }))} placeholder="หรือวาง URL" />
                 </div>
               </div>
