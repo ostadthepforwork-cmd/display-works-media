@@ -46,6 +46,11 @@ function readTimeTH(body: string) {
 }
 function bodyToHtml(body: string): string {
   if (!body) return "<p>ยังไม่มีเนื้อหา</p>";
+  // ถ้าเป็น HTML จาก RichEditor ให้ใช้โดยตรง
+  if (body.trim().startsWith("<") && (body.includes("</p>") || body.includes("</h") || body.includes("</ul>") || body.includes("<figure"))) {
+    return body;
+  }
+  // fallback: plain text / markdown
   return body.split(/\n{2,}/).map((para) => {
     const t = para.trim();
     if (!t) return "";
@@ -273,12 +278,26 @@ export default function BlogPostPage() {
       </footer>
 
       <style jsx global>{`
-        .prose-blog h1 { font-family: 'Kanit', sans-serif; font-size: 2rem; font-weight: 800; color: #fff; margin: 2rem 0 1rem; }
+        .prose-blog h1 { font-family: 'Kanit', sans-serif; font-size: 2rem; font-weight: 800; color: #fff; margin: 2rem 0 1rem; line-height: 1.3; }
         .prose-blog h2 { font-family: 'Kanit', sans-serif; font-size: 1.5rem; font-weight: 700; color: #fff; margin: 2rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid #FF7A0033; }
+        .prose-blog h3 { font-family: 'Kanit', sans-serif; font-size: 1.2rem; font-weight: 600; color: #fff; margin: 1.5rem 0 0.5rem; }
+        .prose-blog h4 { font-size: 1rem; font-weight: 600; color: #FF7A00; margin: 1rem 0 0.5rem; }
         .prose-blog p  { color: #CBD5E1; line-height: 1.9; margin-bottom: 1.25rem; font-size: 1rem; }
         .prose-blog ul { list-style: none; padding: 0; margin: 0 0 1.25rem; }
         .prose-blog ul li { color: #CBD5E1; padding: 0.35rem 0 0.35rem 1.5rem; position: relative; line-height: 1.8; }
         .prose-blog ul li::before { content: '▸'; position: absolute; left: 0; color: #FF7A00; }
+        .prose-blog ol { padding-left: 1.5rem; margin: 0 0 1.25rem; }
+        .prose-blog ol li { color: #CBD5E1; line-height: 1.8; margin-bottom: 4px; }
+        .prose-blog blockquote { border-left: 4px solid #FF7A00; padding: 12px 20px; margin: 1.5rem 0; background: rgba(255,122,0,0.05); border-radius: 0 10px 10px 0; color: #A7B0C0; font-style: italic; }
+        .prose-blog a { color: #60A5FA; text-decoration: underline; word-break: break-word; }
+        .prose-blog a:hover { color: #FF7A00; }
+        .prose-blog figure { margin: 2rem 0; text-align: center; }
+        .prose-blog figure img { max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .prose-blog figcaption { font-size: 13px; color: #64748B; margin-top: 10px; font-style: italic; }
+        .prose-blog img { max-width: 100%; height: auto; border-radius: 10px; margin: 1rem 0; }
+        .prose-blog strong { color: #fff; font-weight: 700; }
+        .prose-blog em { color: #A7B0C0; font-style: italic; }
+        .prose-blog u { text-decoration-color: #FF7A00; }
       `}</style>
     </div>
   );

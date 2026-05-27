@@ -3,6 +3,7 @@
 // ─── IMPORTS ─────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
+import { useRouter } from 'next/navigation';
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -437,6 +438,10 @@ export default function AdminPage() {
             {t === "erp" ? "⚙️ ระบบ ERP" : "✏️ จัดการเนื้อหา"}
           </button>
         ))}
+        {/* Spacer */}
+        <div style={{ flex: 1 }} />
+        {/* Logout */}
+        <LogoutButton />
       </div>
 
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
@@ -1165,6 +1170,205 @@ function Modal({ title, onClose, children, width = 500 }: any) {
 }
 
 
+
+
+// ─── LOGOUT BUTTON ───────────────────────────────────────────────────────────
+function LogoutButton() {
+  const router = useRouter();
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
+  return (
+    <button
+      onClick={handleLogout}
+      style={{
+        background: "rgba(239,68,68,0.1)",
+        border: "1px solid rgba(239,68,68,0.2)",
+        color: "#ef4444",
+        padding: "6px 14px",
+        borderRadius: 8,
+        fontSize: 12,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        fontWeight: 600,
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        transition: "all 0.15s",
+        flexShrink: 0,
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.25)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.5)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)"; }}
+    >
+      <span>🚪</span> ออกจากระบบ
+    </button>
+  );
+}
+
+// ─── RICH TEXT EDITOR ────────────────────────────────────────────────────────
+function RichEditor({ value, onChange, showToast }: { value: string; onChange: (v: string) => void; showToast: any }) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  // sync ค่าเข้า editor เมื่อเปิดครั้งแรก
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value || "";
+    }
+  }, []);
+
+  const exec = (cmd: string, val?: string) => {
+    editorRef.current?.focus();
+    document.execCommand(cmd, false, val);
+    sync();
+  };
+
+  const sync = () => {
+    if (editorRef.current) onChange(editorRef.current.innerHTML);
+  };
+
+  const insertImage = async (file: File) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const path = `blog/content-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("cms-media").upload(path, file, { upsert: true, contentType: file.type });
+      if (uploadError) { showToast("อัปโหลดไม่ได้: " + uploadError.message, "error"); return; }
+      const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
+      const url = urlData?.publicUrl;
+      if (!url) { showToast("URL ไม่ถูกต้อง", "error"); return; }
+      editorRef.current?.focus();
+      document.execCommand("insertHTML", false,
+        `<figure style="margin:24px 0;text-align:center"><img src="${url}" alt="" style="max-width:100%;height:auto;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.15)" /><figcaption style="font-size:13px;color:#888;margin-top:8px">คำบรรยายรูปภาพ (แก้ได้)</figcaption></figure>`
+      );
+      sync();
+      showToast("แทรกรูปสำเร็จ ✓");
+    } catch (err: any) {
+      showToast("เกิดข้อผิดพลาด: " + err?.message, "error");
+    }
+    setUploading(false);
+  };
+
+  const btnStyle = (active = false) => ({
+    padding: "4px 8px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)",
+    background: active ? "rgba(255,107,0,0.2)" : "rgba(255,255,255,0.05)",
+    color: active ? "#FF6B00" : "#ccc", cursor: "pointer", fontSize: 13,
+    fontFamily: "inherit", lineHeight: 1.4, minWidth: 28, textAlign: "center" as const,
+    transition: "all 0.15s",
+  });
+
+  const divider = { width: 1, background: "rgba(255,255,255,0.1)", margin: "0 4px", alignSelf: "stretch" };
+
+  return (
+    <div style={{ border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, overflow: "hidden", background: "#1A2233" }}>
+      {/* ─── TOOLBAR ─── */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141A24", alignItems: "center" }}>
+        {/* Heading */}
+        <select onChange={e => exec("formatBlock", e.target.value)} defaultValue=""
+          style={{ padding: "4px 6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", background: "#1A2233", color: "#ccc", fontSize: 12, cursor: "pointer", height: 28 }}>
+          <option value="">ย่อหน้า</option>
+          <option value="h1">หัวข้อ 1</option>
+          <option value="h2">หัวข้อ 2</option>
+          <option value="h3">หัวข้อ 3</option>
+          <option value="h4">หัวข้อ 4</option>
+          <option value="blockquote">อ้างอิง</option>
+        </select>
+        <div style={divider} />
+        {/* Font size */}
+        <select onChange={e => exec("fontSize", e.target.value)} defaultValue="3"
+          style={{ padding: "4px 6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", background: "#1A2233", color: "#ccc", fontSize: 12, cursor: "pointer", height: 28, width: 60 }}>
+          {["1","2","3","4","5","6","7"].map(s => <option key={s} value={s}>{[10,12,14,16,18,24,32][+s-1]}px</option>)}
+        </select>
+        <div style={divider} />
+        {/* Text style */}
+        <button style={btnStyle()} onClick={() => exec("bold")} title="หนา"><b>B</b></button>
+        <button style={btnStyle()} onClick={() => exec("italic")} title="เอียง"><i>I</i></button>
+        <button style={btnStyle()} onClick={() => exec("underline")} title="ขีดเส้นใต้"><u>U</u></button>
+        <button style={btnStyle()} onClick={() => exec("strikeThrough")} title="ขีดทับ"><s>S</s></button>
+        <div style={divider} />
+        {/* Color */}
+        <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#ccc", fontSize: 12, marginBottom: 0 }}>
+          <span>A</span>
+          <input type="color" defaultValue="#ffffff" onChange={e => exec("foreColor", e.target.value)}
+            style={{ width: 20, height: 20, padding: 0, border: "none", borderRadius: 3, cursor: "pointer", background: "none" }} />
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#ccc", fontSize: 12, marginBottom: 0 }}>
+          <span style={{ textDecoration: "underline", textDecorationStyle: "solid", textDecorationColor: "#FF6B00" }}>HL</span>
+          <input type="color" defaultValue="#FF6B00" onChange={e => exec("hiliteColor", e.target.value)}
+            style={{ width: 20, height: 20, padding: 0, border: "none", borderRadius: 3, cursor: "pointer", background: "none" }} />
+        </label>
+        <div style={divider} />
+        {/* Align */}
+        <button style={btnStyle()} onClick={() => exec("justifyLeft")} title="ชิดซ้าย">⬅</button>
+        <button style={btnStyle()} onClick={() => exec("justifyCenter")} title="กึ่งกลาง">≡</button>
+        <button style={btnStyle()} onClick={() => exec("justifyRight")} title="ชิดขวา">➡</button>
+        <div style={divider} />
+        {/* List */}
+        <button style={btnStyle()} onClick={() => exec("insertUnorderedList")} title="รายการ">• ≡</button>
+        <button style={btnStyle()} onClick={() => exec("insertOrderedList")} title="รายการตัวเลข">1. ≡</button>
+        <div style={divider} />
+        {/* Link */}
+        <button style={btnStyle()} onClick={() => {
+          const url = prompt("URL ลิงก์:", "https://");
+          if (url) exec("createLink", url);
+        }} title="แทรกลิงก์">🔗</button>
+        <button style={btnStyle()} onClick={() => exec("unlink")} title="ลบลิงก์">🚫</button>
+        <div style={divider} />
+        {/* Image */}
+        <input ref={imgRef} type="file" accept="image/*" style={{ display: "none" }}
+          onChange={e => e.target.files?.[0] && insertImage(e.target.files[0])} />
+        <button style={{ ...btnStyle(), color: uploading ? "#888" : "#60A5FA", display: "flex", alignItems: "center", gap: 4 }}
+          onClick={() => imgRef.current?.click()} disabled={uploading} title="แทรกรูปภาพ">
+          {uploading ? "⏳" : "🖼️"} <span style={{ fontSize: 11 }}>แทรกรูป</span>
+        </button>
+        <div style={divider} />
+        {/* Undo/Redo */}
+        <button style={btnStyle()} onClick={() => exec("undo")} title="ย้อนกลับ">↩</button>
+        <button style={btnStyle()} onClick={() => exec("redo")} title="ทำซ้ำ">↪</button>
+        <button style={{ ...btnStyle(), marginLeft: "auto", color: "#ef4444" }}
+          onClick={() => { if (confirm("ล้างเนื้อหาทั้งหมด?")) { if(editorRef.current) editorRef.current.innerHTML = ""; sync(); } }}
+          title="ล้างทั้งหมด">🗑️</button>
+      </div>
+
+      {/* ─── EDITOR AREA ─── */}
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={sync}
+        onBlur={sync}
+        style={{
+          minHeight: 320, padding: "16px 20px", color: "#e2e8f0", fontSize: 14,
+          lineHeight: 1.8, outline: "none", fontFamily: "'Prompt', sans-serif",
+          background: "#1A2233",
+        }}
+      />
+
+      {/* ─── EDITOR STYLES ─── */}
+      <style>{`
+        [contenteditable] h1 { font-size: 2em; font-weight: 800; margin: 1em 0 0.5em; color: #fff; }
+        [contenteditable] h2 { font-size: 1.5em; font-weight: 700; margin: 1em 0 0.5em; color: #fff; border-bottom: 2px solid rgba(255,107,0,0.3); padding-bottom: 4px; }
+        [contenteditable] h3 { font-size: 1.2em; font-weight: 600; margin: 1em 0 0.5em; color: #fff; }
+        [contenteditable] h4 { font-size: 1em; font-weight: 600; margin: 0.8em 0 0.4em; color: #FF6B00; }
+        [contenteditable] p { margin: 0 0 1em; }
+        [contenteditable] blockquote { border-left: 4px solid #FF6B00; padding: 8px 16px; margin: 16px 0; background: rgba(255,107,0,0.05); border-radius: 0 8px 8px 0; color: #A8B0C0; font-style: italic; }
+        [contenteditable] ul, [contenteditable] ol { padding-left: 24px; margin: 0 0 1em; }
+        [contenteditable] li { margin-bottom: 4px; }
+        [contenteditable] a { color: #60A5FA; text-decoration: underline; }
+        [contenteditable] figure { margin: 24px 0; text-align: center; }
+        [contenteditable] figure img { max-width: 100%; border-radius: 10px; }
+        [contenteditable] figcaption { font-size: 13px; color: #888; margin-top: 8px; }
+        [contenteditable]:empty:before { content: "เริ่มพิมพ์เนื้อหาบทความที่นี่... รองรับการจัดรูปแบบ หัวข้อ รูปภาพ ลิงก์"; color: #444; }
+      `}</style>
+    </div>
+  );
+}
+
 function BlogManager({ showToast }: any) {
   const [posts, setPosts] = useState<any[]>([]);
   const [editing, setEditing] = useState<any>(null);
@@ -1347,7 +1551,11 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
         <CField label="วันที่เผยแพร่"><input type="date" value={f.date} onChange={set("date")} /></CField>
       </div>
       <CField label="บทสรุป (แสดงในหน้าแรก)"><textarea value={f.excerpt} onChange={set("excerpt")} rows={2} placeholder="อธิบายสั้นๆ ว่าบทความนี้เกี่ยวกับอะไร..." /></CField>
-      <CField label="เนื้อหาบทความ"><textarea value={f.body} onChange={set("body")} rows={8} placeholder="เขียนเนื้อหาบทความที่นี่... (รองรับ Markdown)" style={{ fontFamily: "monospace" }} /></CField>
+      {/* ─── RICH TEXT EDITOR ─── */}
+      <div>
+        <label style={{ fontSize: 12, color: "#A8B0C0", display: "block", marginBottom: 6 }}>เนื้อหาบทความ</label>
+        <RichEditor value={f.body} onChange={val => setF(p => ({ ...p, body: val }))} showToast={showToast} />
+      </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#ccc", marginBottom: 0 }}>
           <input type="checkbox" checked={f.published} onChange={e => setF(p => ({ ...p, published: e.target.checked }))} style={{ width: "auto" }} />
