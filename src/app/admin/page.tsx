@@ -10,10 +10,10 @@ const supabase = createBrowserClient(
 );
 
 // ─── CMS HELPERS ─────────────────────────────────────────────────────────────
-function loadLocal(key, def) {
+function loadLocal(key: string, def: unknown) {
   try { const v = localStorage.getItem("cms_" + key); return v ? JSON.parse(v) : def; } catch { return def; }
 }
-function saveLocal(key, val) {
+function saveLocal(key: string, val: unknown) {
   try { localStorage.setItem("cms_" + key, JSON.stringify(val)); } catch {}
 }
 
@@ -85,13 +85,13 @@ const INIT_PRODUCTS = [
   { id: genId(), name: "ฉลากสินค้า A5", unit: "100 ชิ้น", cost: 150, price: 400 },
 ];
 
-function loadStore(key, def) {
+function loadStore(key: string, def: unknown) {
   try {
     const v = localStorage.getItem("dw_" + key);
     return v ? JSON.parse(v) : def;
   } catch { return def; }
 }
-function saveStore(key, val) {
+function saveStore(key: string, val: unknown) {
   try { localStorage.setItem("dw_" + key, JSON.stringify(val)); } catch {}
 }
 
