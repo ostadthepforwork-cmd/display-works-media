@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
         getAll() {
           return req.cookies.getAll();
         },
-        setAll(cookiesToSet: any[]) { // <-- แก้ไขโดยการเติม : any[] ตรงนี้ครับ
+        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
           res = NextResponse.next({ request: req });
           cookiesToSet.forEach(({ name, value, options }) =>
@@ -23,7 +23,6 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  // Refresh session — สำคัญมาก ทำให้ cookie ต่ออายุอัตโนมัติ
   await supabase.auth.getUser();
 
   return res;
