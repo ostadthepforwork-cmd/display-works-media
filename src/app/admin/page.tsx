@@ -491,7 +491,7 @@ export default function AdminPage() {
     <div style={{ minHeight: "100vh", background: "#0B0F19", color: "#fff", fontFamily: "'Prompt','Sarabun',sans-serif", display: "flex", flexDirection: "column" }}>
 
       {/* ─── TOP BAR ─── */}
-      <div style={{ background: "#141A24", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", height: 52, padding: "0 16px", gap: 8, flexShrink: 0, zIndex: 100 }}>
+      <div className="top-bar" style={{ background: "#141A24", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", height: 52, padding: "0 16px", paddingTop: "env(safe-area-inset-top, 0px)", gap: 8, flexShrink: 0, zIndex: 100 }}>
         <span style={{ fontWeight: 800, fontSize: 16, color: "#FF6B00", marginRight: 4 }}>DW</span>
         <span className="hide-mobile" style={{ fontWeight: 600, fontSize: 13, color: "#fff", marginRight: 16 }}>Display Works</span>
         <div className="hide-mobile" style={{ display: "flex", gap: 4 }}>
@@ -522,7 +522,7 @@ export default function AdminPage() {
             <div className="hide-mobile" style={{ display: "flex" }}>
               <ErpSidebar page={erpPage} setPage={setErpPage} docCounts={docCounts} />
             </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
+            <div className="main-content-area" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
               {erpPage === "dashboard" && (
                 <Dashboard documents={documents} customers={customers}
                   totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
@@ -557,7 +557,7 @@ export default function AdminPage() {
                 </button>
               ))}
             </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
+            <div className="main-content-area" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
               {tab === "blog" && <BlogManager showToast={showToast} />}
               {tab === "hero" && <HeroManager showToast={showToast} />}
               {tab === "services" && <ServicesManager showToast={showToast} />}
@@ -572,8 +572,10 @@ export default function AdminPage() {
       {/* ─── MOBILE BOTTOM NAV ─── */}
       <div className="show-mobile" style={{
         position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200,
-        background: "#141A24", borderTop: "1px solid rgba(255,255,255,0.1)",
+        background: "rgba(20,26,36,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
         display: "flex", paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        boxShadow: "0 -8px 32px rgba(0,0,0,0.4)",
       }}>
         {mainTab === "erp" && ([
           { id: "dashboard", icon: "⊞", label: "ภาพรวม" },
@@ -587,12 +589,12 @@ export default function AdminPage() {
             else { setErpPage(item.id); setShowMobileDrawer(false); }
           }} style={{
             flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
-            padding: "8px 2px 6px", border: "none", cursor: "pointer", fontFamily: "inherit",
+            padding: "10px 2px 8px", border: "none", cursor: "pointer", fontFamily: "inherit",
             background: (erpPage === item.id && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "rgba(255,107,0,0.12)" : "transparent",
             color: (erpPage === item.id && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "#FF6B00" : "#6B7280",
           }}>
-            <span style={{ fontSize: 20, lineHeight: 1 }}>{item.icon}</span>
-            <span style={{ fontSize: 9, marginTop: 3, fontWeight: 600 }}>{item.label}</span>
+            <span style={{ fontSize: 22, lineHeight: 1 }}>{item.icon}</span>
+            <span style={{ fontSize: 10, marginTop: 4, fontWeight: 600 }}>{item.label}</span>
           </button>
         ))}
         {mainTab === "cms" && ([
@@ -604,12 +606,12 @@ export default function AdminPage() {
             else { setTab(item.id); setShowMobileDrawer(false); }
           }} style={{
             flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
-            padding: "8px 2px 6px", border: "none", cursor: "pointer", fontFamily: "inherit",
+            padding: "10px 2px 8px", border: "none", cursor: "pointer", fontFamily: "inherit",
             background: tab === item.id && !showMobileDrawer ? "rgba(255,107,0,0.12)" : "transparent",
             color: tab === item.id && !showMobileDrawer ? "#FF6B00" : "#6B7280",
           }}>
-            <span style={{ fontSize: 20, lineHeight: 1 }}>{item.icon}</span>
-            <span style={{ fontSize: 9, marginTop: 3, fontWeight: 600 }}>{item.label}</span>
+            <span style={{ fontSize: 22, lineHeight: 1 }}>{item.icon}</span>
+            <span style={{ fontSize: 10, marginTop: 4, fontWeight: 600 }}>{item.label}</span>
           </button>
         ))}
       </div>
@@ -621,9 +623,12 @@ export default function AdminPage() {
             style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 300 }} />
           <div className="show-mobile" style={{
             position: "fixed", bottom: 62, left: 0, right: 0, zIndex: 400,
-            background: "#1A2233", borderTop: "2px solid #FF6B00",
+            background: "rgba(20,26,36,0.98)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+            borderTop: "2px solid #FF6B00",
             borderRadius: "20px 20px 0 0", padding: "16px 0 8px",
-            animation: "slideUp 0.25s ease",
+            animation: "slideUp 0.25s cubic-bezier(0.32,0.72,0,1)",
+            paddingBottom: "env(safe-area-inset-bottom, 8px)",
+            boxShadow: "0 -16px 48px rgba(0,0,0,0.6)",
           }}>
             <div style={{ width: 36, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99, margin: "0 auto 16px" }} />
             {mainTab === "erp" && ([
@@ -639,12 +644,13 @@ export default function AdminPage() {
                 setShowMobileDrawer(false);
               }} style={{
                 display: "flex", alignItems: "center", gap: 14, width: "100%",
-                padding: "14px 24px", background: "transparent", border: "none",
-                color: "#e2e8f0", fontSize: 14, cursor: "pointer", fontFamily: "inherit",
+                padding: "16px 24px", background: "transparent", border: "none",
+                color: "#e2e8f0", fontSize: 15, cursor: "pointer", fontFamily: "inherit",
+                minHeight: 56,
               }}>
                 <span style={{ fontSize: 22, width: 32, textAlign: "center" as const }}>{item.icon}</span>
                 <span style={{ flex: 1 }}>{item.label}</span>
-                <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>เปิด</span>
+                <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "3px 12px", borderRadius: 99 }}>เปิด</span>
               </button>
             ))}
             {mainTab === "cms" && ([
@@ -657,8 +663,9 @@ export default function AdminPage() {
                 setShowMobileDrawer(false);
               }} style={{
                 display: "flex", alignItems: "center", gap: 14, width: "100%",
-                padding: "14px 24px", background: "transparent", border: "none",
-                color: "#e2e8f0", fontSize: 14, cursor: "pointer", fontFamily: "inherit",
+                padding: "16px 24px", background: "transparent", border: "none",
+                color: "#e2e8f0", fontSize: 15, cursor: "pointer", fontFamily: "inherit",
+                minHeight: 56,
               }}>
                 <span style={{ fontSize: 22, width: 32, textAlign: "center" as const }}>{item.icon}</span>
                 <span>{item.label}</span>
@@ -671,12 +678,12 @@ export default function AdminPage() {
       {/* Toast */}
       {toast && (
         <div style={{
-          position: "fixed", bottom: 80, right: 16, zIndex: 9999,
+          position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 0px))", right: 16, left: 16, zIndex: 9999,
           background: toast.type === "error" ? "#7f1d1d" : "#064e3b",
           border: `1px solid ${toast.type === "error" ? "#ef4444" : "#10b981"}`,
-          color: "#fff", padding: "12px 20px", borderRadius: 10, fontSize: 14,
+          color: "#fff", padding: "14px 20px", borderRadius: 14, fontSize: 14,
           boxShadow: "0 8px 30px rgba(0,0,0,0.4)", display: "flex", alignItems: "center", gap: 10,
-          maxWidth: "calc(100vw - 32px)",
+          maxWidth: "calc(100vw - 32px)", animation: "scaleIn 0.2s ease",
         }}>
           <span>{toast.type === "error" ? "✗" : "✓"}</span>{toast.msg}
         </div>
@@ -684,35 +691,100 @@ export default function AdminPage() {
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+
+        /* ── iPhone 15 Pro base resets ── */
+        *, *::before, *::after { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; }
+
         input, select, textarea {
           background: #1A2233 !important; border: 1px solid rgba(255,255,255,0.12) !important;
-          color: #fff !important; border-radius: 8px !important; padding: 8px 12px !important;
-          font-family: 'Prompt', sans-serif !important; font-size: 13px !important;
+          color: #fff !important; border-radius: 10px !important; padding: 12px 14px !important;
+          font-family: 'Prompt', sans-serif !important; font-size: 16px !important;
           outline: none !important; width: 100%; transition: border-color 0.2s;
+          -webkit-appearance: none; appearance: none;
+          min-height: 48px;
         }
-        input:focus, select:focus, textarea:focus { border-color: #FF6B00 !important; }
+        input:focus, select:focus, textarea:focus { border-color: #FF6B00 !important; box-shadow: 0 0 0 3px rgba(255,107,0,0.15) !important; }
         input::placeholder, textarea::placeholder { color: #555 !important; }
         select option { background: #141A24; }
-        label { font-size: 12px; color: #A8B0C0; display: block; margin-bottom: 4px; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        label { font-size: 13px; color: #A8B0C0; display: block; margin-bottom: 6px; font-weight: 500; }
+        button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: #0B0F19; }
         ::-webkit-scrollbar-thumb { background: #FF6B00; border-radius: 3px; }
+
         @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
         @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity:0; } to { transform: scale(1); opacity:1; } }
+
         /* ── Responsive ── */
         .hide-mobile { display: flex; }
         .show-mobile { display: none !important; }
+
         @media (max-width: 768px) {
           .hide-mobile { display: none !important; }
           .show-mobile { display: flex !important; }
+
           /* Document table → card list on mobile */
           .doc-table { display: none !important; }
           .doc-cards { display: flex !important; }
+
           /* Dashboard grid 1 col */
           .dash-grid { grid-template-columns: 1fr !important; }
+
           /* Form full width */
           .form-grid-2 { grid-template-columns: 1fr !important; }
           .form-grid-3 { grid-template-columns: 1fr !important; }
+
+          /* Larger touch targets on mobile */
+          button { min-height: 44px; }
+
+          /* Modal full-screen on mobile */
+          .modal-panel {
+            position: fixed !important;
+            bottom: 0 !important; left: 0 !important; right: 0 !important;
+            top: auto !important;
+            border-radius: 20px 20px 0 0 !important;
+            max-width: 100% !important;
+            max-height: 92dvh !important;
+            animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1) !important;
+          }
+
+          /* Content padding accounts for safe areas */
+          .main-content-area {
+            padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px)) !important;
+          }
+
+          /* KPI cards 2-col grid */
+          .kpi-grid { grid-template-columns: 1fr 1fr !important; }
+          .kpi-grid > div { padding: 14px 12px !important; }
+          .kpi-grid .kpi-val { font-size: 20px !important; }
+          .kpi-grid .kpi-label { font-size: 9px !important; }
+
+          /* Chart panel full width */
+          .chart-panel { grid-template-columns: 1fr !important; }
+
+          /* Top bar height taller for Dynamic Island clearance */
+          .top-bar { height: 56px !important; }
+
+          /* Doc header stack vertical */
+          .doc-header-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+          .doc-header-row .doc-header-actions { width: 100%; display: flex; gap: 8px; }
+          .doc-header-row .doc-header-actions input { flex: 1; }
+          .doc-header-row .doc-header-actions select { flex: 1; }
+          .doc-header-row .doc-header-actions button { white-space: nowrap; flex-shrink: 0; }
+
+          /* Insights row single col */
+          .insights-row { grid-template-columns: 1fr !important; }
+
+          /* Card padding smaller */
+          .card-pad { padding: 16px !important; }
+        }
+
+        /* ── iPhone 15 Pro specific (393px wide) ── */
+        @media (max-width: 430px) {
+          input, select, textarea { font-size: 16px !important; } /* prevent zoom */
         }
       `}</style>
     </div>
@@ -890,7 +962,7 @@ function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit,
       </div>
 
       {/* ── HERO KPI ─────────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
+      <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
         {/* Revenue */}
         <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #10B981", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>฿</div>
@@ -934,7 +1006,7 @@ function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit,
       </div>
 
       {/* ── CHART + ALERTS ────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 14, marginBottom: 20 }}>
+      <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 14, marginBottom: 20 }}>
 
         {/* Revenue Chart */}
         <div style={{ ...card(), padding: "22px 24px" }}>
@@ -1017,7 +1089,7 @@ function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit,
       </div>
 
       {/* ── INSIGHTS ROW ──────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
+      <div className="insights-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
 
         {/* Top Products */}
         <div style={{ ...card(), padding: "22px 24px" }}>
@@ -1473,14 +1545,14 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+      <div className="doc-header-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ background: dt.color + "22", color: dt.color, fontSize: 12, padding: "3px 10px", borderRadius: 99 }}>{dt.short}</span>{dt.label}
           </h2>
           <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{documents.length} ฉบับ</p>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="doc-header-actions" style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 180 }} />
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width: 130 }}>
             <option value="all">ทุกสถานะ</option>
@@ -1489,7 +1561,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           <Btn onClick={newDoc} color={dt.color}>+ สร้างเอกสาร</Btn>
         </div>
       </div>
-      <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "visible" }}>
         {filtered.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center", color: "#555" }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>📄</div>
@@ -1498,11 +1570,12 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           </div>
         ) : (<>
           {/* ── Desktop Table ── */}
-          <table className="doc-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table className="doc-table" style={{ width: "100%", borderCollapse: "collapse", borderRadius: 12, overflow: "hidden" }}>
             <thead>
               <tr style={{ background: "#1A2233" }}>
-                {["เลขที่เอกสาร", "ลูกค้า", "วันที่", "วันครบกำหนด", "ยอดรวม", "สถานะ", "จัดการ"].map(h => (
-                  <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, color: "#A8B0C0", fontWeight: 500 }}>{h}</th>
+                {["เลขที่เอกสาร", "ลูกค้า", "วันที่", "วันครบกำหนด", "ยอดรวม", "สถานะ", "จัดการ"].map((h, i, arr) => (
+                  <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, color: "#A8B0C0", fontWeight: 500,
+                    borderRadius: i === 0 ? "12px 0 0 0" : i === arr.length - 1 ? "0 12px 0 0" : 0 }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -1953,7 +2026,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
 function MenuBtn({ icon, label, onClick, danger = false, color = "" }: any) {
   return (
     <button onClick={onClick}
-      style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 14px", background: "transparent", color: danger ? "#ef4444" : color || "#e2e8f0", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left" as const,
+      style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "12px 16px", background: "transparent", color: danger ? "#ef4444" : color || "#e2e8f0", border: "none", cursor: "pointer", fontSize: 14, fontFamily: "inherit", textAlign: "left" as const, minHeight: 46,
         transition: "background 0.15s" }}
       onMouseEnter={e => (e.currentTarget.style.background = danger ? "rgba(239,68,68,0.1)" : color ? color + "18" : "rgba(255,255,255,0.06)")}
       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
@@ -1982,9 +2055,10 @@ function Btn({ onClick, children, color, outline, small, style }: any) {
       background: outline ? "transparent" : (color || "#FF6B00"),
       border: `1px solid ${outline ? "rgba(255,255,255,0.15)" : (color || "#FF6B00")}`,
       color: outline ? "#A8B0C0" : "#fff",
-      padding: small ? "6px 12px" : "9px 18px",
-      borderRadius: 8, fontSize: small ? 12 : 13, fontWeight: 600,
-      cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", ...style,
+      padding: small ? "8px 14px" : "11px 20px",
+      borderRadius: 10, fontSize: small ? 13 : 14, fontWeight: 600,
+      cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+      minHeight: small ? 40 : 46, ...style,
     }}>
       {children}
     </button>
@@ -1997,8 +2071,9 @@ function IconBtn({ onClick, children, danger, small }: any) {
       background: danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
       border: `1px solid ${danger ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)"}`,
       color: danger ? "#ef4444" : "#A8B0C0",
-      padding: small ? "2px 6px" : "5px 9px", borderRadius: 6,
-      cursor: "pointer", fontSize: small ? 11 : 14, lineHeight: 1, fontFamily: "inherit",
+      padding: small ? "6px 10px" : "8px 12px", borderRadius: 8,
+      cursor: "pointer", fontSize: small ? 12 : 14, lineHeight: 1, fontFamily: "inherit",
+      minHeight: 36, display: "inline-flex", alignItems: "center",
     }}>
       {children}
     </button>
@@ -2007,14 +2082,15 @@ function IconBtn({ onClick, children, danger, small }: any) {
 
 function Modal({ title, onClose, children, width = 500 }: any) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 0 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, width: "100%", maxWidth: width, maxHeight: "92vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 80px rgba(0,0,0,0.6)", animation: "fadeIn 0.2s ease" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-          <span style={{ fontWeight: 700, fontSize: 15 }}>{title}</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#555", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>✕</button>
+      <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: width, maxHeight: "92dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 -8px 80px rgba(0,0,0,0.6)", animation: "slideUp 0.3s cubic-bezier(0.32,0.72,0,1)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+        <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
-        <div style={{ overflowY: "auto", padding: "20px 22px", flex: 1 }}>{children}</div>
+        <div style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
       </div>
     </div>
   );
@@ -2038,9 +2114,9 @@ function LogoutButton() {
         background: "rgba(239,68,68,0.1)",
         border: "1px solid rgba(239,68,68,0.2)",
         color: "#ef4444",
-        padding: "6px 14px",
-        borderRadius: 8,
-        fontSize: 12,
+        padding: "8px 16px",
+        borderRadius: 10,
+        fontSize: 13,
         cursor: "pointer",
         fontFamily: "inherit",
         fontWeight: 600,
@@ -2049,6 +2125,7 @@ function LogoutButton() {
         gap: 6,
         transition: "all 0.15s",
         flexShrink: 0,
+        minHeight: 40,
       }}
       onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.25)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.5)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)"; }}
@@ -2781,7 +2858,7 @@ function ContactManager({ showToast }: any) {
 // UI COMPONENTS
 // ============================================================
 function Card({ children }: any) {
-  return <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 24 }}>{children}</div>;
+  return <div className="card-pad" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 24 }}>{children}</div>;
 }
 function SectionTitle({ children }: any) {
   return <div style={{ fontSize: 12, fontWeight: 600, color: "#FF6B00", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>{children}</div>;
@@ -2795,10 +2872,11 @@ function CBtn({ onClick, children, color, outline, small, style, disabled }: any
       background: outline ? "transparent" : (color || "#FF6B00"),
       border: `1px solid ${outline ? "rgba(255,255,255,0.15)" : (color || "#FF6B00")}`,
       color: outline ? "#A8B0C0" : "#fff",
-      padding: small ? "6px 12px" : "9px 18px",
-      borderRadius: 8, fontSize: small ? 12 : 13, fontWeight: 600,
+      padding: small ? "8px 14px" : "11px 20px",
+      borderRadius: 10, fontSize: small ? 13 : 14, fontWeight: 600,
       cursor: disabled ? "not-allowed" : "pointer", fontFamily: "inherit",
       opacity: disabled ? 0.6 : 1, whiteSpace: "nowrap", ...style,
+      minHeight: small ? 40 : 46,
     }}>{children}</button>
   );
 }
@@ -2808,21 +2886,24 @@ function CIconBtn({ onClick, children, danger, small }: any) {
       background: danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
       border: `1px solid ${danger ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)"}`,
       color: danger ? "#ef4444" : "#A8B0C0",
-      padding: small ? "2px 6px" : "5px 9px", borderRadius: 6,
-      cursor: "pointer", fontSize: small ? 11 : 14, fontFamily: "inherit",
+      padding: small ? "6px 10px" : "8px 12px", borderRadius: 8,
+      cursor: "pointer", fontSize: small ? 12 : 14, fontFamily: "inherit",
+      minHeight: 36, display: "inline-flex", alignItems: "center",
     }}>{children}</button>
   );
 }
 function CModal({ title, onClose, children, width = 500 }: any) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 0 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, width: "100%", maxWidth: width, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-          <span style={{ fontWeight: 700, fontSize: 15 }}>{title}</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#555", fontSize: 20, cursor: "pointer" }}>✕</button>
+      <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: width, maxHeight: "92dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 -8px 80px rgba(0,0,0,0.6)", animation: "slideUp 0.3s cubic-bezier(0.32,0.72,0,1)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+        {/* drag indicator */}
+        <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
-        <div style={{ overflowY: "auto", padding: "20px 22px", flex: 1 }}>{children}</div>
+        <div style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
       </div>
     </div>
   );
