@@ -1591,16 +1591,10 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const closeAll = () => { setOpenMenu(null); setOpenStatus(null); setMenuPos(null); };
 
   const menuRef = useRef<any>(null);
-  const moreButtonRef = useRef<Record<string, HTMLElement | null>>({});
   useEffect(() => {
-    const handler = (e) => {
-      // ถ้าคลิกอยู่ใน dropdown (fixed) หรือปุ่ม ⋮ ไม่ปิด
-      if (menuRef.current && menuRef.current.contains(e.target)) return;
-      if (Object.values(moreButtonRef.current).some(btn => btn && btn.contains(e.target))) return;
-      closeAll();
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    const handler = () => closeAll();
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
   }, []);
 
   return (
@@ -1680,7 +1674,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             แก้ไข
                           </button>
                           {/* ⋮ More */}
-                          <button ref={el => { moreButtonRef.current[doc.id] = el; }} onClick={(e) => {
+                          <button onClick={(e) => {
+                            e.stopPropagation();
                             if (openMenu === doc.id) { closeAll(); return; }
                             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                             setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
@@ -1691,7 +1686,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           </button>
                         </div>
                         {openMenu === doc.id && menuPos && (
-                          <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
+                          <div ref={menuRef} onClick={e => e.stopPropagation()} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
                             {/* พิมพ์ */}
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             {/* แชร์ลิงค์ */}
@@ -1788,7 +1783,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       <button onClick={() => printDocument(doc, customers, company)}
                         style={{ background: "rgba(255,107,0,0.15)", border: "1px solid rgba(255,107,0,0.3)", color: "#FF6B00", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>🖨️</button>
                       <div style={{ position: "relative" }}>
-                        <button ref={el => { moreButtonRef.current[doc.id + "_m"] = el; }} onClick={(e) => {
+                        <button onClick={(e) => {
+                          e.stopPropagation();
                           if (openMenu === doc.id) { closeAll(); return; }
                           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                           setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
@@ -1796,7 +1792,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         }}
                           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
                         {openMenu === doc.id && menuPos && (
-                          <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
+                          <div ref={menuRef} onClick={e => e.stopPropagation()} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             <MenuBtn icon="🔗" label="แชร์ลิงค์" onClick={() => { const url = `${window.location.origin}/doc/${doc.id}`; navigator.clipboard?.writeText(url).then(() => showToast("คัดลอกลิงค์แล้ว")).catch(() => showToast("ไม่สามารถคัดลอกได้", "error")); closeAll(); }} />
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
