@@ -440,8 +440,8 @@ export default function AdminPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
-  const [company, setCompany] = useState({
-    name: "", address: "", phone: "", email: "", taxId: "",
+  const [company, setCompany] = useState<any>({
+    id: "", name: "", address: "", phone: "", email: "", taxId: "",
     salesPerson: "", bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", qrImage: "",
   });
   const [erpLoading, setErpLoading] = useState(true);
