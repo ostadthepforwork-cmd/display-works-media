@@ -323,24 +323,26 @@ function printDocument(doc: any, customers: any[], company: any) {
                         text-transform:uppercase;margin-bottom:6px;">PAYMENT INFORMATION</div>
             <div style="font-size:10.5px;margin-bottom:2px;">
               <span style="color:#94a3b8;">ชื่อบัญชี:</span>
-              <span style="font-weight:700;color:#1e293b;"> ${company.bankName || company.name || "-"}</span>
+              <span style="font-weight:700;color:#1e293b;"> ${doc.bankName || company.bankName || company.name || "-"}</span>
             </div>
             <div style="font-size:10px;color:#64748b;margin-bottom:2px;">
-              <span style="color:#94a3b8;">ธนาคาร:</span> ${company.bankBranch || "-"}
+              <span style="color:#94a3b8;">ธนาคาร:</span> ${doc.bankBranch || company.bankBranch || "-"}
             </div>
             <div style="font-size:10px;color:#64748b;margin-bottom:2px;">
               <span style="color:#94a3b8;">เลขบัญชี:</span>
-              <span style="font-weight:700;color:#1e293b;"> ${company.bankAccount || "-"}</span>
+              <span style="font-weight:700;color:#1e293b;"> ${doc.bankAccount || company.bankAccount || "-"}</span>
             </div>
             <div style="font-size:9px;color:#94a3b8;font-style:italic;">
-              <span style="color:#94a3b8;">ประเภท:</span> ${company.bankType || "ออมทรัพย์"}
+              <span style="color:#94a3b8;">ประเภท:</span> ${doc.bankType || company.bankType || "ออมทรัพย์"}
             </div>
           </div>
-          <!-- QR Code placeholder -->
+          <!-- QR Code -->
           <div style="width:76px;height:76px;border:1px solid #e2e8f0;border-radius:6px;
                       background:#f8fafc;display:flex;flex-direction:column;align-items:center;
                       justify-content:center;flex-shrink:0;padding:6px;">
-            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:52px;height:52px;">
+            ${doc.qrImage
+              ? `<img src="${doc.qrImage}" alt="QR" style="width:58px;height:58px;object-fit:contain;">`
+              : `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:52px;height:52px;">
               <rect width="100" height="100" rx="4" fill="white"/>
               <rect x="10" y="10" width="25" height="25" stroke="black" stroke-width="4" fill="none"/>
               <rect x="16" y="16" width="13" height="13" fill="black"/>
@@ -357,7 +359,8 @@ function printDocument(doc: any, customers: any[], company: any) {
               <rect x="45" y="65" width="12" height="8" fill="black"/>
               <rect x="48" y="80" width="12" height="10" fill="black"/>
               <rect x="15" y="45" width="15" height="8" fill="black"/>
-            </svg>
+            </svg>`
+            }
             <div style="font-size:7px;color:#94a3b8;margin-top:3px;">สแกนเพื่อชำระเงิน</div>
           </div>
         </div>
@@ -1212,6 +1215,32 @@ function CompanyPage({ company, setCompany, showToast }: any) {
           <Field label="เลขที่บัญชี"><input value={f.bankAccount || ""} onChange={set("bankAccount")} placeholder="xxx-x-xxxxx-x" /></Field>
           <Field label="ประเภทบัญชี"><input value={f.bankType || ""} onChange={set("bankType")} placeholder="ออมทรัพย์ / กระแสรายวัน" /></Field>
         </div>
+        <div>
+          <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>QR Code ชำระเงิน (Default สำหรับเอกสารใหม่)</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 72, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+              {f.qrImage ? <img src={f.qrImage} alt="QR" style={{ width: 64, height: 64, objectFit: "contain" }} /> : <span style={{ fontSize: 28 }}>📷</span>}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, flex: 1 }}>
+              <label style={{ cursor: "pointer", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.3)", color: "#3B82F6", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, textAlign: "center" as const, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <span>📁</span> เลือกไฟล์รูปภาพ QR Code
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (ev) => setF(prev => ({ ...prev, qrImage: ev.target?.result as string }));
+                  reader.readAsDataURL(file);
+                }} />
+              </label>
+              {f.qrImage && (
+                <button onClick={() => setF(prev => ({ ...prev, qrImage: "" }))}
+                  style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+                  🗑 ลบรูป QR Code
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       <Btn onClick={save} color="#FF6B00">💾 บันทึกข้อมูลทั้งหมด</Btn>
@@ -1244,7 +1273,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     return `${prefix}${String(maxSeq + 1).padStart(4, "0")}`;
   };
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, wht: false, whtRate: 3, status: "draft", notes: "" });
+    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
   const save = (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
@@ -1509,7 +1538,59 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
       {/* ── SECTION 4: ชำระเงิน & หมายเหตุ ── */}
       <div style={card}>
         {secHead("4", "ข้อมูลชำระเงิน & หมายเหตุ", "#8B5CF6")}
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const }}>
+
+        {/* ข้อมูลบัญชี */}
+        <Field label="ชื่อบัญชีรับเงิน">
+          <input value={f.bankName ?? ""} onChange={set("bankName")} placeholder="ชื่อบัญชีธนาคาร" />
+        </Field>
+        <Field label="ธนาคาร & สาขา">
+          <input value={f.bankBranch ?? ""} onChange={set("bankBranch")} placeholder="เช่น ธนาคารกสิกรไทย สาขาบางบัวทอง" />
+        </Field>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="เลขที่บัญชี">
+            <input value={f.bankAccount ?? ""} onChange={set("bankAccount")} placeholder="xxx-x-xxxxx-x" />
+          </Field>
+          <Field label="ประเภทบัญชี">
+            <input value={f.bankType ?? ""} onChange={set("bankType")} placeholder="ออมทรัพย์" />
+          </Field>
+        </div>
+
+        {/* QR Code อัปโหลด */}
+        <div>
+          <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>
+            อัปโหลดรูปภาพ QR CODE ชำระเงิน
+          </label>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* Preview */}
+            <div style={{ width: 72, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+              {f.qrImage
+                ? <img src={f.qrImage} alt="QR" style={{ width: 64, height: 64, objectFit: "contain" }} />
+                : <span style={{ fontSize: 28 }}>📷</span>
+              }
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, flex: 1 }}>
+              <label style={{ cursor: "pointer", background: "rgba(255,107,0,0.1)", border: "1px solid rgba(255,107,0,0.3)", color: "#FF6B00", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, textAlign: "center" as const, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <span>📁</span> เลือกไฟล์รูปภาพ QR Code
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (ev) => setF(prev => ({ ...prev, qrImage: ev.target?.result as string }));
+                  reader.readAsDataURL(file);
+                }} />
+              </label>
+              {f.qrImage && (
+                <button onClick={() => setF(prev => ({ ...prev, qrImage: "" }))}
+                  style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+                  🗑 ลบรูป QR Code
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* VAT / WHT */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 14, display: "flex", gap: 16, flexWrap: "wrap" as const }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
             <input type="checkbox" checked={f.vat} onChange={setBool("vat")} style={{ width: "auto" }} />คิด VAT 7%
           </label>
@@ -1523,6 +1604,8 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
             </div>
           )}
         </div>
+
+        {/* หมายเหตุ */}
         <Field label="หมายเหตุ / เงื่อนไข (ใส่ข้อละ 1 บรรทัด)">
           <textarea value={f.notes} onChange={set("notes")} rows={4} style={{ resize: "vertical", fontFamily: "inherit" }}
             placeholder={"ราคานี้รวมภาษีมูลค่าเพิ่ม 7% แล้ว\nระยะเวลาดำเนินงาน 7-14 วันทำการ\nมัดจำ 50% ก่อนเริ่มงาน"} />
