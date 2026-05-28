@@ -437,9 +437,9 @@ export default function AdminPage() {
 
 // ─── ERP STATE ───────────────────────────────────────────────────────────────
   const [erpPage, setErpPage] = useState("dashboard");
-  const [customers, setCustomers] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [documents, setDocuments] = useState([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [company, setCompany] = useState({
     name: "", address: "", phone: "", email: "", taxId: "",
     salesPerson: "", bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", qrImage: "",
