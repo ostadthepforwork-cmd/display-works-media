@@ -1510,6 +1510,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const [filterStatus, setFilterStatus] = useState("all");
   const dt = DOC_TYPES[type];
   const filtered = documents.filter(d =>
+    !d.deleted &&
     (filterStatus === "all" || d.status === filterStatus) &&
     (d.docNo?.includes(search) || d.customerName?.includes(search))
   );
@@ -1546,8 +1547,24 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     else { setDocuments(prev => [...prev, { ...saved, id: genId(), createdAt: now, updatedAt: now }]); showToast("สร้างเอกสารใหม่แล้ว"); }
     setEditing(null);
   };
-  const del = (id) => { if (!confirm("ลบเอกสารนี้?")) return; setDocuments(prev => prev.filter(d => d.id !== id)); showToast("ลบเอกสารแล้ว"); };
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const del = (id) => {
+    const doc = documents.find(d => d.id === id);
+    if (doc?.status === "approved") return showToast("ไม่สามารถลบเอกสารที่อนุมัติแล้ว — ยกเลิกการอนุมัติก่อน", "error");
+    setDeleteConfirm(id);
+  };
+  const confirmDelete = () => {
+    if (!deleteConfirm) return;
+    setDocuments(prev => prev.map(d => d.id === deleteConfirm ? { ...d, deleted: true, status: "cancelled" } : d));
+    setDeleteConfirm(null);
+    showToast("ลบเอกสารแล้ว");
+  };
   const changeStatus = (id, status) => { setDocuments(prev => prev.map(d => d.id === id ? { ...d, status } : d)); showToast(`อัปเดตสถานะเป็น "${STATUS_LABELS[status]}"`); };
+
+  // ── Email Modal ────────────────────────────────────────────
+  const [emailModal, setEmailModal] = useState<any>(null);
+  // ── Split Modal ─────────────────────────────────────────────
+  const [splitModal, setSplitModal] = useState<any>(null);
 
   // ── สร้างเอกสารต่อ ─────────────────────────────────────────
   const DOC_NEXT: Record<string, { type: string; label: string; split?: boolean }[]> = {
@@ -1580,8 +1597,12 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       createdAt: undefined,
       updatedAt: undefined,
     };
-    setEditing(newDoc);
-    showToast(`สร้าง${DOC_TYPES[targetType]?.label}จาก ${srcDoc.docNo}`);
+    if (split) {
+      setSplitModal({ srcDoc, newDoc });
+    } else {
+      setEditing(newDoc);
+      showToast(`สร้าง${DOC_TYPES[targetType]?.label}จาก ${srcDoc.docNo}`);
+    }
   };
 
   // ── Dropdown state ──────────────────────────────────────────
@@ -1675,8 +1696,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                           {/* แก้ไข */}
-                          <button onClick={() => setEditing({ ...doc })} title="แก้ไข"
-                            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+                          <button onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }} title="แก้ไข"
+                            style={{ background: doc.status === "approved" ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#444" : "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
                             แก้ไข
                           </button>
                           {/* ⋮ More */}
@@ -1705,8 +1726,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             {/* อีเมล */}
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => {
                               const cust = customers.find(c => c.id === doc.customerId);
-                              if (cust?.email) { window.open(`mailto:${cust.email}?subject=${encodeURIComponent(`เอกสาร ${doc.docNo}`)}`); }
-                              else showToast("ไม่มีอีเมลลูกค้า", "error");
+                              setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` });
                               closeAll();
                             }} />
                             {/* สร้างซ้ำ */}
@@ -1800,7 +1820,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             <MenuBtn icon="🔗" label="แชร์ลิงค์" onClick={() => { const url = `${window.location.origin}/doc/${doc.id}`; navigator.clipboard?.writeText(url).then(() => showToast("คัดลอกลิงค์แล้ว")).catch(() => showToast("ไม่สามารถคัดลอกได้", "error")); closeAll(); }} />
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
-                            <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); if (cust?.email) { window.open(`mailto:${cust.email}?subject=${encodeURIComponent(`เอกสาร ${doc.docNo}`)}`); } else showToast("ไม่มีอีเมลลูกค้า", "error"); closeAll(); }} />
+                            <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` }); closeAll(); }} />
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { const cnt = allDocuments.filter(d => d.type === doc.type).length + 1; const yr = new Date().getFullYear() + 543; const pfx = DOC_TYPES[doc.type]?.prefix || ""; setEditing({ ...doc, id: "", docNo: `${pfx}${yr}-${String(cnt).padStart(4,"0")}`, date: today(), status: "draft" }); closeAll(); }} />
                             {(DOC_NEXT[doc.type] || []).length > 0 && <>
                               <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
@@ -1827,7 +1847,145 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           <DocForm doc={editing} type={type} customers={customers} products={products} onSave={save} onCancel={() => setEditing(null)} allDocuments={allDocuments} />
         </Modal>
       )}
+
+      {/* ── Delete Confirmation Modal ── */}
+      {deleteConfirm && (
+        <Modal title="ยืนยันการลบเอกสาร" onClose={() => setDeleteConfirm(null)} width={420}>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: 20 }}>
+            <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "16px 18px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 24, flexShrink: 0 }}>🗑️</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#ef4444", marginBottom: 6 }}>คุณแน่ใจหรือไม่?</div>
+                <div style={{ fontSize: 13, color: "#A8B0C0", lineHeight: 1.6 }}>
+                  เอกสาร <span style={{ fontFamily: "monospace", color: "#fff", fontWeight: 700 }}>{documents.find(d => d.id === deleteConfirm)?.docNo}</span> จะถูกยกเลิก<br/>
+                  ข้อมูลจะยังคงอยู่ในระบบแต่ไม่แสดงผล
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn onClick={confirmDelete} style={{ flex: 1, background: "#ef4444", border: "1px solid #ef4444", color: "#fff" }}>🗑️ ยืนยันลบ</Btn>
+              <Btn onClick={() => setDeleteConfirm(null)} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Email Modal ── */}
+      {emailModal && (
+        <Modal title="ส่งเอกสารทางอีเมล" onClose={() => setEmailModal(null)} width={500}>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
+            <Field label="📧 ถึง (To)">
+              <input value={emailModal.toEmail} onChange={e => setEmailModal(p => ({ ...p, toEmail: e.target.value }))} placeholder="email@example.com" />
+            </Field>
+            <Field label="หัวข้อ (Subject)">
+              <input value={emailModal.subject} onChange={e => setEmailModal(p => ({ ...p, subject: e.target.value }))} />
+            </Field>
+            <Field label="ข้อความ (Body)">
+              <textarea value={emailModal.body} onChange={e => setEmailModal(p => ({ ...p, body: e.target.value }))} rows={5} style={{ resize: "vertical", fontFamily: "inherit" }} />
+            </Field>
+            <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#888" }}>
+              📎 ไฟล์แนบ: {emailModal.doc.docNo}.pdf (สร้างจากระบบ)
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn onClick={() => {
+                if (!emailModal.toEmail) return showToast("กรุณาใส่อีเมลผู้รับ", "error");
+                window.open(`mailto:${emailModal.toEmail}?subject=${encodeURIComponent(emailModal.subject)}&body=${encodeURIComponent(emailModal.body)}`);
+                showToast("เปิดโปรแกรมอีเมลแล้ว");
+                setEmailModal(null);
+              }} color="#3B82F6" style={{ flex: 1 }}>✉️ ส่งอีเมล</Btn>
+              <Btn onClick={() => setEmailModal(null)} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Split Modal ── */}
+      {splitModal && (
+        <SplitModal
+          srcDoc={splitModal.srcDoc}
+          newDoc={splitModal.newDoc}
+          onConfirm={(finalDoc) => {
+            setEditing(finalDoc);
+            setSplitModal(null);
+            showToast(`สร้าง${DOC_TYPES[finalDoc.type]?.label}แบบแบ่งจ่ายจาก ${splitModal.srcDoc.docNo}`);
+          }}
+          onClose={() => setSplitModal(null)}
+        />
+      )}
     </div>
+  );
+}
+
+// ============================================================
+// SPLIT MODAL — เลือกรายการ/ยอดแบ่งจ่าย
+// ============================================================
+function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
+  const dt = DOC_TYPES[newDoc.type];
+  // เริ่มต้น: เลือกทุกรายการ เต็มจำนวน
+  const [items, setItems] = useState(
+    srcDoc.items.map(i => ({ ...i, selectedQty: i.qty, selected: true }))
+  );
+  const [splitNote, setSplitNote] = useState("");
+
+  const toggleItem = (id) => setItems(prev => prev.map(i => i.id === id ? { ...i, selected: !i.selected } : i));
+  const setQty = (id, v) => setItems(prev => prev.map(i => i.id === id ? { ...i, selectedQty: Math.min(parseFloat(v) || 0, i.qty) } : i));
+
+  const selectedItems = items.filter(i => i.selected && i.selectedQty > 0).map(i => ({ ...i, qty: i.selectedQty }));
+  const subTotal = selectedItems.reduce((s, i) => s + i.qty * i.price, 0);
+
+  const confirm = () => {
+    if (selectedItems.length === 0) return;
+    const finalDoc = {
+      ...newDoc,
+      items: selectedItems,
+      notes: [newDoc.notes, splitNote].filter(Boolean).join("
+"),
+    };
+    onConfirm(finalDoc);
+  };
+
+  return (
+    <Modal title={`สร้าง${dt?.label} (แบ่งจ่าย)`} onClose={onClose} width={600}>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 16 }}>
+        <div style={{ fontSize: 13, color: "#A8B0C0" }}>เลือกรายการที่ต้องการวางบิล/แจ้งหนี้ในรอบนี้</div>
+
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+          {items.map(item => (
+            <div key={item.id} style={{ background: item.selected ? "rgba(255,107,0,0.06)" : "#0B0F19", border: `1px solid ${item.selected ? "rgba(255,107,0,0.25)" : "rgba(255,255,255,0.06)"}`, borderRadius: 10, padding: "12px 14px", display: "flex", gap: 12, alignItems: "center", cursor: "pointer", transition: "all 0.15s" }}
+              onClick={() => toggleItem(item.id)}>
+              <input type="checkbox" checked={item.selected} onChange={() => toggleItem(item.id)} onClick={e => e.stopPropagation()} style={{ width: "auto", flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>{item.name}</div>
+                {item.subTitle && <div style={{ fontSize: 11, color: "#888" }}>{item.subTitle}</div>}
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+                <div style={{ fontSize: 11, color: "#888" }}>จาก {fmtMoney(item.qty)} {item.unit}</div>
+                <input type="number" value={item.selectedQty} min={0} max={item.qty} step={0.01}
+                  onClick={e => e.stopPropagation()}
+                  onChange={e => { setQty(item.id, e.target.value); if (!item.selected) toggleItem(item.id); }}
+                  style={{ width: 70, textAlign: "right", fontSize: 13, padding: "4px 8px" }} />
+                <div style={{ fontSize: 11, color: "#888", width: 30 }}>{item.unit}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#FF6B00", width: 90, textAlign: "right" }}>฿{fmtMoney(item.selectedQty * item.price)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Field label="หมายเหตุการแบ่งจ่าย">
+          <input value={splitNote} onChange={e => setSplitNote(e.target.value)} placeholder="เช่น งวดที่ 1/2" />
+        </Field>
+
+        <div style={{ background: "#0B0F19", borderRadius: 8, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 13, color: "#A8B0C0" }}>ยอดรวมที่เลือก ({selectedItems.length} รายการ)</span>
+          <span style={{ fontSize: 18, fontWeight: 800, color: dt?.color }}>฿{fmtMoney(subTotal)}</span>
+        </div>
+
+        <div style={{ display: "flex", gap: 10 }}>
+          <Btn onClick={confirm} color={dt?.color} style={{ flex: 1 }} disabled={selectedItems.length === 0}>✅ สร้างเอกสาร</Btn>
+          <Btn onClick={onClose} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+        </div>
+      </div>
+    </Modal>
   );
 }
 
