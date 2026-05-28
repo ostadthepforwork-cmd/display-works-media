@@ -1611,12 +1611,14 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const closeAll = useCallback(() => { setOpenMenu(null); setOpenStatus(null); setMenuPos(null); }, []);
 
-  const menuRef = useRef<any>(null);
-  const statusRef = useRef<any>(null);
+  // ── Fix: ใช้ data-attribute แทน ref เพราะ menuRef/statusRef single ref
+  // แต่ render ทั้ง desktop table และ mobile cards พร้อมกัน ทำให้ ref ชี้ไปที่อันสุดท้ายที่ render
+  // ส่งผลให้ click ใน desktop menu ไม่ถูก detect ว่า "inMenu" -> closeAll() ยิงก่อน onClick
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      const inMenu = menuRef.current && menuRef.current.contains(e.target as Node);
-      const inStatus = statusRef.current && statusRef.current.contains(e.target as Node);
+      const target = e.target as HTMLElement;
+      const inMenu = !!target.closest("[data-dropdown-menu]");
+      const inStatus = !!target.closest("[data-status-dropdown]");
       if (inMenu || inStatus) return;
       closeAll();
     };
@@ -1672,7 +1674,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 600 }}>฿{fmtMoney(total)}</td>
                     <td style={{ padding: "12px 16px" }}>
                       {/* ── Status Badge + Dropdown ── */}
-                      <div style={{ position: "relative", display: "inline-block" }} ref={openStatus === doc.id ? statusRef : null}>
+                      <div style={{ position: "relative", display: "inline-block" }} data-status-dropdown="">
                         <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
                           style={{ display: "flex", alignItems: "center", gap: 6, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "5px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                           {STATUS_LABELS[doc.status]}
@@ -1695,6 +1697,13 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       {/* ── Action Menu ── */}
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                          {/* ✅ อนุมัติ */}
+                          {doc.status !== "approved" && doc.status !== "cancelled" && (
+                            <button onClick={() => { changeStatus(doc.id, "approved"); }} title="อนุมัติ"
+                              style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10B981", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
+                              ✅ อนุมัติ
+                            </button>
+                          )}
                           {/* แก้ไข */}
                           <button onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }} title="แก้ไข"
                             style={{ background: doc.status === "approved" ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#444" : "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
@@ -1712,7 +1721,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           </button>
                         </div>
                         {openMenu === doc.id && menuPos && (
-                          <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
+                          <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
                             {/* พิมพ์ */}
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             {/* แชร์ลิงค์ */}
@@ -1785,7 +1794,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     </div>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <div style={{ position: "relative", display: "inline-block" }} ref={openStatus === doc.id ? statusRef : null}>
+                    <div style={{ position: "relative", display: "inline-block" }} data-status-dropdown="">
                       <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
                         style={{ display: "flex", alignItems: "center", gap: 5, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                         {STATUS_LABELS[doc.status]}
@@ -1803,8 +1812,12 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       )}
                     </div>
                     <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={() => setEditing({ ...doc })}
-                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>แก้ไข</button>
+                      {doc.status !== "approved" && doc.status !== "cancelled" && (
+                        <button onClick={() => changeStatus(doc.id, "approved")}
+                          style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10B981", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>✅ อนุมัติ</button>
+                      )}
+                      <button onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }}
+                        style={{ background: doc.status === "approved" ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#444" : "#ccc", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit" }}>แก้ไข</button>
                       <button onClick={() => printDocument(doc, customers, company)}
                         style={{ background: "rgba(255,107,0,0.15)", border: "1px solid rgba(255,107,0,0.3)", color: "#FF6B00", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>🖨️</button>
                       <div style={{ position: "relative" }}>
@@ -1816,7 +1829,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         }}
                           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
                         {openMenu === doc.id && menuPos && (
-                          <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
+                          <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             <MenuBtn icon="🔗" label="แชร์ลิงค์" onClick={() => { const url = `${window.location.origin}/doc/${doc.id}`; navigator.clipboard?.writeText(url).then(() => showToast("คัดลอกลิงค์แล้ว")).catch(() => showToast("ไม่สามารถคัดลอกได้", "error")); closeAll(); }} />
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
