@@ -368,19 +368,34 @@ function printDocument(doc: any, customers: any[], company: any) {
 
         <!-- Signatures -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto;">
-          ${["PREPARED BY / ผู้เสนอราคา", "AUTHORIZED BY / ผู้อนุมัติสั่งซื้อ"].map(label => `
           <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px;
                       text-align:center;min-height:90px;display:flex;flex-direction:column;
                       justify-content:space-between;background:#fff;">
             <div style="font-size:7.5px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">
-              ${label.split(" / ")[0]}
+              PREPARED BY
+            </div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:4px 0;">
+              ${company.signatureImage
+                ? `<img src="${company.signatureImage}" alt="ลายเซ็น" style="max-height:48px;max-width:120px;object-fit:contain;">`
+                : `<div style="border-bottom:1px solid #cbd5e1;width:80%;margin:8px auto;"></div>`}
+            </div>
+            <div style="font-size:8px;color:#94a3b8;">
+              ( ${doc.salesPerson || company.salesPerson || "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"} )<br/>
+              <span style="font-size:7.5px;font-weight:600;color:#64748b;">ผู้เสนอราคา</span>
+            </div>
+          </div>
+          <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px;
+                      text-align:center;min-height:90px;display:flex;flex-direction:column;
+                      justify-content:space-between;background:#fff;">
+            <div style="font-size:7.5px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">
+              AUTHORIZED BY
             </div>
             <div style="border-bottom:1px solid #cbd5e1;width:80%;margin:12px auto 8px;"></div>
             <div style="font-size:8px;color:#94a3b8;">
               ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )<br/>
-              <span style="font-size:7.5px;font-weight:600;color:#64748b;">${label.split(" / ")[1]}</span>
+              <span style="font-size:7.5px;font-weight:600;color:#64748b;">ผู้อนุมัติสั่งซื้อ</span>
             </div>
-          </div>`).join("")}
+          </div>
         </div>
       </div>
 
@@ -442,7 +457,7 @@ export default function AdminPage() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [company, setCompany] = useState<any>({
     id: "", name: "", address: "", phone: "", email: "", taxId: "",
-    salesPerson: "", bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", qrImage: "",
+    salesPerson: "", bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", qrImage: "", signatureImage: "",
   });
   const [erpLoading, setErpLoading] = useState(true);
 
@@ -502,6 +517,7 @@ export default function AdminPage() {
           bankName: compRes.data.bank_name || "", bankBranch: compRes.data.bank_branch || "",
           bankAccount: compRes.data.bank_account || "", bankType: compRes.data.bank_type || "ออมทรัพย์",
           qrImage: compRes.data.qr_image || "",
+          signatureImage: compRes.data.signature_image || "",
         });
       } catch (err) {
         console.error("ERP load error:", err);
@@ -1528,6 +1544,7 @@ function CompanyPage({ company, setCompany, showToast }: any) {
       tax_id: f.taxId, sales_person: f.salesPerson,
       bank_name: f.bankName, bank_branch: f.bankBranch,
       bank_account: f.bankAccount, bank_type: f.bankType, qr_image: f.qrImage,
+      signature_image: f.signatureImage,
     };
     if (f.id) {
       const { error } = await supabase.from("erp_company").update(row).eq("id", f.id);
@@ -1596,6 +1613,37 @@ function CompanyPage({ company, setCompany, showToast }: any) {
                 <button onClick={() => setF(prev => ({ ...prev, qrImage: "" }))}
                   style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
                   🗑 ลบรูป QR Code
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── ลายเซ็นผู้เสนอราคา ── */}
+        <div>
+          <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>✍️ ลายเซ็นผู้เสนอราคา (แสดงในเอกสาร)</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 140, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+              {f.signatureImage
+                ? <img src={f.signatureImage} alt="ลายเซ็น" style={{ maxWidth: 132, maxHeight: 64, objectFit: "contain" }} />
+                : <span style={{ fontSize: 12, color: "#555" }}>ยังไม่มีลายเซ็น</span>}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, flex: 1 }}>
+              <label style={{ cursor: "pointer", background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: "#10B981", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, textAlign: "center" as const, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <span>✍️</span> เลือกไฟล์รูปภาพลายเซ็น
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (ev) => setF(prev => ({ ...prev, signatureImage: ev.target?.result as string }));
+                  reader.readAsDataURL(file);
+                }} />
+              </label>
+              <p style={{ fontSize: 11, color: "#555", margin: 0 }}>แนะนำ: รูปพื้นหลังโปร่งใส (PNG) หรือรูปที่เห็นลายเซ็นชัดเจน</p>
+              {f.signatureImage && (
+                <button onClick={() => setF(prev => ({ ...prev, signatureImage: "" }))}
+                  style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+                  🗑 ลบรูปลายเซ็น
                 </button>
               )}
             </div>
