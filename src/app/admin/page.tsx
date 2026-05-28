@@ -1591,9 +1591,12 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const closeAll = useCallback(() => { setOpenMenu(null); setOpenStatus(null); setMenuPos(null); }, []);
 
   const menuRef = useRef<any>(null);
+  const statusRef = useRef<any>(null);
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && menuRef.current.contains(e.target as Node)) return;
+      const inMenu = menuRef.current && menuRef.current.contains(e.target as Node);
+      const inStatus = statusRef.current && statusRef.current.contains(e.target as Node);
+      if (inMenu || inStatus) return;
       closeAll();
     };
     document.addEventListener("mousedown", handler, true);
@@ -1648,8 +1651,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 600 }}>฿{fmtMoney(total)}</td>
                     <td style={{ padding: "12px 16px" }}>
                       {/* ── Status Badge + Dropdown ── */}
-                      <div style={{ position: "relative", display: "inline-block" }} ref={openStatus === doc.id ? menuRef : null}>
-                        <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); }}
+                      <div style={{ position: "relative", display: "inline-block" }} ref={openStatus === doc.id ? statusRef : null}>
+                        <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
                           style={{ display: "flex", alignItems: "center", gap: 6, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "5px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                           {STATUS_LABELS[doc.status]}
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5l3 3 3-3"/></svg>
@@ -1762,8 +1765,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     </div>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <div style={{ position: "relative", display: "inline-block" }} ref={openStatus === doc.id ? menuRef : null}>
-                      <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); }}
+                    <div style={{ position: "relative", display: "inline-block" }} ref={openStatus === doc.id ? statusRef : null}>
+                      <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
                         style={{ display: "flex", alignItems: "center", gap: 5, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                         {STATUS_LABELS[doc.status]}
                         <svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5l3 3 3-3"/></svg>
