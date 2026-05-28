@@ -1938,8 +1938,7 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
     const finalDoc = {
       ...newDoc,
       items: selectedItems,
-      notes: [newDoc.notes, splitNote].filter(Boolean).join("
-"),
+      notes: [newDoc.notes, splitNote].filter(Boolean).join("\n"),
     };
     onConfirm(finalDoc);
   };
