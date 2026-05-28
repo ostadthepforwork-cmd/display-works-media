@@ -491,7 +491,14 @@ export default function AdminPage() {
     <div style={{ minHeight: "100vh", background: "#0B0F19", color: "#fff", fontFamily: "'Prompt','Sarabun',sans-serif", display: "flex", flexDirection: "column" }}>
 
       {/* ─── TOP BAR ─── */}
-      <div className="top-bar" style={{ background: "#141A24", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", height: 52, padding: "0 16px", paddingTop: "env(safe-area-inset-top, 0px)", gap: 8, flexShrink: 0, zIndex: 100 }}>
+      <div className="top-bar" style={{
+        background: "#141A24", borderBottom: "1px solid rgba(255,255,255,0.07)",
+        display: "flex", alignItems: "center",
+        minHeight: 52,
+        padding: "0 16px",
+        paddingTop: "max(env(safe-area-inset-top, 0px), 0px)",
+        gap: 8, flexShrink: 0, zIndex: 100,
+      }}>
         <span style={{ fontWeight: 800, fontSize: 16, color: "#FF6B00", marginRight: 4 }}>DW</span>
         <span className="hide-mobile" style={{ fontWeight: 600, fontSize: 13, color: "#fff", marginRight: 16 }}>Display Works</span>
         <div className="hide-mobile" style={{ display: "flex", gap: 4 }}>
@@ -505,11 +512,27 @@ export default function AdminPage() {
             </button>
           ))}
         </div>
-        {/* Mobile title */}
-        <div className="show-mobile" style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#fff" }}>
-          {mainTab === "erp"
-            ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
-            : (cmsTabs.find(t => t.id === tab)?.label || "CMS")}
+        {/* Mobile: title + ERP/CMS toggle */}
+        <div className="show-mobile" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
+            {mainTab === "erp"
+              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
+              : (cmsTabs.find(t => t.id === tab)?.label || "CMS")}
+          </span>
+          {/* ERP / CMS switcher pill */}
+          <div style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: 2, gap: 2, flexShrink: 0 }}>
+            {(["erp", "cms"] as const).map(t => (
+              <button key={t} onClick={() => { setMainTab(t); setShowMobileDrawer(false); }} style={{
+                padding: "4px 10px", borderRadius: 6, border: "none", cursor: "pointer",
+                fontSize: 11, fontWeight: 700, fontFamily: "inherit",
+                background: mainTab === t ? "#FF6B00" : "transparent",
+                color: mainTab === t ? "#fff" : "#6B7280",
+                transition: "all 0.2s", minHeight: 28,
+              }}>
+                {t.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
         <div style={{ flex: 1 }} className="hide-mobile" />
         <LogoutButton />
@@ -592,7 +615,7 @@ export default function AdminPage() {
             padding: "10px 2px 8px", border: "none", cursor: "pointer", fontFamily: "inherit",
             background: (erpPage === item.id && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "rgba(255,107,0,0.12)" : "transparent",
             color: (erpPage === item.id && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "#FF6B00" : "#6B7280",
-          }}>
+          }} className="nav-btn">
             <span style={{ fontSize: 22, lineHeight: 1 }}>{item.icon}</span>
             <span style={{ fontSize: 10, marginTop: 4, fontWeight: 600 }}>{item.label}</span>
           </button>
@@ -609,7 +632,7 @@ export default function AdminPage() {
             padding: "10px 2px 8px", border: "none", cursor: "pointer", fontFamily: "inherit",
             background: tab === item.id && !showMobileDrawer ? "rgba(255,107,0,0.12)" : "transparent",
             color: tab === item.id && !showMobileDrawer ? "#FF6B00" : "#6B7280",
-          }}>
+          }} className="nav-btn">
             <span style={{ fontSize: 22, lineHeight: 1 }}>{item.icon}</span>
             <span style={{ fontSize: 10, marginTop: 4, fontWeight: 600 }}>{item.label}</span>
           </button>
@@ -622,55 +645,86 @@ export default function AdminPage() {
           <div className="show-mobile" onClick={() => setShowMobileDrawer(false)}
             style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 300 }} />
           <div className="show-mobile" style={{
-            position: "fixed", bottom: 62, left: 0, right: 0, zIndex: 400,
+            position: "fixed", bottom: "calc(62px + env(safe-area-inset-bottom, 0px))", left: 0, right: 0, zIndex: 400,
             background: "rgba(20,26,36,0.98)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
             borderTop: "2px solid #FF6B00",
-            borderRadius: "20px 20px 0 0", padding: "16px 0 8px",
+            borderRadius: "20px 20px 0 0", padding: "16px 0 12px",
             animation: "slideUp 0.25s cubic-bezier(0.32,0.72,0,1)",
-            paddingBottom: "env(safe-area-inset-bottom, 8px)",
             boxShadow: "0 -16px 48px rgba(0,0,0,0.6)",
           }}>
-            <div style={{ width: 36, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99, margin: "0 auto 16px" }} />
+            <div style={{ width: 36, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99, margin: "0 auto 12px" }} />
+
+            {/* ─ ชื่อหัวข้อ drawer ─ */}
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#FF6B00", letterSpacing: 2, textTransform: "uppercase", padding: "0 24px 8px" }}>
+              {mainTab === "erp" ? "เมนูทั้งหมด" : "จัดการเนื้อหา"}
+            </div>
+
+            {/* ─ ERP: แสดงทุกเมนู ─ */}
             {mainTab === "erp" && ([
-              { id: "bill",       icon: "📄", label: "ใบวางบิล",      color: (DOC_TYPES as any).bill.color },
-              { id: "customers",  icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
-              { id: "products",   icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
-              { id: "company",    icon: "🏢", label: "ตั้งค่าบริษัท",  color: "#34D399" },
-              { id: "__cms__",    icon: "✏️", label: "ไปหน้า CMS",     color: "#F59E0B" },
-            ] as any[]).map(item => (
-              <button key={item.id} onClick={() => {
-                if (item.id === "__cms__") setMainTab("cms");
-                else setErpPage(item.id);
-                setShowMobileDrawer(false);
-              }} style={{
-                display: "flex", alignItems: "center", gap: 14, width: "100%",
-                padding: "16px 24px", background: "transparent", border: "none",
-                color: "#e2e8f0", fontSize: 15, cursor: "pointer", fontFamily: "inherit",
-                minHeight: 56,
-              }}>
-                <span style={{ fontSize: 22, width: 32, textAlign: "center" as const }}>{item.icon}</span>
-                <span style={{ flex: 1 }}>{item.label}</span>
-                <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "3px 12px", borderRadius: 99 }}>เปิด</span>
-              </button>
-            ))}
+              { id: "dashboard", icon: "⊞", label: "ภาพรวม",         color: "#A8B0C0" },
+              { id: "quote",     icon: "📋", label: "ใบเสนอราคา",     color: (DOC_TYPES as any).quote.color },
+              { id: "bill",      icon: "📄", label: "ใบวางบิล",       color: (DOC_TYPES as any).bill.color },
+              { id: "invoice",   icon: "🧾", label: "ใบแจ้งหนี้",     color: (DOC_TYPES as any).invoice.color },
+              { id: "receipt",   icon: "✅", label: "ใบเสร็จรับเงิน", color: (DOC_TYPES as any).receipt.color },
+              { id: "customers", icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
+              { id: "products",  icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
+              { id: "company",   icon: "🏢", label: "ตั้งค่าบริษัท",  color: "#34D399" },
+              { id: "__cms__",   icon: "✏️", label: "ไปหน้า CMS",     color: "#F59E0B" },
+            ] as any[]).map(item => {
+              const isActive = item.id !== "__cms__" && erpPage === item.id;
+              return (
+                <button key={item.id} onClick={() => {
+                  if (item.id === "__cms__") setMainTab("cms");
+                  else setErpPage(item.id);
+                  setShowMobileDrawer(false);
+                }} style={{
+                  display: "flex", alignItems: "center", gap: 14, width: "100%",
+                  padding: "13px 24px", border: "none", cursor: "pointer", fontFamily: "inherit",
+                  background: isActive ? "rgba(255,107,0,0.1)" : "transparent",
+                  color: isActive ? "#FF6B00" : "#e2e8f0", fontSize: 15,
+                  borderLeft: isActive ? "3px solid #FF6B00" : "3px solid transparent",
+                  minHeight: 52,
+                }}>
+                  <span style={{ fontSize: 20, width: 28, textAlign: "center" as const }}>{item.icon}</span>
+                  <span style={{ flex: 1, fontWeight: isActive ? 700 : 400 }}>{item.label}</span>
+                  {!isActive && item.id !== "__cms__" && (
+                    <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>เปิด</span>
+                  )}
+                  {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>● กำลังใช้</span>}
+                  {item.id === "__cms__" && <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>สลับ</span>}
+                </button>
+              );
+            })}
+
+            {/* ─ CMS: แสดงทุกแท็บ ─ */}
             {mainTab === "cms" && ([
-              ...cmsTabs.slice(4),
+              ...cmsTabs,
               { id: "__erp__", icon: "⚙️", label: "ไปหน้า ERP", color: "#FF6B00" },
-            ] as any[]).map(item => (
-              <button key={item.id} onClick={() => {
-                if (item.id === "__erp__") setMainTab("erp");
-                else setTab(item.id);
-                setShowMobileDrawer(false);
-              }} style={{
-                display: "flex", alignItems: "center", gap: 14, width: "100%",
-                padding: "16px 24px", background: "transparent", border: "none",
-                color: "#e2e8f0", fontSize: 15, cursor: "pointer", fontFamily: "inherit",
-                minHeight: 56,
-              }}>
-                <span style={{ fontSize: 22, width: 32, textAlign: "center" as const }}>{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
+            ] as any[]).map(item => {
+              const isActive = item.id !== "__erp__" && tab === item.id;
+              return (
+                <button key={item.id} onClick={() => {
+                  if (item.id === "__erp__") setMainTab("erp");
+                  else setTab(item.id);
+                  setShowMobileDrawer(false);
+                }} style={{
+                  display: "flex", alignItems: "center", gap: 14, width: "100%",
+                  padding: "13px 24px", border: "none", cursor: "pointer", fontFamily: "inherit",
+                  background: isActive ? "rgba(255,107,0,0.1)" : "transparent",
+                  color: isActive ? "#FF6B00" : "#e2e8f0", fontSize: 15,
+                  borderLeft: isActive ? "3px solid #FF6B00" : "3px solid transparent",
+                  minHeight: 52,
+                }}>
+                  <span style={{ fontSize: 20, width: 28, textAlign: "center" as const }}>{item.icon}</span>
+                  <span style={{ flex: 1, fontWeight: isActive ? 700 : 400 }}>{item.label}</span>
+                  {!isActive && item.id !== "__erp__" && (
+                    <span style={{ fontSize: 11, color: "#A8B0C0", background: "rgba(255,255,255,0.06)", padding: "2px 10px", borderRadius: 99 }}>เปิด</span>
+                  )}
+                  {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>● กำลังใช้</span>}
+                  {item.id === "__erp__" && <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>สลับ</span>}
+                </button>
+              );
+            })}
           </div>
         </>
       )}
@@ -737,10 +791,10 @@ export default function AdminPage() {
           .form-grid-2 { grid-template-columns: 1fr !important; }
           .form-grid-3 { grid-template-columns: 1fr !important; }
 
-          /* Larger touch targets on mobile */
-          button { min-height: 44px; }
+          /* Touch targets — only for non-nav buttons */
+          button:not(.nav-btn) { min-height: 44px; }
 
-          /* Modal full-screen on mobile */
+          /* Modal bottom sheet on mobile */
           .modal-panel {
             position: fixed !important;
             bottom: 0 !important; left: 0 !important; right: 0 !important;
@@ -751,7 +805,7 @@ export default function AdminPage() {
             animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1) !important;
           }
 
-          /* Content padding accounts for safe areas */
+          /* Content padding accounts for nav + safe area */
           .main-content-area {
             padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px)) !important;
           }
@@ -759,21 +813,19 @@ export default function AdminPage() {
           /* KPI cards 2-col grid */
           .kpi-grid { grid-template-columns: 1fr 1fr !important; }
           .kpi-grid > div { padding: 14px 12px !important; }
-          .kpi-grid .kpi-val { font-size: 20px !important; }
-          .kpi-grid .kpi-label { font-size: 9px !important; }
 
           /* Chart panel full width */
           .chart-panel { grid-template-columns: 1fr !important; }
 
-          /* Top bar height taller for Dynamic Island clearance */
-          .top-bar { height: 56px !important; }
+          /* Top bar — use minHeight not height (safe area makes it taller) */
+          .top-bar { height: auto !important; min-height: 52px !important; }
 
           /* Doc header stack vertical */
           .doc-header-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-          .doc-header-row .doc-header-actions { width: 100%; display: flex; gap: 8px; }
-          .doc-header-row .doc-header-actions input { flex: 1; }
-          .doc-header-row .doc-header-actions select { flex: 1; }
-          .doc-header-row .doc-header-actions button { white-space: nowrap; flex-shrink: 0; }
+          .doc-header-row .doc-header-actions { width: 100% !important; display: flex !important; gap: 8px !important; flex-wrap: wrap !important; }
+          .doc-header-row .doc-header-actions input { flex: 1 !important; min-width: 120px !important; }
+          .doc-header-row .doc-header-actions select { flex: 1 !important; min-width: 120px !important; }
+          .doc-header-row .doc-header-actions button { white-space: nowrap !important; flex-shrink: 0 !important; }
 
           /* Insights row single col */
           .insights-row { grid-template-columns: 1fr !important; }
@@ -784,7 +836,7 @@ export default function AdminPage() {
 
         /* ── iPhone 15 Pro specific (393px wide) ── */
         @media (max-width: 430px) {
-          input, select, textarea { font-size: 16px !important; } /* prevent zoom */
+          input, select, textarea { font-size: 16px !important; } /* prevent iOS auto-zoom */
         }
       `}</style>
     </div>
