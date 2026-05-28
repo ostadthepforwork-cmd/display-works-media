@@ -427,6 +427,7 @@ function printDocument(doc: any, customers: any[], company: any) {
 export default function AdminPage() {
   const [mainTab, setMainTab] = useState("erp");
   const [tab, setTab] = useState("blog");
+  const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: string } | null>(null);
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -488,31 +489,40 @@ export default function AdminPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0B0F19", color: "#fff", fontFamily: "'Prompt','Sarabun',sans-serif", display: "flex", flexDirection: "column" }}>
-      {/* ─── TOP TAB BAR ─── */}
-      <div style={{ background: "#141A24", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", height: 52, padding: "0 24px", gap: 8 }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: "#fff", marginRight: 24 }}>Display Works Media</span>
-        {["erp","cms"].map(t => (
-          <button key={t} onClick={() => setMainTab(t)} style={{
-            padding: "6px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
-            background: mainTab === t ? "#FF6B00" : "transparent",
-            color: mainTab === t ? "#fff" : "#A8B0C0",
-            transition: "all 0.2s",
-          }}>
-            {t === "erp" ? "⚙️ ระบบ ERP" : "✏️ จัดการเนื้อหา"}
-          </button>
-        ))}
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-        {/* Logout */}
+
+      {/* ─── TOP BAR ─── */}
+      <div style={{ background: "#141A24", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", height: 52, padding: "0 16px", gap: 8, flexShrink: 0, zIndex: 100 }}>
+        <span style={{ fontWeight: 800, fontSize: 16, color: "#FF6B00", marginRight: 4 }}>DW</span>
+        <span className="hide-mobile" style={{ fontWeight: 600, fontSize: 13, color: "#fff", marginRight: 16 }}>Display Works</span>
+        <div className="hide-mobile" style={{ display: "flex", gap: 4 }}>
+          {["erp","cms"].map(t => (
+            <button key={t} onClick={() => setMainTab(t)} style={{
+              padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
+              background: mainTab === t ? "#FF6B00" : "transparent",
+              color: mainTab === t ? "#fff" : "#A8B0C0", transition: "all 0.2s",
+            }}>
+              {t === "erp" ? "⚙️ ERP" : "✏️ CMS"}
+            </button>
+          ))}
+        </div>
+        {/* Mobile title */}
+        <div className="show-mobile" style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#fff" }}>
+          {mainTab === "erp"
+            ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
+            : (cmsTabs.find(t => t.id === tab)?.label || "CMS")}
+        </div>
+        <div style={{ flex: 1 }} className="hide-mobile" />
         <LogoutButton />
       </div>
 
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         {/* ─── ERP ─── */}
         {mainTab === "erp" && (
-          <div style={{ flex: 1, display: "flex" }}>
-            <ErpSidebar page={erpPage} setPage={setErpPage} docCounts={docCounts} />
-            <div style={{ flex: 1, overflowY: "auto", padding: "28px" }}>
+          <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+            <div className="hide-mobile" style={{ display: "flex" }}>
+              <ErpSidebar page={erpPage} setPage={setErpPage} docCounts={docCounts} />
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
               {erpPage === "dashboard" && (
                 <Dashboard documents={documents} customers={customers}
                   totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
@@ -533,12 +543,12 @@ export default function AdminPage() {
 
         {/* ─── CMS ─── */}
         {mainTab === "cms" && (
-          <div style={{ flex: 1, display: "flex" }}>
-            <div style={{ width: 200, background: "#141A24", borderRight: "1px solid rgba(255,255,255,0.07)", padding: "16px 8px", display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+            <div className="hide-mobile" style={{ width: 200, background: "#141A24", borderRight: "1px solid rgba(255,255,255,0.07)", padding: "16px 8px", display: "flex", flexDirection: "column" as const, gap: 4, flexShrink: 0 }}>
               {cmsTabs.map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)} style={{
                   display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8,
-                  fontSize: 13, border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+                  fontSize: 13, border: "none", cursor: "pointer", textAlign: "left" as const, fontFamily: "inherit",
                   background: tab === t.id ? "rgba(255,107,0,0.15)" : "transparent",
                   color: tab === t.id ? "#FF6B00" : "#A8B0C0",
                   borderLeft: tab === t.id ? "2px solid #FF6B00" : "2px solid transparent",
@@ -547,7 +557,7 @@ export default function AdminPage() {
                 </button>
               ))}
             </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "28px" }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
               {tab === "blog" && <BlogManager showToast={showToast} />}
               {tab === "hero" && <HeroManager showToast={showToast} />}
               {tab === "services" && <ServicesManager showToast={showToast} />}
@@ -559,13 +569,114 @@ export default function AdminPage() {
         )}
       </div>
 
+      {/* ─── MOBILE BOTTOM NAV ─── */}
+      <div className="show-mobile" style={{
+        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200,
+        background: "#141A24", borderTop: "1px solid rgba(255,255,255,0.1)",
+        display: "flex", paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}>
+        {mainTab === "erp" && ([
+          { id: "dashboard", icon: "⊞", label: "ภาพรวม" },
+          { id: "quote",     icon: "📋", label: "ใบเสนอ" },
+          { id: "invoice",   icon: "🧾", label: "ใบแจ้งหนี้" },
+          { id: "receipt",   icon: "✅", label: "ใบเสร็จ" },
+          { id: "__more__",  icon: "☰",  label: "เพิ่มเติม" },
+        ] as any[]).map(item => (
+          <button key={item.id} onClick={() => {
+            if (item.id === "__more__") { setShowMobileDrawer(v => !v); }
+            else { setErpPage(item.id); setShowMobileDrawer(false); }
+          }} style={{
+            flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
+            padding: "8px 2px 6px", border: "none", cursor: "pointer", fontFamily: "inherit",
+            background: (erpPage === item.id && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "rgba(255,107,0,0.12)" : "transparent",
+            color: (erpPage === item.id && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "#FF6B00" : "#6B7280",
+          }}>
+            <span style={{ fontSize: 20, lineHeight: 1 }}>{item.icon}</span>
+            <span style={{ fontSize: 9, marginTop: 3, fontWeight: 600 }}>{item.label}</span>
+          </button>
+        ))}
+        {mainTab === "cms" && ([
+          ...cmsTabs.slice(0,4),
+          { id: "__more__", icon: "☰", label: "เพิ่มเติม" },
+        ] as any[]).map(item => (
+          <button key={item.id} onClick={() => {
+            if (item.id === "__more__") { setShowMobileDrawer(v => !v); }
+            else { setTab(item.id); setShowMobileDrawer(false); }
+          }} style={{
+            flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
+            padding: "8px 2px 6px", border: "none", cursor: "pointer", fontFamily: "inherit",
+            background: tab === item.id && !showMobileDrawer ? "rgba(255,107,0,0.12)" : "transparent",
+            color: tab === item.id && !showMobileDrawer ? "#FF6B00" : "#6B7280",
+          }}>
+            <span style={{ fontSize: 20, lineHeight: 1 }}>{item.icon}</span>
+            <span style={{ fontSize: 9, marginTop: 3, fontWeight: 600 }}>{item.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ─── MOBILE DRAWER ─── */}
+      {showMobileDrawer && (
+        <>
+          <div className="show-mobile" onClick={() => setShowMobileDrawer(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 300 }} />
+          <div className="show-mobile" style={{
+            position: "fixed", bottom: 62, left: 0, right: 0, zIndex: 400,
+            background: "#1A2233", borderTop: "2px solid #FF6B00",
+            borderRadius: "20px 20px 0 0", padding: "16px 0 8px",
+            animation: "slideUp 0.25s ease",
+          }}>
+            <div style={{ width: 36, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99, margin: "0 auto 16px" }} />
+            {mainTab === "erp" && ([
+              { id: "bill",       icon: "📄", label: "ใบวางบิล",      color: (DOC_TYPES as any).bill.color },
+              { id: "customers",  icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
+              { id: "products",   icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
+              { id: "company",    icon: "🏢", label: "ตั้งค่าบริษัท",  color: "#34D399" },
+              { id: "__cms__",    icon: "✏️", label: "ไปหน้า CMS",     color: "#F59E0B" },
+            ] as any[]).map(item => (
+              <button key={item.id} onClick={() => {
+                if (item.id === "__cms__") setMainTab("cms");
+                else setErpPage(item.id);
+                setShowMobileDrawer(false);
+              }} style={{
+                display: "flex", alignItems: "center", gap: 14, width: "100%",
+                padding: "14px 24px", background: "transparent", border: "none",
+                color: "#e2e8f0", fontSize: 14, cursor: "pointer", fontFamily: "inherit",
+              }}>
+                <span style={{ fontSize: 22, width: 32, textAlign: "center" as const }}>{item.icon}</span>
+                <span style={{ flex: 1 }}>{item.label}</span>
+                <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>เปิด</span>
+              </button>
+            ))}
+            {mainTab === "cms" && ([
+              ...cmsTabs.slice(4),
+              { id: "__erp__", icon: "⚙️", label: "ไปหน้า ERP", color: "#FF6B00" },
+            ] as any[]).map(item => (
+              <button key={item.id} onClick={() => {
+                if (item.id === "__erp__") setMainTab("erp");
+                else setTab(item.id);
+                setShowMobileDrawer(false);
+              }} style={{
+                display: "flex", alignItems: "center", gap: 14, width: "100%",
+                padding: "14px 24px", background: "transparent", border: "none",
+                color: "#e2e8f0", fontSize: 14, cursor: "pointer", fontFamily: "inherit",
+              }}>
+                <span style={{ fontSize: 22, width: 32, textAlign: "center" as const }}>{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Toast */}
       {toast && (
         <div style={{
-          position: "fixed", bottom: 28, right: 28, zIndex: 9999,
+          position: "fixed", bottom: 80, right: 16, zIndex: 9999,
           background: toast.type === "error" ? "#7f1d1d" : "#064e3b",
           border: `1px solid ${toast.type === "error" ? "#ef4444" : "#10b981"}`,
           color: "#fff", padding: "12px 20px", borderRadius: 10, fontSize: 14,
           boxShadow: "0 8px 30px rgba(0,0,0,0.4)", display: "flex", alignItems: "center", gap: 10,
+          maxWidth: "calc(100vw - 32px)",
         }}>
           <span>{toast.type === "error" ? "✗" : "✓"}</span>{toast.msg}
         </div>
@@ -586,6 +697,23 @@ export default function AdminPage() {
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #0B0F19; }
         ::-webkit-scrollbar-thumb { background: #FF6B00; border-radius: 3px; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
+        @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+        /* ── Responsive ── */
+        .hide-mobile { display: flex; }
+        .show-mobile { display: none !important; }
+        @media (max-width: 768px) {
+          .hide-mobile { display: none !important; }
+          .show-mobile { display: flex !important; }
+          /* Document table → card list on mobile */
+          .doc-table { display: none !important; }
+          .doc-cards { display: flex !important; }
+          /* Dashboard grid 1 col */
+          .dash-grid { grid-template-columns: 1fr !important; }
+          /* Form full width */
+          .form-grid-2 { grid-template-columns: 1fr !important; }
+          .form-grid-3 { grid-template-columns: 1fr !important; }
+        }
       `}</style>
     </div>
   );
@@ -1295,6 +1423,54 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
   const del = (id) => { if (!confirm("ลบเอกสารนี้?")) return; setDocuments(prev => prev.filter(d => d.id !== id)); showToast("ลบเอกสารแล้ว"); };
   const changeStatus = (id, status) => { setDocuments(prev => prev.map(d => d.id === id ? { ...d, status } : d)); showToast(`อัปเดตสถานะเป็น "${STATUS_LABELS[status]}"`); };
+
+  // ── สร้างเอกสารต่อ ─────────────────────────────────────────
+  const DOC_NEXT: Record<string, { type: string; label: string; split?: boolean }[]> = {
+    quote:   [
+      { type: "bill",    label: "สร้างใบวางบิล / ใบส่งสินค้า" },
+      { type: "bill",    label: "สร้างใบวางบิล / ใบส่งสินค้า (แบ่งจ่าย)", split: true },
+      { type: "invoice", label: "สร้างใบแจ้งหนี้" },
+      { type: "invoice", label: "สร้างใบแจ้งหนี้ (แบ่งจ่าย)", split: true },
+    ],
+    bill:    [{ type: "invoice", label: "สร้างใบแจ้งหนี้" }, { type: "receipt", label: "สร้างใบเสร็จรับเงิน" }],
+    invoice: [{ type: "receipt", label: "สร้างใบเสร็จรับเงิน" }],
+    receipt: [],
+  };
+
+  const createFrom = (srcDoc, targetType, split = false) => {
+    const nextPrefix = DOC_TYPES[targetType]?.prefix || targetType.toUpperCase();
+    const count = allDocuments.filter(d => d.type === targetType).length + 1;
+    const year = new Date().getFullYear() + 543;
+    const newDocNo = `${nextPrefix}${year}-${String(count).padStart(4, "0")}`;
+    const newDoc = {
+      ...srcDoc,
+      id: "",
+      type: targetType,
+      docNo: newDocNo,
+      date: today(),
+      dueDate: addDays(today(), 30),
+      status: "draft",
+      orderId: srcDoc.id,
+      notes: split ? (srcDoc.notes ? srcDoc.notes + "\n(แบ่งจ่าย)" : "(แบ่งจ่าย)") : srcDoc.notes,
+      createdAt: undefined,
+      updatedAt: undefined,
+    };
+    setEditing(newDoc);
+    showToast(`สร้าง${DOC_TYPES[targetType]?.label}จาก ${srcDoc.docNo}`);
+  };
+
+  // ── Dropdown state ──────────────────────────────────────────
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [openStatus, setOpenStatus] = useState<string | null>(null);
+  const closeAll = () => { setOpenMenu(null); setOpenStatus(null); };
+
+  const menuRef = useRef<any>(null);
+  useEffect(() => {
+    const handler = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) closeAll(); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -1320,8 +1496,9 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
             <div>ยังไม่มีเอกสาร</div>
             <Btn onClick={newDoc} color={dt.color} style={{ marginTop: 16 }}>+ สร้างเอกสารแรก</Btn>
           </div>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        ) : (<>
+          {/* ── Desktop Table ── */}
+          <table className="doc-table" style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#1A2233" }}>
                 {["เลขที่เอกสาร", "ลูกค้า", "วันที่", "วันครบกำหนด", "ยอดรวม", "สถานะ", "จัดการ"].map(h => (
@@ -1340,16 +1517,90 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     <td style={{ padding: "12px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.dueDate)}</td>
                     <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 600 }}>฿{fmtMoney(total)}</td>
                     <td style={{ padding: "12px 16px" }}>
-                      <select value={doc.status} onChange={e => changeStatus(doc.id, e.target.value)}
-                        style={{ width: "auto", background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "3px 8px", fontSize: 12 }}>
-                        {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                      </select>
+                      {/* ── Status Badge + Dropdown ── */}
+                      <div style={{ position: "relative", display: "inline-block" }} ref={openStatus === doc.id ? menuRef : null}>
+                        <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); }}
+                          style={{ display: "flex", alignItems: "center", gap: 6, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "5px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                          {STATUS_LABELS[doc.status]}
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5l3 3 3-3"/></svg>
+                        </button>
+                        {openStatus === doc.id && (
+                          <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 140, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                            {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                              <button key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
+                                style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: doc.status === k ? STATUS_COLORS[k] + "22" : "transparent", color: doc.status === k ? STATUS_COLORS[k] : "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left" }}>
+                                <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[k], flexShrink: 0, display: "inline-block" }} />
+                                {v}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td style={{ padding: "12px 16px" }}>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <IconBtn onClick={() => setEditing({ ...doc })} title="แก้ไข">✏️</IconBtn>
-                        <IconBtn onClick={() => printDocument(doc, customers, company)} title="พิมพ์">🖨️</IconBtn>
-                        <IconBtn onClick={() => del(doc.id)} title="ลบ" danger>🗑️</IconBtn>
+                      {/* ── Action Menu ── */}
+                      <div style={{ position: "relative", display: "inline-block" }} ref={openMenu === doc.id ? menuRef : null}>
+                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                          {/* แก้ไข */}
+                          <button onClick={() => setEditing({ ...doc })} title="แก้ไข"
+                            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+                            แก้ไข
+                          </button>
+                          {/* ⋮ More */}
+                          <button onClick={() => { setOpenMenu(openMenu === doc.id ? null : doc.id); setOpenStatus(null); }}
+                            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit", lineHeight: 1 }}>
+                            ⋮
+                          </button>
+                        </div>
+                        {openMenu === doc.id && (
+                          <div style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 220, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                            {/* พิมพ์ */}
+                            <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
+                            {/* แชร์ลิงค์ */}
+                            <MenuBtn icon="🔗" label="แชร์ลิงค์" onClick={() => {
+                              const url = `${window.location.origin}/doc/${doc.id}`;
+                              navigator.clipboard?.writeText(url).then(() => showToast("คัดลอกลิงค์แล้ว")).catch(() => showToast("ไม่สามารถคัดลอกได้", "error"));
+                              closeAll();
+                            }} />
+                            {/* ดาวน์โหลด */}
+                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
+                            {/* อีเมล */}
+                            <MenuBtn icon="✉️" label="อีเมล" onClick={() => {
+                              const cust = customers.find(c => c.id === doc.customerId);
+                              if (cust?.email) { window.open(`mailto:${cust.email}?subject=${encodeURIComponent(`เอกสาร ${doc.docNo}`)}`); }
+                              else showToast("ไม่มีอีเมลลูกค้า", "error");
+                              closeAll();
+                            }} />
+                            {/* สร้างซ้ำ */}
+                            <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => {
+                              const count = allDocuments.filter(d => d.type === doc.type).length + 1;
+                              const year = new Date().getFullYear() + 543;
+                              const prefix = DOC_TYPES[doc.type]?.prefix || "";
+                              setEditing({ ...doc, id: "", docNo: `${prefix}${year}-${String(count).padStart(4,"0")}`, date: today(), status: "draft" });
+                              closeAll();
+                            }} />
+
+                            {/* สร้างเอกสารต่อ */}
+                            {(DOC_NEXT[doc.type] || []).length > 0 && (
+                              <>
+                                <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
+                                <div style={{ padding: "4px 14px 4px", fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>สร้างเอกสารต่อ</div>
+                                {(DOC_NEXT[doc.type] || []).map((next, ni) => (
+                                  <MenuBtn key={ni}
+                                    icon={next.split ? "✂️" : DOC_TYPES[next.type]?.short === "BL" ? "📋" : DOC_TYPES[next.type]?.short === "IV" ? "📑" : "🧾"}
+                                    label={next.label}
+                                    color={DOC_TYPES[next.type]?.color}
+                                    onClick={() => { createFrom(doc, next.type, next.split); closeAll(); }}
+                                  />
+                                ))}
+                              </>
+                            )}
+
+                            {/* ลบ */}
+                            <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
+                            <MenuBtn icon="🗑️" label="ลบ" danger onClick={() => { del(doc.id); closeAll(); }} />
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -1357,7 +1608,72 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
               })}
             </tbody>
           </table>
-        )}
+
+          {/* ── Mobile Cards ── */}
+          <div className="doc-cards" style={{ display: "none", flexDirection: "column" as const }}>
+            {filtered.map(doc => {
+              const { total } = calcDocTotal(doc);
+              return (
+                <div key={doc.id} style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                    <div>
+                      <div style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 700, color: dt.color }}>{doc.docNo}</div>
+                      <div style={{ fontSize: 13, color: "#e2e8f0", marginTop: 2 }}>{doc.customerName || "-"}</div>
+                      <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>ครบกำหนด {fmtDate(doc.dueDate)}</div>
+                    </div>
+                    <div style={{ textAlign: "right" as const }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>฿{fmtMoney(total)}</div>
+                      <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{fmtDate(doc.date)}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div style={{ position: "relative", display: "inline-block" }} ref={openStatus === doc.id ? menuRef : null}>
+                      <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); }}
+                        style={{ display: "flex", alignItems: "center", gap: 5, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                        {STATUS_LABELS[doc.status]}
+                        <svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5l3 3 3-3"/></svg>
+                      </button>
+                      {openStatus === doc.id && (
+                        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 140, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                          {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                            <button key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
+                              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: doc.status === k ? STATUS_COLORS[k] + "22" : "transparent", color: doc.status === k ? STATUS_COLORS[k] : "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left" as const }}>
+                              <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[k], flexShrink: 0, display: "inline-block" }} />{v}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button onClick={() => setEditing({ ...doc })}
+                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>แก้ไข</button>
+                      <button onClick={() => printDocument(doc, customers, company)}
+                        style={{ background: "rgba(255,107,0,0.15)", border: "1px solid rgba(255,107,0,0.3)", color: "#FF6B00", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>🖨️</button>
+                      <div style={{ position: "relative" }} ref={openMenu === doc.id ? menuRef : null}>
+                        <button onClick={() => { setOpenMenu(openMenu === doc.id ? null : doc.id); setOpenStatus(null); }}
+                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
+                        {openMenu === doc.id && (
+                          <div style={{ position: "absolute", bottom: "calc(100% + 4px)", right: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                            <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { const cnt = allDocuments.filter(d => d.type === doc.type).length + 1; const yr = new Date().getFullYear() + 543; const pfx = DOC_TYPES[doc.type]?.prefix || ""; setEditing({ ...doc, id: "", docNo: `${pfx}${yr}-${String(cnt).padStart(4,"0")}`, date: today(), status: "draft" }); closeAll(); }} />
+                            {(DOC_NEXT[doc.type] || []).length > 0 && <>
+                              <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
+                              <div style={{ padding: "4px 14px", fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase" as const }}>สร้างเอกสารต่อ</div>
+                              {(DOC_NEXT[doc.type] || []).map((next, ni) => (
+                                <MenuBtn key={ni} icon={next.split ? "✂️" : "📑"} label={next.label} color={DOC_TYPES[next.type]?.color} onClick={() => { createFrom(doc, next.type, next.split); closeAll(); }} />
+                              ))}
+                            </>}
+                            <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
+                            <MenuBtn icon="🗑️" label="ลบ" danger onClick={() => { del(doc.id); closeAll(); }} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>)}
       </div>
       {editing && (
         <Modal title={`${editing.id ? "แก้ไข" : "สร้าง"}${dt.label}`} onClose={() => setEditing(null)} width={760}>
@@ -1631,6 +1947,19 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
       </div>
     </div>
+  );
+}
+
+function MenuBtn({ icon, label, onClick, danger = false, color = "" }: any) {
+  return (
+    <button onClick={onClick}
+      style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 14px", background: "transparent", color: danger ? "#ef4444" : color || "#e2e8f0", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left" as const,
+        transition: "background 0.15s" }}
+      onMouseEnter={e => (e.currentTarget.style.background = danger ? "rgba(239,68,68,0.1)" : color ? color + "18" : "rgba(255,255,255,0.06)")}
+      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+      <span style={{ fontSize: 14, width: 18, textAlign: "center" as const }}>{icon}</span>
+      {label}
+    </button>
   );
 }
 
