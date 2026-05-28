@@ -437,28 +437,80 @@ export default function AdminPage() {
 
 // ─── ERP STATE ───────────────────────────────────────────────────────────────
   const [erpPage, setErpPage] = useState("dashboard");
-  const [customers, setCustomers] = useState(() => loadStore("customers", INIT_CUSTOMERS));
-  const [products, setProducts] = useState(() => loadStore("products", INIT_PRODUCTS));
-  const [documents, setDocuments] = useState(() => loadStore("documents", []));
-  const [company, setCompany] = useState(() =>
-    loadStore("company", {
-      name: "บริษัท ดิสเพลย์ เวิร์คส์ มีเดีย จำกัด",
-      address: "88/8 ซอยบางกรวย-ไทรน้อย 17 ตำบลบางรักพัฒนา อำเภอบางบัวทอง นนทบุรี 11110",
-      phone: "02-123-4567",
-      email: "info@displayworksmedia.com",
-      taxId: "0105550000000",
-      salesPerson: "",
-      bankName: "บริษัท ดิสเพลย์ เวิร์คส์ มีเดีย จำกัด",
-      bankBranch: "ธนาคารกสิกรไทย สาขาบางบัวทอง",
-      bankAccount: "123-4-56789-0",
-      bankType: "ออมทรัพย์",
-    })
-  );
+  const [customers, setCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [company, setCompany] = useState({
+    name: "", address: "", phone: "", email: "", taxId: "",
+    salesPerson: "", bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", qrImage: "",
+  });
+  const [erpLoading, setErpLoading] = useState(true);
 
-  useEffect(() => { saveStore("customers", customers); }, [customers]);
-  useEffect(() => { saveStore("products", products); }, [products]);
-  useEffect(() => { saveStore("documents", documents); }, [documents]);
-  useEffect(() => { saveStore("company", company); }, [company]);
+  // ── โหลดข้อมูลจาก Supabase ครั้งแรก ──────────────────────
+  useEffect(() => {
+    async function loadAll() {
+      setErpLoading(true);
+      try {
+        const [custRes, prodRes, docRes, itemRes, compRes] = await Promise.all([
+          supabase.from("erp_customers").select("*").order("created_at"),
+          supabase.from("erp_products").select("*").order("created_at"),
+          supabase.from("erp_documents").select("*").eq("deleted", false).order("created_at", { ascending: false }),
+          supabase.from("erp_document_items").select("*").order("sort_order"),
+          supabase.from("erp_company").select("*").limit(1).maybeSingle(),
+        ]);
+
+        // map snake_case → camelCase สำหรับ customers
+        if (custRes.data) setCustomers(custRes.data.map(c => ({
+          id: c.id, name: c.name, contact: c.contact, phone: c.phone,
+          email: c.email, address: c.address, taxId: c.tax_id,
+        })));
+
+        // map products
+        if (prodRes.data) setProducts(prodRes.data.map(p => ({
+          id: p.id, name: p.name, unit: p.unit, cost: p.cost, price: p.price,
+        })));
+
+        // map documents + inject items
+        if (docRes.data) {
+          const items = itemRes.data || [];
+          setDocuments(docRes.data.map(d => ({
+            id: d.id, type: d.type, docNo: d.doc_no, status: d.status,
+            customerId: d.customer_id, customerName: d.customer_name,
+            projectName: d.project_name, orderId: d.order_id,
+            reference: d.reference, salesPerson: d.sales_person,
+            date: d.date, dueDate: d.due_date,
+            discount: d.discount, vat: d.vat, wht: d.wht, whtRate: d.wht_rate,
+            notes: d.notes, overrideAddress: d.override_address,
+            bankName: d.bank_name, bankBranch: d.bank_branch,
+            bankAccount: d.bank_account, bankType: d.bank_type, qrImage: d.qr_image,
+            deleted: d.deleted,
+            createdAt: new Date(d.created_at).getTime(),
+            updatedAt: new Date(d.updated_at).getTime(),
+            items: items.filter(i => i.document_id === d.id).map(i => ({
+              id: i.id, name: i.name, subTitle: i.sub_title, detail: i.detail,
+              unit: i.unit, qty: i.qty, price: i.price, costSnapshot: i.cost_snapshot,
+            })),
+          })));
+        }
+
+        // map company
+        if (compRes.data) setCompany({
+          id: compRes.data.id,
+          name: compRes.data.name || "", address: compRes.data.address || "",
+          phone: compRes.data.phone || "", email: compRes.data.email || "",
+          taxId: compRes.data.tax_id || "", salesPerson: compRes.data.sales_person || "",
+          bankName: compRes.data.bank_name || "", bankBranch: compRes.data.bank_branch || "",
+          bankAccount: compRes.data.bank_account || "", bankType: compRes.data.bank_type || "ออมทรัพย์",
+          qrImage: compRes.data.qr_image || "",
+        });
+      } catch (err) {
+        console.error("ERP load error:", err);
+      } finally {
+        setErpLoading(false);
+      }
+    }
+    loadAll();
+  }, []);
 
   const docCounts = Object.keys(DOC_TYPES).reduce((acc, t) => {
     acc[t] = documents.filter((d) => d.type === t).length;
@@ -547,6 +599,11 @@ export default function AdminPage() {
               <ErpSidebar page={erpPage} setPage={setErpPage} docCounts={docCounts} />
             </div>
             <div className="main-content-area" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
+              {erpLoading ? (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "#888", fontSize: 14, gap: 10 }}>
+                  <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span> กำลังโหลดข้อมูล...
+                </div>
+              ) : (<>
               {erpPage === "dashboard" && (
                 <Dashboard documents={documents} customers={customers}
                   totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
@@ -561,6 +618,7 @@ export default function AdminPage() {
                   allDocuments={documents} setDocuments={setDocuments}
                   customers={customers} products={products} company={company} showToast={showToast} />
               )}
+              </>)}
             </div>
           </div>
         )}
@@ -1270,15 +1328,31 @@ function CustomerPage({ customers, setCustomers, showToast }: any) {
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "" };
   const filtered = customers.filter(c => c.name.includes(search) || c.contact?.includes(search) || c.phone?.includes(search));
-  const save = (form) => {
+  const save = async (form) => {
     if (!form.name.trim()) return showToast("กรุณาใส่ชื่อลูกค้า", "error");
     if (form.taxId && !/^\d{13}$/.test(form.taxId.replace(/-/g, "")))
       return showToast("เลขผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก", "error");
-    if (form.id) { setCustomers(prev => prev.map(c => c.id === form.id ? form : c)); showToast("แก้ไขข้อมูลลูกค้าแล้ว"); }
-    else { setCustomers(prev => [...prev, { ...form, id: genId() }]); showToast("เพิ่มลูกค้าใหม่แล้ว"); }
+    const row = { name: form.name, contact: form.contact, phone: form.phone, email: form.email, address: form.address, tax_id: form.taxId };
+    if (form.id) {
+      const { error } = await supabase.from("erp_customers").update(row).eq("id", form.id);
+      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      setCustomers(prev => prev.map(c => c.id === form.id ? form : c));
+      showToast("แก้ไขข้อมูลลูกค้าแล้ว");
+    } else {
+      const { data, error } = await supabase.from("erp_customers").insert(row).select().single();
+      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      setCustomers(prev => [...prev, { ...form, id: data.id }]);
+      showToast("เพิ่มลูกค้าใหม่แล้ว");
+    }
     setEditing(null);
   };
-  const del = (id) => { if (!confirm("ลบลูกค้านี้?")) return; setCustomers(prev => prev.filter(c => c.id !== id)); showToast("ลบลูกค้าแล้ว"); };
+  const del = async (id) => {
+    if (!confirm("ลบลูกค้านี้?")) return;
+    const { error } = await supabase.from("erp_customers").delete().eq("id", id);
+    if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+    setCustomers(prev => prev.filter(c => c.id !== id));
+    showToast("ลบลูกค้าแล้ว");
+  };
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -1338,13 +1412,29 @@ function ProductPage({ products, setProducts, showToast }: any) {
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", unit: "ชิ้น", cost: "", price: "" };
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
-  const save = (f) => {
+  const save = async (f) => {
     if (!f.name.trim()) return showToast("กรุณาใส่ชื่อสินค้า", "error");
-    if (f.id) { setProducts(prev => prev.map(p => p.id === f.id ? f : p)); showToast("แก้ไขสินค้าแล้ว"); }
-    else { setProducts(prev => [...prev, { ...f, id: genId() }]); showToast("เพิ่มสินค้าใหม่แล้ว"); }
+    const row = { name: f.name, unit: f.unit, cost: parseFloat(f.cost) || 0, price: parseFloat(f.price) || 0 };
+    if (f.id) {
+      const { error } = await supabase.from("erp_products").update(row).eq("id", f.id);
+      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...row } : p));
+      showToast("แก้ไขสินค้าแล้ว");
+    } else {
+      const { data, error } = await supabase.from("erp_products").insert(row).select().single();
+      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      setProducts(prev => [...prev, { ...f, id: data.id, ...row }]);
+      showToast("เพิ่มสินค้าใหม่แล้ว");
+    }
     setEditing(null);
   };
-  const del = (id) => { if (!confirm("ลบสินค้านี้?")) return; setProducts(prev => prev.filter(p => p.id !== id)); showToast("ลบสินค้าแล้ว"); };
+  const del = async (id) => {
+    if (!confirm("ลบสินค้านี้?")) return;
+    const { error } = await supabase.from("erp_products").delete().eq("id", id);
+    if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+    setProducts(prev => prev.filter(p => p.id !== id));
+    showToast("ลบสินค้าแล้ว");
+  };
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -1432,7 +1522,24 @@ function ProductForm({ data, onSave, onCancel }: any) {
 function CompanyPage({ company, setCompany, showToast }: any) {
   const [f, setF] = useState({ bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", salesPerson: "", ...company });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
-  const save = () => { setCompany(f); showToast("บันทึกข้อมูลบริษัทแล้ว"); };
+  const save = async () => {
+    const row = {
+      name: f.name, address: f.address, phone: f.phone, email: f.email,
+      tax_id: f.taxId, sales_person: f.salesPerson,
+      bank_name: f.bankName, bank_branch: f.bankBranch,
+      bank_account: f.bankAccount, bank_type: f.bankType, qr_image: f.qrImage,
+    };
+    if (f.id) {
+      const { error } = await supabase.from("erp_company").update(row).eq("id", f.id);
+      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+    } else {
+      const { data, error } = await supabase.from("erp_company").insert(row).select().single();
+      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      setF(prev => ({ ...prev, id: data.id }));
+    }
+    setCompany(f);
+    showToast("บันทึกข้อมูลบริษัทแล้ว");
+  };
   const secStyle = { background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 24, display: "flex" as const, flexDirection: "column" as const, gap: 14 };
   const barStyle = (color: string) => ({ width: 4, height: 20, background: color, borderRadius: 2, marginRight: 8, display: "inline-block", flexShrink: 0 });
   const secTitle = (icon: string, text: string, color = "#FF6B00") => (
@@ -1529,23 +1636,59 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const newDoc = () => {
     setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
-  const save = (doc) => {
+  const save = async (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
     if (doc.items.length === 0) return showToast("กรุณาเพิ่มรายการสินค้า", "error");
     if (doc.items.some(i => i.qty < 0 || i.price < 0))
       return showToast("จำนวนและราคาต้องไม่ติดลบ", "error");
     if (!doc.docNo?.trim()) return showToast("กรุณาระบุเลขที่เอกสาร", "error");
-    // Snapshot ต้นทุน ณ เวลาบันทึก — กันกำไรเปลี่ยนย้อนหลังเมื่อแก้ราคาสินค้า
     const itemsWithCost = doc.items.map(item => {
-      if (item.costSnapshot != null) return item; // เอกสารเก่า ไม่ทับ
+      if (item.costSnapshot != null) return item;
       const prod = products.find(p => p.name === item.name);
       return { ...item, costSnapshot: prod ? prod.cost : 0 };
     });
-    const now = Date.now();
-    const saved = { ...doc, items: itemsWithCost };
-    if (doc.id) { setDocuments(prev => prev.map(d => d.id === doc.id ? { ...saved, updatedAt: now } : d)); showToast("บันทึกเอกสารแล้ว"); }
-    else { setDocuments(prev => [...prev, { ...saved, id: genId(), createdAt: now, updatedAt: now }]); showToast("สร้างเอกสารใหม่แล้ว"); }
-    setEditing(null);
+    const docRow = {
+      type: doc.type, doc_no: doc.docNo, status: doc.status,
+      customer_id: doc.customerId, customer_name: doc.customerName,
+      project_name: doc.projectName, order_id: doc.orderId || null,
+      reference: doc.reference, sales_person: doc.salesPerson,
+      date: doc.date, due_date: doc.dueDate,
+      discount: doc.discount, vat: doc.vat, wht: doc.wht, wht_rate: doc.whtRate,
+      notes: doc.notes, override_address: doc.overrideAddress,
+      bank_name: doc.bankName, bank_branch: doc.bankBranch,
+      bank_account: doc.bankAccount, bank_type: doc.bankType, qr_image: doc.qrImage,
+      deleted: false,
+    };
+    try {
+      let docId = doc.id;
+      if (doc.id) {
+        const { error } = await supabase.from("erp_documents").update(docRow).eq("id", doc.id);
+        if (error) throw error;
+        // ลบ items เก่า แล้วใส่ใหม่
+        await supabase.from("erp_document_items").delete().eq("document_id", doc.id);
+      } else {
+        const { data, error } = await supabase.from("erp_documents").insert(docRow).select().single();
+        if (error) throw error;
+        docId = data.id;
+      }
+      // insert items ใหม่
+      if (itemsWithCost.length > 0) {
+        const itemRows = itemsWithCost.map((item, idx) => ({
+          document_id: docId, sort_order: idx,
+          name: item.name, sub_title: item.subTitle, detail: item.detail,
+          unit: item.unit, qty: item.qty, price: item.price, cost_snapshot: item.costSnapshot,
+        }));
+        const { error: itemErr } = await supabase.from("erp_document_items").insert(itemRows);
+        if (itemErr) throw itemErr;
+      }
+      const saved = { ...doc, id: docId, items: itemsWithCost };
+      if (doc.id) setDocuments(prev => prev.map(d => d.id === doc.id ? saved : d));
+      else setDocuments(prev => [...prev, saved]);
+      showToast(doc.id ? "บันทึกเอกสารแล้ว" : "สร้างเอกสารใหม่แล้ว");
+      setEditing(null);
+    } catch (err: any) {
+      showToast("เกิดข้อผิดพลาด: " + err.message, "error");
+    }
   };
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const del = (id) => {
@@ -1553,13 +1696,20 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     if (doc?.status === "approved") return showToast("ไม่สามารถลบเอกสารที่อนุมัติแล้ว — ยกเลิกการอนุมัติก่อน", "error");
     setDeleteConfirm(id);
   };
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteConfirm) return;
+    const { error } = await supabase.from("erp_documents").update({ deleted: true, status: "cancelled" }).eq("id", deleteConfirm);
+    if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
     setDocuments(prev => prev.map(d => d.id === deleteConfirm ? { ...d, deleted: true, status: "cancelled" } : d));
     setDeleteConfirm(null);
     showToast("ลบเอกสารแล้ว");
   };
-  const changeStatus = (id, status) => { setDocuments(prev => prev.map(d => d.id === id ? { ...d, status } : d)); showToast(`อัปเดตสถานะเป็น "${STATUS_LABELS[status]}"`); };
+  const changeStatus = async (id, status) => {
+    const { error } = await supabase.from("erp_documents").update({ status }).eq("id", id);
+    if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+    setDocuments(prev => prev.map(d => d.id === id ? { ...d, status } : d));
+    showToast(`อัปเดตสถานะเป็น "${STATUS_LABELS[status]}"`);
+  };
 
   // ── Email Modal ────────────────────────────────────────────
   const [emailModal, setEmailModal] = useState<any>(null);
