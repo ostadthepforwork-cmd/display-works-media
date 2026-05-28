@@ -101,6 +101,7 @@ function saveStore(key: string, val: unknown) {
 // ============================================================
 function printDocument(doc: any, customers: any[], company: any) {
   const cust = customers.find((c) => c.id === doc.customerId) || {};
+  const custAddress = doc.overrideAddress || cust.address || "";
   const dt = DOC_TYPES[doc.type];
 
   // ── Calculations (shared utility) ─────────────────────────
@@ -246,7 +247,7 @@ function printDocument(doc: any, customers: any[], company: any) {
           <span style="color:#94a3b8;font-size:10px;font-weight:500;">ลูกค้า</span>
         </div>
         <div style="font-weight:700;font-size:13px;color:#0f172a;margin-bottom:4px;">${cust.name || "-"}</div>
-        ${cust.address ? `<div style="font-size:10.5px;color:#64748b;line-height:1.7;margin-bottom:5px;white-space:pre-line;">${cust.address}</div>` : ""}
+        ${custAddress ? `<div style="font-size:10.5px;color:#64748b;line-height:1.7;margin-bottom:5px;white-space:pre-line;">${custAddress}</div>` : ""}
         <div style="font-size:10.5px;color:#64748b;display:flex;flex-direction:column;gap:2px;">
           ${cust.taxId ? `<div><span style="font-weight:600;color:#475569;">เลขประจำตัวผู้เสียภาษี</span> ${cust.taxId}</div>` : ""}
           ${cust.phone ? `<div><span style="font-weight:600;color:#475569;">โทร.</span> ${cust.phone}</div>` : ""}
@@ -1586,7 +1587,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   // ── Dropdown state ──────────────────────────────────────────
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [openStatus, setOpenStatus] = useState<string | null>(null);
-  const closeAll = () => { setOpenMenu(null); setOpenStatus(null); };
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+  const closeAll = () => { setOpenMenu(null); setOpenStatus(null); setMenuPos(null); };
 
   const menuRef = useRef<any>(null);
   useEffect(() => {
@@ -1622,7 +1624,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           </div>
         ) : (<>
           {/* ── Desktop Table ── */}
-          <table className="doc-table" style={{ width: "100%", borderCollapse: "collapse", borderRadius: 12, overflow: "hidden" }}>
+          <table className="doc-table" style={{ width: "100%", borderCollapse: "collapse", borderRadius: 12, overflow: "visible" }}>
             <thead>
               <tr style={{ background: "#1A2233" }}>
                 {["เลขที่เอกสาร", "ลูกค้า", "วันที่", "วันครบกำหนด", "ยอดรวม", "สถานะ", "จัดการ"].map((h, i, arr) => (
@@ -1664,7 +1666,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     </td>
                     <td style={{ padding: "12px 16px" }}>
                       {/* ── Action Menu ── */}
-                      <div style={{ position: "relative", display: "inline-block" }} ref={openMenu === doc.id ? menuRef : null}>
+                      <div style={{ position: "relative", display: "inline-block" }}>
                         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                           {/* แก้ไข */}
                           <button onClick={() => setEditing({ ...doc })} title="แก้ไข"
@@ -1672,13 +1674,18 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             แก้ไข
                           </button>
                           {/* ⋮ More */}
-                          <button onClick={() => { setOpenMenu(openMenu === doc.id ? null : doc.id); setOpenStatus(null); }}
+                          <button onClick={(e) => {
+                            if (openMenu === doc.id) { closeAll(); return; }
+                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                            setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                            setOpenMenu(doc.id); setOpenStatus(null);
+                          }}
                             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit", lineHeight: 1 }}>
                             ⋮
                           </button>
                         </div>
-                        {openMenu === doc.id && (
-                          <div style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 220, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                        {openMenu === doc.id && menuPos && (
+                          <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
                             {/* พิมพ์ */}
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             {/* แชร์ลิงค์ */}
@@ -1778,7 +1785,11 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         <button onClick={() => { setOpenMenu(openMenu === doc.id ? null : doc.id); setOpenStatus(null); }}
                           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
                         {openMenu === doc.id && (
-                          <div style={{ position: "absolute", bottom: "calc(100% + 4px)", right: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                          <div style={{ position: "absolute", bottom: "calc(100% + 4px)", right: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
+                            <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
+                            <MenuBtn icon="🔗" label="แชร์ลิงค์" onClick={() => { const url = `${window.location.origin}/doc/${doc.id}`; navigator.clipboard?.writeText(url).then(() => showToast("คัดลอกลิงค์แล้ว")).catch(() => showToast("ไม่สามารถคัดลอกได้", "error")); closeAll(); }} />
+                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
+                            <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); if (cust?.email) { window.open(`mailto:${cust.email}?subject=${encodeURIComponent(`เอกสาร ${doc.docNo}`)}`); } else showToast("ไม่มีอีเมลลูกค้า", "error"); closeAll(); }} />
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { const cnt = allDocuments.filter(d => d.type === doc.type).length + 1; const yr = new Date().getFullYear() + 543; const pfx = DOC_TYPES[doc.type]?.prefix || ""; setEditing({ ...doc, id: "", docNo: `${pfx}${yr}-${String(cnt).padStart(4,"0")}`, date: today(), status: "draft" }); closeAll(); }} />
                             {(DOC_NEXT[doc.type] || []).length > 0 && <>
                               <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
@@ -1813,7 +1824,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
 // DOC FORM
 // ============================================================
 function DocForm({ doc, type, customers, products, onSave, onCancel, allDocuments }: any) {
-  const [f, setF] = useState({ salesPerson: "", orderId: "", ...doc });
+  const [f, setF] = useState({ salesPerson: "", orderId: "", overrideAddress: "", ...doc });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const setN = (k) => (e) => setF(prev => ({ ...prev, [k]: parseFloat(e.target.value) || 0 }));
   const setBool = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.checked }));
@@ -1909,10 +1920,26 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
           const c = customers.find(c => c.id === f.customerId);
           if (!c) return null;
           return (
-            <div style={{ background: "#0B0F19", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#A8B0C0", display: "flex", flexDirection: "column" as const, gap: 4 }}>
-              {c.address && <div>📍 {c.address}</div>}
-              {c.phone && <div>📞 {c.phone}</div>}
-              {c.taxId && <div>🪪 เลขผู้เสียภาษี: {c.taxId}</div>}
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+              <div style={{ background: "#0B0F19", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#A8B0C0", display: "flex", flexDirection: "column" as const, gap: 4 }}>
+                {c.phone && <div>📞 {c.phone}</div>}
+                {c.taxId && <div>🪪 เลขผู้เสียภาษี: {c.taxId}</div>}
+              </div>
+              <Field label="📍 ที่อยู่ในเอกสาร (แก้ไขได้เฉพาะเอกสารนี้)">
+                <textarea
+                  value={f.overrideAddress !== undefined && f.overrideAddress !== "" ? f.overrideAddress : (c.address || "")}
+                  onChange={e => setF(prev => ({ ...prev, overrideAddress: e.target.value }))}
+                  rows={3}
+                  placeholder={c.address || "ระบุที่อยู่..."}
+                  style={{ resize: "vertical", fontFamily: "inherit", fontSize: 12 }}
+                />
+                {f.overrideAddress && f.overrideAddress !== c.address && (
+                  <button onClick={() => setF(prev => ({ ...prev, overrideAddress: "" }))}
+                    style={{ marginTop: 4, background: "transparent", border: "none", color: "#6B7280", fontSize: 11, cursor: "pointer", padding: 0, fontFamily: "inherit", textAlign: "left" as const }}>
+                    ↩ คืนค่าที่อยู่เดิมของลูกค้า
+                  </button>
+                )}
+              </Field>
             </div>
           );
         })()}
