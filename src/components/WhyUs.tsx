@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import {
   BadgeCheck,
   Zap,
@@ -57,21 +54,10 @@ const reasons = [
 
 export default function WhyUs() {
   return (
-    <section
-      id="about"
-      className="py-24 lg:py-32 px-6 lg:px-8"
-      style={{ background: "#141A24" }}
-    >
+    <section id="about" className="py-24 lg:py-32 px-6 lg:px-8" style={{ background: "#141A24" }}>
       <div className="max-w-7xl mx-auto">
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-col lg:flex-row lg:items-end gap-6 mb-16"
-        >
+        <div className="reveal-section flex flex-col lg:flex-row lg:items-end gap-6 mb-16">
           <div className="flex-1">
             <div className="section-label">ทำไมต้องเรา</div>
             <h2 className="section-title">
@@ -83,24 +69,16 @@ export default function WhyUs() {
           <p className="section-sub lg:max-w-xs lg:text-right">
             มากกว่า 120 ธุรกิจไว้วางใจให้เราดูแลงานพิมพ์ ด้วยเหตุผลเหล่านี้
           </p>
-        </motion.div>
+        </div>
 
-        {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {reasons.map((r, i) => {
+          {reasons.map((r) => {
             const Icon = r.icon;
             return (
-              <motion.div
+              <div
                 key={r.num}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                className="group relative p-8 rounded-2xl border transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-                style={{
-                  background: "#0B0F19",
-                  borderColor: "rgba(255,255,255,0.07)",
-                }}
+                className="reveal-item group relative p-8 rounded-2xl border transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                style={{ background: "#0B0F19", borderColor: "rgba(255,255,255,0.07)" }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,0,0.3)";
                   (e.currentTarget as HTMLElement).style.background = "#0f1520";
@@ -110,56 +88,34 @@ export default function WhyUs() {
                   (e.currentTarget as HTMLElement).style.background = "#0B0F19";
                 }}
               >
-                {/* Hover glow */}
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                  style={{
-                    background: "radial-gradient(ellipse at top left, rgba(255,107,0,0.06) 0%, transparent 60%)",
-                  }}
+                  style={{ background: "radial-gradient(ellipse at top left, rgba(255,107,0,0.06) 0%, transparent 60%)" }}
                 />
-
-                {/* Number (background) */}
                 <div
                   className="absolute top-4 right-6 font-kanit font-extrabold leading-none select-none pointer-events-none"
                   style={{ fontSize: "64px", color: "rgba(255,107,0,0.06)" }}
                 >
                   {r.num}
                 </div>
-
-                {/* Icon */}
                 <div
                   className="relative w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-105"
                   style={{ background: "rgba(255,107,0,0.1)" }}
                 >
                   <Icon size={26} style={{ color: "#FF6B00" }} strokeWidth={1.5} />
                 </div>
-
-                {/* Content */}
                 <div className="relative">
-                  <h3 className="font-kanit font-bold text-white text-lg mb-3 leading-snug">
-                    {r.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-5" style={{ color: "#A8B0C0" }}>
-                    {r.desc}
-                  </p>
-
-                  {/* Highlight pill */}
+                  <h3 className="font-kanit font-bold text-white text-lg mb-3 leading-snug">{r.title}</h3>
+                  <p className="text-sm leading-relaxed mb-5" style={{ color: "#A8B0C0" }}>{r.desc}</p>
                   <div
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-                    style={{
-                      background: "rgba(255,107,0,0.08)",
-                      color: "#FF6B00",
-                      border: "1px solid rgba(255,107,0,0.15)",
-                    }}
+                    style={{ background: "rgba(255,107,0,0.08)", color: "#FF6B00", border: "1px solid rgba(255,107,0,0.15)" }}
                   >
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: "#FF6B00" }}
-                    />
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#FF6B00" }} />
                     {r.highlight}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

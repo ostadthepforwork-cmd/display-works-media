@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "../styles/globals.css";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleTagManager, { GoogleTagManagerNoScript } from "@/components/GoogleTagManager";
 import FacebookPixel from "@/components/FacebookPixel";
 import PDPAConsent from "@/components/PDPAConsent";
@@ -48,14 +47,22 @@ export default function RootLayout({
   return (
     <html lang="th">
       <head>
+        {/* Preload critical font weight to unblock FCP */}
+        <link
+          rel="preload"
+          as="font"
+          href="https://fonts.gstatic.com/s/kanit/v15/nKKZ-Co32cUR0fj.woff2"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Load only the weights actually used — saves ~120KB vs 5 weights each */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Prompt:wght@400;600&display=swap"
           rel="stylesheet"
         />
         <GoogleTagManager />
-        <GoogleAnalytics />
         <FacebookPixel />
         <SchemaOrg />
       </head>
@@ -63,6 +70,25 @@ export default function RootLayout({
         <GoogleTagManagerNoScript />
         {children}
         <PDPAConsent />
+        {/* Scroll-reveal: lightweight IntersectionObserver — replaces framer-motion whileInView */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+(function(){
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); }
+    });
+  },{threshold:0.12});
+  function observe(){
+    document.querySelectorAll('.reveal-section,.reveal-item').forEach(function(el){io.observe(el);});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',observe);
+  else observe();
+})();
+            `,
+          }}
+        />
       </body>
     </html>
   );

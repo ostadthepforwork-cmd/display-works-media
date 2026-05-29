@@ -1,9 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Image from "next/image";
 
-// เพิ่มรูปได้เรื่อยๆ ครับ
 const portfolioImages = [
   "/images/portfolio/work-01.webp",
   "/images/portfolio/work-02.webp",
@@ -25,14 +21,7 @@ export default function Portfolio() {
     >
       <div className="max-w-7xl mx-auto">
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-14"
-        >
+        <div className="reveal-section mb-14">
           <div className="section-label">ผลงานของเรา</div>
           <h2 className="section-title">
             งานจริงจากลูกค้า
@@ -42,28 +31,22 @@ export default function Portfolio() {
           <p className="section-sub">
             รวมผลงานจริงจากลูกค้าที่เราดูแลมาอย่างต่อเนื่อง
           </p>
-        </motion.div>
+        </div>
 
-        {/* Square Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {portfolioImages.map((src, i) => (
-            <motion.div
+            <div
               key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.06 }}
-              className="group relative overflow-hidden rounded-xl"
+              className="group relative overflow-hidden rounded-xl reveal-item"
               style={{ aspectRatio: "1 / 1" }}
             >
               <Image
                 src={src}
                 alt={`ผลงาน ${i + 1}`}
                 fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
-
-              {/* Hover overlay */}
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center"
                 style={{ background: "rgba(255,107,0,0.15)", backdropFilter: "blur(2px)" }}
@@ -73,39 +56,27 @@ export default function Portfolio() {
                   style={{ background: "rgba(255,107,0,0.8)" }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
                   </svg>
                 </div>
               </div>
-
-              {/* Subtle bottom gradient */}
               <div
                 className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none"
                 style={{ background: "linear-gradient(to top, rgba(0,0,0,0.3), transparent)" }}
               />
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-center mt-12"
-        >
+        <div className="text-center mt-12 reveal-section">
           <a
             href="#quote"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-lg font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5"
-            style={{
-              background: "#FF6B00",
-              boxShadow: "0 4px 24px rgba(255,107,0,0.25)",
-            }}
+            style={{ background: "#FF6B00", boxShadow: "0 4px 24px rgba(255,107,0,0.25)" }}
           >
             สนใจงานแบบนี้? ขอใบเสนอราคาเลย
           </a>
-        </motion.div>
+        </div>
 
       </div>
     </section>

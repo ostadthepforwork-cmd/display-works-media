@@ -1,8 +1,58 @@
-@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Hero CSS animations — replaces framer-motion on above-the-fold content */
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes heroFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(8px); }
+}
+.hero-badge    { animation: heroFadeUp 0.6s ease both 0s; }
+.hero-h1       { animation: heroFadeUp 0.7s ease both 0.1s; }
+.hero-sub      { animation: heroFadeUp 0.7s ease both 0.2s; }
+.hero-trust    { animation: heroFadeUp 0.6s ease both 0.3s; }
+.hero-cta      { animation: heroFadeUp 0.7s ease both 0.4s; }
+.hero-contact  { animation: heroFadeIn 0.6s ease both 0.5s; }
+.hero-scroll   { animation: heroFadeIn 0.5s ease both 1.2s; }
+.hero-scroll-dot { animation: scrollBounce 1.5s ease-in-out infinite; }
+
+/* Scroll-reveal — replaces framer-motion whileInView across all sections */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes revealScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.reveal-section,
+.reveal-item {
+  opacity: 0;
+}
+.reveal-section.is-visible {
+  animation: revealUp 0.6s ease both;
+}
+.reveal-item.is-visible {
+  animation: revealScale 0.45s ease both;
+}
+/* stagger delay for sibling .reveal-item elements */
+.reveal-item.is-visible:nth-child(1) { animation-delay: 0s; }
+.reveal-item.is-visible:nth-child(2) { animation-delay: 0.07s; }
+.reveal-item.is-visible:nth-child(3) { animation-delay: 0.14s; }
+.reveal-item.is-visible:nth-child(4) { animation-delay: 0.21s; }
+.reveal-item.is-visible:nth-child(5) { animation-delay: 0.28s; }
+.reveal-item.is-visible:nth-child(6) { animation-delay: 0.35s; }
+.reveal-item.is-visible:nth-child(7) { animation-delay: 0.42s; }
+.reveal-item.is-visible:nth-child(8) { animation-delay: 0.49s; }
+.reveal-item.is-visible:nth-child(9) { animation-delay: 0.56s; }
 
 :root {
   --orange: #FF6B00;

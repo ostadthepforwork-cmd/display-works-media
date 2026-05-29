@@ -38,11 +38,12 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-[70px]">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 relative">
+          <div className="w-10 h-10 relative flex-shrink-0">
             <Image
               src="/images/logo.png"
-              alt="Display Works Media"
-              fill
+              alt="Display Works Media logo"
+              width={40}
+              height={40}
               className="object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = "none";
