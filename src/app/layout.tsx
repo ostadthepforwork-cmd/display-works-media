@@ -4,6 +4,7 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleTagManager, { GoogleTagManagerNoScript } from "@/components/GoogleTagManager";
 import FacebookPixel from "@/components/FacebookPixel";
 import PDPAConsent from "@/components/PDPAConsent";
+import SchemaOrg from "@/components/SchemaOrg";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -17,9 +18,14 @@ export const metadata: Metadata = {
   description:
     "Display Works Media คือโซลูชันงานพิมพ์สำหรับธุรกิจยุคใหม่ บริการสั่งป้ายไวนิล สติ๊กเกอร์ Roll Up Backdrop และสื่อสิ่งพิมพ์ครบวงจร ส่งทั่วประเทศ",
   keywords: [
-    "ป้ายไวนิล", "สั่งพิมพ์ออนไลน์", "Roll Up",
-    "Backdrop", "สติ๊กเกอร์", "PP Board", "งานพิมพ์", "Display Works Media",
+    "ป้ายไวนิล", "สั่งพิมพ์ออนไลน์", "Roll Up", "Roll Up Stand",
+    "Backdrop", "แบ็คดรอปผ้า", "สติ๊กเกอร์", "PP Board", "งานพิมพ์",
+    "Display Works Media", "สั่งป้ายออนไลน์", "รับทำป้าย", "พิมพ์ป้ายราคาถูก",
+    "สั่งพิมพ์ไวนิลกรุงเทพ", "รับทำสติ๊กเกอร์", "ฉลากสินค้า", "Standee",
   ],
+  alternates: {
+    canonical: "https://displayworksmedia.com",
+  },
   openGraph: {
     title: "Display Works Media | บริการสั่งป้ายและงานพิมพ์ออนไลน์",
     description: "บริการสั่งป้ายและงานพิมพ์ออนไลน์ครบวงจร ง่าย เร็ว มืออาชีพ ส่งทั่วประเทศ",
@@ -51,6 +57,7 @@ export default function RootLayout({
         <GoogleTagManager />
         <GoogleAnalytics />
         <FacebookPixel />
+        <SchemaOrg />
       </head>
       <body>
         <GoogleTagManagerNoScript />

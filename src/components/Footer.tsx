@@ -5,11 +5,12 @@ import { MessageCircle, Facebook, Instagram, Phone, Mail, MapPin } from "lucide-
 
 const navLinks = [
   { label: "หน้าแรก", href: "/" },
-  { label: "บริการของเรา", href: "#services" },
-  { label: "ผลงานของเรา", href: "#portfolio" },
-  { label: "ขั้นตอนการทำงาน", href: "#process" },
-  { label: "เกี่ยวกับเรา", href: "#about" },
-  { label: "FAQ", href: "#faq" },
+  { label: "บริการของเรา", href: "/#services" },
+  { label: "ผลงานของเรา", href: "/#portfolio" },
+  { label: "ขั้นตอนการทำงาน", href: "/#process" },
+  { label: "เกี่ยวกับเรา", href: "/about" },
+  { label: "ติดต่อเรา", href: "/contact" },
+  { label: "FAQ", href: "/#faq" },
 ];
 
 const serviceLinks = [

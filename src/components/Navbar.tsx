@@ -12,8 +12,8 @@ const navLinks = [
   { label: "ผลงานของเรา", href: "/#portfolio" },
   { label: "ขั้นตอนการทำงาน", href: "/#process" },
   { label: "บทความ", href: "/blog" },
-  { label: "เกี่ยวกับเรา", href: "/#about" },
-  { label: "ติดต่อเรา", href: "/#contact" },
+  { label: "เกี่ยวกับเรา", href: "/about" },
+  { label: "ติดต่อเรา", href: "/contact" },
 ];
 
 export default function Navbar() {

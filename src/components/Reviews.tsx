@@ -2,6 +2,44 @@
 
 import { motion } from "framer-motion";
 
+// AggregateRating + Review Schema — ให้ Google และ AI รู้ว่ามีรีวิวจริง
+const reviewSchemaJson = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": "https://displayworksmedia.com/#business",
+  name: "Display Works Media",
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.9",
+    reviewCount: "6",
+    bestRating: "5",
+    worstRating: "1",
+  },
+  review: [
+    {
+      "@type": "Review",
+      author: { "@type": "Person", name: "คุณกตัญญู" },
+      reviewRating: { "@type": "Rating", ratingValue: "5" },
+      reviewBody: "งานสวย ตรงตามแบบ ส่งไวมาก มีแจ้งทุกขั้นตอน ประทับใจมากครับ ใช้บริการซ้ำมาหลายครั้งแล้ว",
+      name: "ป้ายไวนิล + สติ๊กเกอร์",
+    },
+    {
+      "@type": "Review",
+      author: { "@type": "Person", name: "คุณขวัญ" },
+      reviewRating: { "@type": "Rating", ratingValue: "5" },
+      reviewBody: "คุณภาพงานพิมพ์ดีมาก สติ๊กเกอร์ติดดี ใช้งานได้นานมาก สีสดใสไม่ซีดจาง",
+      name: "Sticker Outdoor",
+    },
+    {
+      "@type": "Review",
+      author: { "@type": "Person", name: "คุณดวงใจ" },
+      reviewRating: { "@type": "Rating", ratingValue: "5" },
+      reviewBody: "สั่งทำ Backdrop สำหรับงาน Event ใหญ่ งานออกมาสวยมาก สีสดใส คมชัด ส่งตรงเวลา",
+      name: "Backdrop + Standee",
+    },
+  ],
+};
+
 const reviews = [
   {
     initials: "ก",
@@ -77,6 +115,12 @@ export default function Reviews() {
       className="py-24 lg:py-32 px-6 lg:px-8"
       style={{ background: "#0B0F19" }}
     >
+      {/* JSON-LD AggregateRating + Review schema สำหรับ SEO / GEO */}
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD ปลอดภัย
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchemaJson) }}
+      />
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
