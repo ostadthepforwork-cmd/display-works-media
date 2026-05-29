@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingButtons from "@/components/FloatingButtons";
 
 export const metadata: Metadata = {
-  title: "เกี่ยวกับเรา | Display Works Media — บริการสั่งพิมพ์ป้ายออนไลน์",
+  title: "เกี่ยวกับเรา | Display Works Media",
   description:
-    "Display Works Media คือบริการสั่งพิมพ์ป้าย สติ๊กเกอร์ แบ็คดรอป Roll Up ออนไลน์ครบวงจร ส่งทั่วประเทศไทย คุณภาพสูง ราคาเป็นธรรม",
+    "Display Works Media คือบริการสั่งพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร รับทำแบ็คดรอปผ้า ป้ายไวนิล Roll Up Stand สติ๊กเกอร์ PP Board และฉลากสินค้า ส่งทั่วประเทศ",
   alternates: { canonical: "https://displayworksmedia.com/about" },
   openGraph: {
     title: "เกี่ยวกับเรา | Display Works Media",
@@ -16,130 +17,139 @@ export const metadata: Metadata = {
   },
 };
 
-const services = [
-  { name: "แบ็คดรอปผ้า / Pop-up / โครงทรัส", href: "/services/backdrop" },
-  { name: "ป้ายไวนิล ทุกชนิด", href: "/services/vinyl" },
-  { name: "Roll Up Stand / X-Stand", href: "/services/rollup" },
-  { name: "สติ๊กเกอร์ ตัดขอบ Die-cut", href: "/services/sticker" },
-  { name: "PP Board / Standee ตัดรูปทรง", href: "/services/ppboard" },
-  { name: "ฉลากสินค้า / Product Label", href: "/services/label" },
+const stats = [
+  { num: "1,000+", label: "ลูกค้าทั่วประเทศ" },
+  { num: "6", label: "บริการครบวงจร" },
+  { num: "1–3", label: "วันทำการผลิต" },
+  { num: "4.9★", label: "คะแนนความพึงพอใจ" },
 ];
 
 const values = [
   {
+    icon: "🎯",
     title: "คุณภาพงานพิมพ์",
-    desc: "เครื่องพิมพ์ระดับมืออาชีพ ความละเอียดสูง สีสดคมชัด ตรงตามแบบที่ลูกค้าต้องการ",
+    desc: "เครื่องพิมพ์ระดับมืออาชีพ ความละเอียดสูง สีสดคมชัด ตรงตามแบบที่ลูกค้าต้องการทุกชิ้น",
   },
   {
+    icon: "⚡",
     title: "ส่งตรงเวลา",
     desc: "ผลิต 1–3 วันทำการ จัดส่งทุกจังหวัดทั่วประเทศไทย แจ้งเลขพัสดุทุกออเดอร์",
   },
   {
+    icon: "💼",
     title: "บริการครบจบ",
     desc: "รับไฟล์งาน ออกแบบกราฟิก ผลิต และจัดส่ง ครบในที่เดียว ไม่ต้องวิ่งหลายเจ้า",
   },
   {
+    icon: "💰",
     title: "ราคาเป็นธรรม",
     desc: "ไม่มีค่าธรรมเนียมแอบแฝง ราคาชัดเจน สั่งขั้นต่ำ 1 ชิ้นได้ไม่มีข้อจำกัด",
   },
 ];
 
+const services = [
+  { name: "แบ็คดรอปผ้า / Pop-up / โครงทรัส", href: "/services/backdrop", icon: "🖼" },
+  { name: "ป้ายไวนิล ทุกชนิด", href: "/services/vinyl", icon: "📋" },
+  { name: "Roll Up Stand / X-Stand", href: "/services/rollup", icon: "🗓" },
+  { name: "สติ๊กเกอร์ ตัดขอบ Die-cut", href: "/services/sticker", icon: "✂️" },
+  { name: "PP Board / Standee ตัดรูปทรง", href: "/services/ppboard", icon: "📌" },
+  { name: "ฉลากสินค้า / Product Label", href: "/services/label", icon: "🏷" },
+];
+
 export default function AboutPage() {
   return (
-    <main>
+    <div className="min-h-screen font-['Prompt',sans-serif] text-white bg-[#050816]">
       <Navbar />
 
       {/* Hero */}
-      <section
-        style={{ background: "#0A0F1A", paddingTop: "7rem", paddingBottom: "4rem" }}
-        className="px-6 lg:px-8"
-      >
-        <div className="max-w-4xl mx-auto text-center">
-          <p style={{ color: "#4ADE80", fontSize: "0.8rem", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "1rem" }}>
+      <section className="relative pt-28 pb-20 px-5 overflow-hidden">
+        {/* bg glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full opacity-10 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, #FF7A00 0%, transparent 70%)" }} />
+        <div className="relative max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00]">
             เกี่ยวกับเรา
-          </p>
-          <h1 style={{ color: "#fff", fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 700, lineHeight: 1.2, marginBottom: "1.5rem" }}>
-            Display Works Media
+          </div>
+          <h1 className="font-['Kanit'] font-extrabold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-4">
+            Display Works<br />
+            <span style={{ color: "#FF7A00" }}>Media</span>
           </h1>
-          <p style={{ color: "#9CA3AF", fontSize: "1.125rem", lineHeight: 1.8, maxWidth: "36rem", margin: "0 auto" }}>
-            โซลูชันงานพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร สำหรับธุรกิจยุคใหม่ในประเทศไทย
+          <p className="text-[#A7B0C0] text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
+            โซลูชันงานพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร<br className="hidden sm:block" />
+            สำหรับธุรกิจยุคใหม่ในประเทศไทย
           </p>
         </div>
       </section>
 
-      {/* ว่าเราคือใคร */}
-      <section style={{ background: "#111827" }} className="py-20 px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 style={{ color: "#fff", fontSize: "1.75rem", fontWeight: 700, marginBottom: "1.5rem" }}>
-                เราคือใคร
-              </h2>
-              <p style={{ color: "#D1D5DB", lineHeight: 1.9, marginBottom: "1rem" }}>
-                <strong style={{ color: "#fff" }}>Display Works Media</strong> คือผู้ให้บริการงานพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร
-                เราเชี่ยวชาญด้านการผลิตป้ายไวนิล แบ็คดรอปผ้า Roll Up Stand สติ๊กเกอร์ PP Board
-                และฉลากสินค้าสำหรับธุรกิจทุกขนาดในประเทศไทย
-              </p>
-              <p style={{ color: "#D1D5DB", lineHeight: 1.9, marginBottom: "1.5rem" }}>
-                ด้วยระบบสั่งผลิตออนไลน์ที่ง่ายและรวดเร็ว ลูกค้าสามารถส่งไฟล์งาน เลือกขนาด และรับงานส่งตรงถึงหน้าประตูได้ทุกจังหวัดทั่วประเทศ
-                โดยไม่ต้องเดินทางมาหาเราเลย
-              </p>
-              <Link
-                href="/contact"
-                style={{
-                  display: "inline-block",
-                  background: "#16A34A",
-                  color: "#fff",
-                  padding: "0.75rem 1.5rem",
-                  borderRadius: "0.5rem",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}
-              >
-                ติดต่อเรา →
-              </Link>
+      {/* Stats */}
+      <section className="px-5 pb-16">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {stats.map(({ num, label }) => (
+            <div key={label} className="rounded-2xl p-5 text-center border border-white/5"
+              style={{ background: "#0B1220" }}>
+              <div className="font-['Kanit'] font-extrabold text-2xl sm:text-3xl text-[#FF7A00]">{num}</div>
+              <div className="text-[#A7B0C0] text-xs mt-1 leading-snug">{label}</div>
             </div>
+          ))}
+        </div>
+      </section>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { num: "1,000+", label: "ลูกค้าทั่วประเทศ" },
-                { num: "6", label: "บริการครบวงจร" },
-                { num: "1–3", label: "วันทำการผลิต" },
-                { num: "4.9★", label: "คะแนนความพึงพอใจ" },
-              ].map(({ num, label }) => (
-                <div
-                  key={label}
-                  style={{
-                    background: "#1F2937",
-                    borderRadius: "0.75rem",
-                    padding: "1.5rem",
-                    textAlign: "center",
-                  }}
-                >
-                  <div style={{ color: "#4ADE80", fontSize: "1.75rem", fontWeight: 700 }}>{num}</div>
-                  <div style={{ color: "#9CA3AF", fontSize: "0.875rem", marginTop: "0.25rem" }}>{label}</div>
-                </div>
-              ))}
+      {/* เราคือใคร */}
+      <section className="px-5 pb-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: "#0B1220" }}>
+            <div className="p-6 sm:p-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-5 border border-[#FF7A00]/30 text-[#FF7A00]">
+                เราคือใคร
+              </div>
+              <h2 className="font-['Kanit'] font-bold text-2xl sm:text-3xl text-white mb-5">
+                ผู้เชี่ยวชาญงานพิมพ์ป้ายออนไลน์
+              </h2>
+              <div className="space-y-4 text-[#A7B0C0] leading-relaxed text-sm sm:text-base">
+                <p>
+                  <strong className="text-white">Display Works Media</strong> คือผู้ให้บริการงานพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร
+                  เราเชี่ยวชาญด้านการผลิตป้ายไวนิล แบ็คดรอปผ้า Roll Up Stand สติ๊กเกอร์ PP Board
+                  และฉลากสินค้าสำหรับธุรกิจทุกขนาดในประเทศไทย
+                </p>
+                <p>
+                  ด้วยระบบสั่งผลิตออนไลน์ที่ง่ายและรวดเร็ว ลูกค้าสามารถส่งไฟล์งาน เลือกขนาด
+                  และรับงานส่งตรงถึงหน้าประตูได้ทุกจังหวัดทั่วประเทศ โดยไม่ต้องเดินทางเลย
+                </p>
+              </div>
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <Link href="/contact"
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white transition-all hover:-translate-y-0.5"
+                  style={{ background: "#FF7A00", boxShadow: "0 4px 20px rgba(255,122,0,0.25)" }}>
+                  ติดต่อเรา →
+                </Link>
+                <Link href="/#quote"
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm border border-white/10 text-[#A7B0C0] hover:text-white hover:border-white/30 transition-all">
+                  ขอใบเสนอราคา
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ค่านิยม */}
-      <section style={{ background: "#0A0F1A" }} className="py-20 px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
-          <h2 style={{ color: "#fff", fontSize: "1.75rem", fontWeight: 700, marginBottom: "3rem", textAlign: "center" }}>
-            ทำไมต้องเลือก Display Works Media
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {values.map(({ title, desc }) => (
-              <div
-                key={title}
-                style={{ background: "#111827", borderRadius: "0.75rem", padding: "1.5rem", borderLeft: "3px solid #16A34A" }}
-              >
-                <h3 style={{ color: "#fff", fontWeight: 600, marginBottom: "0.5rem" }}>{title}</h3>
-                <p style={{ color: "#9CA3AF", lineHeight: 1.7, fontSize: "0.95rem" }}>{desc}</p>
+      <section className="px-5 pb-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-4 border border-[#FF7A00]/30 text-[#FF7A00]">
+              ทำไมต้องเลือกเรา
+            </div>
+            <h2 className="font-['Kanit'] font-bold text-2xl sm:text-3xl text-white">
+              สิ่งที่ทำให้เราแตกต่าง
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {values.map(({ icon, title, desc }) => (
+              <div key={title} className="rounded-2xl p-6 border border-white/5 hover:border-[#FF7A00]/30 transition-all"
+                style={{ background: "#0B1220" }}>
+                <div className="text-3xl mb-3">{icon}</div>
+                <h3 className="font-['Kanit'] font-bold text-white text-base mb-2">{title}</h3>
+                <p className="text-[#A7B0C0] text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -147,28 +157,24 @@ export default function AboutPage() {
       </section>
 
       {/* บริการ */}
-      <section style={{ background: "#111827" }} className="py-20 px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
-          <h2 style={{ color: "#fff", fontSize: "1.75rem", fontWeight: 700, marginBottom: "2rem", textAlign: "center" }}>
-            บริการของเรา
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {services.map(({ name, href }) => (
-              <Link
-                key={href}
-                href={href}
-                style={{
-                  display: "block",
-                  background: "#1F2937",
-                  borderRadius: "0.5rem",
-                  padding: "1rem 1.25rem",
-                  color: "#D1D5DB",
-                  textDecoration: "none",
-                  fontSize: "0.95rem",
-                  transition: "background 0.15s",
-                }}
-              >
-                → {name}
+      <section className="px-5 pb-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-4 border border-[#FF7A00]/30 text-[#FF7A00]">
+              บริการของเรา
+            </div>
+            <h2 className="font-['Kanit'] font-bold text-2xl sm:text-3xl text-white">
+              ครบทุกงานพิมพ์ในที่เดียว
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {services.map(({ name, href, icon }) => (
+              <Link key={href} href={href}
+                className="flex items-center gap-3 rounded-xl p-4 border border-white/5 hover:border-[#FF7A00]/40 hover:bg-[#FF7A00]/5 transition-all group"
+                style={{ background: "#0B1220" }}>
+                <span className="text-xl">{icon}</span>
+                <span className="text-[#A7B0C0] group-hover:text-white text-sm transition-colors">{name}</span>
+                <span className="ml-auto text-[#FF7A00] opacity-0 group-hover:opacity-100 transition-opacity text-sm">→</span>
               </Link>
             ))}
           </div>
@@ -177,6 +183,6 @@ export default function AboutPage() {
 
       <Footer />
       <FloatingButtons />
-    </main>
+    </div>
   );
 }
