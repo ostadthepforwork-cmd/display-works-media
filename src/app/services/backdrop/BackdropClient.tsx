@@ -16,7 +16,7 @@ import {
 // ─── DATA ───────────────────────────────────────────────────────────────────
 
 const navLinks = [
-  { label: "หน้าแรก", href: "#hero" },
+  { label: "หน้าแรก", href: "/" },
   { label: "บริการของเรา", href: "#services" },
   { label: "ผลงานของเรา", href: "#portfolio" },
   { label: "ขั้นตอนการทำงาน", href: "#process" },

@@ -31,7 +31,7 @@ const services = [
     href: "/services/rollup",
   },
   {
-    image: "/images/services/ฉลากสินค้า.jpg",
+    image: "/images/services/product-label-hero.jpg",
     name: "ฉลากสินค้า",
     desc: "ฉลากสินค้า สีสวยสดชัด ติดทนทาน กันน้ำ 100% เนื้อวัสดุเหนียวพิเศษ ไม่ฉีกขาดง่าย",
     href: "/services/label",
