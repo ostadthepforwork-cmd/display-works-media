@@ -1,39 +1,20 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Menu, X, Facebook, MessageCircle, Phone, Mail, MapPin,
-  Instagram, ArrowRight, Calendar, Clock, ChevronRight, Home, Search,
-} from "lucide-react";
+import { Calendar, Clock, ArrowRight, Search, Home, ChevronRight } from "lucide-react";
+import BlogClientShell from "./BlogClientShell";
 
+// Server Component — ดึง data ฝั่ง server ให้ Google เห็น content
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-type Post = {
-  id: string; title: string; excerpt: string; category: string;
-  date: string; slug: string; cover: string; published: boolean; body: string;
+export const metadata = {
+  title: "บทความและความรู้งานพิมพ์ | Display Works Media",
+  description: "เทคนิค ไอเดีย และความรู้เกี่ยวกับงานพิมพ์และสื่อโฆษณา จากทีมผู้เชี่ยวชาญ Display Works Media",
+  alternates: { canonical: "https://displayworksmedia.com/blog" },
 };
-
-const navLinks = [
-  { label: "หน้าแรก", href: "/" },
-  { label: "บริการของเรา", href: "/#services" },
-  { label: "ผลงานของเรา", href: "/#portfolio" },
-  { label: "ขั้นตอนการทำงาน", href: "/#process" },
-  { label: "บทความ", href: "/blog" },
-  { label: "ติดต่อเรา", href: "/#quote" },
-];
-
-const socials = [
-  { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61581015452518", label: "Facebook", hoverBg: "#1877F2" },
-  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#06C755" },
-  { icon: Instagram, href: "https://instagram.com", label: "Instagram", hoverBg: "#E1306C" },
-];
 
 function fmtDateTH(dateStr: string) {
   if (!dateStr) return "";
@@ -43,81 +24,27 @@ function readTimeTH(body: string) {
   return `${Math.max(1, Math.round((body || "").length / 5 / 200))} นาที`;
 }
 
-function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-  return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#050816]/95 backdrop-blur-md border-b border-white/10" : "bg-transparent"}`}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-[70px]">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 relative"><Image src="/images/logo.png" alt="Display Works Media" fill priority className="object-contain" /></div>
-          <div>
-            <div className="font-bold text-sm tracking-wider leading-none text-white uppercase">DISPLAY WORKS</div>
-            <div className="font-bold text-sm tracking-wider leading-none uppercase" style={{ color: "#FF7A00" }}>MEDIA</div>
-          </div>
-        </Link>
-        <div className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className={`text-sm transition-colors ${link.href === "/blog" ? "text-[#FF7A00] font-semibold" : "text-[#A7B0C0] hover:text-white"}`}>{link.label}</a>
-          ))}
-        </div>
-        <a href="/#quote" className="hidden lg:block bg-[#FF7A00] hover:bg-[#e56a00] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all">ขอใบเสนอราคา</a>
-        <button className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X size={24} /> : <Menu size={24} />}</button>
-      </div>
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-[#0B1220] border-t border-white/10 px-6 py-6 flex flex-col gap-4 overflow-hidden">
-            {navLinks.map((link) => (<a key={link.label} href={link.href} className="text-[#A7B0C0] hover:text-white text-base" onClick={() => setMobileOpen(false)}>{link.label}</a>))}
-            <a href="/#quote" className="mt-2 bg-[#FF7A00] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
-  );
-}
+export default async function BlogPage() {
+  const { data: posts } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("published", true)
+    .order("date", { ascending: false });
 
-export default function BlogPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState("ทั้งหมด");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    async function fetchPosts() {
-      const { data } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("published", true)
-        .order("date", { ascending: false });
-      setPosts(data || []);
-      setLoading(false);
-    }
-    fetchPosts();
-  }, []);
-
-  const categories = ["ทั้งหมด", ...Array.from(new Set(posts.map((p) => p.category).filter(Boolean)))];
-  const filteredPosts = posts.filter((p) => {
-    const matchCat = activeCategory === "ทั้งหมด" || p.category === activeCategory;
-    const matchSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCat && matchSearch;
-  });
-  const featuredPost = filteredPosts[0];
-  const regularPosts = filteredPosts.slice(activeCategory === "ทั้งหมด" && !searchQuery ? 1 : 0);
+  const allPosts = posts || [];
+  const featuredPost = allPosts[0];
+  const regularPosts = allPosts.slice(1);
+  const categories = ["ทั้งหมด", ...Array.from(new Set(allPosts.map((p) => p.category).filter(Boolean)))];
 
   return (
-    <div className="min-h-screen font-['Prompt',sans-serif] text-white bg-[#050816]">
-      <Navbar />
+    <div className="min-h-screen text-white bg-[#050816]" style={{ fontFamily: "'Prompt', sans-serif" }}>
 
       {/* BREADCRUMB */}
       <div className="pt-[70px] bg-[#050816] border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center gap-2 text-sm text-[#A7B0C0]">
-          <Home size={14} /><ChevronRight size={14} /><span className="text-[#FF7A00]">บทความ</span>
+          <Home size={14} aria-hidden="true" />
+          <ChevronRight size={14} aria-hidden="true" />
+          <span className="text-[#FF7A00]">บทความ</span>
         </div>
       </div>
 
@@ -125,165 +52,119 @@ export default function BlogPage() {
       <section className="py-16 lg:py-20 bg-[#050816]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-5 border border-[#FF7A00]/30 text-[#FF7A00]">KNOWLEDGE CENTER</div>
-            <h1 className="font-['Kanit'] font-extrabold text-4xl lg:text-6xl text-white mb-4">บทความและ<span style={{ color: "#FF7A00" }}>ความรู้</span></h1>
-            <p className="text-[#A7B0C0] text-base max-w-xl mx-auto">เทคนิค ไอเดีย และความรู้เกี่ยวกับงานพิมพ์และสื่อโฆษณา จากทีมผู้เชี่ยวชาญ</p>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-5 border border-[#FF7A00]/30 text-[#FF7A00]">
+              KNOWLEDGE CENTER
+            </div>
+            <h1 className="font-kanit font-extrabold text-4xl lg:text-6xl text-white mb-4">
+              บทความและ<span style={{ color: "#FF7A00" }}>ความรู้</span>
+            </h1>
+            <p className="text-[#A7B0C0] text-base max-w-xl mx-auto">
+              เทคนิค ไอเดีย และความรู้เกี่ยวกับงานพิมพ์และสื่อโฆษณา จากทีมผู้เชี่ยวชาญ
+            </p>
           </div>
-          <div className="max-w-lg mx-auto relative">
-            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A7B0C0]" />
-            <input type="text" placeholder="ค้นหาบทความ..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#0B1220] border border-white/10 text-white text-sm placeholder-[#A7B0C0] focus:border-[#FF7A00]/50 focus:outline-none transition-colors" />
-          </div>
+          {/* Search + category filter — client component เล็กๆ */}
+          <BlogClientShell posts={allPosts} categories={categories} />
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <div className="border-b border-white/5 bg-[#050816] sticky top-[70px] z-40">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex gap-1 overflow-x-auto py-3">
-            {categories.map((cat) => (
-              <button key={cat} onClick={() => setActiveCategory(cat)}
-                className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0 ${activeCategory === cat ? "bg-[#FF7A00] text-white" : "text-[#A7B0C0] hover:text-white hover:bg-white/5"}`}>
-                {cat}
-              </button>
-            ))}
+      {/* FEATURED — server-rendered, Google เห็นทันที */}
+      {featuredPost && (
+        <section className="py-12 bg-[#050816]">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <p className="text-xs font-bold tracking-widest text-[#FF7A00] mb-6 uppercase">บทความล่าสุด</p>
+            <Link
+              href={`/blog/${featuredPost.slug}`}
+              className="group grid lg:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-white/5 bg-[#0B1220] hover:border-[#FF7A00]/30 transition-all duration-300"
+            >
+              <div className="relative h-64 lg:h-auto min-h-[300px] bg-[#141A24]">
+                {featuredPost.cover ? (
+                  <Image
+                    src={featuredPost.cover}
+                    alt={featuredPost.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-sm">ไม่มีรูปปก</div>
+                )}
+              </div>
+              <div className="p-8 lg:p-12 flex flex-col justify-center">
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#FF7A00]/10 text-[#FF7A00] border border-[#FF7A00]/20 mb-4 w-fit">
+                  {featuredPost.category}
+                </span>
+                <h2 className="font-kanit font-bold text-2xl lg:text-3xl text-white mb-4 leading-snug group-hover:text-[#FF7A00] transition-colors">
+                  {featuredPost.title}
+                </h2>
+                <p className="text-[#A7B0C0] text-sm leading-relaxed mb-6">{featuredPost.excerpt}</p>
+                <div className="flex items-center gap-4 text-xs text-[#A7B0C0] mb-6">
+                  <span className="flex items-center gap-1.5"><Calendar size={13} aria-hidden="true" /> {fmtDateTH(featuredPost.date)}</span>
+                  <span className="flex items-center gap-1.5"><Clock size={13} aria-hidden="true" /> อ่าน {readTimeTH(featuredPost.body)}</span>
+                </div>
+                <span className="inline-flex items-center gap-2 text-[#FF7A00] text-sm font-semibold">
+                  อ่านบทความ <ArrowRight size={16} aria-hidden="true" />
+                </span>
+              </div>
+            </Link>
           </div>
-        </div>
-      </div>
-
-      {/* LOADING */}
-      {loading && (
-        <div className="text-center py-32">
-          <div className="w-8 h-8 border-2 border-[#FF7A00] border-t-transparent rounded-full animate-spin mx-auto" />
-        </div>
+        </section>
       )}
 
-      {/* ไม่มีบทความ */}
-      {!loading && posts.length === 0 && (
+      {/* GRID — server-rendered */}
+      {regularPosts.length > 0 && (
+        <section className="py-12 bg-[#050816]">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {regularPosts.map((post) => (
+                <article key={post.id} className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300 reveal-item">
+                  <Link href={`/blog/${post.slug}`} className="block">
+                    <div className="relative h-48 overflow-hidden bg-[#141A24]">
+                      {post.cover ? (
+                        <Image
+                          src={post.cover}
+                          alt={post.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>
+                      )}
+                      {post.category && (
+                        <div className="absolute top-3 left-3">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#050816]/80 backdrop-blur-sm text-[#FF7A00] border border-[#FF7A00]/20">
+                            {post.category}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 text-xs text-[#A7B0C0] mb-3">
+                        <span className="flex items-center gap-1"><Calendar size={12} aria-hidden="true" /> {fmtDateTH(post.date)}</span>
+                        <span className="flex items-center gap-1"><Clock size={12} aria-hidden="true" /> {readTimeTH(post.body)}</span>
+                      </div>
+                      <h3 className="font-kanit font-bold text-base text-white mb-2 leading-snug group-hover:text-[#FF7A00] transition-colors line-clamp-2">
+                        {post.title}
+                      </h3>
+                      <p className="text-[#A7B0C0] text-sm leading-relaxed line-clamp-2 mb-4">{post.excerpt}</p>
+                      <span className="inline-flex items-center gap-1.5 text-[#FF7A00] text-xs font-semibold">
+                        อ่านต่อ <ArrowRight size={14} aria-hidden="true" />
+                      </span>
+                    </div>
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {allPosts.length === 0 && (
         <div className="text-center py-32 text-[#A7B0C0]">
           <p className="text-2xl mb-2">ยังไม่มีบทความ</p>
           <p className="text-sm">เพิ่มบทความได้ที่หน้า Admin → CMS</p>
         </div>
       )}
-
-      {/* FEATURED */}
-      {!loading && featuredPost && activeCategory === "ทั้งหมด" && !searchQuery && (
-        <section className="py-12 bg-[#050816]">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <p className="text-xs font-bold tracking-widest text-[#FF7A00] mb-6 uppercase">บทความล่าสุด</p>
-            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              className="group grid lg:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-white/5 bg-[#0B1220] hover:border-[#FF7A00]/30 transition-all duration-300">
-              <div className="relative h-64 lg:h-auto min-h-[300px] bg-[#141A24]">
-                {featuredPost.cover
-                  ? <Image src={featuredPost.cover} alt={featuredPost.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                  : <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-sm">ไม่มีรูปปก</div>}
-              </div>
-              <div className="p-8 lg:p-12 flex flex-col justify-center">
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#FF7A00]/10 text-[#FF7A00] border border-[#FF7A00]/20 mb-4 w-fit">{featuredPost.category}</span>
-                <h2 className="font-['Kanit'] font-bold text-2xl lg:text-3xl text-white mb-4 leading-snug group-hover:text-[#FF7A00] transition-colors">{featuredPost.title}</h2>
-                <p className="text-[#A7B0C0] text-sm leading-relaxed mb-6">{featuredPost.excerpt}</p>
-                <div className="flex items-center gap-4 text-xs text-[#A7B0C0] mb-6">
-                  <span className="flex items-center gap-1.5"><Calendar size={13} /> {fmtDateTH(featuredPost.date)}</span>
-                  <span className="flex items-center gap-1.5"><Clock size={13} /> อ่าน {readTimeTH(featuredPost.body)}</span>
-                </div>
-                <Link href={`/blog/${featuredPost.slug}`} className="inline-flex items-center gap-2 text-[#FF7A00] text-sm font-semibold hover:gap-3 transition-all">อ่านบทความ <ArrowRight size={16} /></Link>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-      )}
-
-      {/* GRID */}
-      {!loading && (
-        <section className="py-12 bg-[#050816]">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            {filteredPosts.length === 0 && posts.length > 0
-              ? <div className="text-center py-20 text-[#A7B0C0]"><p>ไม่พบบทความที่ค้นหา</p></div>
-              : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {regularPosts.map((post, i) => (
-                    <motion.article key={post.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.08 }}
-                      className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
-                      <div className="relative h-48 overflow-hidden bg-[#141A24]">
-                        {post.cover
-                          ? <Image src={post.cover} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                          : <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>}
-                        {post.category && (
-                          <div className="absolute top-3 left-3">
-                            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#050816]/80 backdrop-blur-sm text-[#FF7A00] border border-[#FF7A00]/20">{post.category}</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-6">
-                        <div className="flex items-center gap-3 text-xs text-[#A7B0C0] mb-3">
-                          <span className="flex items-center gap-1"><Calendar size={12} /> {fmtDateTH(post.date)}</span>
-                          <span className="flex items-center gap-1"><Clock size={12} /> {readTimeTH(post.body)}</span>
-                        </div>
-                        <h3 className="font-['Kanit'] font-bold text-base text-white mb-2 leading-snug group-hover:text-[#FF7A00] transition-colors line-clamp-2">{post.title}</h3>
-                        <p className="text-[#A7B0C0] text-sm leading-relaxed line-clamp-2 mb-4">{post.excerpt}</p>
-                        <Link href={`/blog/${post.slug}`} className="inline-flex items-center gap-1.5 text-[#FF7A00] text-xs font-semibold hover:gap-2.5 transition-all">อ่านต่อ <ArrowRight size={14} /></Link>
-                      </div>
-                    </motion.article>
-                  ))}
-                </div>
-              )}
-          </div>
-        </section>
-      )}
-
-      {/* FOOTER */}
-      <footer className="bg-[#080B13] border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-14 pb-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-            <div className="lg:col-span-1">
-              <Link href="/" className="flex items-center gap-3 mb-5 w-fit">
-                <div className="relative w-10 h-10 flex-shrink-0"><Image src="/images/logo.png" alt="Display Works Media" fill className="object-contain" /></div>
-                <div>
-                  <div className="font-bold text-sm tracking-wider text-white leading-none">DISPLAY WORKS</div>
-                  <div className="font-bold text-sm tracking-wider leading-none" style={{ color: "#FF7A00" }}>MEDIA</div>
-                </div>
-              </Link>
-              <p className="text-sm leading-relaxed mb-6 text-[#A7B0C0]">บริการสั่งป้ายและงานพิมพ์ออนไลน์ครบวงจร ง่าย เร็ว มืออาชีพ ส่งทั่วประเทศ</p>
-              <div className="flex gap-2.5">
-                {socials.map(({ icon: Icon, href, label, hoverBg }) => (
-                  <a key={label} href={href} target="_blank" className="w-10 h-10 rounded-xl bg-[#141A24] border border-white/5 flex items-center justify-center text-[#A7B0C0] transition-all duration-200"
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = hoverBg; (e.currentTarget as HTMLAnchorElement).style.color = "#fff"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "#141A24"; (e.currentTarget as HTMLAnchorElement).style.color = "#A7B0C0"; }}>
-                    <Icon size={18} />
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">เมนู</h4>
-              <div className="flex flex-col gap-3">
-                {navLinks.map((link) => (<a key={link.href} href={link.href} className="text-sm text-[#A7B0C0] hover:text-white transition-colors">{link.label}</a>))}
-              </div>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">บริการของเรา</h4>
-              <div className="flex flex-col gap-3">
-                {["ป้ายไวนิล","Sticker Indoor / Outdoor","PP Board / Standee","Roll Up / X-stand","Backdrop","ฉลากสินค้า"].map((s) => (
-                  <a key={s} href="/#services" className="text-sm text-[#A7B0C0] hover:text-white transition-colors">{s}</a>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">ติดต่อเรา</h4>
-              <div className="flex flex-col gap-4">
-                <a href="https://lin.ee/O0nPl03" target="_blank" className="flex items-start gap-3 text-sm text-[#A7B0C0] hover:text-white transition-colors"><MessageCircle size={16} className="text-[#06C755] flex-shrink-0 mt-0.5" /> LINE @displayworks</a>
-                <a href="tel:0659161539" className="flex items-start gap-3 text-sm text-[#A7B0C0] hover:text-white transition-colors"><Phone size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> 065-916-1539</a>
-                <a href="mailto:info.displayworksmedia@gmail.com" className="flex items-start gap-3 text-sm text-[#A7B0C0] hover:text-white transition-colors"><Mail size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> info.displayworksmedia@gmail.com</a>
-                <div className="flex items-start gap-3 text-sm text-[#A7B0C0]"><MapPin size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> ให้บริการทั่วประเทศไทย</div>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col md:flex-row justify-between items-center gap-3 pt-8 border-t border-white/5 text-xs text-gray-500">
-            <span>© {new Date().getFullYear()} Display Works Media. All Rights Reserved.</span>
-            <span>ออกแบบและพัฒนาโดยทีมงาน Display Works Media</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   Menu, X, Facebook, MessageCircle, Phone, Mail, MapPin,
   Instagram, ArrowRight, Calendar, Clock, ChevronRight,
@@ -75,7 +75,7 @@ function Navbar() {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#050816]/95 backdrop-blur-md border-b border-white/10" : "bg-transparent"}`}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-[70px]">
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 relative"><Image src="/images/logo.png" alt="Display Works Media" fill priority className="object-contain" /></div>
+          <div className="w-10 h-10 relative flex-shrink-0"><Image src="/images/logo.png" alt="Display Works Media" width={40} height={40} priority className="object-contain" /></div>
           <div>
             <div className="font-bold text-sm tracking-wider leading-none text-white uppercase">DISPLAY WORKS</div>
             <div className="font-bold text-sm tracking-wider leading-none uppercase" style={{ color: "#FF7A00" }}>MEDIA</div>
@@ -89,15 +89,12 @@ function Navbar() {
         <a href="/#quote" className="hidden lg:block bg-[#FF7A00] hover:bg-[#e56a00] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all">ขอใบเสนอราคา</a>
         <button className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X size={24} /> : <Menu size={24} />}</button>
       </div>
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-[#0B1220] border-t border-white/10 px-6 py-6 flex flex-col gap-4 overflow-hidden">
+      {mobileOpen && (
+          <div className="lg:hidden bg-[#0B1220] border-t border-white/10 px-6 py-6 flex flex-col gap-4">
             {navLinks.map((link) => (<a key={link.label} href={link.href} className="text-[#A7B0C0] hover:text-white text-base" onClick={() => setMobileOpen(false)}>{link.label}</a>))}
             <a href="/#quote" className="mt-2 bg-[#FF7A00] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
     </nav>
   );
 }
@@ -168,13 +165,13 @@ export default function BlogPostPage() {
 
       {post.cover && (
         <div className="relative w-full h-64 md:h-96">
-          <Image src={post.cover} alt={post.title} fill className="object-cover" priority />
+          <Image src={post.cover} alt={post.title} fill sizes="100vw" className="object-cover" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050816] via-[#050816]/40 to-transparent" />
         </div>
       )}
 
       <article className="max-w-4xl mx-auto px-6 lg:px-8 py-12">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <div className="reveal-section">
           {post.category && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FF7A00]/10 text-[#FF7A00] border border-[#FF7A00]/20 mb-5">
               <Tag size={11} /> {post.category}
@@ -188,10 +185,9 @@ export default function BlogPostPage() {
           {post.excerpt && (
             <p className="text-lg text-[#A7B0C0] leading-relaxed mb-10 border-l-4 border-[#FF7A00] pl-5 italic">{post.excerpt}</p>
           )}
-        </motion.div>
+        </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-          className="prose-blog" dangerouslySetInnerHTML={{ __html: bodyToHtml(post.body) }} />
+        <div className="prose-blog" dangerouslySetInnerHTML={{ __html: bodyToHtml(post.body) }} />
 
         <div className="mt-16 pt-8 border-t border-white/10">
           <Link href="/blog" className="inline-flex items-center gap-2 text-[#FF7A00] font-semibold text-sm hover:gap-3 transition-all">
@@ -209,7 +205,7 @@ export default function BlogPostPage() {
                 <Link key={r.id} href={`/blog/${r.slug}`}
                   className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
                   <div className="relative h-40 bg-[#141A24]">
-                    {r.cover ? <Image src={r.cover} alt={r.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {r.cover ? <Image src={r.cover} alt={r.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       : <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>}
                   </div>
                   <div className="p-4">
@@ -229,7 +225,7 @@ export default function BlogPostPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
             <div className="lg:col-span-1">
               <Link href="/" className="flex items-center gap-3 mb-5 w-fit">
-                <div className="relative w-10 h-10 flex-shrink-0"><Image src="/images/logo.png" alt="Display Works Media" fill className="object-contain" /></div>
+                <div className="relative w-10 h-10 flex-shrink-0"><Image src="/images/logo.png" alt="Display Works Media" width={40} height={40} className="object-contain" /></div>
                 <div>
                   <div className="font-bold text-sm tracking-wider text-white leading-none">DISPLAY WORKS</div>
                   <div className="font-bold text-sm tracking-wider leading-none" style={{ color: "#FF7A00" }}>MEDIA</div>
