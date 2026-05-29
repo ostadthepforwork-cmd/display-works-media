@@ -196,7 +196,7 @@ const websiteSchema = {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function SchemaOrg({ extra }: SchemaOrgProps) {
-  const schemas = [localBusinessSchema, faqSchema, websiteSchema];
+  const schemas: Record<string, unknown>[] = [localBusinessSchema, faqSchema, websiteSchema];
   if (extra) schemas.push(extra);
 
   return (
