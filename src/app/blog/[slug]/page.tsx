@@ -1,14 +1,58 @@
 import type { Metadata } from "next";
+import { createClient } from "@supabase/supabase-js";
 import BlogPostClient from "./BlogPostClient";
 
-// Next.js 15 — params ต้องเป็น Promise
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
+// ดึง metadata จาก Supabase จริง — Google จะเห็น title/description ตรงกับเนื้อหา
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { data: post } = await supabase
+      .from("posts")
+      .select("title, excerpt, cover, category, date")
+      .eq("slug", slug)
+      .eq("published", true)
+      .single();
+
+    if (post) {
+      return {
+        title: `${post.title} | Display Works Media`,
+        description: post.excerpt || `อ่านบทความเกี่ยวกับ ${post.title} จาก Display Works Media`,
+        alternates: {
+          canonical: `https://displayworksmedia.com/blog/${slug}`,
+        },
+        openGraph: {
+          title: `${post.title} | Display Works Media`,
+          description: post.excerpt || "",
+          url: `https://displayworksmedia.com/blog/${slug}`,
+          type: "article",
+          ...(post.cover && {
+            images: [{ url: post.cover, width: 1200, height: 630, alt: post.title }],
+          }),
+          publishedTime: post.date ? new Date(post.date).toISOString() : undefined,
+          tags: post.category ? [post.category] : undefined,
+        },
+        twitter: {
+          card: "summary_large_image",
+          title: `${post.title} | Display Works Media`,
+          description: post.excerpt || "",
+          ...(post.cover && { images: [post.cover] }),
+        },
+      };
+    }
+  } catch {
+    // fallback ถ้า Supabase ล้มเหลว
+  }
+
+  // Fallback — ใช้ slug แปลงเป็น title
   const titleFromSlug = slug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());

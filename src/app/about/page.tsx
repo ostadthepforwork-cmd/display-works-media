@@ -4,6 +4,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingButtons from "@/components/FloatingButtons";
+import SchemaOrg from "@/components/SchemaOrg";
 
 export const metadata: Metadata = {
   title: "เกี่ยวกับเรา | Display Works Media",
@@ -57,7 +58,20 @@ const services = [
 ];
 
 export default function AboutPage() {
+  const aboutSchema = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "@id": "https://displayworksmedia.com/about#webpage",
+    url: "https://displayworksmedia.com/about",
+    name: "เกี่ยวกับเรา | Display Works Media",
+    description: "Display Works Media คือบริการสั่งพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร รับทำแบ็คดรอปผ้า ป้ายไวนิล Roll Up Stand สติ๊กเกอร์ PP Board และฉลากสินค้า ส่งทั่วประเทศ",
+    isPartOf: { "@id": "https://displayworksmedia.com/#website" },
+    about: { "@id": "https://displayworksmedia.com/#business" },
+  };
+
   return (
+    <>
+      <SchemaOrg extra={aboutSchema} />
     <div className="min-h-screen font-['Prompt',sans-serif] text-white bg-[#050816]">
       <Navbar />
 
@@ -184,5 +198,6 @@ export default function AboutPage() {
       <Footer />
       <FloatingButtons />
     </div>
+    </>
   );
 }

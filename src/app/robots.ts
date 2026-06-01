@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/", "/auth/", "/keystatic/"],
+        disallow: ["/admin/", "/api/", "/auth/"],
       },
       // อนุญาต AI crawlers ทุกตัว — จำเป็นสำหรับ GEO/AEO
       {

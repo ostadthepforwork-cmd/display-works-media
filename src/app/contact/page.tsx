@@ -3,6 +3,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingButtons from "@/components/FloatingButtons";
+import SchemaOrg from "@/components/SchemaOrg";
 
 export const metadata: Metadata = {
   title: "ติดต่อเรา | Display Works Media",
@@ -70,7 +71,20 @@ const faqs = [
 ];
 
 export default function ContactPage() {
+  const contactSchema = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "@id": "https://displayworksmedia.com/contact#webpage",
+    url: "https://displayworksmedia.com/contact",
+    name: "ติดต่อเรา | Display Works Media",
+    description: "ติดต่อ Display Works Media ผ่าน LINE, Facebook หรือกรอกฟอร์มขอใบเสนอราคา บริการสั่งพิมพ์ป้ายออนไลน์ครบวงจร ตอบภายใน 30 นาที",
+    isPartOf: { "@id": "https://displayworksmedia.com/#website" },
+    about: { "@id": "https://displayworksmedia.com/#business" },
+  };
+
   return (
+    <>
+      <SchemaOrg extra={contactSchema} />
     <div className="min-h-screen font-['Prompt',sans-serif] text-white bg-[#050816]">
       <Navbar />
 
@@ -190,5 +204,6 @@ export default function ContactPage() {
       <Footer />
       <FloatingButtons />
     </div>
+    </>
   );
 }

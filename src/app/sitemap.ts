@@ -1,11 +1,37 @@
 import type { MetadataRoute } from "next";
+import { createClient } from "@supabase/supabase-js";
 
 const BASE_URL = "https://displayworksmedia.com";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  return [
+  // ดึง blog slugs จาก Supabase เพื่อให้ Google index บทความทุกชิ้น
+  let blogEntries: MetadataRoute.Sitemap = [];
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { data: posts } = await supabase
+      .from("posts")
+      .select("slug, date")
+      .eq("published", true)
+      .order("date", { ascending: false });
+
+    if (posts) {
+      blogEntries = posts.map((post) => ({
+        url: `${BASE_URL}/blog/${post.slug}`,
+        lastModified: post.date ? new Date(post.date) : now,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      }));
+    }
+  } catch {
+    // ถ้า Supabase ล้มเหลว ไม่ให้ build พัง — ใช้ static entries อย่างเดียว
+  }
+
+  const staticEntries: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
       lastModified: now,
@@ -67,4 +93,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
   ];
+
+  return [...staticEntries, ...blogEntries];
 }

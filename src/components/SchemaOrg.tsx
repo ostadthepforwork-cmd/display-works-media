@@ -102,13 +102,8 @@ const localBusinessSchema = {
       },
     ],
   },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    reviewCount: "150",
-    bestRating: "5",
-    worstRating: "1",
-  },
+  // aggregateRating: ลบออก — ห้าม hardcode ตัวเลขปลอม Google อาจ penalize
+  // เพิ่มกลับได้เมื่อดึงข้อมูล review จริงจาก Supabase มาแสดงในหน้าเว็บ
 };
 
 // ─── FAQPage Schema (AEO — ให้ AI ตอบแทนได้) ─────────────────────────────────
