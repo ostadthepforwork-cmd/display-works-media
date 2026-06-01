@@ -29,7 +29,7 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
         const matchCat = activeCategory === "ทั้งหมด" || p.category === activeCategory;
         const matchSearch =
           p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+          (p.excerpt || "").toLowerCase().includes(searchQuery.toLowerCase());
         return matchCat && matchSearch;
       })
     : [];

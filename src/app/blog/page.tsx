@@ -4,12 +4,6 @@ import { createClient } from "@supabase/supabase-js";
 import { Calendar, Clock, ArrowRight, Search, Home, ChevronRight } from "lucide-react";
 import BlogClientShell from "./BlogClientShell";
 
-// Server Component — ดึง data ฝั่ง server ให้ Google เห็น content
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export const metadata = {
   title: "บทความและความรู้งานพิมพ์ | Display Works Media",
   description: "เทคนิค ไอเดีย และความรู้เกี่ยวกับงานพิมพ์และสื่อโฆษณา จากทีมผู้เชี่ยวชาญ Display Works Media",
@@ -25,6 +19,12 @@ function readTimeTH(body: string) {
 }
 
 export default async function BlogPage() {
+  // สร้าง supabase client ภายใน function — ป้องกัน connection leak ใน serverless
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
   const { data: posts } = await supabase
     .from("posts")
     .select("*")
