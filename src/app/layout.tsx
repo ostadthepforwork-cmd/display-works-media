@@ -8,7 +8,7 @@ import SchemaOrg from "@/components/SchemaOrg";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // maximumScale ลบออก — ให้ผู้ใช้ zoom ได้ (Accessibility + Best Practices)
 };
 
 export const metadata: Metadata = {
@@ -47,30 +47,38 @@ export default function RootLayout({
   return (
     <html lang="th">
       <head>
-        {/* Preload critical font weight to unblock FCP */}
+        {/* preconnect ก่อน แล้วค่อย preload — ลำดับนี้สำคัญ */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/*
+          preload เฉพาะ Kanit 400 (weight ที่ใช้จริงบน Hero)
+          ใช้ v17 ซึ่งเป็น version ปัจจุบัน — v15 ที่เคยใช้ให้ 404 error
+        */}
         <link
           rel="preload"
           as="font"
-          href="https://fonts.gstatic.com/s/kanit/v15/nKKZ-Co32cUR0fj.woff2"
+          href="https://fonts.gstatic.com/s/kanit/v17/nKKZ-Co32cUR0fj.woff2"
           type="font/woff2"
           crossOrigin="anonymous"
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Load only the weights actually used — saves ~120KB vs 5 weights each */}
+        {/* โหลดแค่ 2 weights ต่อ family — ประหยัด ~120KB */}
         <link
           href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Prompt:wght@400;600&display=swap"
           rel="stylesheet"
         />
         <GoogleTagManager />
-        <FacebookPixel />
         <SchemaOrg />
       </head>
       <body>
         <GoogleTagManagerNoScript />
         {children}
+        {/*
+          FacebookPixel ย้ายมาไว้ใน body — strategy="lazyOnload" จะโหลด
+          หลัง page load เสร็จแล้ว ไม่บล็อก FCP/LCP
+        */}
+        <FacebookPixel />
         <PDPAConsent />
-        {/* Scroll-reveal: lightweight IntersectionObserver — replaces framer-motion whileInView */}
+        {/* Scroll-reveal: lightweight IntersectionObserver */}
         <script
           dangerouslySetInnerHTML={{
             __html: `

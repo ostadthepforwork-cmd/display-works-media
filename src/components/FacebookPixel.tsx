@@ -5,7 +5,12 @@ import Script from 'next/script'
 export default function FacebookPixel() {
   return (
     <>
-      <Script id="facebook-pixel" strategy="afterInteractive">
+      {/*
+        lazyOnload = โหลดหลังจาก page load เสร็จแล้ว
+        ไม่บล็อก FCP / LCP / TBT เลย
+        เดิมใช้ afterInteractive ซึ่งยังบล็อก main thread ระหว่าง hydration
+      */}
+      <Script id="facebook-pixel" strategy="lazyOnload">
         {`
           !function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
