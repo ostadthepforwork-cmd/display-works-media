@@ -61,9 +61,12 @@ export default function RootLayout({
           type="font/woff2"
           crossOrigin="anonymous"
         />
-        {/* โหลดแค่ 2 weights ต่อ family — ประหยัด ~120KB */}
+        {/*
+          Prompt:400 เท่านั้น — ตัด weight 600 ออกเพราะ globals.css ไม่ได้ใช้
+          ประหยัดได้อีก ~40KB และลด dependency chain ของ LCP
+        */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Prompt:wght@400;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Prompt:wght@400&display=swap"
           rel="stylesheet"
         />
         <GoogleTagManager />
