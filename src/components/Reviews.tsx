@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+// framer-motion ลบออก — ใช้ CSS reveal แทน ป้องกัน hydration mismatch
 
 // AggregateRating + Review Schema — ให้ Google และ AI รู้ว่ามีรีวิวจริง
 const reviewSchemaJson = {
@@ -124,13 +124,7 @@ export default function Reviews() {
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14"
-        >
+        <div className="reveal-section flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
           <div>
             <div className="section-label">รีวิวจากลูกค้า</div>
             <h2 className="section-title">
@@ -172,18 +166,14 @@ export default function Reviews() {
               <div className="text-xs">งานไม่ตรงแบบ</div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Reviews grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {reviews.map((r, i) => (
-            <motion.div
+            <div
               key={r.name}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="relative p-7 rounded-2xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
+              className="reveal-item relative p-7 rounded-2xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
               style={{
                 background: "#141A24",
                 borderColor: "rgba(255,255,255,0.08)",
@@ -252,18 +242,12 @@ export default function Reviews() {
                   </span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Bottom CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-center mt-12"
-        >
+        <div className="reveal-section text-center mt-12">
           <p className="text-sm mb-4" style={{ color: "#A8B0C0" }}>
             เข้าร่วมกับลูกค้ากว่า 120 รายที่ไว้วางใจเรา
           </p>
@@ -277,7 +261,7 @@ export default function Reviews() {
           >
             ขอใบเสนอราคา
           </a>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

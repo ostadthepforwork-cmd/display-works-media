@@ -4,11 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 interface BlogPost {
   id: string
   title: string
@@ -18,27 +13,64 @@ interface BlogPost {
   slug: string
   cover?: string
   published?: boolean
+  body: string
 }
 
 export default function BlogSection() {
   const [posts, setPosts] = useState<BlogPost[]>([])
-  const [loaded, setLoaded] = useState(false)
+  // เริ่มต้นเป็น true เพื่อให้ server และ client render เหมือนกัน
+  // ป้องกัน hydration mismatch ที่ทำให้ต้อง refresh 2 รอบ
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // สร้าง supabase client ภายใน function — ป้องกัน connection leak
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
     async function fetchPosts() {
       const { data } = await supabase
         .from('posts')
-        .select('id, title, excerpt, category, date, slug, cover, published')
+        .select('id, title, excerpt, category, date, slug, cover, published, body')
         .eq('published', true)
         .order('date', { ascending: false })
         .limit(3)
       setPosts(data || [])
-      setLoaded(true)
+      setMounted(true)
     }
     fetchPosts()
   }, [])
 
-  if (!loaded || posts.length === 0) return null
+  // render skeleton ที่มี DOM เหมือนกันทั้ง server และ client
+  // แทนการ return null ซึ่งทำให้ hydration mismatch
+  if (!mounted) {
+    return (
+      <section id="blog" style={{ background: '#0d0d0d', padding: '80px 0' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '40px' }}>
+            <div>
+              <p style={{ fontSize: '12px', color: '#f97316', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 500, margin: '0 0 8px', fontFamily: "'Kanit', sans-serif" }}>
+                ความรู้และเทคนิค
+              </p>
+              <h2 style={{ fontSize: '34px', fontWeight: 700, color: '#ffffff', margin: '0', lineHeight: 1.2, fontFamily: "'Kanit', sans-serif" }}>
+                บทความ<span style={{ color: '#f97316' }}>ล่าสุด</span>
+              </h2>
+              <div style={{ width: '44px', height: '3px', background: '#f97316', borderRadius: '99px', margin: '12px 0 10px' }} />
+            </div>
+          </div>
+          {/* Skeleton cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ background: '#181818', border: '1px solid #2a2a2a', borderRadius: '14px', overflow: 'hidden', height: '280px', opacity: 0.4 }} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (posts.length === 0) return null
 
   return (
     <section id="blog" style={{ background: '#0d0d0d', padding: '80px 0' }}>
@@ -96,7 +128,7 @@ export default function BlogSection() {
                     {post.title}
                   </h3>
                   <p style={{ fontSize: '13px', color: '#666', lineHeight: 1.75, margin: '0 0 18px', fontFamily: "'Kanit', sans-serif" }}>
-                    {post.excerpt}
+                    {(post.excerpt || '').substring(0, 100)}{post.excerpt?.length > 100 ? '...' : ''}
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #222', paddingTop: '14px' }}>
                     <span style={{ fontSize: '12px', color: '#555', fontFamily: "'Kanit', sans-serif" }}>📅 {post.date}</span>
