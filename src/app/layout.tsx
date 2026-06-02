@@ -4,6 +4,7 @@ import GoogleTagManager, { GoogleTagManagerNoScript } from "@/components/GoogleT
 import FacebookPixel from "@/components/FacebookPixel";
 import PDPAConsent from "@/components/PDPAConsent";
 import SchemaOrg from "@/components/SchemaOrg";
+import ScrollReveal from "@/components/ScrollReveal";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -81,25 +82,8 @@ export default function RootLayout({
         */}
         <FacebookPixel />
         <PDPAConsent />
-        {/* Scroll-reveal: lightweight IntersectionObserver */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-(function(){
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); }
-    });
-  },{threshold:0.12});
-  function observe(){
-    document.querySelectorAll('.reveal-section,.reveal-item').forEach(function(el){io.observe(el);});
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',observe);
-  else observe();
-})();
-            `,
-          }}
-        />
+        {/* ScrollReveal: re-observe ทุกครั้งที่ navigate — แก้บัคหน้าดำเมื่อกลับมาหน้าแรก */}
+        <ScrollReveal />
       </body>
     </html>
   );
