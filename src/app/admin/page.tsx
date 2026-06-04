@@ -948,8 +948,15 @@ export default function AdminPage() {
           }
 
           /* Document table → card list on mobile */
-          .doc-table { display: none !important; }
-          .doc-cards { display: flex !important; }
+          .doc-list-panel {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          .doc-table {
+            display: table !important;
+            min-width: 920px !important;
+          }
+          .doc-cards { display: none !important; }
 
           /* Dashboard grid 1 col */
           .dash-grid { grid-template-columns: 1fr !important; }
@@ -1906,6 +1913,24 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
 
   // ── Email Modal ────────────────────────────────────────────
+  const copyDocumentSummary = async (doc) => {
+    const { netPay } = calcDocTotal(doc);
+    const text = [
+      `${DOC_TYPES[doc.type]?.label || "เอกสาร"} ${doc.docNo}`,
+      `ลูกค้า: ${doc.customerName || "-"}`,
+      `วันที่: ${fmtDate(doc.date)}`,
+      `ครบกำหนด: ${fmtDate(doc.dueDate)}`,
+      `ยอดสุทธิ: ฿${fmtMoney(netPay)}`,
+      `สถานะ: ${STATUS_LABELS[doc.status] || doc.status}`,
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast("คัดลอกข้อมูลเอกสารแล้ว");
+    } catch {
+      showToast("ไม่สามารถคัดลอกได้", "error");
+    }
+  };
+
   const [emailModal, setEmailModal] = useState<any>(null);
   // ── Split Modal ─────────────────────────────────────────────
   const [splitModal, setSplitModal] = useState<any>(null);
@@ -1988,7 +2013,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           <Btn onClick={newDoc} color={dt.color}>+ สร้างเอกสาร</Btn>
         </div>
       </div>
-      <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "visible" }}>
+      <div className="doc-list-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "visible" }}>
         {filtered.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center", color: "#555" }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>📄</div>
@@ -2069,11 +2094,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             {/* พิมพ์ */}
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             {/* แชร์ลิงค์ */}
-                            <MenuBtn icon="🔗" label="แชร์ลิงค์" onClick={() => {
-                              const url = `${window.location.origin}/doc/${doc.id}`;
-                              navigator.clipboard?.writeText(url).then(() => showToast("คัดลอกลิงค์แล้ว")).catch(() => showToast("ไม่สามารถคัดลอกได้", "error"));
-                              closeAll();
-                            }} />
+                            <MenuBtn icon="📋" label="คัดลอกข้อมูลเอกสาร" onClick={() => { copyDocumentSummary(doc); closeAll(); }} />
                             {/* ดาวน์โหลด */}
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
                             {/* อีเมล */}
@@ -2175,7 +2196,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
-                            <MenuBtn icon="🔗" label="แชร์ลิงค์" onClick={() => { const url = `${window.location.origin}/doc/${doc.id}`; navigator.clipboard?.writeText(url).then(() => showToast("คัดลอกลิงค์แล้ว")).catch(() => showToast("ไม่สามารถคัดลอกได้", "error")); closeAll(); }} />
+                            <MenuBtn icon="📋" label="คัดลอกข้อมูลเอกสาร" onClick={() => { copyDocumentSummary(doc); closeAll(); }} />
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` }); closeAll(); }} />
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { const cnt = allDocuments.filter(d => d.type === doc.type).length + 1; const yr = new Date().getFullYear() + 543; const pfx = DOC_TYPES[doc.type]?.prefix || ""; setEditing({ ...doc, id: "", docNo: `${pfx}${yr}-${String(cnt).padStart(4,"0")}`, date: today(), status: "draft" }); closeAll(); }} />
