@@ -752,13 +752,17 @@ export default function AdminPage() {
         <>
           <div className="show-mobile" onClick={() => setShowMobileDrawer(false)}
             style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 300 }} />
-          <div className="show-mobile" style={{
+          <div className="show-mobile mobile-drawer" style={{
             position: "fixed", bottom: "calc(62px + env(safe-area-inset-bottom, 0px))", left: 0, right: 0, zIndex: 400,
             background: "rgba(20,26,36,0.98)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
             borderTop: "2px solid #FF6B00",
             borderRadius: "20px 20px 0 0", padding: "16px 0 12px",
             animation: "slideUp 0.25s cubic-bezier(0.32,0.72,0,1)",
             boxShadow: "0 -16px 48px rgba(0,0,0,0.6)",
+            flexDirection: "column" as const,
+            maxHeight: "min(72dvh, 560px)",
+            overflowY: "auto",
+            overscrollBehavior: "contain" as const,
           }}>
             <div style={{ width: 36, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99, margin: "0 auto 12px" }} />
 
@@ -901,6 +905,21 @@ export default function AdminPage() {
         @media (max-width: 768px) {
           .hide-mobile { display: none !important; }
           .show-mobile { display: flex !important; }
+          .mobile-drawer {
+            flex-direction: column !important;
+          }
+          .mobile-drawer > button {
+            flex-shrink: 0 !important;
+          }
+          .mobile-drawer > button > span:nth-child(2) {
+            min-width: 0 !important;
+            line-height: 1.35 !important;
+            overflow-wrap: anywhere;
+          }
+          .mobile-drawer > button > span:last-child {
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+          }
           table:not(.doc-table) {
             display: block !important;
             width: 100% !important;
