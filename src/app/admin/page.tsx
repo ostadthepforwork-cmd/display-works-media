@@ -18,6 +18,29 @@ function saveLocal(key: string, val: unknown) {
   try { localStorage.setItem("cms_" + key, JSON.stringify(val)); } catch {}
 }
 
+async function loadCmsSetting(key: string, fallback: unknown) {
+  try {
+    const { data, error } = await supabase
+      .from("cms_settings")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
+    if (error) throw error;
+    return data?.value ?? fallback;
+  } catch (error) {
+    console.warn("CMS setting load fallback:", key, error);
+    return fallback;
+  }
+}
+
+async function saveCmsSetting(key: string, value: unknown) {
+  saveLocal(key, value);
+  const { error } = await supabase
+    .from("cms_settings")
+    .upsert({ key, value, updated_at: new Date().toISOString() });
+  if (error) throw error;
+}
+
 
 
 // ─── ERP HELPERS + DATA ───────────────────────────────────────────────────────
@@ -3323,6 +3346,13 @@ function HeroManager({ showToast }: any) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const set = k => e => setHero(p => ({ ...p, [k]: e.target.value }));
+  useEffect(() => {
+    let alive = true;
+    loadCmsSetting("hero", hero).then((value) => {
+      if (alive) setHero(value);
+    });
+    return () => { alive = false; };
+  }, []);
 
   const uploadBg = async (file: File | undefined) => {
     if (!file) return;
@@ -3349,7 +3379,14 @@ function HeroManager({ showToast }: any) {
   const addTrust = () => setHero(p => ({ ...p, trustPoints: [...p.trustPoints, ""] }));
   const delTrust = (i) => setHero(p => ({ ...p, trustPoints: p.trustPoints.filter((_, idx) => idx !== i) }));
 
-  const save = () => { saveLocal("hero", hero); showToast("บันทึก Hero Section แล้ว"); };
+  const save = async () => {
+    try {
+      await saveCmsSetting("hero", hero);
+      showToast("บันทึก Hero Section แล้ว");
+    } catch (error: any) {
+      showToast("บันทึกไม่ได้: " + error.message, "error");
+    }
+  };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 680 }}>
@@ -3416,15 +3453,36 @@ function ServicesManager({ showToast }: any) {
     { id: "6", name: "ฉลากสินค้า", icon: "🏷", desc: "พิมพ์ฉลากสินค้าคุณภาพสูง ทั้งแบบม้วนและแผ่น รองรับทุกขนาด", price: "100 ชิ้นละ 400฿", url: "/services/label" },
   ]));
   const [editing, setEditing] = useState<any>(null);
+  useEffect(() => {
+    let alive = true;
+    loadCmsSetting("services", services).then((value) => {
+      if (alive) setServices(value);
+    });
+    return () => { alive = false; };
+  }, []);
 
-  const save = (s) => {
+  const save = async (s) => {
     const newSvc = s.id ? services.map(x => x.id === s.id ? s : x) : [...services, { ...s, id: Date.now().toString() }];
     setServices(newSvc);
-    saveLocal("services", newSvc);
-    showToast("บันทึกบริการแล้ว");
+    try {
+      await saveCmsSetting("services", newSvc);
+      showToast("บันทึกบริการแล้ว");
+    } catch (error: any) {
+      showToast("บันทึกไม่ได้: " + error.message, "error");
+    }
     setEditing(null);
   };
-  const del = (id) => { if (!confirm("ลบบริการนี้?")) return; const ns = services.filter(s => s.id !== id); setServices(ns); saveLocal("services", ns); showToast("ลบบริการแล้ว"); };
+  const del = async (id) => {
+    if (!confirm("ลบบริการนี้?")) return;
+    const ns = services.filter(s => s.id !== id);
+    setServices(ns);
+    try {
+      await saveCmsSetting("services", ns);
+      showToast("ลบบริการแล้ว");
+    } catch (error: any) {
+      showToast("ลบแล้วแต่บันทึกฐานข้อมูลไม่ได้: " + error.message, "error");
+    }
+  };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
@@ -3479,14 +3537,36 @@ function ReviewsManager({ showToast }: any) {
     { id: "3", name: "คุณวิชัย", company: "บริษัทออแกนิก", stars: 4, text: "งานคุณภาพดี ทีมงานให้คำปรึกษาเรื่องขนาดและวัสดุได้ดีมาก" },
   ]));
   const [editing, setEditing] = useState<any>(null);
+  useEffect(() => {
+    let alive = true;
+    loadCmsSetting("reviews", reviews).then((value) => {
+      if (alive) setReviews(value);
+    });
+    return () => { alive = false; };
+  }, []);
 
-  const save = (r) => {
+  const save = async (r) => {
     const nr = r.id ? reviews.map(x => x.id === r.id ? r : x) : [...reviews, { ...r, id: Date.now().toString() }];
-    setReviews(nr); saveLocal("reviews", nr);
-    showToast(r.id ? "บันทึกรีวิวแล้ว" : "เพิ่มรีวิวแล้ว");
+    setReviews(nr);
+    try {
+      await saveCmsSetting("reviews", nr);
+      showToast(r.id ? "บันทึกรีวิวแล้ว" : "เพิ่มรีวิวแล้ว");
+    } catch (error: any) {
+      showToast("บันทึกไม่ได้: " + error.message, "error");
+    }
     setEditing(null);
   };
-  const del = (id) => { if (!confirm("ลบรีวิวนี้?")) return; const nr = reviews.filter(r => r.id !== id); setReviews(nr); saveLocal("reviews", nr); showToast("ลบรีวิวแล้ว"); };
+  const del = async (id) => {
+    if (!confirm("ลบรีวิวนี้?")) return;
+    const nr = reviews.filter(r => r.id !== id);
+    setReviews(nr);
+    try {
+      await saveCmsSetting("reviews", nr);
+      showToast("ลบรีวิวแล้ว");
+    } catch (error: any) {
+      showToast("ลบแล้วแต่บันทึกฐานข้อมูลไม่ได้: " + error.message, "error");
+    }
+  };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
@@ -3546,6 +3626,13 @@ function PortfolioManager({ showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    let alive = true;
+    loadCmsSetting("portfolio", items).then((value) => {
+      if (alive) setItems(value);
+    });
+    return () => { alive = false; };
+  }, []);
 
   const uploadImg = async (file: File | undefined, callback: (url: string) => void) => {
     if (!file) return;
@@ -3564,13 +3651,28 @@ function PortfolioManager({ showToast }: any) {
     setUploading(false);
   };
 
-  const save = (item) => {
+  const save = async (item) => {
     const ni = item.id ? items.map(x => x.id === item.id ? item : x) : [...items, { ...item, id: Date.now().toString() }];
-    setItems(ni); saveLocal("portfolio", ni);
-    showToast("บันทึกผลงานแล้ว");
+    setItems(ni);
+    try {
+      await saveCmsSetting("portfolio", ni);
+      showToast("บันทึกผลงานแล้ว");
+    } catch (error: any) {
+      showToast("บันทึกไม่ได้: " + error.message, "error");
+    }
     setEditing(null);
   };
-  const del = (id) => { if (!confirm("ลบผลงานนี้?")) return; const ni = items.filter(i => i.id !== id); setItems(ni); saveLocal("portfolio", ni); showToast("ลบผลงานแล้ว"); };
+  const del = async (id) => {
+    if (!confirm("ลบผลงานนี้?")) return;
+    const ni = items.filter(i => i.id !== id);
+    setItems(ni);
+    try {
+      await saveCmsSetting("portfolio", ni);
+      showToast("ลบผลงานแล้ว");
+    } catch (error: any) {
+      showToast("ลบแล้วแต่บันทึกฐานข้อมูลไม่ได้: " + error.message, "error");
+    }
+  };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
@@ -3637,7 +3739,21 @@ function ContactManager({ showToast }: any) {
     address: "123 ถ.ตัวอย่าง กรุงเทพฯ 10110", facebook: "", instagram: "", hours: "จ-ศ 9:00-18:00 น.",
   }));
   const set = k => e => setC(p => ({ ...p, [k]: e.target.value }));
-  const save = () => { saveLocal("contact", c); showToast("บันทึกข้อมูลติดต่อแล้ว"); };
+  useEffect(() => {
+    let alive = true;
+    loadCmsSetting("contact", c).then((value) => {
+      if (alive) setC(value);
+    });
+    return () => { alive = false; };
+  }, []);
+  const save = async () => {
+    try {
+      await saveCmsSetting("contact", c);
+      showToast("บันทึกข้อมูลติดต่อแล้ว");
+    } catch (error: any) {
+      showToast("บันทึกไม่ได้: " + error.message, "error");
+    }
+  };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 560 }}>
