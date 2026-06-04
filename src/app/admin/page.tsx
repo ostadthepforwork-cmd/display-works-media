@@ -60,6 +60,7 @@ const lineQty = (item: any) => Number(item.qty || 0);
 const lineAmount = (item: any) => lineQty(item) * Number(item.price || 0);
 const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) => lineQty(item) * Number(unitCost || 0);
 const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
+const isReportDoc = (doc: any) => ["quote", "receipt"].includes(doc?.type);
 const normalizeName = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
 const findProductForItem = (products: any[], item: any) => {
   const itemName = normalizeName(item?.name);
@@ -74,21 +75,33 @@ const findProductForItem = (products: any[], item: any) => {
   }) || null;
 };
 const customerFacingLineItem = (item: any) => {
-  const pieces = Number(item?.pieces || 0);
-  if (itemBillingBasis(item) !== "sqm" || pieces <= 0) return item;
+  const detailText = String(item?.detail || "");
+  const parsedPieces = Number(
+    detailText.match(/(?:จำนวน|qty|pieces?)\D{0,12}(\d+(?:\.\d+)?)/i)?.[1]
+    || detailText.match(/[x×]\s*(\d+(?:\.\d+)?)\s*(?:ชิ้น|pcs?)/i)?.[1]
+    || 0
+  );
+  const pieces = Number(item?.pieces || 0) || parsedPieces;
+  if (itemBillingBasis(item) !== "sqm") return item;
 
   const amount = lineAmount(item);
   const cost = lineCost(item);
+  const displayQty = pieces > 0 ? pieces : 1;
   return {
     ...item,
-    qty: pieces,
+    qty: displayQty,
     unit: "ชิ้น",
-    price: amount / pieces,
-    costSnapshot: cost / pieces,
+    price: amount / displayQty,
+    costSnapshot: cost / displayQty,
     priceUnit: "piece",
     costUnit: "piece",
   };
 };
+const customerFacingDetail = (detail?: string) =>
+  String(detail || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !/(ตร\.?ม|ตารางเมตร|sqm|square\s*meter|พื้นที่รวม|คำนวณพื้นที่)/i.test(line));
 
 const documentCompanyName = (name?: string) => {
   const cleanName = String(name || DEFAULT_DOCUMENT_COMPANY_NAME)
@@ -212,7 +225,7 @@ function printDocument(doc: any, customers: any[], company: any) {
         ${item.subTitle ? `<div style="font-size:9.5px;color:#94a3b8;margin-top:2px;">${item.subTitle}</div>` : ""}
       </td>
       <td style="padding:9px 10px;border-right:1px solid #e5e7eb;">
-        ${item.detail ? `<ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.7;margin:0;">${item.detail.split("\n").filter(Boolean).map(d => `<li>${d}</li>`).join("")}</ul>` : ""}
+        ${customerFacingDetail(item.detail).length ? `<ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.7;margin:0;">${customerFacingDetail(item.detail).map(d => `<li>${d}</li>`).join("")}</ul>` : ""}
       </td>
       <td style="padding:9px 6px;text-align:center;font-size:11px;color:#1e293b;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.qty)}</td>
       <td style="padding:9px 6px;text-align:center;font-size:10px;color:#94a3b8;border-right:1px solid #e5e7eb;">${item.unit}</td>
@@ -633,14 +646,14 @@ export default function AdminPage() {
   }, {});
 
   const totalRevenue = documents
-    .filter((d) => d.status === "paid")
+    .filter(isReportDoc)
     .reduce((s, d) => s + calcDocTotal(d).total, 0);
   const resolveItemCost = (item: any) => {
     const snapshot = Number(item.costSnapshot || 0);
     if (snapshot > 0) return snapshot;
     return findProductForItem(products, item)?.cost || 0;
   };
-  const totalCost = documents.filter((d) => d.status === "paid").reduce((s, d) => {
+  const totalCost = documents.filter(isReportDoc).reduce((s, d) => {
     return s + d.items.reduce((ss, i) => {
       // ใช้ costSnapshot (บันทึกตอน save) ถ้ามี — ไม่งั้นหาจาก products list (backward compat)
       return ss + lineCost(i, resolveItemCost(i));
@@ -1142,7 +1155,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
   const lastMonthEnd   = thisMonthStart - 1;
 
-  const paidDocs = documents.filter((d: any) => d.status === "paid");
+  const reportDocs = documents.filter(isReportDoc);
 
   const calcRev = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcDocTotal(d).total, 0);
   const itemCost = (item: any) => {
@@ -1153,8 +1166,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
     s + d.items.reduce((ss: number, i: any) => ss + lineCost(i, itemCost(i)), 0), 0);
 
-  const thisMonthDocs = paidDocs.filter((d: any) => new Date(d.date).getTime() >= thisMonthStart);
-  const lastMonthDocs = paidDocs.filter((d: any) => {
+  const thisMonthDocs = reportDocs.filter((d: any) => new Date(d.date).getTime() >= thisMonthStart);
+  const lastMonthDocs = reportDocs.filter((d: any) => {
     const t = new Date(d.date).getTime();
     return t >= lastMonthStart && t <= lastMonthEnd;
   });
@@ -1166,6 +1179,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const marginThis    = revThisMonth > 0 ? (profitThis / revThisMonth) * 100 : 0;
   const revChange     = revLastMonth > 0 ? ((revThisMonth - revLastMonth) / revLastMonth) * 100 : null;
   const profitMarginAll = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : "0";
+  const profitMarginPct = Math.max(0, Math.min(100, Number(profitMarginAll)));
 
   // ─── Pending & alerts ─────────────────────────────────────────
   const pendingDocs = documents.filter((d: any) => ["draft","sent"].includes(d.status));
@@ -1177,7 +1191,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
 
   // ─── Top Products by profit ───────────────────────────────────
   const productProfit: Record<string, { revenue: number; cost: number }> = {};
-  paidDocs.forEach((d: any) => {
+  reportDocs.forEach((d: any) => {
     d.items.forEach((i: any) => {
       if (!productProfit[i.name]) productProfit[i.name] = { revenue: 0, cost: 0 };
       productProfit[i.name].revenue += lineAmount(i);
@@ -1195,14 +1209,14 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
       for (let i = 6; i >= 0; i--) {
         const d = new Date(); d.setDate(d.getDate() - i);
         const ds = d.toISOString().slice(0,10);
-        const dayDocs = paidDocs.filter((x: any) => x.date === ds);
+        const dayDocs = reportDocs.filter((x: any) => x.date === ds);
         points.push({ label: d.toLocaleDateString("th-TH",{weekday:"short"}), rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
       }
     } else if (chartRange === "30d") {
       for (let i = 29; i >= 0; i--) {
         const d = new Date(); d.setDate(d.getDate() - i);
         const ds = d.toISOString().slice(0,10);
-        const dayDocs = paidDocs.filter((x: any) => x.date === ds);
+        const dayDocs = reportDocs.filter((x: any) => x.date === ds);
         points.push({ label: i % 5 === 0 ? d.toLocaleDateString("th-TH",{day:"numeric",month:"short"}) : "", rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
       }
     } else {
@@ -1210,7 +1224,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
         const start = d.getTime();
         const end   = new Date(d.getFullYear(), d.getMonth()+1, 1).getTime();
-        const mDocs = paidDocs.filter((x: any) => { const t = new Date(x.date).getTime(); return t >= start && t < end; });
+        const mDocs = reportDocs.filter((x: any) => { const t = new Date(x.date).getTime(); return t >= start && t < end; });
         points.push({ label: d.toLocaleDateString("th-TH",{month:"short"}), rev: calcRev(mDocs), cost: calcCost(mDocs), profit: calcRev(mDocs)-calcCost(mDocs) });
       }
     }
@@ -1440,8 +1454,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
               </div>
               <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
                 <div style={{ height: "100%", display: "flex", borderRadius: 99, overflow: "hidden" }}>
-                  <div style={{ width: `${100 - +profitMarginAll}%`, background: "rgba(239,68,68,0.5)", transition: "width 0.5s" }} />
-                  <div style={{ width: `${+profitMarginAll}%`, background: "linear-gradient(90deg,#10B981,#34D399)", transition: "width 0.5s" }} />
+                  <div style={{ width: `${100 - profitMarginPct}%`, background: "rgba(239,68,68,0.5)", transition: "width 0.5s" }} />
+                  <div style={{ width: `${profitMarginPct}%`, background: "linear-gradient(90deg,#10B981,#34D399)", transition: "width 0.5s" }} />
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#4B5563", marginTop: 4 }}>

@@ -81,6 +81,36 @@ function lineAmount(item: any) {
   return lineQty(item) * Number(item.price || 0);
 }
 
+function isSqmItem(item: any) {
+  return /(ตร\.?ม|ตารางเมตร|sqm|square\s*meter)/i.test(`${item?.unit || ""}\n${item?.detail || ""}`);
+}
+
+function customerFacingLineItem(item: any) {
+  const detailText = String(item?.detail || "");
+  const pieces = Number(
+    detailText.match(/(?:จำนวน|qty|pieces?)\D{0,12}(\d+(?:\.\d+)?)/i)?.[1]
+    || detailText.match(/[x×]\s*(\d+(?:\.\d+)?)\s*(?:ชิ้น|pcs?)/i)?.[1]
+    || 0
+  );
+  if (!isSqmItem(item)) return item;
+
+  const amount = lineAmount(item);
+  const displayQty = pieces > 0 ? pieces : 1;
+  return {
+    ...item,
+    qty: displayQty,
+    unit: "ชิ้น",
+    price: amount / displayQty,
+  };
+}
+
+function customerFacingDetail(detail?: string) {
+  return String(detail || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !/(ตร\.?ม|ตารางเมตร|sqm|square\s*meter|พื้นที่รวม|คำนวณพื้นที่)/i.test(line));
+}
+
 function docVatRate(doc: any) {
   return Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
 }
@@ -105,6 +135,7 @@ function mapDocument(doc: any, items: any[]) {
     customerId: doc.customer_id,
     customerName: doc.customer_name || "-",
     projectName: doc.project_name || "",
+    orderId: doc.order_id || "",
     reference: doc.reference || "",
     salesPerson: doc.sales_person || "",
     date: doc.date,
@@ -121,7 +152,7 @@ function mapDocument(doc: any, items: any[]) {
     bankAccount: doc.bank_account || "",
     bankType: doc.bank_type || "",
     qrImage: doc.qr_image || "",
-    items: items.map((item) => ({
+    items: items.map((item) => customerFacingLineItem({
       id: item.id,
       name: item.name || "-",
       subTitle: item.sub_title || "",
@@ -158,11 +189,16 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
     ? await supabase.from("erp_customers").select("*").eq("id", rawDoc.customer_id).maybeSingle()
     : { data: null };
 
+  const { data: sourceOrder } = rawDoc.order_id
+    ? await supabase.from("erp_documents").select("doc_no").eq("id", rawDoc.order_id).maybeSingle()
+    : { data: null };
+
   const doc = mapDocument(rawDoc, safeItems);
   const label = DOC_LABELS[doc.type] || DOC_LABELS.quote;
   const companyName = documentCompanyName(company?.name);
   const customerAddress = doc.overrideAddress || customer?.address || "";
   const totals = calcDocTotal(doc);
+  const orderReference = sourceOrder?.doc_no || doc.reference || "";
   const title = `${label.th} ${doc.docNo}`;
   const notes = doc.notes
     ? doc.notes.split("\n").map((note: string) => note.trim()).filter(Boolean)
@@ -203,6 +239,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
               <div className="doc-meta-row"><span>{label.en} NO.</span><span>{doc.docNo}</span></div>
               <div className="doc-meta-row"><span>DATE</span><span>{fmtDate(doc.date)}</span></div>
               <div className="doc-meta-row"><span>{label.due}</span><span>{fmtDate(doc.dueDate)}</span></div>
+              {orderReference && <div className="doc-meta-row"><span>ORDER REF.</span><span>{orderReference}</span></div>}
               <div className="doc-meta-row"><span>SALE PERSON</span><span>{doc.salesPerson || "-"}</span></div>
             </div>
           </section>
@@ -230,21 +267,22 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
                   <td colSpan={7} className="doc-empty-row">ยังไม่มีรายการสินค้าในเอกสารนี้</td>
                 </tr>
               )}
-              {!hasItemLoadError && doc.items.map((item: any, index: number) => (
-                <tr key={item.id || index}>
-                  <td className="num">{String(index + 1).padStart(2, "0")}</td>
-                  <td><div className="name">{item.name}</div>{item.subTitle && <div className="doc-small">{item.subTitle}</div>}</td>
-                  <td className="detail">
-                    {item.detail
-                      ? item.detail.split("\n").map((detail: string, detailIndex: number) => <div key={detailIndex}>• {detail}</div>)
-                      : ""}
-                  </td>
-                  <td className="center">{fmtQty(item.qty)}</td>
-                  <td className="center">{item.unit}</td>
-                  <td className="right">{fmtMoney(item.price)}</td>
-                  <td className="right"><strong style={{ color: "#ff5500" }}>{fmtMoney(lineAmount(item))}</strong></td>
-                </tr>
-              ))}
+              {!hasItemLoadError && doc.items.map((item: any, index: number) => {
+                const details = customerFacingDetail(item.detail);
+                return (
+                  <tr key={item.id || index}>
+                    <td className="num">{String(index + 1).padStart(2, "0")}</td>
+                    <td><div className="name">{item.name}</div>{item.subTitle && <div className="doc-small">{item.subTitle}</div>}</td>
+                    <td className="detail">
+                      {details.map((detail: string, detailIndex: number) => <div key={detailIndex}>• {detail}</div>)}
+                    </td>
+                    <td className="center">{fmtQty(item.qty)}</td>
+                    <td className="center">{item.unit}</td>
+                    <td className="right">{fmtMoney(item.price)}</td>
+                    <td className="right"><strong style={{ color: "#ff5500" }}>{fmtMoney(lineAmount(item))}</strong></td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
