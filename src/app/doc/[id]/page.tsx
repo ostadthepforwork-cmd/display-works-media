@@ -73,11 +73,23 @@ function fmtQty(value?: number) {
     : n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function lineQty(item: any) {
+  return Number(item.qty || 0);
+}
+
+function lineAmount(item: any) {
+  return lineQty(item) * Number(item.price || 0);
+}
+
+function docVatRate(doc: any) {
+  return Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
+}
+
 function calcDocTotal(doc: any) {
-  const subtotal = (doc.items || []).reduce((sum: number, item: any) => sum + Number(item.qty || 0) * Number(item.price || 0), 0);
+  const subtotal = (doc.items || []).reduce((sum: number, item: any) => sum + lineAmount(item), 0);
   const discountAmt = subtotal * (Number(doc.discount || 0) / 100);
   const afterDisc = subtotal - discountAmt;
-  const vatAmt = doc.vat ? afterDisc * 0.07 : 0;
+  const vatAmt = doc.vat ? afterDisc * (docVatRate(doc) / 100) : 0;
   const total = afterDisc + vatAmt;
   const whtAmt = doc.wht ? afterDisc * (Number(doc.whtRate || 0) / 100) : 0;
   const netPay = total - whtAmt;
@@ -99,6 +111,7 @@ function mapDocument(doc: any, items: any[]) {
     dueDate: doc.due_date,
     discount: Number(doc.discount || 0),
     vat: Boolean(doc.vat),
+    vatRate: Number(doc.vat_rate ?? 7),
     wht: Boolean(doc.wht),
     whtRate: Number(doc.wht_rate || 0),
     notes: doc.notes || "",
@@ -229,7 +242,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
                   <td className="center">{fmtQty(item.qty)}</td>
                   <td className="center">{item.unit}</td>
                   <td className="right">{fmtMoney(item.price)}</td>
-                  <td className="right"><strong style={{ color: "#ff5500" }}>{fmtMoney(item.qty * item.price)}</strong></td>
+                  <td className="right"><strong style={{ color: "#ff5500" }}>{fmtMoney(lineAmount(item))}</strong></td>
                 </tr>
               ))}
             </tbody>
@@ -255,7 +268,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
             <div className="doc-summary">
               <div className="doc-summary-row"><strong>SUBTOTAL</strong><span>{fmtMoney(totals.subtotal)}</span></div>
               {doc.discount > 0 && <div className="doc-summary-row"><strong>DISCOUNT {doc.discount}%</strong><span>- {fmtMoney(totals.discountAmt)}</span></div>}
-              {doc.vat && <div className="doc-summary-row"><strong>VAT 7%</strong><span>{fmtMoney(totals.vatAmt)}</span></div>}
+              {doc.vat && <div className="doc-summary-row"><strong>VAT {fmtMoney(docVatRate(doc))}%</strong><span>{fmtMoney(totals.vatAmt)}</span></div>}
               {doc.wht && <div className="doc-summary-row"><strong>หัก ณ ที่จ่าย {doc.whtRate}%</strong><span>- {fmtMoney(totals.whtAmt)}</span></div>}
               <div className="doc-summary-total"><span>GRAND TOTAL</span><span>{fmtMoney(totals.netPay)} THB</span></div>
             </div>

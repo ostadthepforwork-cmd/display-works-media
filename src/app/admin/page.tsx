@@ -51,6 +51,15 @@ const PRICE_BASIS_OPTIONS = [
 ];
 const priceBasisLabel = (value?: string) =>
   PRICE_BASIS_OPTIONS.find((option) => option.value === value)?.label || "ต่อชิ้น";
+const isSqmBasis = (value?: string) => value === "sqm";
+const itemBillingBasis = (item: any) =>
+  isSqmBasis(item?.priceUnit) || isSqmBasis(item?.costUnit) || String(item?.unit || "").includes("ตร.ม")
+    ? "sqm"
+    : "piece";
+const lineQty = (item: any) => Number(item.qty || 0);
+const lineAmount = (item: any) => lineQty(item) * Number(item.price || 0);
+const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) => lineQty(item) * Number(unitCost || 0);
+const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
 
 const documentCompanyName = (name?: string) => {
   const cleanName = String(name || DEFAULT_DOCUMENT_COMPANY_NAME)
@@ -82,10 +91,10 @@ const sanitizeForPrint = (value: any): any => {
 
 // ── Shared calculation utility — ใช้ร่วมกันทุกจุด ──────────
 const calcDocTotal = (doc: any) => {
-  const subtotal    = (doc.items || []).reduce((s, i) => s + (i.qty || 0) * (i.price || 0), 0);
+  const subtotal    = (doc.items || []).reduce((s, i) => s + lineAmount(i), 0);
   const discountAmt = subtotal * ((doc.discount || 0) / 100);
   const afterDisc   = subtotal - discountAmt;
-  const vatAmt      = doc.vat  ? afterDisc * 0.07                        : 0;
+  const vatAmt      = doc.vat  ? afterDisc * (docVatRate(doc) / 100)     : 0;
   const total       = afterDisc + vatAmt;
   const whtAmt      = doc.wht  ? afterDisc * ((doc.whtRate || 0) / 100)  : 0;
   const netPay      = total - whtAmt;
@@ -114,13 +123,13 @@ const INIT_CUSTOMERS = [
   { id: genId(), name: "ร้าน XYZ มาร์เก็ตติ้ง", contact: "คุณสมหญิง", phone: "089-876-5432", email: "xyz@example.com", address: "456 ถ.รัชดา กรุงเทพฯ 10400", taxId: "" },
 ];
 const INIT_PRODUCTS = [
-  { id: genId(), name: "ป้ายไวนิล (ต่อตร.ม.)", unit: "ตร.ม.", cost: 80, price: 200 },
-  { id: genId(), name: "สติ๊กเกอร์ Indoor", unit: "ตร.ม.", cost: 120, price: 350 },
-  { id: genId(), name: "สติ๊กเกอร์ Outdoor", unit: "ตร.ม.", cost: 180, price: 450 },
-  { id: genId(), name: "PP Board", unit: "แผ่น", cost: 150, price: 400 },
-  { id: genId(), name: "Roll Up Stand", unit: "ชิ้น", cost: 800, price: 2200 },
-  { id: genId(), name: "Backdrop 3x2m", unit: "ชุด", cost: 1200, price: 3500 },
-  { id: genId(), name: "ฉลากสินค้า A5", unit: "100 ชิ้น", cost: 150, price: 400 },
+  { id: genId(), name: "ป้ายไวนิล (ต่อตร.ม.)", unit: "ตร.ม.", cost: 80, price: 200, costUnit: "sqm", priceUnit: "sqm" },
+  { id: genId(), name: "สติ๊กเกอร์ Indoor", unit: "ตร.ม.", cost: 120, price: 350, costUnit: "sqm", priceUnit: "sqm" },
+  { id: genId(), name: "สติ๊กเกอร์ Outdoor", unit: "ตร.ม.", cost: 180, price: 450, costUnit: "sqm", priceUnit: "sqm" },
+  { id: genId(), name: "PP Board", unit: "แผ่น", cost: 150, price: 400, costUnit: "piece", priceUnit: "piece" },
+  { id: genId(), name: "Roll Up Stand", unit: "ชิ้น", cost: 800, price: 2200, costUnit: "piece", priceUnit: "piece" },
+  { id: genId(), name: "Backdrop 3x2m", unit: "ชุด", cost: 1200, price: 3500, costUnit: "piece", priceUnit: "piece" },
+  { id: genId(), name: "ฉลากสินค้า A5", unit: "100 ชิ้น", cost: 150, price: 400, costUnit: "piece", priceUnit: "piece" },
 ];
 
 function loadStore(key: string, def: unknown) {
@@ -177,7 +186,7 @@ function printDocument(doc: any, customers: any[], company: any) {
       <td style="padding:9px 6px;text-align:center;font-size:11px;color:#1e293b;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.qty)}</td>
       <td style="padding:9px 6px;text-align:center;font-size:10px;color:#94a3b8;border-right:1px solid #e5e7eb;">${item.unit}</td>
       <td style="padding:9px 8px;text-align:right;font-size:11px;color:#475569;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.price)}</td>
-      <td style="padding:9px 8px;text-align:right;font-size:11px;font-weight:700;color:#FF5500;">${fmtMoney(item.qty * item.price)}</td>
+      <td style="padding:9px 8px;text-align:right;font-size:11px;font-weight:700;color:#FF5500;">${fmtMoney(lineAmount(item))}</td>
     </tr>`).join("");
 
   // ── Summary rows ──────────────────────────────────────────
@@ -197,7 +206,7 @@ function printDocument(doc: any, customers: any[], company: any) {
     </tr>` : ""}
     ${doc.vat ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">VAT 7%</td>
+      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">VAT ${fmtMoney(docVatRate(doc))}%</td>
       <td style="padding:7px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(vatAmt)}</td>
     </tr>` : ""}
     ${doc.wht ? `
@@ -488,8 +497,17 @@ function printDocument(doc: any, customers: any[], company: any) {
 // ============================================================
 
 export default function AdminPage() {
-  const [mainTab, setMainTab] = useState("erp");
-  const [tab, setTab] = useState("blog");
+  const initialSection = () => {
+    if (typeof window === "undefined") return "erp";
+    return new URLSearchParams(window.location.search).get("section") === "cms" ? "cms" : "erp";
+  };
+  const initialCmsTab = () => {
+    if (typeof window === "undefined") return "blog";
+    const requestedTab = new URLSearchParams(window.location.search).get("tab");
+    return ["blog", "hero", "services", "reviews", "portfolio", "contact"].includes(requestedTab || "") ? requestedTab! : "blog";
+  };
+  const [mainTab, setMainTab] = useState(initialSection);
+  const [tab, setTab] = useState(initialCmsTab);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: string } | null>(null);
   const showToast = (msg, type = "success") => {
@@ -543,7 +561,7 @@ export default function AdminPage() {
             projectName: d.project_name, orderId: d.order_id,
             reference: d.reference, salesPerson: d.sales_person,
             date: d.date, dueDate: d.due_date,
-            discount: d.discount, vat: d.vat, wht: d.wht, whtRate: d.wht_rate,
+            discount: d.discount, vat: d.vat, vatRate: d.vat_rate ?? 7, wht: d.wht, whtRate: d.wht_rate,
             notes: d.notes, overrideAddress: d.override_address,
             bankName: d.bank_name, bankBranch: d.bank_branch,
             bankAccount: d.bank_account, bankType: d.bank_type, qrImage: d.qr_image,
@@ -593,7 +611,7 @@ export default function AdminPage() {
   const totalCost = documents.filter((d) => d.status === "paid").reduce((s, d) => {
     return s + d.items.reduce((ss, i) => {
       // ใช้ costSnapshot (บันทึกตอน save) ถ้ามี — ไม่งั้นหาจาก products list (backward compat)
-      return ss + i.qty * resolveItemCost(i);
+      return ss + lineCost(i, resolveItemCost(i));
     }, 0);
   }, 0);
   const totalProfit = totalRevenue - totalCost;
@@ -959,14 +977,13 @@ export default function AdminPage() {
 
           /* Document table → card list on mobile */
           .doc-list-panel {
-            overflow-x: auto !important;
+            overflow-x: visible !important;
             -webkit-overflow-scrolling: touch;
           }
           .doc-table {
-            display: table !important;
-            min-width: 920px !important;
+            display: none !important;
           }
-          .doc-cards { display: none !important; }
+          .doc-cards { display: flex !important; }
 
           /* Dashboard grid 1 col */
           .dash-grid { grid-template-columns: 1fr !important; }
@@ -1102,7 +1119,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
     return products.find((product: any) => product.name === item.name)?.cost || 0;
   };
   const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
-    s + d.items.reduce((ss: number, i: any) => ss + i.qty * itemCost(i), 0), 0);
+    s + d.items.reduce((ss: number, i: any) => ss + lineCost(i, itemCost(i)), 0), 0);
 
   const thisMonthDocs = paidDocs.filter((d: any) => new Date(d.date).getTime() >= thisMonthStart);
   const lastMonthDocs = paidDocs.filter((d: any) => {
@@ -1131,8 +1148,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   paidDocs.forEach((d: any) => {
     d.items.forEach((i: any) => {
       if (!productProfit[i.name]) productProfit[i.name] = { revenue: 0, cost: 0 };
-      productProfit[i.name].revenue += i.qty * i.price;
-      productProfit[i.name].cost    += i.qty * itemCost(i);
+      productProfit[i.name].revenue += lineAmount(i);
+      productProfit[i.name].cost    += lineCost(i, itemCost(i));
     });
   });
   const topProducts = Object.entries(productProfit)
@@ -1461,7 +1478,9 @@ function CustomerPage({ customers, setCustomers, showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "" };
-  const filtered = customers.filter(c => c.name.includes(search) || c.contact?.includes(search) || c.phone?.includes(search));
+  const filtered = customers.filter(c =>
+    [c.name, c.contact, c.phone].some((value) => String(value || "").includes(search))
+  );
   const save = async (form) => {
     if (!form.name.trim()) return showToast("กรุณาใส่ชื่อลูกค้า", "error");
     if (form.taxId && !/^\d{13}$/.test(form.taxId.replace(/-/g, "")))
@@ -1544,8 +1563,8 @@ function CustomerForm({ data, onSave, onCancel }: any) {
 function ProductPage({ products, setProducts, showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const blank = { id: "", name: "", unit: "ชิ้น", cost: "", price: "" };
-  const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const blank = { id: "", name: "", unit: "ชิ้น", cost: "", price: "", costUnit: "piece", priceUnit: "piece" };
+  const filtered = products.filter(p => String(p.name || "").toLowerCase().includes(search.toLowerCase()));
   const isLegacyProductColumnError = (error: any) =>
     error?.code === "42703" || /cost_unit|price_unit|column/i.test(error?.message || "");
   const save = async (f) => {
@@ -1611,8 +1630,8 @@ function ProductPage({ products, setProducts, showToast }: any) {
                 <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                   <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 500 }}>{p.name}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#A8B0C0" }}>{p.unit}</td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#ef4444" }}>฿{fmtMoney(p.cost)}</td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 600 }}>฿{fmtMoney(p.price)}</td>
+                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#ef4444" }}>฿{fmtMoney(p.cost)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.costUnit)}</span></td>
+                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 600 }}>฿{fmtMoney(p.price)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.priceUnit)}</span></td>
                   <td style={{ padding: "12px 16px", fontSize: 13 }}>
                     <span style={{ color: margin > 0 ? "#10b981" : "#ef4444" }}>฿{fmtMoney(margin)}</span>
                     <span style={{ fontSize: 11, color: "#555", marginLeft: 6 }}>({pct}%)</span>
@@ -1821,7 +1840,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const filtered = documents.filter(d =>
     !d.deleted &&
     (filterStatus === "all" || d.status === filterStatus) &&
-    (d.docNo?.includes(search) || d.customerName?.includes(search))
+    ([d.docNo, d.customerName].some((value) => String(value || "").includes(search)))
   );
   const nextDocNoForType = (targetType: string) => {
     const year = new Date().getFullYear() + 543;
@@ -1838,7 +1857,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
   const nextDocNo = () => nextDocNoForType(type);
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
+    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, vatRate: 7, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
   const save = async (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
@@ -1847,9 +1866,13 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       return showToast("จำนวนและราคาต้องไม่ติดลบ", "error");
     if (!doc.docNo?.trim()) return showToast("กรุณาระบุเลขที่เอกสาร", "error");
     const itemsWithCost = doc.items.map(item => {
-      if (Number(item.costSnapshot || 0) > 0) return item;
       const prod = products.find(p => p.name === item.name);
-      return { ...item, costSnapshot: prod ? prod.cost : 0 };
+      return {
+        ...item,
+        costSnapshot: Number(item.costSnapshot || 0) > 0 ? item.costSnapshot : (prod ? prod.cost : 0),
+        costUnit: item.costUnit || prod?.costUnit || prod?.cost_unit || "piece",
+        priceUnit: item.priceUnit || prod?.priceUnit || prod?.price_unit || "piece",
+      };
     });
     const docRow = {
       type: doc.type, doc_no: doc.docNo, status: doc.status,
@@ -1857,22 +1880,35 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       project_name: doc.projectName, order_id: doc.orderId || null,
       reference: doc.reference, sales_person: doc.salesPerson,
       date: doc.date, due_date: doc.dueDate,
-      discount: doc.discount, vat: doc.vat, wht: doc.wht, wht_rate: doc.whtRate,
+      discount: doc.discount, vat: doc.vat, vat_rate: docVatRate(doc), wht: doc.wht, wht_rate: doc.whtRate,
       notes: doc.notes, override_address: doc.overrideAddress,
       bank_name: doc.bankName, bank_branch: doc.bankBranch,
       bank_account: doc.bankAccount, bank_type: doc.bankType, qr_image: doc.qrImage,
       deleted: false,
     };
+    const { vat_rate, ...legacyDocRow } = docRow;
+    const isLegacyVatColumnError = (error: any) =>
+      error?.code === "42703" || /vat_rate|column/i.test(error?.message || "");
     try {
       let docId = doc.id;
       if (doc.id) {
         const { error } = await supabase.from("erp_documents").update(docRow).eq("id", doc.id);
-        if (error) throw error;
+        if (error) {
+          if (!isLegacyVatColumnError(error)) throw error;
+          const { error: legacyError } = await supabase.from("erp_documents").update(legacyDocRow).eq("id", doc.id);
+          if (legacyError) throw legacyError;
+        }
         // ลบ items เก่า แล้วใส่ใหม่
       } else {
         const { data, error } = await supabase.from("erp_documents").insert(docRow).select().single();
-        if (error) throw error;
-        docId = data.id;
+        if (error) {
+          if (!isLegacyVatColumnError(error)) throw error;
+          const { data: legacyData, error: legacyError } = await supabase.from("erp_documents").insert(legacyDocRow).select().single();
+          if (legacyError) throw legacyError;
+          docId = legacyData.id;
+        } else {
+          docId = data.id;
+        }
       }
       // insert items ใหม่
       if (itemsWithCost.length > 0) {
@@ -2336,7 +2372,7 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
   const setQty = (id, v) => setItems(prev => prev.map(i => i.id === id ? { ...i, selectedQty: Math.min(parseFloat(v) || 0, i.qty) } : i));
 
   const selectedItems = items.filter(i => i.selected && i.selectedQty > 0).map(i => ({ ...i, qty: i.selectedQty }));
-  const subTotal = selectedItems.reduce((s, i) => s + i.qty * i.price, 0);
+  const subTotal = selectedItems.reduce((s, i) => s + lineAmount(i), 0);
 
   const confirm = () => {
     if (selectedItems.length === 0) return;
@@ -2369,7 +2405,7 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
                   onChange={e => { setQty(item.id, e.target.value); if (!item.selected) toggleItem(item.id); }}
                   style={{ width: 70, textAlign: "right", fontSize: 13, padding: "4px 8px" }} />
                 <div style={{ fontSize: 11, color: "#888", width: 30 }}>{item.unit}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#FF6B00", width: 90, textAlign: "right" }}>฿{fmtMoney(item.selectedQty * item.price)}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#FF6B00", width: 90, textAlign: "right" }}>฿{fmtMoney(lineAmount({ ...item, qty: item.selectedQty }))}</div>
               </div>
             </div>
           ))}
@@ -2410,13 +2446,45 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   };
 
   // ── รายการสินค้า ─────────────────────────────────────────
-  const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0 }] }));
+  const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0, costUnit: "piece", priceUnit: "piece", widthM: 1, heightM: 1, pieces: 1 }] }));
   const removeItem = (id) => setF(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
   const setItem = (id, k, v) => setF(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, [k]: (k === "qty" || k === "price") ? parseFloat(v) || 0 : v } : i) }));
+  const setItemDimension = (id, key, value) => setF(prev => ({
+    ...prev,
+    items: prev.items.map(i => {
+      if (i.id !== id) return i;
+      const next = { ...i, [key]: parseFloat(value) || 0 };
+      const width = Number(next.widthM || 0);
+      const height = Number(next.heightM || 0);
+      const pieces = Number(next.pieces || 0);
+      return { ...next, qty: Number((width * height * pieces).toFixed(4)) };
+    }),
+  }));
   const pickProduct = (itemId, prodId) => {
     const p = products.find(p => p.id === prodId);
     if (!p) return;
-    setF(prev => ({ ...prev, items: prev.items.map(i => i.id === itemId ? { ...i, name: p.name, unit: p.unit, price: p.price, costSnapshot: p.cost || 0 } : i) }));
+    const priceUnit = p.priceUnit || p.price_unit || "piece";
+    const costUnit = p.costUnit || p.cost_unit || priceUnit;
+    const isSqm = isSqmBasis(priceUnit) || isSqmBasis(costUnit);
+    setF(prev => ({ ...prev, items: prev.items.map(i => {
+      if (i.id !== itemId) return i;
+      const widthM = Number(i.widthM || 1);
+      const heightM = Number(i.heightM || 1);
+      const pieces = Number(i.pieces || 1);
+      return {
+        ...i,
+        name: p.name,
+        unit: isSqm ? "ตร.ม." : p.unit,
+        price: p.price,
+        costSnapshot: p.cost || 0,
+        costUnit,
+        priceUnit,
+        widthM,
+        heightM,
+        pieces,
+        qty: isSqm ? Number((widthM * heightM * pieces).toFixed(4)) : (Number(i.qty || 1) || 1),
+      };
+    }) }));
   };
 
   // ── คำนวณ ────────────────────────────────────────────────
@@ -2531,6 +2599,15 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
 
         {f.items.map((item, idx) => (
           <div key={item.id} style={{ background: "#0B0F19", borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column" as const, gap: 10 }}>
+            {(() => {
+              const basis = itemBillingBasis(item);
+              const isSqm = basis === "sqm";
+              const widthM = Number(item.widthM || 0);
+              const heightM = Number(item.heightM || 0);
+              const pieces = Number(item.pieces || 0);
+              const area = widthM * heightM * pieces;
+              return (
+                <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: dt.color }}>รายการ #{String(idx + 1).padStart(2, "0")}</span>
               <IconBtn onClick={() => removeItem(item.id)} danger small>🗑 ลบออก</IconBtn>
@@ -2552,10 +2629,24 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
             <Field label="รายละเอียดทางเทคนิค (พิมพ์บรรทัดละหัวข้อ)">
               <textarea value={item.detail || ""} onChange={e => setItem(item.id, "detail", e.target.value)} rows={3} style={{ resize: "vertical", fontFamily: "inherit" }} placeholder={"ขนาด 120 x 300 cm.\nโครงสร้างอลูมิเนียม\nติดตั้งหน้างาน"} />
             </Field>
+            {isSqm && (
+              <div style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 10, padding: 12 }}>
+                <div style={{ color: "#10B981", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>คำนวณพื้นที่งานพิมพ์</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1.2fr", gap: 10 }}>
+                  <Field label="กว้าง (เมตร)"><input type="number" value={item.widthM ?? 1} onChange={e => setItemDimension(item.id, "widthM", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
+                  <Field label="สูง (เมตร)"><input type="number" value={item.heightM ?? 1} onChange={e => setItemDimension(item.id, "heightM", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
+                  <Field label="จำนวนชิ้น"><input type="number" value={item.pieces ?? 1} onChange={e => setItemDimension(item.id, "pieces", e.target.value)} min="0" step="1" style={{ textAlign: "center" }} /></Field>
+                  <Field label="พื้นที่รวม (ตร.ม.)"><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center", color: "#10B981", fontWeight: 700 }} /></Field>
+                </div>
+                <div style={{ marginTop: 8, fontSize: 12, color: "#A8B0C0" }}>
+                  {fmtMoney(widthM)} x {fmtMoney(heightM)} x {fmtMoney(pieces)} = <strong style={{ color: "#10B981" }}>{fmtMoney(area)} ตร.ม.</strong>
+                </div>
+              </div>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 10 }}>
-              <Field label="จำนวน"><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
+              <Field label={isSqm ? "จำนวนที่คิดเงิน" : "จำนวน"}><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
               <Field label="หน่วย"><input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} style={{ textAlign: "center" }} /></Field>
-              <Field label="ราคาต่อหน่วย">
+              <Field label={`ราคาขาย (${priceBasisLabel(item.priceUnit)})`}>
                 <div style={{ position: "relative" }}>
                   <input type="number" value={item.price} onChange={e => setItem(item.id, "price", e.target.value)} min="0" step="0.01" style={{ textAlign: "right", paddingRight: 36 }} />
                   <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#555" }}>THB</span>
@@ -2563,8 +2654,11 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
               </Field>
             </div>
             <div style={{ textAlign: "right", fontSize: 13, fontWeight: 700, color: dt.color }}>
-              รวม: ฿{fmtMoney(item.qty * item.price)}
+              รวม: ฿{fmtMoney(lineAmount(item))}
             </div>
+                </>
+              );
+            })()}
           </div>
         ))}
 
@@ -2633,8 +2727,14 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         {/* VAT / WHT */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 14, display: "flex", gap: 16, flexWrap: "wrap" as const }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
-            <input type="checkbox" checked={f.vat} onChange={setBool("vat")} style={{ width: "auto" }} />คิด VAT 7%
+            <input type="checkbox" checked={f.vat} onChange={setBool("vat")} style={{ width: "auto" }} />คิด VAT
           </label>
+          {f.vat && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input type="number" value={f.vatRate ?? 7} onChange={setN("vatRate")} min="0" max="100" step="0.01" style={{ width: 80 }} />
+              <span style={{ fontSize: 13, color: "#ccc" }}>%</span>
+            </div>
+          )}
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
             <input type="checkbox" checked={f.wht} onChange={setBool("wht")} style={{ width: "auto" }} />หัก ณ ที่จ่าย
           </label>
@@ -2658,7 +2758,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         <SumRow label="มูลค่ารวม (Subtotal)" value={subtotal} />
         {f.discount > 0 && <SumRow label={`ส่วนลด ${f.discount}%`} value={-discAmt} />}
         {f.discount > 0 && <SumRow label="หลังหักส่วนลด" value={afterDisc} />}
-        {f.vat && <SumRow label="VAT 7%" value={vatAmt} />}
+        {f.vat && <SumRow label={`VAT ${fmtMoney(docVatRate(f))}%`} value={vatAmt} />}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 4, paddingTop: 8 }}>
           <SumRow label="ยอดรวมสุทธิ" value={total} bold color={dt.color} big />
         </div>
@@ -3000,7 +3100,9 @@ function BlogManager({ showToast }: any) {
     fetchPosts();
   };
 
-  const filtered = posts.filter(p => p.title.includes(search) || p.category.includes(search));
+  const filtered = posts.filter(p =>
+    [p.title, p.category, p.excerpt].some((value) => String(value || "").includes(search))
+  );
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>

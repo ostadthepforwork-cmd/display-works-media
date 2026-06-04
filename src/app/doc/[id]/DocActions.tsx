@@ -12,12 +12,15 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
     // คำนวณ scale ให้ A4 พอดีจอมือถือ
     function updateScale() {
       const A4_PX = 794; // 210mm @ 96dpi
+      const A4_HEIGHT_PX = 1123; // 297mm @ 96dpi
       const vw = window.innerWidth;
       if (vw < 820) {
         const scale = Math.min((vw / A4_PX), 1);
         document.documentElement.style.setProperty("--doc-scale", String(scale));
+        document.documentElement.style.setProperty("--doc-mobile-height", `${A4_HEIGHT_PX * scale}px`);
       } else {
         document.documentElement.style.removeProperty("--doc-scale");
+        document.documentElement.style.removeProperty("--doc-mobile-height");
       }
     }
     updateScale();

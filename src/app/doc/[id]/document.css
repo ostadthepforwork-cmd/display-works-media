@@ -401,7 +401,7 @@ body {
     min-width: 210mm;
     transform-origin: top center;
     transform: scale(var(--doc-scale, 0.45));
-    margin-bottom: calc((297mm * var(--doc-scale, 0.45)) - 297mm);
+    margin-bottom: calc(var(--doc-mobile-height, 505px) - 297mm);
   }
 }
 

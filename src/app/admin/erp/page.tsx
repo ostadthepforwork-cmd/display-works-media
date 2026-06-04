@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function ErpRedirect() {
-  redirect("/admin");
+  redirect("/admin?section=erp");
 }
