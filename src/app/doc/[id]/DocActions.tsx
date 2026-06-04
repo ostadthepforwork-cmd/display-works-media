@@ -9,15 +9,31 @@ type DocActionsProps = {
 
 export default function DocActions({ title, autoPrint = false }: DocActionsProps) {
   useEffect(() => {
+    // คำนวณ scale ให้ A4 พอดีจอมือถือ
+    function updateScale() {
+      const A4_PX = 794; // 210mm @ 96dpi
+      const vw = window.innerWidth;
+      if (vw < 820) {
+        const scale = Math.min((vw / A4_PX), 1);
+        document.documentElement.style.setProperty("--doc-scale", String(scale));
+      } else {
+        document.documentElement.style.removeProperty("--doc-scale");
+      }
+    }
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, []);
+
+  useEffect(() => {
     if (!autoPrint) return;
     const timer = window.setTimeout(() => window.print(), 700);
     return () => window.clearTimeout(timer);
   }, [autoPrint]);
 
   const shareLink = async () => {
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.delete("print");
-    const url = currentUrl.toString();
+    // สร้าง URL ใหม่ที่สะอาด — เก็บแค่ path ไม่เอา query params ใดๆ ติดไป
+    const url = `${window.location.origin}${window.location.pathname}`;
     try {
       if (navigator.share) {
         await navigator.share({ title, text: title, url });

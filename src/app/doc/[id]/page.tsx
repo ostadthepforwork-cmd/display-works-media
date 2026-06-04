@@ -9,10 +9,29 @@ type PageProps = {
   searchParams?: Promise<{ print?: string }>;
 };
 
-export const metadata: Metadata = {
-  title: "เอกสาร | Display Works Media",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const supabase = createSupabaseServerClient();
+    const { data: doc } = await supabase
+      .from("erp_documents")
+      .select("type, doc_no")
+      .eq("id", id)
+      .eq("deleted", false)
+      .maybeSingle();
+    if (doc) {
+      const label = DOC_LABELS[doc.type] || DOC_LABELS.quote;
+      return {
+        title: `${label.th} ${doc.doc_no} | Display Works Media`,
+        robots: { index: false, follow: false },
+      };
+    }
+  } catch {}
+  return {
+    title: "เอกสาร | Display Works Media",
+    robots: { index: false, follow: false },
+  };
+}
 
 const DEFAULT_COMPANY_NAME = "DISPLAY WORKS MEDIA";
 
@@ -45,6 +64,13 @@ function fmtMoney(value?: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+function fmtQty(value?: number) {
+  const n = Number(value || 0);
+  return Number.isInteger(n)
+    ? n.toLocaleString("th-TH")
+    : n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function calcDocTotal(doc: any) {
@@ -111,12 +137,15 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
 
   if (docError || !rawDoc) notFound();
 
+  // แยกกรณี: โหลด items ไม่ได้ (error) vs ไม่มี items จริงๆ (empty)
+  const hasItemLoadError = Boolean(itemsError);
+  const safeItems = !hasItemLoadError ? (rawItems ?? []) : [];
+
   const { data: customer } = rawDoc.customer_id
     ? await supabase.from("erp_customers").select("*").eq("id", rawDoc.customer_id).maybeSingle()
     : { data: null };
 
-  const doc = mapDocument(rawDoc, rawItems || []);
-  const hasItemLoadError = Boolean(itemsError);
+  const doc = mapDocument(rawDoc, safeItems);
   const label = DOC_LABELS[doc.type] || DOC_LABELS.quote;
   const companyName = documentCompanyName(company?.name);
   const customerAddress = doc.overrideAddress || customer?.address || "";
@@ -197,7 +226,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
                       ? item.detail.split("\n").map((detail: string, detailIndex: number) => <div key={detailIndex}>• {detail}</div>)
                       : ""}
                   </td>
-                  <td className="center">{fmtMoney(item.qty)}</td>
+                  <td className="center">{fmtQty(item.qty)}</td>
                   <td className="center">{item.unit}</td>
                   <td className="right">{fmtMoney(item.price)}</td>
                   <td className="right"><strong style={{ color: "#ff5500" }}>{fmtMoney(item.qty * item.price)}</strong></td>
