@@ -60,6 +60,19 @@ const lineQty = (item: any) => Number(item.qty || 0);
 const lineAmount = (item: any) => lineQty(item) * Number(item.price || 0);
 const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) => lineQty(item) * Number(unitCost || 0);
 const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
+const normalizeName = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
+const findProductForItem = (products: any[], item: any) => {
+  const itemName = normalizeName(item?.name);
+  if (!itemName) return null;
+  return products.find((product: any) => {
+    const productName = normalizeName(product?.name);
+    const itemTokens = itemName.split(" ").filter((token) => token.length >= 3);
+    return productName === itemName
+      || productName.includes(itemName)
+      || itemName.includes(productName)
+      || itemTokens.some((token) => productName.includes(token));
+  }) || null;
+};
 const customerFacingLineItem = (item: any) => {
   const pieces = Number(item?.pieces || 0);
   if (itemBillingBasis(item) !== "sqm" || pieces <= 0) return item;
@@ -625,7 +638,7 @@ export default function AdminPage() {
   const resolveItemCost = (item: any) => {
     const snapshot = Number(item.costSnapshot || 0);
     if (snapshot > 0) return snapshot;
-    return products.find((p) => p.name === item.name)?.cost || 0;
+    return findProductForItem(products, item)?.cost || 0;
   };
   const totalCost = documents.filter((d) => d.status === "paid").reduce((s, d) => {
     return s + d.items.reduce((ss, i) => {
@@ -1135,7 +1148,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const itemCost = (item: any) => {
     const snapshot = Number(item.costSnapshot || 0);
     if (snapshot > 0) return snapshot;
-    return products.find((product: any) => product.name === item.name)?.cost || 0;
+    return findProductForItem(products, item)?.cost || 0;
   };
   const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
     s + d.items.reduce((ss: number, i: any) => ss + lineCost(i, itemCost(i)), 0), 0);
@@ -1885,7 +1898,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       return showToast("จำนวนและราคาต้องไม่ติดลบ", "error");
     if (!doc.docNo?.trim()) return showToast("กรุณาระบุเลขที่เอกสาร", "error");
     const itemsWithCost = doc.items.map(item => {
-      const prod = products.find(p => p.name === item.name);
+      const prod = findProductForItem(products, item);
       const costedItem = {
         ...item,
         costSnapshot: Number(item.costSnapshot || 0) > 0 ? item.costSnapshot : (prod ? prod.cost : 0),
@@ -2468,7 +2481,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   // ── รายการสินค้า ─────────────────────────────────────────
   const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0, costUnit: "piece", priceUnit: "piece", widthM: 1, heightM: 1, pieces: 1 }] }));
   const removeItem = (id) => setF(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
-  const setItem = (id, k, v) => setF(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, [k]: (k === "qty" || k === "price") ? parseFloat(v) || 0 : v } : i) }));
+  const setItem = (id, k, v) => setF(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, [k]: (["qty", "price", "costSnapshot"].includes(k)) ? parseFloat(v) || 0 : v } : i) }));
   const setItemDimension = (id, key, value) => setF(prev => ({
     ...prev,
     items: prev.items.map(i => {
@@ -2663,9 +2676,15 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
                 </div>
               </div>
             )}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10 }}>
               <Field label={isSqm ? "จำนวนที่คิดเงิน" : "จำนวน"}><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
               <Field label="หน่วย"><input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} style={{ textAlign: "center" }} /></Field>
+              <Field label={`ต้นทุน (${priceBasisLabel(item.costUnit)})`}>
+                <div style={{ position: "relative" }}>
+                  <input type="number" value={item.costSnapshot || 0} onChange={e => setItem(item.id, "costSnapshot", e.target.value)} min="0" step="0.01" style={{ textAlign: "right", paddingRight: 36, color: "#ef4444", fontWeight: 700 }} />
+                  <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#555" }}>THB</span>
+                </div>
+              </Field>
               <Field label={`ราคาขาย (${priceBasisLabel(item.priceUnit)})`}>
                 <div style={{ position: "relative" }}>
                   <input type="number" value={item.price} onChange={e => setItem(item.id, "price", e.target.value)} min="0" step="0.01" style={{ textAlign: "right", paddingRight: 36 }} />
@@ -2673,8 +2692,9 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
                 </div>
               </Field>
             </div>
-            <div style={{ textAlign: "right", fontSize: 13, fontWeight: 700, color: dt.color }}>
-              รวม: ฿{fmtMoney(lineAmount(item))}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 14, fontSize: 13, fontWeight: 700 }}>
+              <span style={{ color: "#ef4444" }}>ต้นทุน: ฿{fmtMoney(lineCost(item))}</span>
+              <span style={{ color: dt.color }}>รวม: ฿{fmtMoney(lineAmount(item))}</span>
             </div>
                 </>
               );
