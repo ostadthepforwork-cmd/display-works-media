@@ -44,6 +44,12 @@ const fmtMoney = (n: number) =>
   Number(n || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const DEFAULT_DOCUMENT_COMPANY_NAME = "DISPLAY WORKS MEDIA";
+const PRICE_BASIS_OPTIONS = [
+  { value: "piece", label: "ต่อชิ้น" },
+  { value: "sqm", label: "ต่อตารางเมตร" },
+];
+const priceBasisLabel = (value?: string) =>
+  PRICE_BASIS_OPTIONS.find((option) => option.value === value)?.label || "ต่อชิ้น";
 
 const documentCompanyName = (name?: string) => {
   const cleanName = String(name || DEFAULT_DOCUMENT_COMPANY_NAME)
@@ -516,6 +522,8 @@ export default function AdminPage() {
         // map products
         if (prodRes.data) setProducts(prodRes.data.map(p => ({
           id: p.id, name: p.name, unit: p.unit, cost: p.cost, price: p.price,
+          costUnit: p.cost_unit || p.costUnit || "piece",
+          priceUnit: p.price_unit || p.priceUnit || "piece",
         })));
 
         // map documents + inject items
@@ -654,7 +662,7 @@ export default function AdminPage() {
                 </div>
               ) : (<>
               {erpPage === "dashboard" && (
-                <Dashboard documents={documents} customers={customers}
+                <Dashboard documents={documents} customers={customers} products={products}
                   totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
                   docCounts={docCounts} setPage={setErpPage} />
               )}
@@ -1059,7 +1067,7 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
 // ============================================================
 // DASHBOARD — เพิ่มกำไร/ขาดทุน
 // ============================================================
-function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit, docCounts, setPage }: any) {
+function Dashboard({ documents, customers, products, totalRevenue, totalCost, totalProfit, docCounts, setPage }: any) {
   const [chartRange, setChartRange] = useState<"7d"|"30d"|"12m">("30d");
 
   // ─── คำนวณข้อมูลหลัก ───────────────────────────────────────────
@@ -1071,8 +1079,12 @@ function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit,
   const paidDocs = documents.filter((d: any) => d.status === "paid");
 
   const calcRev = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcDocTotal(d).total, 0);
+  const itemCost = (item: any) => {
+    if (item.costSnapshot != null) return item.costSnapshot;
+    return products.find((product: any) => product.name === item.name)?.cost || 0;
+  };
   const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
-    s + d.items.reduce((ss: number, i: any) => ss + i.qty * (i.costSnapshot ?? 0), 0), 0);
+    s + d.items.reduce((ss: number, i: any) => ss + i.qty * itemCost(i), 0), 0);
 
   const thisMonthDocs = paidDocs.filter((d: any) => new Date(d.date).getTime() >= thisMonthStart);
   const lastMonthDocs = paidDocs.filter((d: any) => {
@@ -1102,7 +1114,7 @@ function Dashboard({ documents, customers, totalRevenue, totalCost, totalProfit,
     d.items.forEach((i: any) => {
       if (!productProfit[i.name]) productProfit[i.name] = { revenue: 0, cost: 0 };
       productProfit[i.name].revenue += i.qty * i.price;
-      productProfit[i.name].cost    += i.qty * (i.costSnapshot ?? 0);
+      productProfit[i.name].cost    += i.qty * itemCost(i);
     });
   });
   const topProducts = Object.entries(productProfit)
@@ -1516,18 +1528,34 @@ function ProductPage({ products, setProducts, showToast }: any) {
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", unit: "ชิ้น", cost: "", price: "" };
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const isLegacyProductColumnError = (error: any) =>
+    error?.code === "42703" || /cost_unit|price_unit|column/i.test(error?.message || "");
   const save = async (f) => {
     if (!f.name.trim()) return showToast("กรุณาใส่ชื่อสินค้า", "error");
-    const row = { name: f.name, unit: f.unit, cost: parseFloat(f.cost) || 0, price: parseFloat(f.price) || 0 };
+    const row = {
+      name: f.name,
+      unit: f.unit,
+      cost: parseFloat(f.cost) || 0,
+      price: parseFloat(f.price) || 0,
+      cost_unit: f.costUnit || "piece",
+      price_unit: f.priceUnit || "piece",
+    };
+    const legacyRow = { name: row.name, unit: row.unit, cost: row.cost, price: row.price };
     if (f.id) {
-      const { error } = await supabase.from("erp_products").update(row).eq("id", f.id);
+      let { error } = await supabase.from("erp_products").update(row).eq("id", f.id);
+      if (error && isLegacyProductColumnError(error)) {
+        ({ error } = await supabase.from("erp_products").update(legacyRow).eq("id", f.id));
+      }
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-      setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...row } : p));
+      setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...legacyRow, costUnit: row.cost_unit, priceUnit: row.price_unit } : p));
       showToast("แก้ไขสินค้าแล้ว");
     } else {
-      const { data, error } = await supabase.from("erp_products").insert(row).select().single();
+      let { data, error } = await supabase.from("erp_products").insert(row).select().single();
+      if (error && isLegacyProductColumnError(error)) {
+        ({ data, error } = await supabase.from("erp_products").insert(legacyRow).select().single());
+      }
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-      setProducts(prev => [...prev, { ...f, id: data.id, ...row }]);
+      setProducts(prev => [...prev, { ...f, id: data.id, ...legacyRow, costUnit: row.cost_unit, priceUnit: row.price_unit }]);
       showToast("เพิ่มสินค้าใหม่แล้ว");
     }
     setEditing(null);
@@ -1592,7 +1620,13 @@ function ProductPage({ products, setProducts, showToast }: any) {
   );
 }
 function ProductForm({ data, onSave, onCancel }: any) {
-  const [f, setF] = useState({ ...data, cost: data.cost || "", price: data.price || "" });
+  const [f, setF] = useState({
+    ...data,
+    cost: data.cost || "",
+    price: data.price || "",
+    costUnit: data.costUnit || data.cost_unit || "piece",
+    priceUnit: data.priceUnit || data.price_unit || "piece",
+  });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const margin = (parseFloat(f.price) || 0) - (parseFloat(f.cost) || 0);
   const pct = f.cost > 0 ? (margin / parseFloat(f.cost) * 100).toFixed(1) : 0;
@@ -1606,6 +1640,18 @@ function ProductForm({ data, onSave, onCancel }: any) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <Field label="ต้นทุน (บาท)"><input type="number" value={f.cost} onChange={set("cost")} min="0" /></Field>
         <Field label="ราคาขาย (บาท)"><input type="number" value={f.price} onChange={set("price")} min="0" /></Field>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Field label="คิดต้นทุนแบบ">
+          <select value={f.costUnit} onChange={set("costUnit")}>
+            {PRICE_BASIS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        </Field>
+        <Field label="คิดราคาขายแบบ">
+          <select value={f.priceUnit} onChange={set("priceUnit")}>
+            {PRICE_BASIS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        </Field>
       </div>
       {f.price && f.cost && (
         <div style={{ background: "#1A2233", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: margin > 0 ? "#10b981" : "#ef4444" }}>
@@ -2322,7 +2368,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   const pickProduct = (itemId, prodId) => {
     const p = products.find(p => p.id === prodId);
     if (!p) return;
-    setF(prev => ({ ...prev, items: prev.items.map(i => i.id === itemId ? { ...i, name: p.name, unit: p.unit, price: p.price } : i) }));
+    setF(prev => ({ ...prev, items: prev.items.map(i => i.id === itemId ? { ...i, name: p.name, unit: p.unit, price: p.price, costSnapshot: p.cost || 0 } : i) }));
   };
 
   // ── คำนวณ ────────────────────────────────────────────────
