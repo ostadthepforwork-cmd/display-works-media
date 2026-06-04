@@ -373,7 +373,7 @@ body {
 
 @media (max-width: 820px) {
   .doc-public-shell {
-    padding: 78px 0 20px;
+    padding: 78px 12px 20px;
     overflow-x: hidden;
   }
 
@@ -399,7 +399,8 @@ body {
   .doc-a4 {
     width: 210mm;
     min-width: 210mm;
-    transform-origin: top center;
+    margin: 0;
+    transform-origin: top left;
     transform: scale(var(--doc-scale, 0.45));
     margin-bottom: calc(var(--doc-mobile-height, 505px) - 297mm);
   }

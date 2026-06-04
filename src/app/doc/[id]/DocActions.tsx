@@ -15,7 +15,7 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
       const A4_HEIGHT_PX = 1123; // 297mm @ 96dpi
       const vw = window.innerWidth;
       if (vw < 820) {
-        const scale = Math.min((vw / A4_PX), 1);
+        const scale = Math.min(((vw - 24) / A4_PX), 1);
         document.documentElement.style.setProperty("--doc-scale", String(scale));
         document.documentElement.style.setProperty("--doc-mobile-height", `${A4_HEIGHT_PX * scale}px`);
       } else {
