@@ -9,6 +9,15 @@ type PageProps = {
   searchParams?: Promise<{ print?: string }>;
 };
 
+const DEFAULT_COMPANY_NAME = "DISPLAY WORKS MEDIA";
+
+const DOC_LABELS: Record<string, { en: string; th: string; due: string }> = {
+  quote: { en: "QUOTATION", th: "ใบเสนอราคา", due: "ยืนยันราคาถึง" },
+  bill: { en: "BILLING NOTE", th: "ใบวางบิล", due: "วันครบกำหนด" },
+  invoice: { en: "INVOICE", th: "ใบแจ้งหนี้", due: "วันครบกำหนด" },
+  receipt: { en: "RECEIPT", th: "ใบเสร็จรับเงิน", due: "วันที่ชำระ" },
+};
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   try {
@@ -32,15 +41,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     robots: { index: false, follow: false },
   };
 }
-
-const DEFAULT_COMPANY_NAME = "DISPLAY WORKS MEDIA";
-
-const DOC_LABELS: Record<string, { en: string; th: string; due: string }> = {
-  quote: { en: "QUOTATION", th: "ใบเสนอราคา", due: "ยืนยันราคาถึง" },
-  bill: { en: "BILLING NOTE", th: "ใบวางบิล", due: "วันครบกำหนด" },
-  invoice: { en: "INVOICE", th: "ใบแจ้งหนี้", due: "วันครบกำหนด" },
-  receipt: { en: "RECEIPT", th: "ใบเสร็จรับเงิน", due: "วันที่ชำระ" },
-};
 
 function documentCompanyName(name?: string) {
   const cleanName = String(name || DEFAULT_COMPANY_NAME)
