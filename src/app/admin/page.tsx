@@ -44,6 +44,7 @@ const fmtMoney = (n: number) =>
   Number(n || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const DEFAULT_DOCUMENT_COMPANY_NAME = "DISPLAY WORKS MEDIA";
+const PUBLIC_SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://displayworksmedia.com").replace(/\/$/, "");
 const PRICE_BASIS_OPTIONS = [
   { value: "piece", label: "ต่อชิ้น" },
   { value: "sqm", label: "ต่อตารางเมตร" },
@@ -58,6 +59,8 @@ const documentCompanyName = (name?: string) => {
     .trim();
   return cleanName || DEFAULT_DOCUMENT_COMPANY_NAME;
 };
+
+const publicDocumentUrl = (id: string) => `${PUBLIC_SITE_URL}/doc/${id}`;
 
 const escapeHtml = (value: unknown): unknown => {
   if (typeof value !== "string") return value;
@@ -1820,18 +1823,20 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     (filterStatus === "all" || d.status === filterStatus) &&
     (d.docNo?.includes(search) || d.customerName?.includes(search))
   );
-  const nextDocNo = () => {
+  const nextDocNoForType = (targetType: string) => {
     const year = new Date().getFullYear() + 543;
-    const prefix = `${dt.prefix}${year}-`;
+    const targetDt = DOC_TYPES[targetType] || dt;
+    const prefix = `${targetDt.prefix}${year}-`;
     // หา running number สูงสุดที่มีอยู่แล้วในปีนี้ แทนการนับ .length
     const maxSeq = allDocuments
-      .filter(d => d.type === type && d.docNo?.startsWith(prefix))
+      .filter(d => d.type === targetType && d.docNo?.startsWith(prefix))
       .reduce((max, d) => {
         const seq = parseInt(d.docNo.replace(prefix, ""), 10);
         return isNaN(seq) ? max : Math.max(max, seq);
       }, 0);
     return `${prefix}${String(maxSeq + 1).padStart(4, "0")}`;
   };
+  const nextDocNo = () => nextDocNoForType(type);
   const newDoc = () => {
     setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
@@ -1885,7 +1890,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           const insertedIds = (insertedItems || []).map((item) => item.id).filter(Boolean);
           const deleteQuery = supabase.from("erp_document_items").delete().eq("document_id", doc.id);
           const { error: deleteOldItemsError } = insertedIds.length > 0
-            ? await deleteQuery.not("id", "in", `(${insertedIds.join(",")})`)
+            ? await deleteQuery.not("id", "in", `(${insertedIds.map((id) => `"${id}"`).join(",")})`)
             : await deleteQuery;
           if (deleteOldItemsError) throw deleteOldItemsError;
         }
@@ -1945,7 +1950,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       return;
     }
     const title = `${DOC_TYPES[doc.type]?.label || "เอกสาร"} ${doc.docNo}`;
-    const url = `${window.location.origin}/doc/${doc.id}`;
+    const url = publicDocumentUrl(doc.id);
     try {
       if (navigator.share) {
         await navigator.share({ title, text: title, url });
@@ -1977,10 +1982,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
 
   const createFrom = (srcDoc, targetType, split = false) => {
-    const nextPrefix = DOC_TYPES[targetType]?.prefix || targetType.toUpperCase();
-    const count = allDocuments.filter(d => d.type === targetType).length + 1;
-    const year = new Date().getFullYear() + 543;
-    const newDocNo = `${nextPrefix}${year}-${String(count).padStart(4, "0")}`;
+    const newDocNo = nextDocNoForType(targetType);
     const newDoc = {
       ...srcDoc,
       id: "",
@@ -2133,10 +2135,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             }} />
                             {/* สร้างซ้ำ */}
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => {
-                              const count = allDocuments.filter(d => d.type === doc.type).length + 1;
-                              const year = new Date().getFullYear() + 543;
-                              const prefix = DOC_TYPES[doc.type]?.prefix || "";
-                              setEditing({ ...doc, id: "", docNo: `${prefix}${year}-${String(count).padStart(4,"0")}`, date: today(), status: "draft" });
+                              setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" });
                               closeAll();
                             }} />
 
@@ -2227,7 +2226,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` }); closeAll(); }} />
-                            <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { const cnt = allDocuments.filter(d => d.type === doc.type).length + 1; const yr = new Date().getFullYear() + 543; const pfx = DOC_TYPES[doc.type]?.prefix || ""; setEditing({ ...doc, id: "", docNo: `${pfx}${yr}-${String(cnt).padStart(4,"0")}`, date: today(), status: "draft" }); closeAll(); }} />
+                            <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" }); closeAll(); }} />
                             {(DOC_NEXT[doc.type] || []).length > 0 && <>
                               <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
                               <div style={{ padding: "4px 14px", fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase" as const }}>สร้างเอกสารต่อ</div>

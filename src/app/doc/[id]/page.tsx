@@ -99,19 +99,24 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
   const query = searchParams ? await searchParams : {};
   const supabase = createSupabaseServerClient();
 
-  const [{ data: rawDoc }, { data: rawItems }, { data: company }] = await Promise.all([
+  const [
+    { data: rawDoc, error: docError },
+    { data: rawItems, error: itemsError },
+    { data: company },
+  ] = await Promise.all([
     supabase.from("erp_documents").select("*").eq("id", id).eq("deleted", false).maybeSingle(),
     supabase.from("erp_document_items").select("*").eq("document_id", id).order("sort_order"),
     supabase.from("erp_company").select("*").limit(1).maybeSingle(),
   ]);
 
-  if (!rawDoc) notFound();
+  if (docError || !rawDoc) notFound();
 
   const { data: customer } = rawDoc.customer_id
     ? await supabase.from("erp_customers").select("*").eq("id", rawDoc.customer_id).maybeSingle()
     : { data: null };
 
   const doc = mapDocument(rawDoc, rawItems || []);
+  const hasItemLoadError = Boolean(itemsError);
   const label = DOC_LABELS[doc.type] || DOC_LABELS.quote;
   const companyName = documentCompanyName(company?.name);
   const customerAddress = doc.overrideAddress || customer?.address || "";
@@ -173,7 +178,17 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
               </tr>
             </thead>
             <tbody>
-              {doc.items.map((item: any, index: number) => (
+              {hasItemLoadError && (
+                <tr>
+                  <td colSpan={7} className="doc-empty-row">ไม่สามารถโหลดรายการสินค้าในเอกสารได้ กรุณาติดต่อ Display Works Media</td>
+                </tr>
+              )}
+              {!hasItemLoadError && doc.items.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="doc-empty-row">ยังไม่มีรายการสินค้าในเอกสารนี้</td>
+                </tr>
+              )}
+              {!hasItemLoadError && doc.items.map((item: any, index: number) => (
                 <tr key={item.id || index}>
                   <td className="num">{String(index + 1).padStart(2, "0")}</td>
                   <td><div className="name">{item.name}</div>{item.subTitle && <div className="doc-small">{item.subTitle}</div>}</td>
@@ -200,8 +215,8 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
               <div className="doc-payment">
                 <div>
                   <div className="doc-section-kicker">PAYMENT INFORMATION</div>
-                  <div className="doc-small"><strong>ชื่อบัญชี:</strong> {companyName}</div>
-                  {doc.bankName && <div className="doc-small"><strong>ธนาคาร:</strong> {doc.bankName}</div>}
+                  <div className="doc-small"><strong>ชื่อบัญชี:</strong> {doc.bankName || companyName}</div>
+                  {doc.bankBranch && <div className="doc-small"><strong>ธนาคาร/สาขา:</strong> {doc.bankBranch}</div>}
                   {doc.bankAccount && <div className="doc-small"><strong>เลขบัญชี:</strong> {doc.bankAccount}</div>}
                   {doc.bankType && <div className="doc-small"><strong>ประเภท:</strong> {doc.bankType}</div>}
                 </div>

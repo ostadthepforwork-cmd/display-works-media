@@ -15,7 +15,9 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
   }, [autoPrint]);
 
   const shareLink = async () => {
-    const url = window.location.href.replace(/\?print=1$/, "");
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.delete("print");
+    const url = currentUrl.toString();
     try {
       if (navigator.share) {
         await navigator.share({ title, text: title, url });
