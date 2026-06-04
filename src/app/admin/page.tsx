@@ -60,6 +60,22 @@ const lineQty = (item: any) => Number(item.qty || 0);
 const lineAmount = (item: any) => lineQty(item) * Number(item.price || 0);
 const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) => lineQty(item) * Number(unitCost || 0);
 const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
+const customerFacingLineItem = (item: any) => {
+  const pieces = Number(item?.pieces || 0);
+  if (itemBillingBasis(item) !== "sqm" || pieces <= 0) return item;
+
+  const amount = lineAmount(item);
+  const cost = lineCost(item);
+  return {
+    ...item,
+    qty: pieces,
+    unit: "ชิ้น",
+    price: amount / pieces,
+    costSnapshot: cost / pieces,
+    priceUnit: "piece",
+    costUnit: "piece",
+  };
+};
 
 const documentCompanyName = (name?: string) => {
   const cleanName = String(name || DEFAULT_DOCUMENT_COMPANY_NAME)
@@ -173,7 +189,9 @@ function printDocument(doc: any, customers: any[], company: any) {
   const lbl = DOC_LABELS[doc.type] || DOC_LABELS.quote;
 
   // ── Table rows — with bullet detail list ─────────────────
-  const rows = doc.items.map((item, i) => `
+  const rows = doc.items.map((rawItem, i) => {
+    const item = customerFacingLineItem(rawItem);
+    return `
     <tr style="border-bottom:1px solid #e5e7eb;vertical-align:top;">
       <td style="padding:9px 6px;text-align:center;font-weight:700;font-size:13px;color:#FF5500;border-right:1px solid #e5e7eb;">${String(i + 1).padStart(2, "0")}</td>
       <td style="padding:9px 10px;border-right:1px solid #e5e7eb;">
@@ -187,7 +205,8 @@ function printDocument(doc: any, customers: any[], company: any) {
       <td style="padding:9px 6px;text-align:center;font-size:10px;color:#94a3b8;border-right:1px solid #e5e7eb;">${item.unit}</td>
       <td style="padding:9px 8px;text-align:right;font-size:11px;color:#475569;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.price)}</td>
       <td style="padding:9px 8px;text-align:right;font-size:11px;font-weight:700;color:#FF5500;">${fmtMoney(lineAmount(item))}</td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 
   // ── Summary rows ──────────────────────────────────────────
   const summaryRows = `
@@ -1867,12 +1886,13 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     if (!doc.docNo?.trim()) return showToast("กรุณาระบุเลขที่เอกสาร", "error");
     const itemsWithCost = doc.items.map(item => {
       const prod = products.find(p => p.name === item.name);
-      return {
+      const costedItem = {
         ...item,
         costSnapshot: Number(item.costSnapshot || 0) > 0 ? item.costSnapshot : (prod ? prod.cost : 0),
         costUnit: item.costUnit || prod?.costUnit || prod?.cost_unit || "piece",
         priceUnit: item.priceUnit || prod?.priceUnit || prod?.price_unit || "piece",
       };
+      return customerFacingLineItem(costedItem);
     });
     const docRow = {
       type: doc.type, doc_no: doc.docNo, status: doc.status,
