@@ -397,7 +397,6 @@ body {
   }
 
   .doc-a4 {
-    /* scale ให้พอดีจอมือถือ โดยยึด A4 210mm = 794px */
     width: 210mm;
     min-width: 210mm;
     transform-origin: top center;
@@ -407,13 +406,22 @@ body {
 }
 
 @page {
-  size: A4;
+  size: A4 portrait;
   margin: 0;
 }
 
 @media print {
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   html,
   body {
+    margin: 0 !important;
+    padding: 0 !important;
     background: #fff !important;
   }
 
@@ -423,7 +431,8 @@ body {
 
   .doc-public-shell {
     padding: 0 !important;
-    min-height: auto;
+    margin: 0 !important;
+    min-height: auto !important;
     background: #fff !important;
   }
 
@@ -433,5 +442,24 @@ body {
     margin: 0 !important;
     padding: 18mm 12mm 15mm !important;
     box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .doc-table th {
+    background: #2b2d31 !important;
+    color: #fff !important;
+  }
+
+  .doc-table th span {
+    color: #cbd5e1 !important;
+  }
+
+  .doc-summary-total {
+    background: #ff5500 !important;
+    color: #fff !important;
+  }
+
+  .doc-footer-line {
+    background: #ff5500 !important;
   }
 }
