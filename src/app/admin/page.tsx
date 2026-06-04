@@ -43,6 +43,34 @@ const fmtDate = (d: string) => {
 const fmtMoney = (n: number) =>
   Number(n || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+const DEFAULT_DOCUMENT_COMPANY_NAME = "DISPLAY WORKS MEDIA";
+
+const documentCompanyName = (name?: string) => {
+  const cleanName = String(name || DEFAULT_DOCUMENT_COMPANY_NAME)
+    .replace(/\s*(CO\.?,?\s*LTD\.?|COMPANY\s+LIMITED|LIMITED)\s*\.?$/i, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return cleanName || DEFAULT_DOCUMENT_COMPANY_NAME;
+};
+
+const escapeHtml = (value: unknown): unknown => {
+  if (typeof value !== "string") return value;
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+};
+
+const sanitizeForPrint = (value: any): any => {
+  if (Array.isArray(value)) return value.map(sanitizeForPrint);
+  if (!value || typeof value !== "object") return escapeHtml(value);
+  return Object.fromEntries(
+    Object.entries(value).map(([key, val]) => [key, sanitizeForPrint(val)])
+  );
+};
+
 // ── Shared calculation utility — ใช้ร่วมกันทุกจุด ──────────
 const calcDocTotal = (doc: any) => {
   const subtotal    = (doc.items || []).reduce((s, i) => s + (i.qty || 0) * (i.price || 0), 0);
@@ -100,6 +128,11 @@ function saveStore(key: string, val: unknown) {
 // PRINT / PDF helper — Premium A4 Design (Display Works Media)
 // ============================================================
 function printDocument(doc: any, customers: any[], company: any) {
+  doc = sanitizeForPrint(doc);
+  customers = sanitizeForPrint(customers);
+  company = sanitizeForPrint(company);
+  const printCompanyName = documentCompanyName(company.name);
+
   const cust = customers.find((c) => c.id === doc.customerId) || {};
   const custAddress = doc.overrideAddress || cust.address || "";
   const dt = DOC_TYPES[doc.type];
@@ -217,7 +250,7 @@ function printDocument(doc: any, customers: any[], company: any) {
             </div>
           </div>
         </div>
-        <div style="font-weight:700;font-size:11px;color:#334155;margin-bottom:3px;">${company.name || "DISPLAY WORKS MEDIA CO., LTD."}</div>
+        <div style="font-weight:700;font-size:11px;color:#334155;margin-bottom:3px;">${printCompanyName}</div>
         <div style="font-size:9.5px;color:#94a3b8;line-height:1.7;max-width:380px;">${company.address || ""}</div>
         <div style="font-size:8.5px;color:#94a3b8;line-height:1.7;margin-top:2px;">
           ${company.phone ? "โทร. " + company.phone : ""}
@@ -324,7 +357,7 @@ function printDocument(doc: any, customers: any[], company: any) {
                         text-transform:uppercase;margin-bottom:6px;">PAYMENT INFORMATION</div>
             <div style="font-size:10.5px;margin-bottom:2px;">
               <span style="color:#94a3b8;">ชื่อบัญชี:</span>
-              <span style="font-weight:700;color:#1e293b;"> ${doc.bankName || company.bankName || company.name || "-"}</span>
+              <span style="font-weight:700;color:#1e293b;"> ${doc.bankName || company.bankName || printCompanyName || "-"}</span>
             </div>
             <div style="font-size:10px;color:#64748b;margin-bottom:2px;">
               <span style="color:#94a3b8;">ธนาคาร:</span> ${doc.bankBranch || company.bankBranch || "-"}
@@ -838,6 +871,20 @@ export default function AdminPage() {
         select option { background: #141A24; }
         label { font-size: 13px; color: #A8B0C0; display: block; margin-bottom: 6px; font-weight: 500; }
         button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        table { min-width: 720px; }
+        .main-content-area > div {
+          max-width: 1440px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .main-content-area h2 {
+          letter-spacing: 0;
+          line-height: 1.25;
+        }
+        .main-content-area table th,
+        .main-content-area table td {
+          vertical-align: middle;
+        }
 
         ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: #0B0F19; }
@@ -854,6 +901,24 @@ export default function AdminPage() {
         @media (max-width: 768px) {
           .hide-mobile { display: none !important; }
           .show-mobile { display: flex !important; }
+          table:not(.doc-table) {
+            display: block !important;
+            width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+          }
+          table:not(.doc-table) thead,
+          table:not(.doc-table) tbody,
+          table:not(.doc-table) tr {
+            min-width: 720px;
+          }
+          .main-content-area > div {
+            max-width: none;
+          }
+          .main-content-area h2 {
+            font-size: 18px !important;
+          }
 
           /* Document table → card list on mobile */
           .doc-table { display: none !important; }
@@ -878,6 +943,10 @@ export default function AdminPage() {
             max-width: 100% !important;
             max-height: 92dvh !important;
             animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1) !important;
+          }
+          .modal-backdrop {
+            align-items: flex-end !important;
+            padding: 0 !important;
           }
 
           /* Content padding accounts for nav + safe area */
@@ -1539,6 +1608,7 @@ function CompanyPage({ company, setCompany, showToast }: any) {
   const [f, setF] = useState({ bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", salesPerson: "", ...company });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const save = async () => {
+    let savedCompany = { ...f };
     const row = {
       name: f.name, address: f.address, phone: f.phone, email: f.email,
       tax_id: f.taxId, sales_person: f.salesPerson,
@@ -1552,9 +1622,10 @@ function CompanyPage({ company, setCompany, showToast }: any) {
     } else {
       const { data, error } = await supabase.from("erp_company").insert(row).select().single();
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-      setF(prev => ({ ...prev, id: data.id }));
+      savedCompany = { ...f, id: data.id };
+      setF(savedCompany);
     }
-    setCompany(f);
+    setCompany(savedCompany);
     showToast("บันทึกข้อมูลบริษัทแล้ว");
   };
   const secStyle = { background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 24, display: "flex" as const, flexDirection: "column" as const, gap: 14 };
@@ -1713,7 +1784,6 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
         const { error } = await supabase.from("erp_documents").update(docRow).eq("id", doc.id);
         if (error) throw error;
         // ลบ items เก่า แล้วใส่ใหม่
-        await supabase.from("erp_document_items").delete().eq("document_id", doc.id);
       } else {
         const { data, error } = await supabase.from("erp_documents").insert(docRow).select().single();
         if (error) throw error;
@@ -1726,8 +1796,19 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           name: item.name, sub_title: item.subTitle, detail: item.detail,
           unit: item.unit, qty: item.qty, price: item.price, cost_snapshot: item.costSnapshot,
         }));
-        const { error: itemErr } = await supabase.from("erp_document_items").insert(itemRows);
+        const { data: insertedItems, error: itemErr } = await supabase
+          .from("erp_document_items")
+          .insert(itemRows)
+          .select("id");
         if (itemErr) throw itemErr;
+        if (doc.id) {
+          const insertedIds = (insertedItems || []).map((item) => item.id).filter(Boolean);
+          const deleteQuery = supabase.from("erp_document_items").delete().eq("document_id", doc.id);
+          const { error: deleteOldItemsError } = insertedIds.length > 0
+            ? await deleteQuery.not("id", "in", `(${insertedIds.join(",")})`)
+            : await deleteQuery;
+          if (deleteOldItemsError) throw deleteOldItemsError;
+        }
       }
       const saved = { ...doc, id: docId, items: itemsWithCost };
       if (doc.id) setDocuments(prev => prev.map(d => d.id === doc.id ? saved : d));
@@ -2540,9 +2621,9 @@ function IconBtn({ onClick, children, danger, small }: any) {
 
 function Modal({ title, onClose, children, width = 500 }: any) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 0 }}
+    <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: width, maxHeight: "92dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 -8px 80px rgba(0,0,0,0.6)", animation: "slideUp 0.3s cubic-bezier(0.32,0.72,0,1)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+      <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
@@ -3352,9 +3433,9 @@ function CIconBtn({ onClick, children, danger, small }: any) {
 }
 function CModal({ title, onClose, children, width = 500 }: any) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 0 }}
+    <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: width, maxHeight: "92dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 -8px 80px rgba(0,0,0,0.6)", animation: "slideUp 0.3s cubic-bezier(0.32,0.72,0,1)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+      <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         {/* drag indicator */}
         <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>

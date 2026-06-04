@@ -277,29 +277,29 @@ export default function QuoteForm() {
                     />
                   </div>
 
-                  {/* File Upload */}
-                  <div>
-                    <label htmlFor="quote-file" className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
-                      แนบไฟล์ (ถ้ามี)
-                    </label>
-                    <label
-                      htmlFor="quote-file"
-                      className="flex flex-col items-center justify-center py-8 rounded-lg border border-dashed cursor-pointer transition-colors duration-200"
-                      style={{ borderColor: "rgba(255,107,0,0.25)" }}
+                  {/* Artwork handoff */}
+                  <div
+                    className="flex flex-col gap-2 rounded-lg border border-dashed p-5 sm:flex-row sm:items-center sm:justify-between"
+                    style={{ borderColor: "rgba(255,107,0,0.25)", background: "rgba(255,107,0,0.04)" }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Upload size={22} className="mt-0.5 text-muted" aria-hidden="true" />
+                      <div>
+                        <div className="text-sm font-semibold text-white">มีไฟล์งานอยู่แล้ว?</div>
+                        <p className="mt-1 text-xs leading-relaxed text-muted">
+                          ส่งรายละเอียดในฟอร์มนี้ก่อน แล้วแนบไฟล์ AI, PDF, PSD, JPG หรือ PNG ผ่าน LINE เพื่อให้ทีมตรวจไฟล์และประเมินราคาได้เร็วขึ้น
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href="https://lin.ee/O0nPl03"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-500"
+                      style={{ background: "#06C755" }}
                     >
-                      <Upload size={24} className="text-muted mb-2" aria-hidden="true" />
-                      <span className="text-muted text-sm">คลิกเพื่ออัปโหลดไฟล์ หรือลากวางที่นี่</span>
-                      <span className="text-xs mt-1" style={{ color: "rgba(168,176,192,0.5)" }}>
-                        รองรับ AI, PDF, PSD, JPG, PNG (สูงสุด 50MB)
-                      </span>
-                      <input
-                        id="quote-file"
-                        type="file"
-                        className="hidden"
-                        accept=".ai,.pdf,.psd,.jpg,.jpeg,.png"
-                        aria-label="แนบไฟล์งาน"
-                      />
-                    </label>
+                      ส่งไฟล์ทาง LINE
+                    </a>
                   </div>
 
                   <button

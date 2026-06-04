@@ -12,11 +12,6 @@ import {
   Home, Tag, AlertCircle,
 } from "lucide-react";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 type Post = {
   id: string; title: string; excerpt: string; category: string;
   date: string; slug: string; cover: string; published: boolean; body: string;
@@ -99,14 +94,26 @@ function Navbar() {
   );
 }
 
-export default function BlogPostPage() {
+export default function BlogPostPage({
+  initialPost = null,
+  initialRelated = [],
+}: {
+  initialPost?: Post | null;
+  initialRelated?: Post[];
+}) {
   const { slug } = useParams<{ slug: string }>();
-  const [post, setPost] = useState<Post | null>(null);
-  const [related, setRelated] = useState<Post[]>([]);
+  const [post, setPost] = useState<Post | null>(initialPost);
+  const [related, setRelated] = useState<Post[]>(initialRelated);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    if (initialPost?.slug === decodeURIComponent(slug)) return;
+
     async function fetchPost() {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
       const decodedSlug = decodeURIComponent(slug);
       const { data, error } = await supabase
         .from("posts")
@@ -129,7 +136,7 @@ export default function BlogPostPage() {
       setRelated(relData || []);
     }
     fetchPost();
-  }, [slug]);
+  }, [initialPost?.slug, slug]);
 
   if (notFound) {
     return (

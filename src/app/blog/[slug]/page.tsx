@@ -6,15 +6,20 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
 // ดึง metadata จาก Supabase จริง — Google จะเห็น title/description ตรงกับเนื้อหา
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = getSupabase();
+    if (!supabase) throw new Error("Supabase env is not configured");
     const { data: post } = await supabase
       .from("posts")
       .select("title, excerpt, cover, category, date")
@@ -71,6 +76,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function BlogPostPage() {
-  return <BlogPostClient />;
+export default async function BlogPostPage({ params }: Props) {
+  const { slug } = await params;
+
+  try {
+    const supabase = getSupabase();
+    if (!supabase) return <BlogPostClient />;
+
+    const { data: post } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("slug", slug)
+      .eq("published", true)
+      .single();
+
+    if (!post) return <BlogPostClient />;
+
+    const { data: related } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("published", true)
+      .eq("category", post.category)
+      .neq("slug", slug)
+      .limit(3);
+
+    return <BlogPostClient initialPost={post} initialRelated={related || []} />;
+  } catch {
+    return <BlogPostClient />;
+  }
 }

@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://displayworksmedia.com",
   },
+  icons: {
+    icon: "/images/logo.png",
+    shortcut: "/images/logo.png",
+    apple: "/images/logo.png",
+  },
   openGraph: {
     title: "Display Works Media | บริการสั่งป้ายและงานพิมพ์ออนไลน์",
     description: "บริการสั่งป้ายและงานพิมพ์ออนไลน์ครบวงจร ง่าย เร็ว มืออาชีพ ส่งทั่วประเทศ",
@@ -33,11 +38,20 @@ export const metadata: Metadata = {
     type: "website",
     locale: "th_TH",
     siteName: "Display Works Media",
+    images: [
+      {
+        url: "https://displayworksmedia.com/images/hero-bg.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Display Works Media บริการป้ายและงานพิมพ์ออนไลน์",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Display Works Media",
     description: "บริการสั่งป้ายและงานพิมพ์ออนไลน์ครบวงจร",
+    images: ["https://displayworksmedia.com/images/hero-bg.jpg"],
   },
   robots: { index: true, follow: true },
 };

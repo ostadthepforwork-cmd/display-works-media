@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { Calendar, Clock, ArrowRight, Search, Home, ChevronRight } from "lucide-react";
+import Navbar from "@/components/Navbar";
 import BlogClientShell from "./BlogClientShell";
 
 export const metadata = {
@@ -18,26 +19,44 @@ function readTimeTH(body: string) {
   return `${Math.max(1, Math.round((body || "").length / 5 / 200))} นาที`;
 }
 
+function withTimeout<T>(promise: Promise<T>, ms = 3000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error("Supabase blog query timed out")), ms);
+    }),
+  ]);
+}
+
 export default async function BlogPage() {
   // สร้าง supabase client ภายใน function — ป้องกัน connection leak ใน serverless
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  let allPosts: any[] = [];
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const { data: posts } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("published", true)
-    .order("date", { ascending: false });
+    if (supabaseUrl && supabaseKey) {
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      const { data: posts } = await withTimeout<any>(
+        Promise.resolve(supabase
+          .from("posts")
+          .select("*")
+          .eq("published", true)
+          .order("date", { ascending: false }))
+      );
 
-  const allPosts = posts || [];
+      allPosts = posts || [];
+    }
+  } catch {
+    allPosts = [];
+  }
   const featuredPost = allPosts[0];
   const regularPosts = allPosts.slice(1);
   const categories = ["ทั้งหมด", ...Array.from(new Set(allPosts.map((p) => p.category).filter(Boolean)))];
 
   return (
     <div className="min-h-screen text-white bg-[#050816]" style={{ fontFamily: "'Prompt', sans-serif" }}>
+      <Navbar />
 
       {/* BREADCRUMB */}
       <div className="pt-[70px] bg-[#050816] border-b border-white/5">

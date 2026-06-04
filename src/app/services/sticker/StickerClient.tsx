@@ -209,12 +209,12 @@ function Navbar() {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#050816]/95 backdrop-blur-md border-b border-white/10" : "bg-transparent"}`}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-[70px]">
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 relative">
-            <Image src="/images/logo.png" alt="Display Works Media" fill priority className="object-contain" />
+          <div className="w-10 h-10 relative flex-shrink-0">
+            <Image src="/images/logo.png" alt="Display Works Media logo" width={40} height={40} priority className="object-contain" />
           </div>
           <div>
-            <div className="font-bold text-sm tracking-wider leading-none text-white uppercase">DISPLAY WORKS</div>
-            <div className="font-bold text-sm tracking-wider text-[#FF7A00] leading-none uppercase">Media</div>
+            <div className="font-kanit font-bold text-sm tracking-wider leading-none text-white">DISPLAY WORKS</div>
+            <div className="font-kanit font-bold text-sm tracking-wider leading-none text-[#FF6B00]">MEDIA</div>
           </div>
         </Link>
         <div className="hidden lg:flex items-center gap-6">
@@ -294,8 +294,10 @@ export default function StickerLandingPage() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-transparent">
               บริการออกแบบและผลิต
             </div>
-            <h1 className="font-['Kanit'] font-extrabold text-5xl lg:text-7xl mb-2 leading-tight text-white">สั่งสติ๊กเกอร์</h1>
-            <h1 className="font-['Kanit'] font-extrabold text-5xl lg:text-7xl mb-6 text-[#FF7A00] leading-tight">คุณภาพสูง</h1>
+            <h1 className="font-['Kanit'] font-extrabold text-5xl lg:text-7xl mb-6 leading-tight text-white">
+              สั่งสติ๊กเกอร์
+              <span className="block text-[#FF7A00]">คุณภาพสูง</span>
+            </h1>
             <p className="text-base text-gray-300 max-w-xl mb-10 leading-relaxed">
               พิมพ์สติ๊กเกอร์สีสด คมชัด ไดคัทได้ตามรูปแบบที่ต้องการ รองรับทั้งงาน Indoor และ Outdoor เหมาะสำหรับฉลากสินค้าและตกแต่งกระจกร้าน
             </p>
