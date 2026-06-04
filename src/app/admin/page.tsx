@@ -134,6 +134,11 @@ function saveStore(key: string, val: unknown) {
 // PRINT / PDF helper — Premium A4 Design (Display Works Media)
 // ============================================================
 function printDocument(doc: any, customers: any[], company: any) {
+  if (doc?.id && typeof window !== "undefined") {
+    const w = window.open(`/doc/${doc.id}?print=1`, "_blank", "width=960,height=780");
+    if (w) return;
+  }
+
   doc = sanitizeForPrint(doc);
   customers = sanitizeForPrint(customers);
   company = sanitizeForPrint(company);
@@ -577,13 +582,15 @@ export default function AdminPage() {
   const totalRevenue = documents
     .filter((d) => d.status === "paid")
     .reduce((s, d) => s + calcDocTotal(d).total, 0);
+  const resolveItemCost = (item: any) => {
+    const snapshot = Number(item.costSnapshot || 0);
+    if (snapshot > 0) return snapshot;
+    return products.find((p) => p.name === item.name)?.cost || 0;
+  };
   const totalCost = documents.filter((d) => d.status === "paid").reduce((s, d) => {
     return s + d.items.reduce((ss, i) => {
       // ใช้ costSnapshot (บันทึกตอน save) ถ้ามี — ไม่งั้นหาจาก products list (backward compat)
-      const cost = i.costSnapshot != null
-        ? i.costSnapshot
-        : (products.find((p) => p.name === i.name)?.cost || 0);
-      return ss + i.qty * cost;
+      return ss + i.qty * resolveItemCost(i);
     }, 0);
   }, 0);
   const totalProfit = totalRevenue - totalCost;
@@ -1087,7 +1094,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
 
   const calcRev = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcDocTotal(d).total, 0);
   const itemCost = (item: any) => {
-    if (item.costSnapshot != null) return item.costSnapshot;
+    const snapshot = Number(item.costSnapshot || 0);
+    if (snapshot > 0) return snapshot;
     return products.find((product: any) => product.name === item.name)?.cost || 0;
   };
   const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
@@ -1834,7 +1842,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       return showToast("จำนวนและราคาต้องไม่ติดลบ", "error");
     if (!doc.docNo?.trim()) return showToast("กรุณาระบุเลขที่เอกสาร", "error");
     const itemsWithCost = doc.items.map(item => {
-      if (item.costSnapshot != null) return item;
+      if (Number(item.costSnapshot || 0) > 0) return item;
       const prod = products.find(p => p.name === item.name);
       return { ...item, costSnapshot: prod ? prod.cost : 0 };
     });
@@ -1928,6 +1936,26 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       showToast("คัดลอกข้อมูลเอกสารแล้ว");
     } catch {
       showToast("ไม่สามารถคัดลอกได้", "error");
+    }
+  };
+
+  const shareDocumentLink = async (doc) => {
+    if (!doc?.id) {
+      showToast("กรุณาบันทึกเอกสารก่อนแชร์", "error");
+      return;
+    }
+    const title = `${DOC_TYPES[doc.type]?.label || "เอกสาร"} ${doc.docNo}`;
+    const url = `${window.location.origin}/doc/${doc.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text: title, url });
+        showToast("แชร์ลิงก์เอกสารแล้ว");
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      showToast("คัดลอกลิงก์เอกสารแล้ว");
+    } catch {
+      showToast("ไม่สามารถแชร์ลิงก์เอกสารได้", "error");
     }
   };
 
@@ -2094,7 +2122,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             {/* พิมพ์ */}
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             {/* แชร์ลิงค์ */}
-                            <MenuBtn icon="📋" label="คัดลอกข้อมูลเอกสาร" onClick={() => { copyDocumentSummary(doc); closeAll(); }} />
+                            <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
                             {/* ดาวน์โหลด */}
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
                             {/* อีเมล */}
@@ -2196,7 +2224,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
-                            <MenuBtn icon="📋" label="คัดลอกข้อมูลเอกสาร" onClick={() => { copyDocumentSummary(doc); closeAll(); }} />
+                            <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` }); closeAll(); }} />
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { const cnt = allDocuments.filter(d => d.type === doc.type).length + 1; const yr = new Date().getFullYear() + 543; const pfx = DOC_TYPES[doc.type]?.prefix || ""; setEditing({ ...doc, id: "", docNo: `${pfx}${yr}-${String(cnt).padStart(4,"0")}`, date: today(), status: "draft" }); closeAll(); }} />
