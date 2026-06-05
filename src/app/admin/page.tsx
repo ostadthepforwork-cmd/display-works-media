@@ -84,6 +84,31 @@ const lineAmount = (item: any) => lineQty(item) * Number(item.price || 0);
 const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) => lineQty(item) * Number(unitCost || 0);
 const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
 const isReportDoc = (doc: any) => ["quote", "receipt"].includes(doc?.type);
+const reportRootId = (doc: any, byId: Map<string, any>) => {
+  let current = doc;
+  const seen = new Set<string>();
+  while (current?.orderId && byId.has(current.orderId) && !seen.has(current.id)) {
+    seen.add(current.id);
+    current = byId.get(current.orderId);
+  }
+  return current?.id || doc?.orderId || doc?.reference || doc?.id;
+};
+const reportingDocuments = (documents: any[]) => {
+  const byId = new Map((documents || []).map((doc: any) => [doc.id, doc]));
+  const groups = new Map<string, any[]>();
+  (documents || []).filter(isReportDoc).forEach((doc: any) => {
+    const key = reportRootId(doc, byId);
+    groups.set(key, [...(groups.get(key) || []), doc]);
+  });
+  return Array.from(groups.values()).flatMap((docs: any[]) => {
+    const receipts = docs.filter((doc: any) => doc.type === "receipt");
+    if (receipts.length > 0) return receipts;
+    return docs
+      .filter((doc: any) => doc.type === "quote")
+      .sort((a: any, b: any) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0))
+      .slice(0, 1);
+  });
+};
 const normalizeName = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
 const findProductForItem = (products: any[], item: any) => {
   const itemName = normalizeName(item?.name);
@@ -668,15 +693,15 @@ export default function AdminPage() {
     return acc;
   }, {});
 
-  const totalRevenue = documents
-    .filter(isReportDoc)
+  const reportDocs = reportingDocuments(documents);
+  const totalRevenue = reportDocs
     .reduce((s, d) => s + calcDocTotal(d).total, 0);
   const resolveItemCost = (item: any) => {
     const snapshot = Number(item.costSnapshot || 0);
     if (snapshot > 0) return snapshot;
     return findProductForItem(products, item)?.cost || 0;
   };
-  const totalCost = documents.filter(isReportDoc).reduce((s, d) => {
+  const totalCost = reportDocs.reduce((s, d) => {
     return s + d.items.reduce((ss, i) => {
       // ใช้ costSnapshot (บันทึกตอน save) ถ้ามี — ไม่งั้นหาจาก products list (backward compat)
       return ss + lineCost(i, resolveItemCost(i));
@@ -1178,7 +1203,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
   const lastMonthEnd   = thisMonthStart - 1;
 
-  const reportDocs = documents.filter(isReportDoc);
+  const reportDocs = reportingDocuments(documents);
 
   const calcRev = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcDocTotal(d).total, 0);
   const itemCost = (item: any) => {
