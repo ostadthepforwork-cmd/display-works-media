@@ -4,15 +4,16 @@ import { motion } from "framer-motion";
 import { ArrowRight, MessageCircle, Phone } from "lucide-react";
 
 const points = [
-  "ประเมินราคาฟรี ไม่มีค่าใช้จ่าย",
+  "ไม่มีค่าใช้จ่ายในการประเมินราคา",
   "ตอบกลับภายใน 24 ชั่วโมง",
-  "ยินดีให้คำแนะนำก่อนตัดสินใจ",
+  "ให้คำปรึกษาก่อนตัดสินใจ",
+  "ยังไม่มีแบบก็สอบถามได้",
 ];
 
 export default function CTA() {
   return (
     <section
-      className="py-24 lg:py-32 px-6 lg:px-8 relative overflow-hidden"
+      className="py-20 lg:py-24 px-6 lg:px-8 relative overflow-hidden"
       style={{
         background: "#141A24",
         borderTop: "1px solid rgba(255,255,255,0.06)",
@@ -51,23 +52,18 @@ export default function CTA() {
                 color: "#FF6B00",
               }}
             >
-              เริ่มต้นง่ายกว่าที่คิด
+              FREE CONSULTATION
             </div>
 
             <h2
               className="font-kanit font-extrabold leading-tight mb-5 text-white"
               style={{ fontSize: "clamp(32px, 4vw, 56px)" }}
             >
-              พร้อมเสริมภาพลักษณ์
-              <br />
-              <span style={{ color: "#FF6B00" }}>ธุรกิจของคุณ</span>
-              <br />
-              แล้วหรือยัง?
+              เริ่มต้นง่ายกว่าที่คิด
             </h2>
 
             <p className="text-base leading-relaxed mb-8" style={{ color: "#A8B0C0" }}>
-              ส่งรายละเอียดงานมาได้เลย ทีมงานพร้อมประเมินราคา
-              และให้คำแนะนำฟรีโดยไม่มีค่าใช้จ่าย
+              กำลังมองหางานป้ายหรือสื่อโฆษณา?
             </p>
 
             {/* Checklist */}
@@ -111,10 +107,10 @@ export default function CTA() {
               }}
             >
               <h3 className="font-kanit font-bold text-white text-2xl mb-2">
-                ขอใบเสนอราคา
+                ติดต่อเราได้เลย
               </h3>
               <p className="text-sm mb-8" style={{ color: "#A8B0C0" }}>
-                ฟรี ไม่มีค่าใช้จ่าย ตอบไวภายใน 24 ชั่วโมง
+                ปรึกษางานและประเมินราคาเบื้องต้นฟรี ติดต่อกลับภายใน 30 นาที
               </p>
 
               {/* Primary CTA */}
@@ -136,7 +132,7 @@ export default function CTA() {
                     "0 8px 32px rgba(255,107,0,0.3)";
                 }}
               >
-                กรอกใบเสนอราคาออนไลน์
+                ติดต่อสอบถามออนไลน์
                 <ArrowRight
                   size={18}
                   className="transition-transform group-hover:translate-x-1"

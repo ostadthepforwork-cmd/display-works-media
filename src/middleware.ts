@@ -27,7 +27,25 @@ export async function middleware(req: NextRequest) {
   );
 
   // getUser() จะ refresh session และ set cookie ผ่าน setAll ข้างบน
-  const { data: { user } } = await supabase.auth.getUser();
+  let user: any = null;
+  let authError: unknown = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+    authError = result.error;
+  } catch (error) {
+    authError = error;
+  }
+
+  if (authError) {
+    const cleanRes = req.nextUrl.pathname === "/login"
+      ? res
+      : NextResponse.redirect(new URL("/login", req.url));
+    req.cookies.getAll()
+      .filter((cookie) => cookie.name.startsWith("sb-"))
+      .forEach((cookie) => cleanRes.cookies.delete(cookie.name));
+    return cleanRes;
+  }
 
   // ถ้าเข้า /admin โดยไม่ได้ login → redirect ไป /login
   if (req.nextUrl.pathname.startsWith("/admin") && !user) {

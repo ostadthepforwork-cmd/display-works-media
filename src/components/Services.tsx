@@ -9,7 +9,7 @@ const services = [
     image: "/images/services/vinyl.jpg",
     name: "ป้ายไวนิล",
     desc: "พิมพ์ไวนิลคุณภาพสูง สีสดใส ทนแดด ทนฝน เหมาะสำหรับป้ายร้าน ป้ายโฆษณา รองรับทุกขนาดตามต้องการ",
-    href: "/services/vinyl",
+    href: "/services/vinyl-banner",
   },
   {
     image: "/images/services/sticker.jpg",
@@ -21,19 +21,19 @@ const services = [
     image: "/images/services/ppboard.jpg",
     name: "PP Board/ Standee",
     desc: "ป้าย PP Board น้ำหนักเบา ประกอบง่าย เหมาะสำหรับงาน Event ป้ายชั่วคราว และห้องนิทรรศการ",
-    href: "/services/ppboard",
+    href: "/services/pp-board",
   },
   {
     image: "/images/services/rollup-xstand.jpg",
     name: "Roll Up / X-stand",
     desc: "พกพาสะดวก ติดตั้งง่าย เหมาะสำหรับงาน Booth สัมมนา และ Presentation ระดับมืออาชีพ",
-    href: "/services/rollup",
+    href: "/services/roll-up",
   },
   {
     image: "/images/services/product-label-hero.jpg",
     name: "ฉลากสินค้า",
     desc: "ฉลากสินค้า สีสวยสดชัด ติดทนทาน กันน้ำ 100% เนื้อวัสดุเหนียวพิเศษ ไม่ฉีกขาดง่าย",
-    href: "/services/label",
+    href: "/services/label-sticker",
   },
   {
     image: "/images/services/backdrop.jpg",
@@ -48,14 +48,10 @@ export default function Services() {
     <section id="services" className="py-16 sm:py-24 px-5 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="reveal-section">
-          <div className="section-label">บริการของเรา</div>
-          <h2 className="section-title">
-            ครบทุกงานพิมพ์
-            <br />
-            คุณภาพมืออาชีพ
-          </h2>
+          <div className="section-label">PRINTING SERVICES</div>
+          <h2 className="section-title">บริการของเรา</h2>
           <p className="section-sub">
-            เราให้บริการงานพิมพ์สำหรับธุรกิจครบทุกประเภท ตอบโจทย์ทุกความต้องการ
+            ตอบโจทย์ทุกความต้องการด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขายสำหรับธุรกิจ
           </p>
         </div>
 

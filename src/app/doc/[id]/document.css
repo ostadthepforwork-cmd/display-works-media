@@ -96,12 +96,20 @@ body {
 .doc-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
+  width: 178px;
+  height: 62px;
+  overflow: hidden;
+  background: #fff;
 }
 
 .doc-brand img {
-  width: 155px;
-  height: auto;
+  width: 178px;
+  height: 62px;
+  object-fit: cover;
+  object-position: center 56%;
+  display: block;
 }
 
 .doc-company-name {

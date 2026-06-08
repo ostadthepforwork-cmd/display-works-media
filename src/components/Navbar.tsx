@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, MessageCircle, Facebook } from "lucide-react";
 
 const navLinks = [
   { label: "หน้าแรก", href: "/" },
-  { label: "บริการของเรา", href: "/#services" },
+  { label: "บริการของเรา", href: "/services" },
   { label: "ผลงานของเรา", href: "/#portfolio" },
   { label: "ขั้นตอนการทำงาน", href: "/#process" },
   { label: "บทความ", href: "/blog" },
+  { label: "FAQ", href: "/faq" },
   { label: "เกี่ยวกับเรา", href: "/about" },
   { label: "ติดต่อเรา", href: "/contact" },
 ];
@@ -39,12 +39,11 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 relative flex-shrink-0">
-            <Image
+            <img
               src="/images/logo.png"
               alt="Display Works Media logo"
-              width={40}
-              height={40}
-              className="object-contain"
+              className="h-10 w-10 object-contain"
+              style={{ width: 40, height: 40 }}
               onError={(e) => {
                 e.currentTarget.style.display = "none";
               }}

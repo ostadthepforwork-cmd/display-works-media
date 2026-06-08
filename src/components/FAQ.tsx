@@ -37,7 +37,7 @@ export default function FAQ() {
   return (
     <section
       id="faq"
-      className="py-24 lg:py-32 px-6 lg:px-8"
+      className="py-20 lg:py-24 px-6 lg:px-8"
       style={{ background: "#141A24" }}
     >
       <div className="max-w-7xl mx-auto">
@@ -51,8 +51,8 @@ export default function FAQ() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-2 lg:sticky lg:top-28"
           >
-            <div className="section-label">FAQ</div>
-            <h2 className="section-title mb-5">คำถามที่<br />พบบ่อย</h2>
+            <div className="section-label">HELP CENTER</div>
+            <h2 className="section-title mb-5">FAQ</h2>
             <p className="section-sub mb-8">
               หากมีคำถามเพิ่มเติม ติดต่อเราได้โดยตรง
               ทีมงานพร้อมช่วยเหลือทุกวัน

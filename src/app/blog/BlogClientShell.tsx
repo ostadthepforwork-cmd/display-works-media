@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Search, Calendar, Clock, ArrowRight } from "lucide-react";
+import { safeImageSrc } from "@/lib/image-utils";
 
 type Post = {
   id: string; title: string; excerpt: string; category: string;
@@ -76,13 +77,15 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPosts.map((post) => (
+              {filteredPosts.map((post) => {
+                const cover = safeImageSrc(post.cover);
+                return (
                 <article key={post.id} className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
                   <Link href={`/blog/${post.slug}`} className="block">
                     <div className="relative h-48 overflow-hidden bg-[#141A24]">
-                      {post.cover ? (
+                      {cover ? (
                         <Image
-                          src={post.cover}
+                          src={cover}
                           alt={post.title}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -114,7 +117,8 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
                     </div>
                   </Link>
                 </article>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

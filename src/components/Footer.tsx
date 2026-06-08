@@ -3,26 +3,26 @@
 
 
 import Link from "next/link";
-import Image from "next/image";
 import { MessageCircle, Facebook, Instagram, Phone, Mail, MapPin, ArrowRight } from "lucide-react";
 
 const navLinks = [
   { label: "หน้าแรก", href: "/" },
-  { label: "บริการของเรา", href: "/#services" },
+  { label: "บริการของเรา", href: "/services" },
   { label: "ผลงานของเรา", href: "/#portfolio" },
   { label: "ขั้นตอนการทำงาน", href: "/#process" },
   { label: "เกี่ยวกับเรา", href: "/about" },
   { label: "ติดต่อเรา", href: "/contact" },
-  { label: "FAQ", href: "/#faq" },
+  { label: "บทความ", href: "/blog" },
+  { label: "FAQ", href: "/faq" },
 ];
 
 const serviceLinks = [
-  { label: "ป้ายไวนิล", href: "/services/vinyl" },
-  { label: "สติ๊กเกอร์ Indoor / Outdoor", href: "/services/sticker" },
-  { label: "PP Board / Standee", href: "/services/ppboard" },
-  { label: "Roll Up / X-Stand", href: "/services/rollup" },
+  { label: "ป้ายไวนิล", href: "/services/vinyl-banner" },
+  { label: "สติ๊กเกอร์ฉลากสินค้า", href: "/services/label-sticker" },
+  { label: "PP Board / Standee", href: "/services/pp-board" },
+  { label: "Roll Up / X-Stand", href: "/services/roll-up" },
   { label: "แบ็คดรอปผ้า", href: "/services/backdrop" },
-  { label: "ฉลากสินค้า", href: "/services/label" },
+  { label: "ป้ายหน้าร้าน", href: "/services/storefront-signage" },
 ];
 
 const socials = [
@@ -43,10 +43,10 @@ export default function Footer() {
             style={{ background: "radial-gradient(ellipse at right, rgba(255,122,0,0.12) 0%, transparent 60%)" }} />
           <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
             <div>
-              <p className="font-['Kanit'] font-bold text-white text-lg leading-tight">
-                พร้อมเริ่มโปรเจกต์แล้วหรือยัง?
+              <p className="font-['Kanit'] font-bold text-white text-xl leading-tight">
+                ติดต่อเราได้เลย
               </p>
-              <p className="text-[#A7B0C0] text-sm mt-1">ประเมินราคาฟรี ตอบกลับภายใน 30 นาที</p>
+              <p className="text-[#A7B0C0] text-sm mt-1">ปรึกษางานและประเมินราคาเบื้องต้นฟรี ติดต่อกลับภายใน 30 นาที</p>
             </div>
             <div className="flex gap-3 flex-shrink-0 w-full sm:w-auto">
               <a href="https://lin.ee/O0nPl03" target="_blank" rel="noopener noreferrer"
@@ -57,7 +57,7 @@ export default function Footer() {
               <a href="/#quote"
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:-translate-y-0.5 active:scale-95"
                 style={{ background: "#FF7A00", boxShadow: "0 4px 16px rgba(255,122,0,0.2)" }}>
-                ขอใบเสนอราคา
+                ติดต่อสอบถาม
               </a>
             </div>
           </div>
@@ -72,7 +72,7 @@ export default function Footer() {
           <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center gap-3 mb-4">
               <div className="relative w-9 h-9 flex-shrink-0">
-                <Image src="/images/logo.png" alt="Display Works Media" fill className="object-contain" />
+                <img src="/images/logo.png" alt="Display Works Media" className="h-9 w-9 object-contain" style={{ width: 36, height: 36 }} />
               </div>
               <div>
                 <div className="font-['Kanit'] font-bold text-xs tracking-widest text-white leading-none uppercase">DISPLAY WORKS</div>

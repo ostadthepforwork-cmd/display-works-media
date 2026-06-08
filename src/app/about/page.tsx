@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2, Images, PackageCheck, Truck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingButtons from "@/components/FloatingButtons";
@@ -9,52 +10,38 @@ import SchemaOrg from "@/components/SchemaOrg";
 export const metadata: Metadata = {
   title: "เกี่ยวกับเรา | Display Works Media",
   description:
-    "Display Works Media คือบริการสั่งพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร รับทำแบ็คดรอปผ้า ป้ายไวนิล Roll Up Stand สติ๊กเกอร์ PP Board และฉลากสินค้า ส่งทั่วประเทศ",
+    "Display Works Media ผู้เชี่ยวชาญด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขายครบวงจร ให้คำปรึกษา ออกแบบ ผลิต และจัดส่งทั่วประเทศไทย",
   alternates: { canonical: "https://displayworksmedia.com/about" },
   openGraph: {
     title: "เกี่ยวกับเรา | Display Works Media",
-    description: "รู้จัก Display Works Media — ผู้ให้บริการงานพิมพ์ป้ายออนไลน์ครบวงจรในประเทศไทย",
+    description:
+      "ผู้เชี่ยวชาญด้านงานพิมพ์และสื่อโฆษณาครบวงจรสำหรับธุรกิจ ร้านค้า SME และองค์กร",
     url: "https://displayworksmedia.com/about",
   },
 };
 
-const stats = [
-  { num: "1,000+", label: "ลูกค้าทั่วประเทศ" },
-  { num: "6", label: "บริการครบวงจร" },
-  { num: "1–3", label: "วันทำการผลิต" },
-  { num: "4.9★", label: "คะแนนความพึงพอใจ" },
+const trustHighlights = [
+  "ปรึกษาและประเมินราคาฟรี",
+  "ผลิตรวดเร็ว จัดส่งทั่วประเทศ",
+  "ดูแลตั้งแต่ไอเดียจนถึงงานพร้อมใช้งาน",
 ];
 
-const values = [
+const proofCards = [
   {
-    icon: "🎯",
-    title: "คุณภาพงานพิมพ์",
-    desc: "เครื่องพิมพ์ระดับมืออาชีพ ความละเอียดสูง สีสดคมชัด ตรงตามแบบที่ลูกค้าต้องการทุกชิ้น",
+    icon: Images,
+    title: "งานหลากหลายประเภท",
+    desc: "ดูแลทั้งป้ายไวนิล สติ๊กเกอร์ ฉลากสินค้า PP Board Roll Up Backdrop และสื่อสำหรับงานอีเวนต์",
   },
   {
-    icon: "⚡",
-    title: "ส่งตรงเวลา",
-    desc: "ผลิต 1–3 วันทำการ จัดส่งทุกจังหวัดทั่วประเทศไทย แจ้งเลขพัสดุทุกออเดอร์",
+    icon: PackageCheck,
+    title: "ตรวจความพร้อมก่อนผลิต",
+    desc: "ช่วยเช็กไฟล์ ขนาด วัสดุ และรายละเอียดสำคัญ เพื่อให้งานออกมาตรงกับการใช้งานจริง",
   },
   {
-    icon: "💼",
-    title: "บริการครบจบ",
-    desc: "รับไฟล์งาน ออกแบบกราฟิก ผลิต และจัดส่ง ครบในที่เดียว ไม่ต้องวิ่งหลายเจ้า",
+    icon: Truck,
+    title: "ออนไลน์ 100%",
+    desc: "สอบถาม ส่งไฟล์ ยืนยันแบบ และจัดส่งงานถึงลูกค้าทั่วประเทศไทยได้โดยไม่ต้องเดินทาง",
   },
-  {
-    icon: "💰",
-    title: "ราคาเป็นธรรม",
-    desc: "ไม่มีค่าธรรมเนียมแอบแฝง ราคาชัดเจน สั่งขั้นต่ำ 1 ชิ้นได้ไม่มีข้อจำกัด",
-  },
-];
-
-const services = [
-  { name: "แบ็คดรอปผ้า / Pop-up / โครงทรัส", href: "/services/backdrop", icon: "🖼" },
-  { name: "ป้ายไวนิล ทุกชนิด", href: "/services/vinyl", icon: "📋" },
-  { name: "Roll Up Stand / X-Stand", href: "/services/rollup", icon: "🗓" },
-  { name: "สติ๊กเกอร์ ตัดขอบ Die-cut", href: "/services/sticker", icon: "✂️" },
-  { name: "PP Board / Standee ตัดรูปทรง", href: "/services/ppboard", icon: "📌" },
-  { name: "ฉลากสินค้า / Product Label", href: "/services/label", icon: "🏷" },
 ];
 
 export default function AboutPage() {
@@ -64,7 +51,8 @@ export default function AboutPage() {
     "@id": "https://displayworksmedia.com/about#webpage",
     url: "https://displayworksmedia.com/about",
     name: "เกี่ยวกับเรา | Display Works Media",
-    description: "Display Works Media คือบริการสั่งพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร รับทำแบ็คดรอปผ้า ป้ายไวนิล Roll Up Stand สติ๊กเกอร์ PP Board และฉลากสินค้า ส่งทั่วประเทศ",
+    description:
+      "Display Works Media คือผู้ให้บริการด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขายครบวงจร สำหรับธุรกิจ ร้านค้า SME และองค์กร",
     isPartOf: { "@id": "https://displayworksmedia.com/#website" },
     about: { "@id": "https://displayworksmedia.com/#business" },
   };
@@ -72,132 +60,103 @@ export default function AboutPage() {
   return (
     <>
       <SchemaOrg extra={aboutSchema} />
-    <div className="min-h-screen font-['Prompt',sans-serif] text-white bg-[#050816]">
-      <Navbar />
+      <main className="min-h-screen bg-[#050816] text-white font-['Prompt',sans-serif]">
+        <Navbar />
 
-      {/* Hero */}
-      <section className="relative pt-28 pb-20 px-5 overflow-hidden">
-        {/* bg glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full opacity-10 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, #FF7A00 0%, transparent 70%)" }} />
-        <div className="relative max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00]">
-            เกี่ยวกับเรา
-          </div>
-          <h1 className="font-['Kanit'] font-extrabold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-4">
-            Display Works<br />
-            <span style={{ color: "#FF7A00" }}>Media</span>
-          </h1>
-          <p className="text-[#A7B0C0] text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
-            โซลูชันงานพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร<br className="hidden sm:block" />
-            สำหรับธุรกิจยุคใหม่ในประเทศไทย
-          </p>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="px-5 pb-16">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {stats.map(({ num, label }) => (
-            <div key={label} className="rounded-2xl p-5 text-center border border-white/5"
-              style={{ background: "#0B1220" }}>
-              <div className="font-['Kanit'] font-extrabold text-2xl sm:text-3xl text-[#FF7A00]">{num}</div>
-              <div className="text-[#A7B0C0] text-xs mt-1 leading-snug">{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* เราคือใคร */}
-      <section className="px-5 pb-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: "#0B1220" }}>
-            <div className="p-6 sm:p-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-5 border border-[#FF7A00]/30 text-[#FF7A00]">
-                เราคือใคร
+        <section className="relative overflow-hidden px-5 pt-28 pb-20 lg:pt-32 lg:pb-24">
+          <div
+            className="absolute inset-x-0 top-0 h-[420px] pointer-events-none"
+            style={{ background: "linear-gradient(180deg, rgba(255,122,0,0.08), transparent)" }}
+          />
+          <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_0.92fr]">
+            <div>
+              <div className="section-label">
+                เกี่ยวกับเรา
               </div>
-              <h2 className="font-['Kanit'] font-bold text-2xl sm:text-3xl text-white mb-5">
-                ผู้เชี่ยวชาญงานพิมพ์ป้ายออนไลน์
-              </h2>
-              <div className="space-y-4 text-[#A7B0C0] leading-relaxed text-sm sm:text-base">
+              <h1 className="font-['Kanit'] text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+                ผู้เชี่ยวชาญด้านงานพิมพ์และสื่อโฆษณาครบวงจร
+              </h1>
+              <p className="mt-6 max-w-2xl text-base leading-8 text-[#A7B0C0] sm:text-lg">
+                ให้คำปรึกษา ออกแบบ ผลิต และจัดส่งสื่อโฆษณาคุณภาพ เพื่อช่วยให้ธุรกิจของคุณโดดเด่นและน่าจดจำมากยิ่งขึ้น
+              </p>
+
+              <div className="mt-8 space-y-4 text-sm leading-7 text-[#A7B0C0] sm:text-base">
                 <p>
-                  <strong className="text-white">Display Works Media</strong> คือผู้ให้บริการงานพิมพ์ป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร
-                  เราเชี่ยวชาญด้านการผลิตป้ายไวนิล แบ็คดรอปผ้า Roll Up Stand สติ๊กเกอร์ PP Board
-                  และฉลากสินค้าสำหรับธุรกิจทุกขนาดในประเทศไทย
+                  Display Works Media คือผู้ให้บริการด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขายครบวงจร สำหรับธุรกิจ ร้านค้า SME และองค์กรที่ต้องการสื่อคุณภาพ พร้อมบริการที่สะดวก รวดเร็ว และดูแลโดยทีมงานมืออาชีพ
                 </p>
                 <p>
-                  ด้วยระบบสั่งผลิตออนไลน์ที่ง่ายและรวดเร็ว ลูกค้าสามารถส่งไฟล์งาน เลือกขนาด
-                  และรับงานส่งตรงถึงหน้าประตูได้ทุกจังหวัดทั่วประเทศ โดยไม่ต้องเดินทางเลย
+                  เราเชื่อว่าสื่อโฆษณาที่ดีไม่ใช่เพียงแค่สวยงาม แต่ต้องช่วยให้ธุรกิจสื่อสารได้ชัดเจน สร้างความน่าเชื่อถือ และเข้าถึงลูกค้าได้อย่างมีประสิทธิภาพ
+                </p>
+                <p>
+                  ตั้งแต่งานป้ายไวนิล สติ๊กเกอร์ ฉลากสินค้า PP Board Roll Up ไปจนถึง Backdrop และสื่อสำหรับงานอีเวนต์ เราพร้อมช่วยดูแลตั้งแต่การให้คำปรึกษา การเตรียมไฟล์ การผลิต ไปจนถึงการจัดส่งทั่วประเทศ
                 </p>
               </div>
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <Link href="/contact"
-                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white transition-all hover:-translate-y-0.5"
-                  style={{ background: "#FF7A00", boxShadow: "0 4px 20px rgba(255,122,0,0.25)" }}>
-                  ติดต่อเรา →
+
+              <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                {trustHighlights.map((item) => (
+                  <div key={item} className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-sm text-white">
+                    <CheckCircle2 size={17} className="mt-0.5 flex-shrink-0 text-[#FF7A00]" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FF7A00] px-7 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5"
+                >
+                  ติดต่อเรา <ArrowRight size={18} />
                 </Link>
-                <Link href="/#quote"
-                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm border border-white/10 text-[#A7B0C0] hover:text-white hover:border-white/30 transition-all">
-                  ขอใบเสนอราคา
+                <Link
+                  href="/#portfolio"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-7 py-3.5 text-sm font-bold text-white transition hover:border-white/35 hover:bg-white/5"
+                >
+                  ดูผลงาน
                 </Link>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ค่านิยม */}
-      <section className="px-5 pb-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-4 border border-[#FF7A00]/30 text-[#FF7A00]">
-              ทำไมต้องเลือกเรา
-            </div>
-            <h2 className="font-['Kanit'] font-bold text-2xl sm:text-3xl text-white">
-              สิ่งที่ทำให้เราแตกต่าง
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {values.map(({ icon, title, desc }) => (
-              <div key={title} className="rounded-2xl p-6 border border-white/5 hover:border-[#FF7A00]/30 transition-all"
-                style={{ background: "#0B1220" }}>
-                <div className="text-3xl mb-3">{icon}</div>
-                <h3 className="font-['Kanit'] font-bold text-white text-base mb-2">{title}</h3>
-                <p className="text-[#A7B0C0] text-sm leading-relaxed">{desc}</p>
+            <div className="relative">
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  "/images/portfolio/work-01.webp",
+                  "/images/portfolio/sticker-1.jpg",
+                  "/images/portfolio/ppboard-1.png",
+                  "/images/portfolio/backdrop-1.png",
+                ].map((src, index) => (
+                  <div
+                    key={src}
+                    className={`relative overflow-hidden rounded-2xl border border-white/10 bg-[#0B1220] ${index === 1 ? "mt-8" : ""} ${index === 2 ? "-mt-8" : ""}`}
+                    style={{ aspectRatio: "1 / 1" }}
+                  >
+                    <Image src={src} alt="ตัวอย่างผลงาน Display Works Media" fill sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* บริการ */}
-      <section className="px-5 pb-24">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-4 border border-[#FF7A00]/30 text-[#FF7A00]">
-              บริการของเรา
             </div>
-            <h2 className="font-['Kanit'] font-bold text-2xl sm:text-3xl text-white">
-              ครบทุกงานพิมพ์ในที่เดียว
-            </h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {services.map(({ name, href, icon }) => (
-              <Link key={href} href={href}
-                className="flex items-center gap-3 rounded-xl p-4 border border-white/5 hover:border-[#FF7A00]/40 hover:bg-[#FF7A00]/5 transition-all group"
-                style={{ background: "#0B1220" }}>
-                <span className="text-xl">{icon}</span>
-                <span className="text-[#A7B0C0] group-hover:text-white text-sm transition-colors">{name}</span>
-                <span className="ml-auto text-[#FF7A00] opacity-0 group-hover:opacity-100 transition-opacity text-sm">→</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <Footer />
-      <FloatingButtons />
-    </div>
+        <section className="px-5 pb-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-4 md:grid-cols-3">
+              {proofCards.map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="rounded-2xl border border-white/10 bg-[#0B1220] p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FF7A00]/10 text-[#FF7A00]">
+                    <Icon size={24} />
+                  </div>
+                  <h2 className="font-['Kanit'] text-xl font-bold text-white">{title}</h2>
+                  <p className="mt-3 text-sm leading-7 text-[#A7B0C0]">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <Footer />
+        <FloatingButtons />
+      </main>
     </>
   );
 }

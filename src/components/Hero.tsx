@@ -11,13 +11,13 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-center overflow-hidden"
+      className="relative flex min-h-[720px] items-center overflow-hidden lg:min-h-[760px]"
       style={{ background: "#0B0F19" }}
     >
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/images/hero-bg.jpg"
+          src="/images/hero-bg-home.jpg"
           alt="Display Works Media"
           fill
           priority
@@ -44,7 +44,7 @@ export default function Hero() {
 
       <div
         className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 lg:px-8"
-        style={{ paddingTop: "100px", paddingBottom: "80px" }}
+        style={{ paddingTop: "96px", paddingBottom: "56px" }}
       >
         <div className="max-w-3xl">
 
@@ -106,7 +106,7 @@ export default function Hero() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="hero-cta flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
+          <div className="hero-cta flex flex-col sm:flex-row gap-3 sm:gap-4 mb-5">
             <a
               href="#quote"
               className="group inline-flex items-center justify-center gap-2 text-white font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto"
@@ -136,20 +136,21 @@ export default function Hero() {
 
           {/* Quick contact */}
           <div
-            className="hero-contact flex flex-wrap items-center gap-4 sm:gap-5"
-            style={{ color: "#A8B0C0", fontSize: "13px" }}
+            className="hero-contact inline-flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2.5"
+            style={{ color: "#A8B0C0", fontSize: "13px", background: "rgba(11,15,25,0.72)", borderColor: "rgba(255,255,255,0.1)" }}
           >
             <a
               href="tel:0659161539"
-              className="flex items-center gap-2 hover:text-white transition-colors"
+              className="flex items-center gap-2 rounded-lg px-2 py-1 hover:text-white transition-colors"
             >
               <Phone size={14} style={{ color: "#FF6B00" }} /> 065-916-1539
             </a>
+            <span className="hidden h-4 w-px bg-white/10 sm:block" />
             <a
               href="https://lin.ee/O0nPl03"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 hover:text-white transition-colors"
+              className="flex items-center gap-2 rounded-lg px-2 py-1 hover:text-white transition-colors"
             >
               <MessageCircle size={14} style={{ color: "#06C755" }} />{" "}
               ปรึกษาฟรีผ่าน LINE
@@ -159,7 +160,7 @@ export default function Hero() {
       </div>
 
       {/* Scroll indicator — hidden on mobile */}
-      <div className="hero-scroll absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 z-10">
+      <div className="hero-scroll absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 opacity-40 xl:flex">
         <div
           className="text-xs tracking-widest uppercase"
           style={{ color: "#A8B0C0" }}

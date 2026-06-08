@@ -21,7 +21,7 @@ const DOC_LABELS: Record<string, { en: string; th: string; due: string }> = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   try {
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     const { data: doc } = await supabase
       .from("erp_documents")
       .select("type, doc_no")
@@ -115,6 +115,20 @@ function docVatRate(doc: any) {
   return Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
 }
 
+function customerFacingLineItemWithMetadata(item: any) {
+  const isSqmByMeta = /sqm|square|meter/i.test(`${item?.priceUnit || ""}\n${item?.costUnit || ""}`);
+  if (!isSqmByMeta) return customerFacingLineItem(item);
+
+  const amount = lineAmount(item);
+  const pieces = Number(item?.pieces || 0) || 1;
+  return {
+    ...customerFacingLineItem(item),
+    qty: pieces,
+    unit: "\u0e0a\u0e34\u0e49\u0e19",
+    price: amount / pieces,
+  };
+}
+
 function calcDocTotal(doc: any) {
   const subtotal = (doc.items || []).reduce((sum: number, item: any) => sum + lineAmount(item), 0);
   const discountAmt = subtotal * (Number(doc.discount || 0) / 100);
@@ -152,7 +166,7 @@ function mapDocument(doc: any, items: any[]) {
     bankAccount: doc.bank_account || "",
     bankType: doc.bank_type || "",
     qrImage: doc.qr_image || "",
-    items: items.map((item) => customerFacingLineItem({
+    items: items.map((item) => customerFacingLineItemWithMetadata({
       id: item.id,
       name: item.name || "-",
       subTitle: item.sub_title || "",
@@ -160,6 +174,9 @@ function mapDocument(doc: any, items: any[]) {
       unit: item.unit || "",
       qty: Number(item.qty || 0),
       price: Number(item.price || 0),
+      costUnit: item.cost_unit || "",
+      priceUnit: item.price_unit || "",
+      pieces: Number(item.pieces || 0),
     })),
   };
 }
@@ -167,7 +184,7 @@ function mapDocument(doc: any, items: any[]) {
 export default async function PublicDocumentPage({ params, searchParams }: PageProps) {
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const [
     { data: rawDoc, error: docError },
@@ -213,7 +230,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
           <header className="doc-head">
             <div>
               <div className="doc-brand">
-                <img src="/images/logo DWM PNG long.png" alt="Display Works Media" />
+                <img src="/images/logo.png?v=doc-logo" alt="Display Works Media" />
               </div>
               <div className="doc-company-name">{companyName}</div>
               <div className="doc-company-meta">

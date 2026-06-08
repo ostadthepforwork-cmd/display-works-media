@@ -46,15 +46,15 @@ export default function BlogSection() {
   // แทนการ return null ซึ่งทำให้ hydration mismatch
   if (!mounted) {
     return (
-      <section id="blog" style={{ background: '#0d0d0d', padding: '80px 0' }}>
+      <section id="blog" style={{ background: '#0d0d0d', padding: '72px 0' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '40px' }}>
             <div>
               <p style={{ fontSize: '12px', color: '#f97316', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 500, margin: '0 0 8px', fontFamily: "'Kanit', sans-serif" }}>
-                ความรู้และเทคนิค
+                KNOWLEDGE CENTER
               </p>
-              <h2 style={{ fontSize: '34px', fontWeight: 700, color: '#ffffff', margin: '0', lineHeight: 1.2, fontFamily: "'Kanit', sans-serif" }}>
-                บทความ<span style={{ color: '#f97316' }}>ล่าสุด</span>
+              <h2 style={{ fontSize: 'clamp(44px, 6vw, 64px)', fontWeight: 800, color: '#ffffff', margin: '0', lineHeight: 1.05, fontFamily: "'Kanit', sans-serif" }}>
+                ความรู้และเทคนิค
               </h2>
               <div style={{ width: '44px', height: '3px', background: '#f97316', borderRadius: '99px', margin: '12px 0 10px' }} />
             </div>
@@ -73,16 +73,16 @@ export default function BlogSection() {
   if (posts.length === 0) return null
 
   return (
-    <section id="blog" style={{ background: '#0d0d0d', padding: '80px 0' }}>
+    <section id="blog" style={{ background: '#0d0d0d', padding: '72px 0' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '40px' }}>
           <div>
             <p style={{ fontSize: '12px', color: '#f97316', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 500, margin: '0 0 8px', fontFamily: "'Kanit', sans-serif" }}>
-              ความรู้และเทคนิค
+              KNOWLEDGE CENTER
             </p>
-            <h2 style={{ fontSize: '34px', fontWeight: 700, color: '#ffffff', margin: '0', lineHeight: 1.2, fontFamily: "'Kanit', sans-serif" }}>
-              บทความ<span style={{ color: '#f97316' }}>ล่าสุด</span>
+            <h2 style={{ fontSize: 'clamp(44px, 6vw, 64px)', fontWeight: 800, color: '#ffffff', margin: '0', lineHeight: 1.05, fontFamily: "'Kanit', sans-serif" }}>
+              ความรู้และเทคนิค
             </h2>
             <div style={{ width: '44px', height: '3px', background: '#f97316', borderRadius: '99px', margin: '12px 0 10px' }} />
             <p style={{ fontSize: '14px', color: '#888', margin: 0, fontFamily: "'Kanit', sans-serif" }}>

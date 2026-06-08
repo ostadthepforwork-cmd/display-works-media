@@ -22,14 +22,10 @@ export default function Portfolio() {
       <div className="max-w-7xl mx-auto">
 
         <div className="reveal-section mb-14">
-          <div className="section-label">ผลงานของเรา</div>
-          <h2 className="section-title">
-            งานจริงจากลูกค้า
-            <br />
-            ที่ไว้วางใจเรา
-          </h2>
+          <div className="section-label">PORTFOLIO</div>
+          <h2 className="section-title">ผลงานของเรา</h2>
           <p className="section-sub">
-            รวมผลงานจริงจากลูกค้าที่เราดูแลมาอย่างต่อเนื่อง
+            ตัวอย่างผลงานที่เราภาคภูมิใจ และส่งมอบให้ลูกค้าในหลากหลายธุรกิจ
           </p>
         </div>
 

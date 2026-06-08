@@ -104,14 +104,16 @@ body {
     @apply inline-flex items-center gap-2 bg-transparent text-white px-8 py-4 rounded-lg font-medium text-base border border-white/25 transition-all duration-200 hover:border-white/60 hover:bg-white/5;
   }
   .section-label {
-    @apply text-xs font-semibold tracking-widest uppercase mb-3;
+    @apply inline-flex items-center rounded-full border px-4 py-1.5 text-xs font-semibold tracking-widest uppercase mb-4;
     color: #FF6B00;
+    background: rgba(255,107,0,0.10);
+    border-color: rgba(255,107,0,0.30);
   }
   .section-title {
-    @apply font-kanit text-4xl md:text-5xl font-bold leading-tight mb-4;
+    @apply font-kanit text-5xl md:text-6xl font-bold leading-tight mb-5;
   }
   .section-sub {
-    @apply text-base leading-relaxed max-w-xl;
+    @apply text-base md:text-lg leading-relaxed max-w-2xl;
     color: #A8B0C0;
   }
   .card {

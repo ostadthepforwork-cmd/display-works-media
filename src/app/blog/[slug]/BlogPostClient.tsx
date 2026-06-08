@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
+import { safeImageSrc } from "@/lib/image-utils";
 
 import {
   Menu, X, Facebook, MessageCircle, Phone, Mail, MapPin,
@@ -157,6 +158,8 @@ export default function BlogPostPage({
     );
   }
 
+  const postCover = safeImageSrc(post.cover);
+
   return (
     <div className="min-h-screen font-['Prompt',sans-serif] text-white bg-[#050816]">
       <Navbar />
@@ -170,9 +173,9 @@ export default function BlogPostPage({
         </div>
       </div>
 
-      {post.cover && (
+      {postCover && (
         <div className="relative w-full h-64 md:h-96">
-          <Image src={post.cover} alt={post.title} fill sizes="100vw" className="object-cover" priority />
+          <Image src={postCover} alt={post.title} fill sizes="100vw" className="object-cover" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050816] via-[#050816]/40 to-transparent" />
         </div>
       )}
@@ -208,11 +211,13 @@ export default function BlogPostPage({
           <div className="max-w-4xl mx-auto px-6 lg:px-8">
             <h2 className="font-['Kanit'] font-bold text-xl text-white mb-8">บทความที่เกี่ยวข้อง</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {related.map((r) => (
+              {related.map((r) => {
+                const cover = safeImageSrc(r.cover);
+                return (
                 <Link key={r.id} href={`/blog/${r.slug}`}
                   className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
                   <div className="relative h-40 bg-[#141A24]">
-                    {r.cover ? <Image src={r.cover} alt={r.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {cover ? <Image src={cover} alt={r.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       : <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>}
                   </div>
                   <div className="p-4">
@@ -220,7 +225,8 @@ export default function BlogPostPage({
                     <h3 className="font-['Kanit'] font-bold text-sm text-white group-hover:text-[#FF7A00] transition-colors line-clamp-2">{r.title}</h3>
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

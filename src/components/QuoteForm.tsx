@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Send, CheckCircle, Upload } from "lucide-react";
+import { Send, CheckCircle } from "lucide-react";
 
 type FormData = {
   name: string;
@@ -57,27 +57,23 @@ export default function QuoteForm() {
   };
 
   return (
-    <section id="quote" className="py-16 sm:py-24 px-5 sm:px-6 lg:px-8" style={{ background: "#0B0F19" }}>
+    <section id="quote" className="py-16 sm:py-20 px-5 sm:px-6 lg:px-8" style={{ background: "#0B0F19" }}>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-16 items-start">
 
           {/* Left info — ลบ framer-motion ใช้ CSS reveal แทน */}
           <div className="lg:col-span-2 reveal-section">
-            <div className="section-label">ขอใบเสนอราคา</div>
-            <h2 className="section-title">
-              มีงานอยู่?
-              <br />
-              เราช่วยดูแลให้
-            </h2>
+            <div className="section-label">ติดต่อสอบถาม</div>
+            <h2 className="section-title">ติดต่อสอบถาม และปรึกษาได้ฟรี</h2>
             <p className="section-sub mb-10">
-              กรอกรายละเอียดงาน ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง
+              ไม่ว่าจะเป็นงานป้าย งานพิมพ์ หรือสื่อโฆษณา เราพร้อมให้คำแนะนำและประเมินราคาเบื้องต้นโดยไม่มีค่าใช้จ่าย
             </p>
             <div className="flex flex-col gap-4">
               {[
-                "ไม่มีค่าใช้จ่ายในการขอใบเสนอราคา",
+                "ไม่มีค่าใช้จ่ายในการประเมินราคา",
                 "ตอบกลับภายใน 24 ชั่วโมง",
-                "ให้คำปรึกษาฟรีก่อนตัดสินใจ",
-                "ไม่ต้องมีไฟล์งาน สามารถบอกแนวคิดได้เลย",
+                "ให้คำปรึกษาก่อนตัดสินใจ",
+                "ยังไม่มีแบบก็สอบถามได้",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">
                   <CheckCircle size={18} style={{ color: "#FF6B00", flexShrink: 0 }} aria-hidden="true" />
@@ -275,31 +271,6 @@ export default function QuoteForm() {
                       onFocus={onFocusBorder}
                       onBlur={onBlurBorder}
                     />
-                  </div>
-
-                  {/* Artwork handoff */}
-                  <div
-                    className="flex flex-col gap-2 rounded-lg border border-dashed p-5 sm:flex-row sm:items-center sm:justify-between"
-                    style={{ borderColor: "rgba(255,107,0,0.25)", background: "rgba(255,107,0,0.04)" }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Upload size={22} className="mt-0.5 text-muted" aria-hidden="true" />
-                      <div>
-                        <div className="text-sm font-semibold text-white">มีไฟล์งานอยู่แล้ว?</div>
-                        <p className="mt-1 text-xs leading-relaxed text-muted">
-                          ส่งรายละเอียดในฟอร์มนี้ก่อน แล้วแนบไฟล์ AI, PDF, PSD, JPG หรือ PNG ผ่าน LINE เพื่อให้ทีมตรวจไฟล์และประเมินราคาได้เร็วขึ้น
-                        </p>
-                      </div>
-                    </div>
-                    <a
-                      href="https://lin.ee/O0nPl03"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-500"
-                      style={{ background: "#06C755" }}
-                    >
-                      ส่งไฟล์ทาง LINE
-                    </a>
                   </div>
 
                   <button

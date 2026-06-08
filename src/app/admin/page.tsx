@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
+import { blogCategories } from '@/lib/seo-content';
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -82,8 +83,16 @@ const itemBillingBasis = (item: any) =>
 const lineQty = (item: any) => Number(item.qty || 0);
 const lineAmount = (item: any) => lineQty(item) * Number(item.price || 0);
 const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) => lineQty(item) * Number(unitCost || 0);
+const isShippingItem = (item: any) =>
+  /ems|shipping|delivery|ขนส่ง|จัดส่ง|ค่าส่ง|ส่งของ|พัสดุ/i.test(String(item?.name || ""));
+const fallbackItemCost = (products: any[], item: any) => {
+  const snapshot = Number(item.costSnapshot || 0);
+  if (snapshot > 0) return snapshot;
+  if (isShippingItem(item)) return Number(item.price || 0);
+  return findProductForItem(products, item)?.cost || 0;
+};
 const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
-const isReportDoc = (doc: any) => ["quote", "receipt"].includes(doc?.type);
+const isReportDoc = (doc: any) => doc?.type === "receipt" && !doc?.deleted && doc?.status !== "cancelled";
 const reportRootId = (doc: any, byId: Map<string, any>) => {
   let current = doc;
   const seen = new Set<string>();
@@ -93,22 +102,7 @@ const reportRootId = (doc: any, byId: Map<string, any>) => {
   }
   return current?.id || doc?.orderId || doc?.reference || doc?.id;
 };
-const reportingDocuments = (documents: any[]) => {
-  const byId = new Map((documents || []).map((doc: any) => [doc.id, doc]));
-  const groups = new Map<string, any[]>();
-  (documents || []).filter(isReportDoc).forEach((doc: any) => {
-    const key = reportRootId(doc, byId);
-    groups.set(key, [...(groups.get(key) || []), doc]);
-  });
-  return Array.from(groups.values()).flatMap((docs: any[]) => {
-    const receipts = docs.filter((doc: any) => doc.type === "receipt");
-    if (receipts.length > 0) return receipts;
-    return docs
-      .filter((doc: any) => doc.type === "quote")
-      .sort((a: any, b: any) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0))
-      .slice(0, 1);
-  });
-};
+const reportingDocuments = (documents: any[]) => (documents || []).filter(isReportDoc);
 const normalizeName = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
 const findProductForItem = (products: any[], item: any) => {
   const itemName = normalizeName(item?.name);
@@ -122,6 +116,25 @@ const findProductForItem = (products: any[], item: any) => {
       || itemTokens.some((token) => productName.includes(token));
   }) || null;
 };
+const supplierCatalogProducts = (suppliers: any[]) =>
+  (suppliers || []).flatMap((supplier: any) =>
+    (supplier.items || []).map((item: any) => {
+      const basis = item.pricingBasis === "sqm" ? "sqm" : "piece";
+      return {
+        id: `supplier:${supplier.id}:${item.id}`,
+        name: item.name,
+        supplierName: supplier.name,
+        supplierId: supplier.id,
+        supplierItemId: item.id,
+        unit: item.unit || (basis === "sqm" ? "ตร.ม." : "ชิ้น"),
+        cost: Number(item.supplierPrice || 0),
+        price: Number(item.salePrice || 0),
+        costUnit: basis,
+        priceUnit: basis,
+        fromSupplierCatalog: true,
+      };
+    }).filter((product: any) => product.name)
+  );
 const customerFacingLineItem = (item: any) => {
   const detailText = String(item?.detail || "");
   const parsedPieces = Number(
@@ -235,12 +248,8 @@ function saveStore(key: string, val: unknown) {
 // ============================================================
 // PRINT / PDF helper — Premium A4 Design (Display Works Media)
 // ============================================================
-function printDocument(doc: any, customers: any[], company: any) {
-  if (doc?.id && typeof window !== "undefined") {
-    const w = window.open(`/doc/${doc.id}?print=1`, "_blank", "width=960,height=780");
-    if (w) return;
-  }
-
+function printDocument(doc: any, customers: any[], company: any, options: any = {}) {
+  const autoPrint = options.autoPrint !== false;
   doc = sanitizeForPrint(doc);
   customers = sanitizeForPrint(customers);
   company = sanitizeForPrint(company);
@@ -322,6 +331,11 @@ function printDocument(doc: any, customers: any[], company: any) {
         `<li style="margin-bottom:3px;">${n}</li>`).join("")
     : "<li>ขอบคุณที่ไว้วางใจ Display Works Media</li>";
 
+  const logoUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/images/logo.png?v=doc-logo`
+      : "/images/logo.png?v=doc-logo";
+
   // ── Full HTML — Premium quotation layout ─────────────────
   const html = `<!DOCTYPE html>
 <html lang="th">
@@ -352,9 +366,9 @@ function printDocument(doc: any, customers: any[], company: any) {
       <!-- Brand + address left -->
       <div>
         <!-- Logo Image -->
-        <div style="margin-bottom:8px;">
-          <img src="/images/logo DWM PNG long.png" alt="Display Works Media"
-               style="height:48px;width:auto;max-width:280px;object-fit:contain;display:block;"
+        <div style="width:178px;height:62px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#fff;margin-bottom:8px;">
+          <img src="${logoUrl}" alt="Display Works Media"
+               style="width:178px;height:62px;object-fit:cover;object-position:center 56%;display:block;"
                onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';">
           <!-- Fallback if image not found -->
           <div id="logoFallback" style="display:none;align-items:center;gap:8px;">
@@ -577,12 +591,19 @@ function printDocument(doc: any, customers: any[], company: any) {
 </body>
 </html>`;
 
-  const w = window.open("", "_blank", "width=960,height=780");
-  if (!w) return;
-  w.document.write(html);
-  w.document.close();
+  const htmlToOpen = autoPrint
+    ? html.replace("</body>", `<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},700);});</script></body>`)
+    : html;
+  const blob = new Blob([htmlToOpen], { type: "text/html;charset=utf-8" });
+  const blobUrl = URL.createObjectURL(blob);
+  const w = window.open(blobUrl, "_blank", "width=960,height=780");
+  if (!w) {
+    URL.revokeObjectURL(blobUrl);
+    alert("ไม่สามารถเปิดหน้าต่างเอกสารได้ กรุณาอนุญาต Pop-up สำหรับเว็บนี้");
+    return;
+  }
   w.focus();
-  setTimeout(() => w.print(), 800);
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
 }
 
 // ============================================================
@@ -612,6 +633,7 @@ export default function AdminPage() {
   const [erpPage, setErpPage] = useState("dashboard");
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
   const [company, setCompany] = useState<any>({
     id: "", name: "", address: "", phone: "", email: "", taxId: "",
@@ -641,9 +663,29 @@ export default function AdminPage() {
         // map products
         if (prodRes.data) setProducts(prodRes.data.map(p => ({
           id: p.id, name: p.name, unit: p.unit, cost: p.cost, price: p.price,
+          supplierName: p.supplier_name || p.supplierName || "",
           costUnit: p.cost_unit || p.costUnit || "piece",
           priceUnit: p.price_unit || p.priceUnit || "piece",
         })));
+
+        try {
+          const { data, error } = await supabase.from("erp_suppliers").select("*").order("created_at");
+          if (error) throw error;
+          if (data) setSuppliers(data.map(s => ({
+            id: s.id,
+            name: s.name || "",
+            contact: s.contact || "",
+            phone: s.phone || "",
+            email: s.email || "",
+            address: s.address || "",
+            taxId: s.tax_id || s.taxId || "",
+            note: s.note || "",
+            items: Array.isArray(s.items) ? s.items : [],
+          })));
+        } catch (error) {
+          console.warn("Supplier load fallback:", error);
+          setSuppliers(loadLocal("erp_suppliers", []));
+        }
 
         // map documents + inject items
         if (docRes.data) {
@@ -664,6 +706,12 @@ export default function AdminPage() {
             items: items.filter(i => i.document_id === d.id).map(i => ({
               id: i.id, name: i.name, subTitle: i.sub_title, detail: i.detail,
               unit: i.unit, qty: i.qty, price: i.price, costSnapshot: i.cost_snapshot,
+              costUnit: i.cost_unit || "piece",
+              priceUnit: i.price_unit || "piece",
+              supplierName: i.supplier_name || "",
+              widthM: i.width_m ?? undefined,
+              heightM: i.height_m ?? undefined,
+              pieces: i.pieces ?? undefined,
             })),
           })));
         }
@@ -689,18 +737,15 @@ export default function AdminPage() {
   }, []);
 
   const docCounts = Object.keys(DOC_TYPES).reduce((acc, t) => {
-    acc[t] = documents.filter((d) => d.type === t).length;
+    acc[t] = documents.filter((d) => d.type === t && !d.deleted && d.status !== "cancelled").length;
     return acc;
   }, {});
 
   const reportDocs = reportingDocuments(documents);
+  const catalogProducts = [...products, ...supplierCatalogProducts(suppliers)];
   const totalRevenue = reportDocs
     .reduce((s, d) => s + calcDocTotal(d).total, 0);
-  const resolveItemCost = (item: any) => {
-    const snapshot = Number(item.costSnapshot || 0);
-    if (snapshot > 0) return snapshot;
-    return findProductForItem(products, item)?.cost || 0;
-  };
+  const resolveItemCost = (item: any) => fallbackItemCost(catalogProducts, item);
   const totalCost = reportDocs.reduce((s, d) => {
     return s + d.items.reduce((ss, i) => {
       // ใช้ costSnapshot (บันทึกตอน save) ถ้ามี — ไม่งั้นหาจาก products list (backward compat)
@@ -747,7 +792,7 @@ export default function AdminPage() {
         <div className="show-mobile" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
             {mainTab === "erp"
-              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
+              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : (cmsTabs.find(t => t.id === tab)?.label || "CMS")}
           </span>
           {/* ERP / CMS switcher pill */}
@@ -783,18 +828,19 @@ export default function AdminPage() {
                 </div>
               ) : (<>
               {erpPage === "dashboard" && (
-                <Dashboard documents={documents} customers={customers} products={products}
+                <Dashboard documents={documents} customers={customers} products={catalogProducts}
                   totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
                   docCounts={docCounts} setPage={setErpPage} />
               )}
               {erpPage === "customers" && <CustomerPage customers={customers} setCustomers={setCustomers} showToast={showToast} />}
-              {erpPage === "products" && <ProductPage products={products} setProducts={setProducts} showToast={showToast} />}
+              {erpPage === "products" && <ProductPage products={products} setProducts={setProducts} suppliers={suppliers} showToast={showToast} />}
+              {erpPage === "suppliers" && <SupplierPage suppliers={suppliers} setSuppliers={setSuppliers} showToast={showToast} />}
               {erpPage === "company" && <CompanyPage company={company} setCompany={setCompany} showToast={showToast} />}
               {["quote","bill","invoice","receipt"].includes(erpPage) && (
                 <DocumentPage type={erpPage}
                   documents={documents.filter(d => d.type === erpPage)}
                   allDocuments={documents} setDocuments={setDocuments}
-                  customers={customers} products={products} company={company} showToast={showToast} />
+                  customers={customers} products={catalogProducts} company={company} showToast={showToast} />
               )}
               </>)}
             </div>
@@ -909,6 +955,7 @@ export default function AdminPage() {
               { id: "receipt",   icon: "✅", label: "ใบเสร็จรับเงิน", color: (DOC_TYPES as any).receipt.color },
               { id: "customers", icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
               { id: "products",  icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
+              { id: "suppliers", icon: "🏭", label: "Supplier",       color: "#F97316" },
               { id: "company",   icon: "🏢", label: "ตั้งค่าบริษัท",  color: "#34D399" },
               { id: "__cms__",   icon: "✏️", label: "ไปหน้า CMS",     color: "#F59E0B" },
             ] as any[]).map(item => {
@@ -1149,6 +1196,7 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
     { id: "dashboard", icon: "⊞", label: "ภาพรวม" },
     { id: "customers", icon: "👥", label: "ลูกค้า" },
     { id: "products", icon: "📦", label: "สินค้า/บริการ" },
+    { id: "suppliers", icon: "🏭", label: "Supplier" },
     null,
     { id: "quote", icon: "📋", label: "ใบเสนอราคา", count: docCounts.quote, color: DOC_TYPES.quote.color },
     { id: "bill", icon: "📄", label: "ใบวางบิล", count: docCounts.bill, color: DOC_TYPES.bill.color },
@@ -1206,11 +1254,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const reportDocs = reportingDocuments(documents);
 
   const calcRev = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcDocTotal(d).total, 0);
-  const itemCost = (item: any) => {
-    const snapshot = Number(item.costSnapshot || 0);
-    if (snapshot > 0) return snapshot;
-    return findProductForItem(products, item)?.cost || 0;
-  };
+  const itemCost = (item: any) => fallbackItemCost(products, item);
   const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
     s + d.items.reduce((ss: number, i: any) => ss + lineCost(i, itemCost(i)), 0), 0);
 
@@ -1654,17 +1698,21 @@ function CustomerForm({ data, onSave, onCancel }: any) {
 // ============================================================
 // PRODUCT PAGE — แก้ไข/ลบได้
 // ============================================================
-function ProductPage({ products, setProducts, showToast }: any) {
+function ProductPage({ products, setProducts, suppliers = [], showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const blank = { id: "", name: "", unit: "ชิ้น", cost: "", price: "", costUnit: "piece", priceUnit: "piece" };
-  const filtered = products.filter(p => String(p.name || "").toLowerCase().includes(search.toLowerCase()));
+  const blank = { id: "", name: "", supplierName: "", unit: "ชิ้น", cost: "", price: "", costUnit: "piece", priceUnit: "piece" };
+  const catalogProducts = [...products, ...supplierCatalogProducts(suppliers)];
+  const filtered = catalogProducts.filter(p =>
+    [p.name, p.supplierName].some((value) => String(value || "").toLowerCase().includes(search.toLowerCase()))
+  );
   const isLegacyProductColumnError = (error: any) =>
     error?.code === "42703" || /cost_unit|price_unit|column/i.test(error?.message || "");
   const save = async (f) => {
     if (!f.name.trim()) return showToast("กรุณาใส่ชื่อสินค้า", "error");
     const row = {
       name: f.name,
+      supplier_name: f.supplierName || "",
       unit: f.unit,
       cost: parseFloat(f.cost) || 0,
       price: parseFloat(f.price) || 0,
@@ -1678,7 +1726,7 @@ function ProductPage({ products, setProducts, showToast }: any) {
         ({ error } = await supabase.from("erp_products").update(legacyRow).eq("id", f.id));
       }
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-      setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...legacyRow, costUnit: row.cost_unit, priceUnit: row.price_unit } : p));
+      setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...legacyRow, supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit } : p));
       showToast("แก้ไขสินค้าแล้ว");
     } else {
       let { data, error } = await supabase.from("erp_products").insert(row).select().single();
@@ -1686,7 +1734,7 @@ function ProductPage({ products, setProducts, showToast }: any) {
         ({ data, error } = await supabase.from("erp_products").insert(legacyRow).select().single());
       }
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-      setProducts(prev => [...prev, { ...f, id: data.id, ...legacyRow, costUnit: row.cost_unit, priceUnit: row.price_unit }]);
+      setProducts(prev => [...prev, { ...f, id: data.id, ...legacyRow, supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit }]);
       showToast("เพิ่มสินค้าใหม่แล้ว");
     }
     setEditing(null);
@@ -1701,7 +1749,7 @@ function ProductPage({ products, setProducts, showToast }: any) {
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>สินค้า/บริการ</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{products.length} รายการ</p></div>
+        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>สินค้า/บริการ</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{catalogProducts.length} รายการ</p></div>
         <div style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มสินค้า</Btn>
@@ -1711,7 +1759,7 @@ function ProductPage({ products, setProducts, showToast }: any) {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#1A2233" }}>
-              {["ชื่อสินค้า/บริการ", "หน่วย", "ต้นทุน", "ราคาขาย", "กำไร", "จัดการ"].map(h => (
+              {["ชื่อสินค้า/บริการ", "Supplier", "หน่วย", "ต้นทุน", "ราคาขาย", "กำไร", "จัดการ"].map(h => (
                 <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, color: "#A8B0C0", fontWeight: 500 }}>{h}</th>
               ))}
             </tr>
@@ -1722,7 +1770,11 @@ function ProductPage({ products, setProducts, showToast }: any) {
               const pct = p.cost > 0 ? (margin / p.cost * 100).toFixed(0) : 0;
               return (
                 <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                  <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 500 }}>{p.name}</td>
+                  <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 500 }}>
+                    {p.name}
+                    {p.fromSupplierCatalog && <span style={{ marginLeft: 8, fontSize: 10, color: "#F97316", background: "rgba(249,115,22,0.12)", padding: "1px 6px", borderRadius: 99 }}>Supplier</span>}
+                  </td>
+                  <td style={{ padding: "12px 16px", fontSize: 12, color: "#A8B0C0" }}>{p.supplierName || "-"}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#A8B0C0" }}>{p.unit}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#ef4444" }}>฿{fmtMoney(p.cost)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.costUnit)}</span></td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 600 }}>฿{fmtMoney(p.price)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.priceUnit)}</span></td>
@@ -1732,8 +1784,14 @@ function ProductPage({ products, setProducts, showToast }: any) {
                   </td>
                   <td style={{ padding: "12px 16px" }}>
                     <div style={{ display: "flex", gap: 6 }}>
-                      <IconBtn onClick={() => setEditing({ ...p })} title="แก้ไข">✏️</IconBtn>
-                      <IconBtn onClick={() => del(p.id)} title="ลบ" danger>🗑️</IconBtn>
+                      {p.fromSupplierCatalog ? (
+                        <span style={{ fontSize: 11, color: "#6B7280" }}>แก้ไขที่เมนู Supplier</span>
+                      ) : (
+                        <>
+                          <IconBtn onClick={() => setEditing({ ...p })} title="แก้ไข">✏️</IconBtn>
+                          <IconBtn onClick={() => del(p.id)} title="ลบ" danger>🗑️</IconBtn>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -1744,15 +1802,16 @@ function ProductPage({ products, setProducts, showToast }: any) {
       </div>
       {editing && (
         <Modal title={editing.id ? "แก้ไขสินค้า" : "เพิ่มสินค้า"} onClose={() => setEditing(null)} width={420}>
-          <ProductForm data={editing} onSave={save} onCancel={() => setEditing(null)} />
+          <ProductForm data={editing} suppliers={suppliers} onSave={save} onCancel={() => setEditing(null)} />
         </Modal>
       )}
     </div>
   );
 }
-function ProductForm({ data, onSave, onCancel }: any) {
+function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
   const [f, setF] = useState({
     ...data,
+    supplierName: data.supplierName || data.supplier_name || "",
     cost: data.cost || "",
     price: data.price || "",
     costUnit: data.costUnit || data.cost_unit || "piece",
@@ -1761,9 +1820,41 @@ function ProductForm({ data, onSave, onCancel }: any) {
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const margin = (parseFloat(f.price) || 0) - (parseFloat(f.cost) || 0);
   const pct = f.cost > 0 ? (margin / parseFloat(f.cost) * 100).toFixed(1) : 0;
+  const selectedSupplier = suppliers.find((supplier: any) => supplier.name === f.supplierName);
+  const supplierItems = selectedSupplier?.items || [];
+  const pickSupplierItem = (e) => {
+    const item = supplierItems.find((entry: any) => entry.id === e.target.value);
+    if (!item) return;
+    const basis = item.pricingBasis === "sqm" ? "sqm" : "piece";
+    setF(prev => ({
+      ...prev,
+      name: item.name || prev.name,
+      unit: item.unit || (basis === "sqm" ? "ตร.ม." : prev.unit),
+      cost: Number(item.supplierPrice || 0),
+      price: Number(item.salePrice || 0),
+      costUnit: basis,
+      priceUnit: basis,
+    }));
+  };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <Field label="ชื่อสินค้า/บริการ *"><input value={f.name} onChange={set("name")} /></Field>
+      <Field label="Supplier">
+        <input value={f.supplierName} onChange={set("supplierName")} list="supplier-list" placeholder="เลือกหรือพิมพ์ชื่อ Supplier" />
+        <datalist id="supplier-list">{suppliers.map((supplier: any) => <option key={supplier.id || supplier.name} value={supplier.name} />)}</datalist>
+      </Field>
+      {supplierItems.length > 0 && (
+        <Field label="รายการจาก Supplier">
+          <select onChange={pickSupplierItem} defaultValue="">
+            <option value="">-- เลือกรายการเพื่อเติมข้อมูลสินค้า --</option>
+            {supplierItems.map((item: any) => (
+              <option key={item.id} value={item.id}>
+                {item.name} · ทุน ฿{fmtMoney(item.supplierPrice)} · ขาย ฿{fmtMoney(item.salePrice)}
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
       <Field label="หน่วย">
         <input value={f.unit} onChange={set("unit")} list="unit-list" />
         <datalist id="unit-list">{["ชิ้น","อัน","ตร.ม.","เมตร","แผ่น","ชุด","งาน","ครั้ง","100 ชิ้น"].map(u => <option key={u} value={u} />)}</datalist>
@@ -1791,6 +1882,268 @@ function ProductForm({ data, onSave, onCancel }: any) {
       )}
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
         <Btn onClick={() => onSave({ ...f, cost: parseFloat(f.cost) || 0, price: parseFloat(f.price) || 0 })} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
+        <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// SUPPLIER PAGE
+// ============================================================
+function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
+  const [editing, setEditing] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "", note: "", items: [] };
+  const filtered = suppliers.filter((supplier: any) => {
+    const q = search.toLowerCase();
+    return [supplier.name, supplier.contact, supplier.phone, supplier.email]
+      .some((value) => String(value || "").toLowerCase().includes(q));
+  });
+  const normalizeSupplier = (supplier: any, id?: string) => ({
+    id: id || supplier.id || genId(),
+    name: String(supplier.name || "").trim(),
+    contact: supplier.contact || "",
+    phone: supplier.phone || "",
+    email: supplier.email || "",
+    address: supplier.address || "",
+    taxId: supplier.taxId || "",
+    note: supplier.note || "",
+    items: (supplier.items || []).map((item: any) => ({
+      id: item.id || genId(),
+      name: item.name || "",
+      category: item.category || "สินค้า",
+      unit: item.unit || "ชิ้น",
+      pricingBasis: item.pricingBasis || item.priceBasis || "piece",
+      widthM: Number(item.widthM || 0),
+      heightM: Number(item.heightM || 0),
+      quantity: Number(item.quantity || 1),
+      totalSqm: Number(item.totalSqm || (Number(item.widthM || 0) * Number(item.heightM || 0) * Number(item.quantity || 1))),
+      supplierPrice: Number(item.supplierPrice || 0),
+      salePrice: Number(item.salePrice || 0),
+      note: item.note || "",
+    })).filter((item: any) => item.name.trim()),
+  });
+  const toRow = (supplier: any) => ({
+    name: supplier.name,
+    contact: supplier.contact,
+    phone: supplier.phone,
+    email: supplier.email,
+    address: supplier.address,
+    tax_id: supplier.taxId,
+    note: supplier.note,
+    items: supplier.items,
+  });
+  const commitLocal = (next: any[]) => {
+    setSuppliers(next);
+    saveLocal("erp_suppliers", next);
+  };
+  const save = async (form: any) => {
+    if (!String(form.name || "").trim()) return showToast("กรุณาใส่ชื่อ Supplier", "error");
+    const clean = normalizeSupplier(form);
+    const row = toRow(clean);
+    if (form.id) {
+      let savedRemote = true;
+      try {
+        const { error } = await supabase.from("erp_suppliers").update(row).eq("id", form.id);
+        if (error) throw error;
+      } catch (error) {
+        savedRemote = false;
+        console.warn("Supplier update fallback:", error);
+      }
+      commitLocal(suppliers.map((supplier: any) => supplier.id === form.id ? clean : supplier));
+      showToast(savedRemote ? "แก้ไข Supplier แล้ว" : "แก้ไข Supplier แล้ว (บันทึกสำรองในเครื่อง)");
+    } else {
+      let saved = clean;
+      let savedRemote = true;
+      try {
+        const { data, error } = await supabase.from("erp_suppliers").insert(row).select().single();
+        if (error) throw error;
+        saved = normalizeSupplier(clean, data.id);
+      } catch (error) {
+        savedRemote = false;
+        console.warn("Supplier insert fallback:", error);
+      }
+      commitLocal([...suppliers, saved]);
+      showToast(savedRemote ? "เพิ่ม Supplier ใหม่แล้ว" : "เพิ่ม Supplier ใหม่แล้ว (บันทึกสำรองในเครื่อง)");
+    }
+    setEditing(null);
+  };
+  const del = async (id: string) => {
+    if (!confirm("ลบ Supplier นี้?")) return;
+    let savedRemote = true;
+    try {
+      const { error } = await supabase.from("erp_suppliers").delete().eq("id", id);
+      if (error) throw error;
+    } catch (error) {
+      savedRemote = false;
+      console.warn("Supplier delete fallback:", error);
+    }
+    commitLocal(suppliers.filter((supplier: any) => supplier.id !== id));
+    showToast(savedRemote ? "ลบ Supplier แล้ว" : "ลบ Supplier แล้ว (บันทึกสำรองในเครื่อง)");
+  };
+
+  return (
+    <div style={{ animation: "fadeIn 0.3s ease" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>Supplier</h2>
+          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{suppliers.length} รายการ</p>
+        </div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ค้นหา Supplier..." style={{ width: 220 }} />
+          <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่ม Supplier</Btn>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
+        {filtered.map((supplier: any) => {
+          const itemCount = supplier.items?.length || 0;
+          const minSupplierPrice = itemCount ? Math.min(...supplier.items.map((item: any) => Number(item.supplierPrice || 0)).filter((price: number) => price >= 0)) : 0;
+          return (
+            <div key={supplier.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 18 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>{supplier.name}</div>
+                  <div style={{ fontSize: 12, color: "#A8B0C0", marginTop: 4 }}>{supplier.contact || supplier.phone || "ยังไม่มีข้อมูลติดต่อ"}</div>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <IconBtn onClick={() => setEditing({ ...supplier, items: supplier.items || [] })} title="แก้ไข">✏️</IconBtn>
+                  <IconBtn onClick={() => del(supplier.id)} title="ลบ" danger>🗑️</IconBtn>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                <div style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
+                  <div style={{ fontSize: 11, color: "#6B7280" }}>สินค้า/บริการ</div>
+                  <div style={{ fontSize: 18, color: "#FF6B00", fontWeight: 800 }}>{itemCount}</div>
+                </div>
+                <div style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
+                  <div style={{ fontSize: 11, color: "#6B7280" }}>ราคา Supplier เริ่มต้น</div>
+                  <div style={{ fontSize: 18, color: "#10b981", fontWeight: 800 }}>฿{fmtMoney(minSupplierPrice)}</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {(supplier.items || []).slice(0, 3).map((item: any) => (
+                  <div key={item.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#CBD5E1", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>
+                    <span>{item.name}</span>
+                    <span style={{ color: "#A8B0C0" }}>
+                      ฿{fmtMoney(item.supplierPrice)} → ฿{fmtMoney(item.salePrice)}
+                      {item.pricingBasis === "sqm" ? ` / ${fmtMoney(item.totalSqm)} ตร.ม.` : ""}
+                    </span>
+                  </div>
+                ))}
+                {itemCount === 0 && <div style={{ fontSize: 12, color: "#6B7280", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>ยังไม่มีรายการสินค้า/บริการ</div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {editing && (
+        <Modal title={editing.id ? "แก้ไข Supplier" : "เพิ่ม Supplier"} onClose={() => setEditing(null)} width={860}>
+          <SupplierForm data={editing} onSave={save} onCancel={() => setEditing(null)} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function SupplierForm({ data, onSave, onCancel }: any) {
+  const [f, setF] = useState({ ...data, items: data.items || [] });
+  const set = (key: string) => (e: any) => setF((prev: any) => ({ ...prev, [key]: e.target.value }));
+  const setItem = (id: string, key: string, value: any) => {
+    setF((prev: any) => ({
+      ...prev,
+      items: prev.items.map((item: any) => item.id === id ? { ...item, [key]: value } : item),
+    }));
+  };
+  const addItem = () => {
+    setF((prev: any) => ({
+      ...prev,
+      items: [...prev.items, { id: genId(), name: "", category: "สินค้า", unit: "ชิ้น", pricingBasis: "piece", widthM: "", heightM: "", quantity: 1, supplierPrice: "", salePrice: "", note: "" }],
+    }));
+  };
+  const removeItem = (id: string) => {
+    setF((prev: any) => ({ ...prev, items: prev.items.filter((item: any) => item.id !== id) }));
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 12 }}>
+        <Field label="ชื่อ Supplier *"><input value={f.name} onChange={set("name")} /></Field>
+        <Field label="ผู้ติดต่อ"><input value={f.contact} onChange={set("contact")} /></Field>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+        <Field label="โทรศัพท์"><input value={f.phone} onChange={set("phone")} /></Field>
+        <Field label="อีเมล"><input value={f.email} onChange={set("email")} /></Field>
+        <Field label="เลขผู้เสียภาษี"><input value={f.taxId} onChange={set("taxId")} /></Field>
+      </div>
+      <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
+
+      <div style={{ background: "#0F1420", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 10 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>รายการสินค้า/บริการที่ Supplier จำหน่าย</div>
+            <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>ใส่ราคาจาก Supplier และราคาขายของเรา</div>
+          </div>
+          <Btn onClick={addItem} color="#2563eb">+ เพิ่มรายการ</Btn>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {f.items.map((item: any) => {
+            const pricingBasis = item.pricingBasis || "piece";
+            const totalSqm = Number(item.widthM || 0) * Number(item.heightM || 0) * Number(item.quantity || 0);
+            const multiplier = pricingBasis === "sqm" ? totalSqm : 1;
+            const margin = (Number(item.salePrice || 0) - Number(item.supplierPrice || 0)) * multiplier;
+            return (
+              <div key={item.id} style={{ background: "#141A24", borderRadius: 10, padding: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1.4fr .8fr .8fr .8fr .8fr .7fr auto", gap: 8, alignItems: "end" }}>
+                  <Field label="ชื่อรายการ"><input value={item.name} onChange={(e) => setItem(item.id, "name", e.target.value)} /></Field>
+                  <Field label="ประเภท">
+                    <select value={item.category} onChange={(e) => setItem(item.id, "category", e.target.value)}>
+                      <option value="สินค้า">สินค้า</option>
+                      <option value="บริการ">บริการ</option>
+                    </select>
+                  </Field>
+                  <Field label="คิดราคา">
+                    <select value={pricingBasis} onChange={(e) => {
+                      setItem(item.id, "pricingBasis", e.target.value);
+                      setItem(item.id, "unit", e.target.value === "sqm" ? "ตร.ม." : "ชิ้น");
+                    }}>
+                      <option value="piece">ต่อชิ้น</option>
+                      <option value="sqm">ต่อตารางเมตร</option>
+                    </select>
+                  </Field>
+                  <Field label="ราคา Supplier"><input type="number" min="0" value={item.supplierPrice} onChange={(e) => setItem(item.id, "supplierPrice", e.target.value)} /></Field>
+                  <Field label="ราคาขาย"><input type="number" min="0" value={item.salePrice} onChange={(e) => setItem(item.id, "salePrice", e.target.value)} /></Field>
+                  <div style={{ paddingBottom: 9, fontSize: 12, color: margin >= 0 ? "#10b981" : "#ef4444", fontWeight: 800 }}>
+                    ฿{fmtMoney(margin)}
+                  </div>
+                  <IconBtn onClick={() => removeItem(item.id)} title="ลบรายการ" danger>🗑️</IconBtn>
+                </div>
+                {pricingBasis === "sqm" && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                    <Field label="กว้าง (เมตร)"><input type="number" min="0" step="0.01" value={item.widthM} onChange={(e) => setItem(item.id, "widthM", e.target.value)} /></Field>
+                    <Field label="สูง (เมตร)"><input type="number" min="0" step="0.01" value={item.heightM} onChange={(e) => setItem(item.id, "heightM", e.target.value)} /></Field>
+                    <Field label="จำนวนชิ้น"><input type="number" min="1" step="1" value={item.quantity} onChange={(e) => setItem(item.id, "quantity", e.target.value)} /></Field>
+                    <Field label="พื้นที่รวม">
+                      <input value={`${fmtMoney(totalSqm)} ตร.ม.`} readOnly style={{ color: "#10b981", fontWeight: 800 }} />
+                    </Field>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {f.items.length === 0 && (
+            <div style={{ border: "1px dashed rgba(255,255,255,0.12)", borderRadius: 10, padding: 18, textAlign: "center", color: "#6B7280", fontSize: 13 }}>
+              ยังไม่มีรายการ กดเพิ่มรายการเพื่อบันทึกสินค้า/บริการของ Supplier
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Field label="หมายเหตุ"><textarea value={f.note} onChange={set("note")} rows={2} style={{ resize: "vertical" }} /></Field>
+      <div style={{ display: "flex", gap: 10, marginTop: 2 }}>
+        <Btn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
         <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
       </div>
     </div>
@@ -1966,8 +2319,9 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
         costSnapshot: Number(item.costSnapshot || 0) > 0 ? item.costSnapshot : (prod ? prod.cost : 0),
         costUnit: item.costUnit || prod?.costUnit || prod?.cost_unit || "piece",
         priceUnit: item.priceUnit || prod?.priceUnit || prod?.price_unit || "piece",
+        supplierName: item.supplierName || prod?.supplierName || prod?.supplier_name || "",
       };
-      return customerFacingLineItem(costedItem);
+      return costedItem;
     });
     const docRow = {
       type: doc.type, doc_no: doc.docNo, status: doc.status,
@@ -2011,11 +2365,26 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           document_id: docId, sort_order: idx,
           name: item.name, sub_title: item.subTitle, detail: item.detail,
           unit: item.unit, qty: item.qty, price: item.price, cost_snapshot: item.costSnapshot,
+          cost_unit: item.costUnit || "piece",
+          price_unit: item.priceUnit || "piece",
+          supplier_name: item.supplierName || "",
+          width_m: item.widthM ?? null,
+          height_m: item.heightM ?? null,
+          pieces: item.pieces ?? null,
         }));
-        const { data: insertedItems, error: itemErr } = await supabase
+        const legacyItemRows = itemRows.map(({ cost_unit, price_unit, supplier_name, width_m, height_m, pieces, ...row }) => row);
+        const isLegacyItemColumnError = (error: any) =>
+          error?.code === "42703" || /cost_unit|price_unit|supplier_name|width_m|height_m|pieces|column/i.test(error?.message || "");
+        let { data: insertedItems, error: itemErr } = await supabase
           .from("erp_document_items")
           .insert(itemRows)
           .select("id");
+        if (itemErr && isLegacyItemColumnError(itemErr)) {
+          ({ data: insertedItems, error: itemErr } = await supabase
+            .from("erp_document_items")
+            .insert(legacyItemRows)
+            .select("id"));
+        }
         if (itemErr) throw itemErr;
         if (doc.id) {
           const insertedIds = (insertedItems || []).map((item) => item.id).filter(Boolean);
@@ -2093,6 +2462,10 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     } catch {
       showToast("ไม่สามารถแชร์ลิงก์เอกสารได้", "error");
     }
+  };
+
+  const previewDocumentPdf = (doc) => {
+    printDocument(doc, customers, company, { autoPrint: false });
   };
 
   const [emailModal, setEmailModal] = useState<any>(null);
@@ -2253,6 +2626,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
                             {/* พิมพ์ */}
+                            <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             {/* แชร์ลิงค์ */}
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
@@ -2353,6 +2727,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
+                            <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
@@ -2574,6 +2949,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         costSnapshot: p.cost || 0,
         costUnit,
         priceUnit,
+        supplierName: p.supplierName || p.supplier_name || "",
         widthM,
         heightM,
         pieces,
@@ -2712,7 +3088,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
                 <div style={{ display: "flex", gap: 6 }}>
                   <select onChange={e => pickProduct(item.id, e.target.value)} style={{ width: 100, fontSize: 11, padding: "4px 6px" }} defaultValue="">
                     <option value="">เลือก</option>
-                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {products.map(p => <option key={p.id} value={p.id}>{p.supplierName ? `${p.name} — ${p.supplierName}` : p.name}</option>)}
                   </select>
                   <input value={item.name} onChange={e => setItem(item.id, "name", e.target.value)} placeholder="ชื่อรายการ" style={{ flex: 1 }} />
                 </div>
@@ -2755,6 +3131,9 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
               </Field>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 14, fontSize: 13, fontWeight: 700 }}>
+              {(item.supplierName || findProductForItem(products, item)?.supplierName) && (
+                <span style={{ color: "#F97316" }}>Supplier: {item.supplierName || findProductForItem(products, item)?.supplierName}</span>
+              )}
               <span style={{ color: "#ef4444" }}>ต้นทุน: ฿{fmtMoney(lineCost(item))}</span>
               <span style={{ color: dt.color }}>รวม: ฿{fmtMoney(lineAmount(item))}</span>
             </div>
@@ -3330,7 +3709,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <CField label="หมวดหมู่">
           <input value={f.category} onChange={set("category")} list="cat-list" placeholder="เช่น ป้ายไวนิล" />
-          <datalist id="cat-list">{["ป้ายไวนิล","สติ๊กเกอร์","Roll Up","Backdrop","PP Board","ฉลากสินค้า","ทั่วไป"].map(c => <option key={c} value={c} />)}</datalist>
+          <datalist id="cat-list">{Array.from(new Set([...blogCategories.map(c => c.name), "ป้ายไวนิล","สติ๊กเกอร์","Roll Up","Backdrop","PP Board","ฉลากสินค้า","ทั่วไป"])).map(c => <option key={c} value={c} />)}</datalist>
         </CField>
         <CField label="วันที่เผยแพร่"><input type="date" value={f.date} onChange={set("date")} /></CField>
       </div>
@@ -3470,12 +3849,12 @@ function HeroManager({ showToast }: any) {
 // ============================================================
 function ServicesManager({ showToast }: any) {
   const [services, setServices] = useState(() => loadLocal("services", [
-    { id: "1", name: "ป้ายไวนิล", icon: "🪟", desc: "พิมพ์งานคุณภาพสูง ทนต่อแสงและฝน เหมาะสำหรับป้ายหน้าร้าน ป้ายโฆษณา ขนาดใหญ่", price: "ตร.ม.ละ 200฿", url: "/services/vinyl" },
-    { id: "2", name: "สติ๊กเกอร์", icon: "🏷️", desc: "สติ๊กเกอร์กันน้ำ indoor/outdoor พิมพ์สี 4 สี คมชัด ติดทนนาน", price: "ตร.ม.ละ 350฿", url: "/services/sticker" },
-    { id: "3", name: "PP Board", icon: "📋", desc: "ป้ายพีพีบอร์ดน้ำหนักเบา พกพาง่าย เหมาะสำหรับงาน Event และป้ายชั่วคราว", price: "แผ่นละ 400฿", url: "/services/ppboard" },
-    { id: "4", name: "Roll Up", icon: "🎪", desc: "ป้าย Roll Up สำหรับงานนิทรรศการ ประชุม และงานกิจกรรมต่างๆ", price: "ชิ้นละ 2,200฿", url: "/services/rollup" },
+    { id: "1", name: "ป้ายไวนิล", icon: "🪟", desc: "พิมพ์งานคุณภาพสูง ทนต่อแสงและฝน เหมาะสำหรับป้ายหน้าร้าน ป้ายโฆษณา ขนาดใหญ่", price: "ตร.ม.ละ 200฿", url: "/services/vinyl-banner" },
+    { id: "2", name: "สติ๊กเกอร์", icon: "🏷️", desc: "สติ๊กเกอร์กันน้ำ indoor/outdoor พิมพ์สี 4 สี คมชัด ติดทนนาน", price: "ตร.ม.ละ 350฿", url: "/services/label-sticker" },
+    { id: "3", name: "PP Board", icon: "📋", desc: "ป้ายพีพีบอร์ดน้ำหนักเบา พกพาง่าย เหมาะสำหรับงาน Event และป้ายชั่วคราว", price: "แผ่นละ 400฿", url: "/services/pp-board" },
+    { id: "4", name: "Roll Up", icon: "🎪", desc: "ป้าย Roll Up สำหรับงานนิทรรศการ ประชุม และงานกิจกรรมต่างๆ", price: "ชิ้นละ 2,200฿", url: "/services/roll-up" },
     { id: "5", name: "Backdrop", icon: "🖼", desc: "ป้าย Backdrop ขนาดใหญ่สำหรับงานอีเวนต์ ถ่ายรูป และงานแถลงข่าว", price: "ชุดละ 3,500฿", url: "/services/backdrop" },
-    { id: "6", name: "ฉลากสินค้า", icon: "🏷", desc: "พิมพ์ฉลากสินค้าคุณภาพสูง ทั้งแบบม้วนและแผ่น รองรับทุกขนาด", price: "100 ชิ้นละ 400฿", url: "/services/label" },
+    { id: "6", name: "ฉลากสินค้า", icon: "🏷", desc: "พิมพ์ฉลากสินค้าคุณภาพสูง ทั้งแบบม้วนและแผ่น รองรับทุกขนาด", price: "100 ชิ้นละ 400฿", url: "/services/label-sticker" },
   ]));
   const [editing, setEditing] = useState<any>(null);
   useEffect(() => {
@@ -3540,7 +3919,7 @@ function ServicesManager({ showToast }: any) {
             </div>
             <CField label="คำอธิบาย"><textarea value={editing.desc} onChange={e => setEditing(p => ({ ...p, desc: e.target.value }))} rows={3} /></CField>
             <CField label="ราคาเริ่มต้น"><input value={editing.price} onChange={e => setEditing(p => ({ ...p, price: e.target.value }))} placeholder="เช่น ตร.ม.ละ 200฿" /></CField>
-            <CField label="URL หน้าบริการ"><input value={editing.url} onChange={e => setEditing(p => ({ ...p, url: e.target.value }))} placeholder="/services/vinyl" /></CField>
+            <CField label="URL หน้าบริการ"><input value={editing.url} onChange={e => setEditing(p => ({ ...p, url: e.target.value }))} placeholder="/services/vinyl-banner" /></CField>
             <div style={{ display: "flex", gap: 10 }}>
               <CBtn onClick={() => save(editing)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</CBtn>
               <CBtn onClick={() => setEditing(null)} outline style={{ flex: 1 }}>ยกเลิก</CBtn>

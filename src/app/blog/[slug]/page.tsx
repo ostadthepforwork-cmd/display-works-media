@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { notFound } from "next/navigation";
 import BlogPostClient from "./BlogPostClient";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
+
+export function generateStaticParams() {
+  return [];
+}
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -81,7 +86,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   try {
     const supabase = getSupabase();
-    if (!supabase) return <BlogPostClient />;
+    if (!supabase) notFound();
 
     const { data: post } = await supabase
       .from("posts")
@@ -90,7 +95,7 @@ export default async function BlogPostPage({ params }: Props) {
       .eq("published", true)
       .single();
 
-    if (!post) return <BlogPostClient />;
+    if (!post) notFound();
 
     const { data: related } = await supabase
       .from("posts")
@@ -102,6 +107,6 @@ export default async function BlogPostPage({ params }: Props) {
 
     return <BlogPostClient initialPost={post} initialRelated={related || []} />;
   } catch {
-    return <BlogPostClient />;
+    notFound();
   }
 }

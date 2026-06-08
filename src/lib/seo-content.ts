@@ -1,0 +1,519 @@
+export const seoServices = [
+  {
+    slug: "vinyl-banner",
+    title: "รับทำป้ายไวนิล",
+    description: "ป้ายไวนิลสำหรับหน้าร้าน งานโปรโมชั่น อีเวนต์ และป้ายโฆษณา พิมพ์คมชัด ทนแดดกันน้ำ",
+    image: "/images/services/vinyl.jpg",
+    href: "/services/vinyl-banner",
+    keywords: ["รับทำป้ายไวนิล", "ป้ายไวนิลหน้าร้าน", "ป้ายโฆษณา"],
+  },
+  {
+    slug: "pp-board",
+    title: "รับทำ PP Board",
+    description: "PP Board ป้ายตั้งพื้น ป้ายโปรโมชั่น และป้ายออกบูธ น้ำหนักเบา ตัดรูปทรงได้",
+    image: "/images/services/ppboard.jpg",
+    href: "/services/pp-board",
+    keywords: ["รับทำ PP Board", "ป้าย PP Board", "ป้ายตั้งพื้น"],
+  },
+  {
+    slug: "standee",
+    title: "รับทำ Standee",
+    description: "Standee ไดคัท ตัวคน ตัวสินค้า และป้ายตั้งพื้นสำหรับหน้าร้าน งานเปิดตัว และจุดถ่ายรูป",
+    image: "/images/services/ppboard.jpg",
+    href: "/services/standee",
+    keywords: ["รับทำ Standee", "ป้าย Standee", "Standee ไดคัท"],
+  },
+  {
+    slug: "roll-up",
+    title: "รับทำ Roll Up",
+    description: "Roll Up Stand สำหรับออกบูธ สัมมนา และหน้าร้าน พกพาง่าย ใช้งานซ้ำได้",
+    image: "/images/services/hero-rollup.jpg",
+    href: "/services/roll-up",
+    keywords: ["รับทำ Roll Up", "Roll Up Stand", "ป้ายออกบูธ"],
+  },
+  {
+    slug: "x-stand",
+    title: "รับทำ X-Stand",
+    description: "X-Stand น้ำหนักเบา เปลี่ยนภาพง่าย เหมาะกับงานโปรโมชั่นและอีเวนต์ที่ต้องเคลื่อนย้ายบ่อย",
+    image: "/images/services/hero-rollup.jpg",
+    href: "/services/x-stand",
+    keywords: ["รับทำ X-Stand", "X-Stand", "ป้ายตั้งพื้น"],
+  },
+  {
+    slug: "backdrop",
+    title: "รับทำ Backdrop",
+    description: "Backdrop ผ้า Pop-up และโครงทรัส สำหรับอีเวนต์ ถ่ายรูป งานเปิดตัวสินค้า และบูธ",
+    image: "/images/services/backdrop.jpg",
+    href: "/services/backdrop",
+    keywords: ["รับทำ Backdrop", "Backdrop ผ้า", "Backdrop ไวนิล"],
+  },
+  {
+    slug: "label-sticker",
+    title: "รับทำสติ๊กเกอร์ฉลากสินค้า",
+    description: "ฉลากสินค้า PP/PVC กันน้ำ ไดคัท QR Code และ Barcode สำหรับแพ็กเกจสินค้า",
+    image: "/images/services/product-label-hero.jpg",
+    href: "/services/label-sticker",
+    keywords: ["รับทำฉลากสินค้า", "ฉลากสินค้ากันน้ำ", "สติ๊กเกอร์ฉลากสินค้า"],
+  },
+  {
+    slug: "sticker",
+    title: "รับทำสติ๊กเกอร์ทุกชนิด",
+    description: "สติ๊กเกอร์ PP, PVC, ใส, กันน้ำ, ไดคัท และสติ๊กเกอร์ติดกระจก สำหรับสินค้า หน้าร้าน อีเวนต์ และงานส่งเสริมการขาย",
+    image: "/images/sticker.jpg",
+    href: "/services/sticker",
+    keywords: ["รับทำสติ๊กเกอร์", "สติ๊กเกอร์ไดคัท", "สติ๊กเกอร์กันน้ำ", "สติ๊กเกอร์ PP", "สติ๊กเกอร์ PVC"],
+  },
+  {
+    slug: "storefront-signage",
+    title: "รับทำป้ายหน้าร้าน",
+    description: "ป้ายหน้าร้านสำหรับร้านอาหาร คาเฟ่ คลินิก ร้านค้า และธุรกิจบริการ ออกแบบตามพื้นที่จริง",
+    image: "/images/services/vinyl.jpg",
+    href: "/services/storefront-signage",
+    keywords: ["รับทำป้ายหน้าร้าน", "ป้ายหน้าร้าน", "ป้ายร้านอาหาร"],
+  },
+  {
+    slug: "promotion-signage",
+    title: "รับทำป้ายโปรโมชั่นหน้าร้าน",
+    description: "ป้าย Sale ป้ายเมนู ป้ายตั้งโต๊ะ และสื่อส่งเสริมการขายสำหรับแคมเปญระยะสั้น",
+    image: "/images/services/ppboard.jpg",
+    href: "/services/promotion-signage",
+    keywords: ["ป้ายโปรโมชั่นหน้าร้าน", "ป้าย Sale", "ป้ายเมนู"],
+  },
+  {
+    slug: "printing-media",
+    title: "งานพิมพ์สื่อโฆษณา",
+    description: "บริการผลิตป้ายและสื่อโฆษณาครบวงจรสำหรับธุรกิจ ตั้งแต่ตรวจไฟล์ แนะนำวัสดุ ไปจนถึงจัดส่ง",
+    image: "/images/hero-bg.jpg",
+    href: "/services/printing-media",
+    keywords: ["งานพิมพ์สื่อโฆษณา", "ผลิตป้าย", "สื่อหน้าร้าน"],
+  },
+];
+
+export const blogCategories = [
+  {
+    slug: "signage-knowledge",
+    name: "ความรู้เรื่องงานป้าย",
+    description: "บทความพื้นฐานเกี่ยวกับป้ายโฆษณา ป้ายหน้าร้าน รูปแบบงาน และการเลือกใช้ให้เหมาะกับธุรกิจ",
+    serviceLinks: ["/services/storefront-signage", "/services/vinyl-banner", "/services/pp-board"],
+  },
+  {
+    slug: "materials",
+    name: "ความรู้เรื่องวัสดุ",
+    description: "เปรียบเทียบวัสดุงานพิมพ์ เช่น ไวนิล PP Board สติ๊กเกอร์ Backdrop และวัสดุสำหรับงานอีเวนต์",
+    serviceLinks: ["/services/pp-board", "/services/label-sticker", "/services/backdrop"],
+  },
+  {
+    slug: "artwork-prepress",
+    name: "การเตรียมไฟล์ Artwork",
+    description: "วิธีเตรียมไฟล์ สี ขนาด ความละเอียด และรายละเอียดก่อนส่งผลิตงานป้ายและงานพิมพ์",
+    serviceLinks: ["/services/printing-media", "/services/vinyl-banner", "/services/label-sticker"],
+  },
+  {
+    slug: "storefront-ideas",
+    name: "ไอเดียป้ายหน้าร้าน",
+    description: "แนวคิดออกแบบป้ายหน้าร้าน เมนู โปรโมชั่น และสื่อที่ช่วยให้ลูกค้าตัดสินใจง่ายขึ้น",
+    serviceLinks: ["/services/storefront-signage", "/services/promotion-signage", "/services/standee"],
+  },
+  {
+    slug: "event-booth",
+    name: "งานออกบูธและอีเวนต์",
+    description: "ความรู้เกี่ยวกับ Roll Up, X-Stand, Backdrop, Standee และสื่อสำหรับงานอีเวนต์",
+    serviceLinks: ["/services/roll-up", "/services/x-stand", "/services/backdrop"],
+  },
+  {
+    slug: "labels-stickers",
+    name: "ฉลากสินค้าและสติ๊กเกอร์",
+    description: "บทความเกี่ยวกับฉลากสินค้า สติ๊กเกอร์กันน้ำ ไดคัท QR Code และงานแพ็กเกจ",
+    serviceLinks: ["/services/label-sticker", "/services/printing-media"],
+  },
+  {
+    slug: "case-studies",
+    name: "กรณีศึกษา / ผลงานลูกค้า",
+    description: "ตัวอย่างการเลือกวัสดุ การวางป้าย และแนวทางผลิตงานจริงสำหรับลูกค้าธุรกิจ",
+    serviceLinks: ["/services/printing-media", "/services/storefront-signage"],
+  },
+];
+
+export function serviceByHref(href: string) {
+  return seoServices.find((service) => service.href === href);
+}
+
+export function blogCategoryBySlug(slug: string) {
+  return blogCategories.find((category) => category.slug === slug);
+}
+
+export type SEOArticlePlan = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  categorySlug: string;
+  categoryName: string;
+  date: string;
+  cover: string;
+  serviceLinks: string[];
+  sections: Array<{ heading: string; paragraphs: string[] }>;
+};
+
+export const seoArticlePlans: SEOArticlePlan[] = [
+  {
+    slug: "vinyl-banner-size-guide",
+    title: "ป้ายไวนิลควรใช้ขนาดเท่าไหร่ เลือกยังไงให้เห็นชัดและคุ้มงบ",
+    excerpt: "แนวทางเลือกขนาดป้ายไวนิลสำหรับหน้าร้าน งานโปรโมชัน และอีเวนต์ พร้อมจุดที่ต้องเช็กก่อนส่งไฟล์ผลิต",
+    categorySlug: "signage-knowledge",
+    categoryName: "ความรู้เรื่องงานป้าย",
+    date: "2026-06-05",
+    cover: "/images/services/vinyl.jpg",
+    serviceLinks: ["/services/vinyl-banner", "/services/storefront-signage", "/services/promotion-signage"],
+    sections: [
+      {
+        heading: "เริ่มจากระยะมองเห็นจริง",
+        paragraphs: [
+          "ขนาดป้ายไวนิลที่ดีไม่ใช่แค่ใหญ่ที่สุด แต่ต้องอ่านได้จากระยะที่ลูกค้าจะมองเห็นจริง เช่น หน้าร้านริมถนนควรใช้ตัวอักษรใหญ่กว่างานในอาคารหรือจุดรับออเดอร์",
+          "ก่อนสั่งผลิตควรวัดพื้นที่ติดตั้ง ความสูงจากพื้น และจุดที่คนจะเดินหรือขับรถผ่าน เพื่อให้เลือกสัดส่วนป้ายได้พอดีกับการใช้งาน",
+        ],
+      },
+      {
+        heading: "ข้อมูลบนป้ายควรสั้นและชัด",
+        paragraphs: [
+          "ป้ายขนาดเล็กควรเน้นชื่อร้าน โปรโมชั่นหลัก ราคา หรือช่องทางติดต่อเท่านั้น หากใส่ข้อความมากเกินไป ลูกค้าจะอ่านไม่ทันและทำให้ป้ายดูแน่น",
+          "งานโปรโมชันระยะสั้นควรใช้สีตัดกันและจัดลำดับข้อความให้ชัด เช่น หัวข้อหลัก รายละเอียดสั้น และเงื่อนไขสำคัญ",
+        ],
+      },
+      {
+        heading: "ส่งไฟล์ให้เหมาะกับงานพิมพ์",
+        paragraphs: [
+          "ไฟล์ควรตั้งขนาดตามสัดส่วนจริง ใช้โหมดสี CMYK และเผื่อระยะตัดหรือเจาะตาไก่ตามจุดติดตั้ง การเตรียมไฟล์ดีช่วยลดงานแก้และทำให้ผลิตได้เร็วขึ้น",
+          "หากยังไม่แน่ใจเรื่องขนาด ทีมงานสามารถช่วยประเมินจากพื้นที่จริงและแนะนำวัสดุที่เหมาะกับงบประมาณได้",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "pp-board-guide",
+    title: "PP Board คืออะไร เหมาะกับป้ายแบบไหนบ้าง",
+    excerpt: "ทำความรู้จัก PP Board สำหรับป้ายตั้งพื้น ป้ายเมนู ป้ายออกบูธ และงานโปรโมชันที่ต้องการวัสดุน้ำหนักเบา",
+    categorySlug: "materials",
+    categoryName: "ความรู้เรื่องวัสดุ",
+    date: "2026-06-05",
+    cover: "/images/services/ppboard.jpg",
+    serviceLinks: ["/services/pp-board", "/services/standee", "/services/promotion-signage"],
+    sections: [
+      {
+        heading: "จุดเด่นของ PP Board",
+        paragraphs: [
+          "PP Board เป็นวัสดุแผ่นน้ำหนักเบา เคลื่อนย้ายง่าย และเหมาะกับงานพิมพ์สีเต็มแผ่น จึงนิยมใช้กับป้ายตั้งพื้น ป้ายหน้าร้าน ป้ายเมนู และสื่อโปรโมชันในอาคาร",
+          "วัสดุชนิดนี้ช่วยให้ทำงานด่วนได้ดี เพราะติดตั้งง่าย ตัดทรงได้ และปรับขนาดให้เข้ากับพื้นที่ใช้งานได้หลากหลาย",
+        ],
+      },
+      {
+        heading: "เหมาะกับงานระยะสั้นถึงกลาง",
+        paragraphs: [
+          "หากต้องการป้ายสำหรับโปรโมชัน งานอีเวนต์ หรือแคมเปญหน้าร้าน PP Board เป็นตัวเลือกที่คุ้มงบกว่างานโครงสร้างถาวร",
+          "สำหรับงานกลางแจ้งควรแจ้งตำแหน่งใช้งานก่อนเสมอ เพื่อเลือกความหนาและวิธีตั้งหรือยึดให้เหมาะกับสภาพพื้นที่",
+        ],
+      },
+      {
+        heading: "เลือกความหนาและขนาดอย่างไร",
+        paragraphs: [
+          "งานตั้งโต๊ะหรืองานแขวนขนาดเล็กอาจใช้แผ่นบางได้ แต่งานตั้งพื้นหรือ Standee ควรใช้วัสดุที่แข็งแรงขึ้นเพื่อลดการบิดงอ",
+          "การระบุขนาด จำนวนชิ้น และรูปแบบการตั้งจะช่วยให้ทีมผลิตเสนอราคาและระยะเวลาผลิตได้แม่นยำขึ้น",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "standee-guide",
+    title: "Standee ไดคัทเหมาะกับงานแบบไหน และต้องเตรียมไฟล์อย่างไร",
+    excerpt: "คู่มือเลือก Standee สำหรับหน้าร้าน งานเปิดตัวสินค้า จุดถ่ายรูป และบูธอีเวนต์ พร้อมข้อควรรู้เรื่องไฟล์ไดคัท",
+    categorySlug: "event-booth",
+    categoryName: "งานออกบูธและอีเวนต์",
+    date: "2026-06-05",
+    cover: "/images/services/ppboard.jpg",
+    serviceLinks: ["/services/standee", "/services/pp-board", "/services/backdrop"],
+    sections: [
+      {
+        heading: "Standee ช่วยดึงสายตาในพื้นที่จริง",
+        paragraphs: [
+          "Standee เหมาะกับจุดที่ต้องการให้ลูกค้าสังเกตเห็นทันที เช่น หน้าร้าน จุดชำระเงิน งานเปิดตัวสินค้า หรือพื้นที่ถ่ายรูปในอีเวนต์",
+          "รูปทรงไดคัทช่วยให้ภาพสินค้า ตัวละคร หรือพรีเซนเตอร์ดูเด่นกว่าป้ายสี่เหลี่ยมทั่วไป",
+        ],
+      },
+      {
+        heading: "ไฟล์ไดคัทต้องชัดเจน",
+        paragraphs: [
+          "ควรส่งไฟล์ภาพความละเอียดสูง พร้อมเส้นไดคัทหรือระบุขอบที่ต้องการตัดให้ชัดเจน เพื่อให้ชิ้นงานออกมาตรงกับแบบ",
+          "หากต้องการ Standee ตั้งพื้น ควรระบุความสูงจริงและจุดที่ต้องการวาง เพื่อเลือกฐานและวัสดุให้รับน้ำหนักได้เหมาะสม",
+        ],
+      },
+      {
+        heading: "ใช้คู่กับสื่ออื่นได้ดี",
+        paragraphs: [
+          "Standee สามารถใช้ร่วมกับ Backdrop, Roll Up หรือป้ายโปรโมชันหน้าร้าน เพื่อสร้างพื้นที่สื่อสารที่ครบขึ้น",
+          "การวางสื่อหลายชิ้นควรใช้ข้อความหลักเดียวกัน เพื่อให้ลูกค้าจำข้อเสนอหรือแบรนด์ได้ง่าย",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "roll-up-vs-x-stand",
+    title: "Roll Up กับ X-Stand ต่างกันอย่างไร เลือกแบบไหนสำหรับออกบูธ",
+    excerpt: "เปรียบเทียบป้าย Roll Up และ X-Stand สำหรับงานสัมมนา ออกบูธ และหน้าร้าน ทั้งเรื่องภาพลักษณ์ การพกพา และงบประมาณ",
+    categorySlug: "event-booth",
+    categoryName: "งานออกบูธและอีเวนต์",
+    date: "2026-06-05",
+    cover: "/images/services/hero-rollup.jpg",
+    serviceLinks: ["/services/roll-up", "/services/x-stand", "/services/backdrop"],
+    sections: [
+      {
+        heading: "Roll Up ดูเรียบร้อยและใช้งานซ้ำง่าย",
+        paragraphs: [
+          "Roll Up มีตลับเก็บภาพและโครงที่ดูเรียบร้อย เหมาะกับงานสัมมนา งานขาย งานเปิดตัวสินค้า และพื้นที่ที่ต้องการภาพลักษณ์มืออาชีพ",
+          "ข้อดีคือเก็บง่าย พกพาสะดวก และช่วยปกป้องแผ่นพิมพ์ระหว่างขนย้าย",
+        ],
+      },
+      {
+        heading: "X-Stand คุ้มงบและเปลี่ยนภาพง่าย",
+        paragraphs: [
+          "X-Stand เหมาะกับงานโปรโมชันที่ต้องเปลี่ยนภาพบ่อย น้ำหนักเบา และมีงบประมาณจำกัดกว่า Roll Up",
+          "งานที่ต้องขนย้ายบ่อยควรระวังการพับเก็บภาพและเลือกวัสดุพิมพ์ให้เหมาะกับการใช้งานซ้ำ",
+        ],
+      },
+      {
+        heading: "เลือกจากความถี่ในการใช้งาน",
+        paragraphs: [
+          "หากใช้บ่อยและต้องการความเรียบร้อย แนะนำ Roll Up แต่ถ้าเน้นราคาคุ้มและเปลี่ยนดีไซน์ตามแคมเปญ X-Stand เป็นตัวเลือกที่ดี",
+          "สำหรับงานบูธขนาดใหญ่ อาจใช้ Roll Up หรือ X-Stand คู่กับ Backdrop เพื่อให้พื้นที่ดูเต็มและสื่อสารครบขึ้น",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "prepare-artwork-for-print",
+    title: "เตรียมไฟล์ Artwork ก่อนส่งพิมพ์ป้าย ต้องเช็กอะไรบ้าง",
+    excerpt: "เช็กลิสต์ก่อนส่งไฟล์ผลิตงานป้ายและสื่อสิ่งพิมพ์ ตั้งแต่ขนาด สี ความละเอียด ฟอนต์ ไปจนถึงระยะตัดตก",
+    categorySlug: "artwork-prepress",
+    categoryName: "การเตรียมไฟล์ Artwork",
+    date: "2026-06-05",
+    cover: "/images/hero-bg.jpg",
+    serviceLinks: ["/services/printing-media", "/services/vinyl-banner", "/services/label-sticker"],
+    sections: [
+      {
+        heading: "ตั้งขนาดไฟล์ให้ตรงกับงานจริง",
+        paragraphs: [
+          "ไฟล์ที่ดีควรตั้งตามขนาดงานจริงหรือสัดส่วนที่ทีมผลิตสามารถขยายได้โดยไม่เสียคุณภาพ พร้อมระบุขนาดสุดท้ายอย่างชัดเจน",
+          "สำหรับป้ายขนาดใหญ่ควรเช็กว่าภาพและโลโก้ยังคมพอเมื่อขยาย ไม่ใช่แค่ดูชัดบนหน้าจอคอมพิวเตอร์",
+        ],
+      },
+      {
+        heading: "ใช้สีและฟอนต์ให้พร้อมผลิต",
+        paragraphs: [
+          "งานพิมพ์ควรใช้โหมดสี CMYK และควรแปลงฟอนต์เป็น outline หรือแนบฟอนต์ให้ครบ เพื่อป้องกันตัวอักษรเพี้ยน",
+          "หากมีสีแบรนด์สำคัญ ควรแจ้งค่าสีหรือแนบตัวอย่างอ้างอิง เพื่อให้ทีมผลิตช่วยเทียบสีได้ใกล้เคียงที่สุด",
+        ],
+      },
+      {
+        heading: "เผื่อระยะตัดและจุดติดตั้ง",
+        paragraphs: [
+          "งานสติกเกอร์ ฉลาก และป้ายที่ต้องตัดทรงควรมี bleed หรือระยะตัดตก รวมถึงเส้นไดคัทที่แยกจากงานภาพให้ชัด",
+          "งานไวนิลที่ต้องเจาะตาไก่ควรเว้นข้อความสำคัญออกจากขอบ เพื่อไม่ให้รูเจาะทับตัวอักษรหรือโลโก้",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "cmyk-vs-rgb-printing",
+    title: "CMYK กับ RGB ต่างกันอย่างไร ทำไมสีงานพิมพ์อาจไม่เหมือนบนจอ",
+    excerpt: "อธิบายความต่างระหว่างสีบนจอและสีงานพิมพ์ เพื่อช่วยเตรียมไฟล์ป้าย สติกเกอร์ และสื่อสิ่งพิมพ์ให้ใกล้เคียงแบบมากขึ้น",
+    categorySlug: "artwork-prepress",
+    categoryName: "การเตรียมไฟล์ Artwork",
+    date: "2026-06-05",
+    cover: "/images/hero-bg.jpg",
+    serviceLinks: ["/services/printing-media", "/services/label-sticker"],
+    sections: [
+      {
+        heading: "RGB คือสีสำหรับหน้าจอ",
+        paragraphs: [
+          "RGB ใช้กับจอมือถือ คอมพิวเตอร์ และสื่อดิจิทัล สีบางช่วงจะสว่างสดมากเพราะเกิดจากแสงของหน้าจอ",
+          "เมื่อเอาไฟล์ RGB ไปพิมพ์ สีบางสีอาจดรอปลงหรือเปลี่ยนโทน เพราะเครื่องพิมพ์ไม่ได้สร้างสีด้วยแสงแบบหน้าจอ",
+        ],
+      },
+      {
+        heading: "CMYK คือสีสำหรับงานพิมพ์",
+        paragraphs: [
+          "CMYK เป็นระบบสีหลักของงานพิมพ์ ใช้หมึก Cyan, Magenta, Yellow และ Black เพื่อสร้างสีบนวัสดุจริง",
+          "การเตรียมไฟล์เป็น CMYK ตั้งแต่ต้นช่วยให้คาดเดาสีงานพิมพ์ได้ดีขึ้น โดยเฉพาะงานที่มีสีแบรนด์หรือสีพื้นขนาดใหญ่",
+        ],
+      },
+      {
+        heading: "สีจริงขึ้นกับวัสดุด้วย",
+        paragraphs: [
+          "วัสดุแต่ละชนิดสะท้อนสีไม่เหมือนกัน เช่น ไวนิล สติกเกอร์ PP หรือวัสดุผ้า จึงควรแจ้งวัสดุปลายทางก่อนผลิต",
+          "สำหรับงานที่ต้องการสีแม่นยำมาก ควรคุยเรื่อง proof สีหรือตัวอย่างก่อนผลิตจำนวนมาก",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "waterproof-label-materials",
+    title: "ฉลากสินค้ากันน้ำควรใช้วัสดุอะไร เลือก PP หรือ PVC ดี",
+    excerpt: "แนวทางเลือกวัสดุฉลากสินค้าและสติกเกอร์กันน้ำสำหรับขวด กระปุก กล่อง และแพ็กเกจที่ต้องใช้งานจริง",
+    categorySlug: "labels-stickers",
+    categoryName: "ฉลากสินค้าและสติ๊กเกอร์",
+    date: "2026-06-05",
+    cover: "/images/services/product-label-hero.jpg",
+    serviceLinks: ["/services/label-sticker", "/services/printing-media"],
+    sections: [
+      {
+        heading: "เริ่มจากสภาพการใช้งาน",
+        paragraphs: [
+          "ฉลากสินค้ากันน้ำควรเลือกจากสภาพจริง เช่น โดนน้ำบ่อย แช่เย็น จับด้วยมือเปียก หรือใช้กับบรรจุภัณฑ์ที่มีความโค้ง",
+          "หากสินค้าอยู่ในห้องน้ำ ห้องครัว หรือร้านเครื่องดื่ม ควรเลือกวัสดุที่ทนน้ำและกาวที่เหมาะกับผิวบรรจุภัณฑ์",
+        ],
+      },
+      {
+        heading: "PP และ PVC มีจุดเด่นต่างกัน",
+        paragraphs: [
+          "PP มักให้ผิวงานเรียบ ดูสะอาด เหมาะกับฉลากสินค้าและแพ็กเกจที่ต้องการภาพลักษณ์เรียบร้อย",
+          "PVC มีความยืดหยุ่นและทนทาน เหมาะกับงานที่ต้องการการยึดเกาะและการใช้งานหนักขึ้น ทั้งนี้ควรเลือกตามรูปทรงและผิววัสดุ",
+        ],
+      },
+      {
+        heading: "งานไดคัทและ QR Code ต้องเช็กเพิ่ม",
+        paragraphs: [
+          "หากฉลากมี QR Code หรือ Barcode ควรเว้นขนาดและคอนทราสต์ให้สแกนง่ายหลังพิมพ์จริง",
+          "งานไดคัทควรมีเส้นตัดชัดเจนและเผื่อระยะตัดตก เพื่อให้ขอบฉลากไม่เหลือพื้นขาวหรือกินเนื้อดีไซน์",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "storefront-signage-ideas",
+    title: "ไอเดียป้ายหน้าร้านสำหรับร้านอาหาร คาเฟ่ และธุรกิจบริการ",
+    excerpt: "รวมแนวคิดทำป้ายหน้าร้านให้ลูกค้าเห็นง่าย จำแบรนด์ได้ และช่วยให้ตัดสินใจเดินเข้าร้านเร็วขึ้น",
+    categorySlug: "storefront-ideas",
+    categoryName: "ไอเดียป้ายหน้าร้าน",
+    date: "2026-06-05",
+    cover: "/images/services/vinyl.jpg",
+    serviceLinks: ["/services/storefront-signage", "/services/promotion-signage", "/services/standee"],
+    sections: [
+      {
+        heading: "ป้ายหน้าร้านต้องตอบคำถามแรกของลูกค้า",
+        paragraphs: [
+          "ลูกค้าที่เดินผ่านควรรู้ทันทีว่าร้านขายอะไร จุดเด่นคืออะไร และควรเดินเข้าไปเพราะอะไร ป้ายหน้าร้านจึงควรมีชื่อร้าน ประเภทสินค้า และข้อความหลักที่ชัด",
+          "ร้านอาหารและคาเฟ่อาจเพิ่มเมนูเด่น ราคาเริ่มต้น หรือรูปสินค้าเพื่อช่วยให้ตัดสินใจง่ายขึ้น",
+        ],
+      },
+      {
+        heading: "ใช้สื่อหลายระดับร่วมกัน",
+        paragraphs: [
+          "ป้ายหลักช่วยให้มองเห็นจากระยะไกล ส่วนป้ายเมนู Standee หรือป้ายโปรโมชันช่วยสื่อสารรายละเอียดเมื่อเดินเข้ามาใกล้",
+          "การใช้โทนสี ฟอนต์ และภาพให้ไปทางเดียวกันจะทำให้หน้าร้านดูเป็นระบบและน่าเชื่อถือขึ้น",
+        ],
+      },
+      {
+        heading: "วัดพื้นที่ก่อนออกแบบ",
+        paragraphs: [
+          "ควรวัดขนาดหน้าร้าน จุดติดตั้ง และแสงในพื้นที่ก่อนออกแบบ เพื่อให้ขนาดตัวอักษรและตำแหน่งป้ายอ่านง่ายจริง",
+          "หากพื้นที่มีข้อจำกัด เช่น กระจก ประตู หรือผนังแคบ ทีมผลิตสามารถช่วยแนะนำรูปแบบป้ายที่เหมาะกับพื้นที่ได้",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "fabric-vs-vinyl-backdrop",
+    title: "Backdrop ผ้า กับ Backdrop ไวนิล ต่างกันอย่างไร",
+    excerpt: "เปรียบเทียบวัสดุ Backdrop สำหรับงานอีเวนต์ บูธ ถ่ายภาพ และงานเปิดตัวสินค้า เพื่อเลือกให้เหมาะกับภาพลักษณ์และงบประมาณ",
+    categorySlug: "event-booth",
+    categoryName: "งานออกบูธและอีเวนต์",
+    date: "2026-06-05",
+    cover: "/images/services/backdrop.jpg",
+    serviceLinks: ["/services/backdrop", "/services/roll-up", "/services/printing-media"],
+    sections: [
+      {
+        heading: "Backdrop ผ้าให้ภาพลักษณ์เรียบร้อย",
+        paragraphs: [
+          "Backdrop ผ้ามักเหมาะกับงานที่ต้องการความเรียบ เนียน และดูพรีเมียม เช่น งานแถลงข่าว งานเปิดตัวสินค้า หรือพื้นที่ถ่ายภาพ",
+          "ข้อดีคือพับเก็บได้และลดรอยสะท้อนแสงบางกรณี แต่ต้องดูแลเรื่องรอยยับและวิธีติดตั้งให้ตึง",
+        ],
+      },
+      {
+        heading: "Backdrop ไวนิลคุ้มงบและผลิตง่าย",
+        paragraphs: [
+          "Backdrop ไวนิลเหมาะกับงานที่ต้องการความคุ้มค่า สีสด และใช้งานระยะสั้นถึงกลาง เช่น งานโปรโมชันหรืออีเวนต์ทั่วไป",
+          "วัสดุไวนิลติดตั้งได้หลายรูปแบบและเหมาะกับโครงทรัสหรือจุดที่ต้องการขึงให้เต็มพื้นที่",
+        ],
+      },
+      {
+        heading: "เลือกจากสถานที่และภาพที่ต้องการ",
+        paragraphs: [
+          "หากงานเน้นถ่ายรูปหรือภาพลักษณ์พรีเมียม Backdrop ผ้าเป็นตัวเลือกที่ดี แต่ถ้าเน้นงบประมาณและความรวดเร็ว ไวนิลอาจเหมาะกว่า",
+          "ควรแจ้งขนาดพื้นที่จริง วิธีติดตั้ง และระยะเวลาการใช้งาน เพื่อให้ทีมผลิตแนะนำวัสดุและโครงสร้างได้ตรงที่สุด",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "restaurant-signage-checklist",
+    title: "เช็กลิสต์ทำป้ายร้านอาหารให้ลูกค้าเห็นเมนูและโปรโมชันชัด",
+    excerpt: "รายการที่ร้านอาหารควรเช็กก่อนสั่งทำป้ายหน้าร้าน ป้ายเมนู ป้ายโปรโมชัน และสื่อช่วยขายภายในร้าน",
+    categorySlug: "storefront-ideas",
+    categoryName: "ไอเดียป้ายหน้าร้าน",
+    date: "2026-06-05",
+    cover: "/images/services/ppboard.jpg",
+    serviceLinks: ["/services/storefront-signage", "/services/promotion-signage", "/services/pp-board"],
+    sections: [
+      {
+        heading: "แยกป้ายหลักกับป้ายช่วยขาย",
+        paragraphs: [
+          "ป้ายหลักควรบอกชื่อร้านและประเภทอาหารให้ชัด ส่วนป้ายช่วยขาย เช่น ป้ายเมนู ป้ายโปรโมชัน หรือป้ายตั้งโต๊ะ ควรเน้นข้อมูลที่ทำให้ลูกค้าตัดสินใจเร็ว",
+          "การแบ่งหน้าที่ของแต่ละป้ายช่วยให้ร้านดูไม่รก และลูกค้าอ่านข้อมูลได้ง่ายขึ้น",
+        ],
+      },
+      {
+        heading: "ราคาและเมนูต้องอ่านง่าย",
+        paragraphs: [
+          "ร้านอาหารควรใช้ตัวอักษรขนาดใหญ่พอ โดยเฉพาะราคา โปรโมชัน และเมนูขายดี เพราะลูกค้ามักตัดสินใจจากข้อมูลเหล่านี้ก่อน",
+          "หากเมนูมีหลายรายการ ควรจัดกลุ่มให้ชัดและหลีกเลี่ยงการยัดข้อความทั้งหมดลงในป้ายเดียว",
+        ],
+      },
+      {
+        heading: "วัสดุต้องเหมาะกับตำแหน่งวาง",
+        paragraphs: [
+          "ป้ายหน้าร้านกลางแจ้งควรเลือกวัสดุที่ทนแดดและความชื้น ส่วนป้ายภายในร้านอาจใช้ PP Board หรือสติกเกอร์เพื่อความคุ้มค่า",
+          "ก่อนสั่งผลิตควรถ่ายรูปพื้นที่จริงและแจ้งขนาดโดยประมาณ เพื่อให้ทีมผลิตช่วยแนะนำรูปแบบป้ายได้เร็วขึ้น",
+        ],
+      },
+    ],
+  },
+];
+
+export function seoArticleBySlug(slug: string) {
+  return seoArticlePlans.find((article) => article.slug === slug);
+}
+
+export function seoArticlePlanToPost(article: SEOArticlePlan) {
+  const serviceLinks = article.serviceLinks
+    .map(serviceByHref)
+    .filter(Boolean)
+    .map((service) => `<li><a href="${service!.href}">${service!.title}</a></li>`)
+    .join("");
+  const body = [
+    `<p>${article.excerpt}</p>`,
+    ...article.sections.map((section) => (
+      `<h2>${section.heading}</h2>${section.paragraphs.map((paragraph) => `<p>${paragraph}</p>`).join("")}`
+    )),
+    serviceLinks ? `<h2>บริการที่เกี่ยวข้อง</h2><ul>${serviceLinks}</ul>` : "",
+  ].join("");
+
+  return {
+    id: `seo-${article.slug}`,
+    title: article.title,
+    excerpt: article.excerpt,
+    category: article.categoryName,
+    date: article.date,
+    slug: article.slug,
+    cover: article.cover,
+    published: true,
+    body,
+  };
+}

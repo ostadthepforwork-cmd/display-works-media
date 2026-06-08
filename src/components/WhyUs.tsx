@@ -58,17 +58,13 @@ const reasons = [
 
 export default function WhyUs() {
   return (
-    <section id="about" className="py-24 lg:py-32 px-6 lg:px-8" style={{ background: "#141A24" }}>
+    <section id="about" className="py-20 lg:py-28 px-6 lg:px-8" style={{ background: "#141A24" }}>
       <div className="max-w-7xl mx-auto">
 
         <div className="reveal-section flex flex-col lg:flex-row lg:items-end gap-6 mb-16">
           <div className="flex-1">
-            <div className="section-label">ทำไมต้องเรา</div>
-            <h2 className="section-title">
-              เหตุผลที่ลูกค้าเลือก
-              <br />
-              Display Works Media
-            </h2>
+            <div className="section-label">WHY DISPLAY WORKS</div>
+            <h2 className="section-title">ทำไมต้องเรา</h2>
           </div>
           <p className="section-sub lg:max-w-xs lg:text-right">
             มากกว่า 120 ธุรกิจไว้วางใจให้เราดูแลงานพิมพ์ ด้วยเหตุผลเหล่านี้
@@ -110,7 +106,7 @@ export default function WhyUs() {
                 </div>
                 <div className="relative">
                   <h3 className="font-kanit font-bold text-white text-lg mb-3 leading-snug">{r.title}</h3>
-                  <p className="text-sm leading-relaxed mb-5" style={{ color: "#A8B0C0" }}>{r.desc}</p>
+                  <p className="text-sm leading-7 mb-5" style={{ color: "#A8B0C0" }}>{r.desc}</p>
                   <div
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
                     style={{ background: "rgba(255,107,0,0.08)", color: "#FF6B00", border: "1px solid rgba(255,107,0,0.15)" }}

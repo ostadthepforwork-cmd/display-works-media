@@ -65,7 +65,7 @@ const localBusinessSchema = {
         itemOffered: {
           "@type": "Service",
           name: "ป้ายไวนิล (Vinyl Banner)",
-          url: "https://displayworksmedia.com/services/vinyl",
+          url: "https://displayworksmedia.com/services/vinyl-banner",
         },
       },
       {
@@ -73,7 +73,7 @@ const localBusinessSchema = {
         itemOffered: {
           "@type": "Service",
           name: "Roll Up Stand / X-Stand",
-          url: "https://displayworksmedia.com/services/rollup",
+          url: "https://displayworksmedia.com/services/roll-up",
         },
       },
       {
@@ -81,7 +81,7 @@ const localBusinessSchema = {
         itemOffered: {
           "@type": "Service",
           name: "สติ๊กเกอร์ทุกชนิด",
-          url: "https://displayworksmedia.com/services/sticker",
+          url: "https://displayworksmedia.com/services/label-sticker",
         },
       },
       {
@@ -89,7 +89,7 @@ const localBusinessSchema = {
         itemOffered: {
           "@type": "Service",
           name: "PP Board / Standee",
-          url: "https://displayworksmedia.com/services/ppboard",
+          url: "https://displayworksmedia.com/services/pp-board",
         },
       },
       {
@@ -97,7 +97,7 @@ const localBusinessSchema = {
         itemOffered: {
           "@type": "Service",
           name: "ฉลากสินค้า (Product Label)",
-          url: "https://displayworksmedia.com/services/label",
+          url: "https://displayworksmedia.com/services/storefront-signage",
         },
       },
     ],

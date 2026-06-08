@@ -11,7 +11,7 @@ const reviewSchemaJson = {
   aggregateRating: {
     "@type": "AggregateRating",
     ratingValue: "4.9",
-    reviewCount: "6",
+    reviewCount: "32",
     bestRating: "5",
     worstRating: "1",
   },
@@ -112,7 +112,7 @@ function Stars({ count }: { count: number }) {
 export default function Reviews() {
   return (
     <section
-      className="py-24 lg:py-32 px-6 lg:px-8"
+      className="py-20 lg:py-24 px-6 lg:px-8"
       style={{ background: "#0B0F19" }}
     >
       {/* JSON-LD AggregateRating + Review schema สำหรับ SEO / GEO */}
@@ -126,12 +126,8 @@ export default function Reviews() {
         {/* Header */}
         <div className="reveal-section flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
           <div>
-            <div className="section-label">รีวิวจากลูกค้า</div>
-            <h2 className="section-title">
-              ความไว้วางใจ คือ
-              <br />
-              สิ่งที่เราภูมิใจที่สุด
-            </h2>
+            <div className="section-label">CUSTOMER VOICE</div>
+            <h2 className="section-title">รีวิวจากลูกค้า</h2>
           </div>
           {/* Overall rating summary */}
           <div
@@ -146,13 +142,13 @@ export default function Reviews() {
                 className="font-kanit font-extrabold text-5xl leading-none"
                 style={{ color: "#FF6B00" }}
               >
-                5.0
+                4.9
               </div>
               <div className="mt-1">
                 <Stars count={5} />
               </div>
               <div className="text-xs mt-1" style={{ color: "#A8B0C0" }}>
-                จาก 120+ รีวิว
+                จาก 32 รีวิว
               </div>
             </div>
             <div
@@ -160,10 +156,9 @@ export default function Reviews() {
               style={{ background: "rgba(255,255,255,0.08)" }}
             />
             <div className="text-sm" style={{ color: "#A8B0C0" }}>
-              <div className="text-white font-semibold mb-0.5">ลูกค้าพึงพอใจ</div>
-              <div>100% ทุกออเดอร์</div>
-              <div className="mt-1 text-xs">ยินดีผลิตใหม่หาก</div>
-              <div className="text-xs">งานไม่ตรงแบบ</div>
+              <div className="text-white font-semibold mb-0.5">เสียงตอบรับจากลูกค้า</div>
+              <div>งานป้ายและสื่อสิ่งพิมพ์</div>
+              <div className="mt-1 text-xs">ตรวจงานก่อนส่งทุกออเดอร์</div>
             </div>
           </div>
         </div>
@@ -249,7 +244,7 @@ export default function Reviews() {
         {/* Bottom CTA */}
         <div className="reveal-section text-center mt-12">
           <p className="text-sm mb-4" style={{ color: "#A8B0C0" }}>
-            เข้าร่วมกับลูกค้ากว่า 120 รายที่ไว้วางใจเรา
+            ขอบคุณทุกความไว้วางใจที่ให้เราได้ดูแลงานพิมพ์และสื่อโฆษณา
           </p>
           <a
             href="#quote"

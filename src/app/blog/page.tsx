@@ -3,7 +3,10 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { Calendar, Clock, ArrowRight, Search, Home, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import BlogClientShell from "./BlogClientShell";
+import { blogCategories } from "@/lib/seo-content";
+import { safeImageSrc } from "@/lib/image-utils";
 
 export const metadata = {
   title: "บทความและความรู้งานพิมพ์ | Display Works Media",
@@ -50,9 +53,15 @@ export default async function BlogPage() {
   } catch {
     allPosts = [];
   }
+
+  allPosts = allPosts
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .slice(0, 5);
+
   const featuredPost = allPosts[0];
   const regularPosts = allPosts.slice(1);
   const categories = ["ทั้งหมด", ...Array.from(new Set(allPosts.map((p) => p.category).filter(Boolean)))];
+  const featuredCover = safeImageSrc(featuredPost?.cover);
 
   return (
     <div className="min-h-screen text-white bg-[#050816]" style={{ fontFamily: "'Prompt', sans-serif" }}>
@@ -86,6 +95,32 @@ export default async function BlogPage() {
         </div>
       </section>
 
+      <section className="py-10 bg-[#050816]">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <p className="text-xs font-bold tracking-widest text-[#FF7A00] mb-2 uppercase">CONTENT HUB</p>
+              <h2 className="font-kanit font-bold text-2xl lg:text-3xl text-white">หมวดบทความ</h2>
+            </div>
+            <Link href="/services" className="hidden sm:inline-flex items-center gap-2 text-[#FF7A00] text-sm font-semibold">
+              ดูบริการทั้งหมด <ArrowRight size={15} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {blogCategories.map((category) => (
+              <Link
+                key={category.slug}
+                href={`/blog/category/${category.slug}`}
+                className="rounded-2xl bg-[#0B1220] border border-white/5 p-5 hover:border-[#FF7A00]/35 transition-colors"
+              >
+                <h3 className="font-kanit font-bold text-white mb-2">{category.name}</h3>
+                <p className="text-[#A7B0C0] text-sm leading-relaxed">{category.description}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FEATURED — server-rendered, Google เห็นทันที */}
       {featuredPost && (
         <section className="py-12 bg-[#050816]">
@@ -96,9 +131,9 @@ export default async function BlogPage() {
               className="group grid lg:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-white/5 bg-[#0B1220] hover:border-[#FF7A00]/30 transition-all duration-300"
             >
               <div className="relative h-64 lg:h-auto min-h-[300px] bg-[#141A24]">
-                {featuredPost.cover ? (
+                {featuredCover ? (
                   <Image
-                    src={featuredPost.cover}
+                    src={featuredCover}
                     alt={featuredPost.title}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
@@ -134,13 +169,15 @@ export default async function BlogPage() {
         <section className="py-12 bg-[#050816]">
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {regularPosts.map((post) => (
+              {regularPosts.map((post) => {
+                const cover = safeImageSrc(post.cover);
+                return (
                 <article key={post.id} className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300 reveal-item">
                   <Link href={`/blog/${post.slug}`} className="block">
                     <div className="relative h-48 overflow-hidden bg-[#141A24]">
-                      {post.cover ? (
+                      {cover ? (
                         <Image
-                          src={post.cover}
+                          src={cover}
                           alt={post.title}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -172,7 +209,8 @@ export default async function BlogPage() {
                     </div>
                   </Link>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -184,6 +222,7 @@ export default async function BlogPage() {
           <p className="text-sm">เพิ่มบทความได้ที่หน้า Admin → CMS</p>
         </div>
       )}
+      <Footer />
     </div>
   );
 }

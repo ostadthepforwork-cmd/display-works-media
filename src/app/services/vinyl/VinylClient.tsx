@@ -190,7 +190,7 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-[70px]">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 relative flex-shrink-0">
-            <Image src="/images/logo.png" alt="Display Works Media logo" width={40} height={40} priority className="object-contain" />
+            <img src="/images/logo.png" alt="Display Works Media logo" className="object-contain" style={{ width: 40, height: 40 }} />
           </div>
           <div>
             <div className="font-kanit font-bold text-sm tracking-wider leading-none text-white">DISPLAY WORKS</div>
@@ -270,7 +270,7 @@ export default function VinylLandingPage() {
 
       {/* ── 1. HERO SECTION ── */}
       <section id="hero" className="relative overflow-hidden flex items-center min-h-[560px] bg-[#050816]">
-        <Image src="/images/hero-bg-vinyl.jpg" alt="Vinyl Printing" fill priority className="object-cover object-[center_right] z-0" />
+        <Image src="/images/hero-bg-vinyl.jpg" alt="Vinyl Printing" fill priority sizes="100vw" className="object-cover object-[center_right] z-0" />
         
         {/* Overlays */}
         <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(to right, #050816 10%, rgba(5, 8, 22, 0.85) 45%, rgba(5, 8, 22, 0.3) 75%, transparent 100%)" }} />
@@ -341,7 +341,7 @@ export default function VinylLandingPage() {
                 <motion.div key={idx} whileHover={{ y: -5 }} className="bg-[#050816] rounded-3xl border border-white/5 overflow-hidden flex flex-col h-full shadow-2xl">
                   {/* Image Header */}
                   <div className="relative aspect-video w-full bg-[#141A24] border-b border-white/5">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    <Image src={item.image} alt={item.name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   </div>
                   
                   <div className="p-8 flex flex-col flex-grow">
@@ -393,7 +393,7 @@ export default function VinylLandingPage() {
               <div key={i} className="bg-[#0B1220] rounded-2xl border border-white/5 flex flex-col sm:flex-row items-stretch hover:border-[#FF7A00]/50 transition-colors shadow-xl overflow-hidden group cursor-pointer">
                 {/* Left Side Image */}
                 <div className="relative w-full sm:w-48 aspect-[16/9] sm:aspect-square bg-[#141A24] flex-shrink-0 border-b sm:border-b-0 sm:border-r border-white/5 overflow-hidden">
-                  <Image src={opt.image} alt={opt.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  <Image src={opt.image} alt={opt.name} fill sizes="(max-width: 640px) 100vw, 192px" className="object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 </div>
                 {/* Right Side Content */}
                 <div className="p-6 lg:p-8 flex flex-col justify-center">
@@ -447,7 +447,7 @@ export default function VinylLandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {portfolioImages.map((src, i) => (
               <motion.div key={i} whileHover={{ scale: 1.02 }} className="relative aspect-[16/10] rounded-3xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer bg-[#0B1220]">
-                <Image src={src} alt="Portfolio" fill className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                <Image src={src} alt="Portfolio" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
                    <div className="bg-[#FF7A00] p-3 rounded-full"><Check size={24} className="text-white" /></div>
                 </div>
@@ -812,7 +812,7 @@ export default function VinylLandingPage() {
             {/* Brand */}
             <div className="lg:col-span-1">
               <div className="flex items-center gap-3 mb-5">
-                <div className="relative w-10 h-10 flex-shrink-0"><Image src="/images/logo.png" alt="Display Works Media" fill className="object-contain" /></div>
+                <div className="relative w-10 h-10 flex-shrink-0"><img src="/images/logo.png" alt="Display Works Media" className="h-10 w-10 object-contain" style={{ width: 40, height: 40 }} /></div>
                 <div>
                   <div className="font-bold text-sm tracking-wider text-white leading-none">DISPLAY WORKS</div>
                   <div className="font-bold text-sm tracking-wider leading-none text-[#FF7A00]">MEDIA</div>

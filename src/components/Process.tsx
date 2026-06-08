@@ -51,7 +51,7 @@ export default function Process() {
   return (
     <section
       id="process"
-      className="py-24 lg:py-32 px-6 lg:px-8"
+      className="py-20 px-6 lg:px-8 lg:pt-24 lg:pb-20"
       style={{ background: "#0B0F19" }}
     >
       <div className="max-w-7xl mx-auto">
@@ -62,12 +62,12 @@ export default function Process() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-20"
+          className="text-center mb-14"
         >
           <div className="section-label" style={{ textAlign: "center" }}>
-            ขั้นตอนการทำงาน
+            WORKFLOW
           </div>
-          <h2 className="section-title">ง่าย ครบ จบใน 5 ขั้นตอน</h2>
+          <h2 className="section-title">ขั้นตอนการทำงาน</h2>
           <p className="section-sub mx-auto text-center">
             ขั้นตอนที่ออกแบบมาเพื่อความสะดวกของคุณ ไม่ต้องเดินทาง
             ไม่ต้องนัดหมาย
@@ -160,7 +160,7 @@ export default function Process() {
                   <h3 className="font-kanit font-bold text-white text-sm mb-2 leading-snug">
                     {step.title}
                   </h3>
-                  <p className="text-xs leading-relaxed" style={{ color: "#A8B0C0" }}>
+                  <p className="text-xs leading-6" style={{ color: "#A8B0C0" }}>
                     {step.desc}
                   </p>
                 </motion.div>
@@ -235,7 +235,7 @@ export default function Process() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="text-center mt-16"
+          className="text-center mt-10"
         >
           <a
             href="#quote"
