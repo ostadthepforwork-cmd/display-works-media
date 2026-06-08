@@ -1,23 +1,42 @@
-import { ArrowRight, Phone, MessageCircle, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, MessageCircle, Phone } from "lucide-react";
 import Image from "next/image";
 
-const trustPoints = [
+const defaultTrustPoints = [
   "ออกแบบ ผลิต ติดตั้ง ครบจบในที่เดียว",
   "บริการหลังการขายครบวงจร",
   "จัดส่งทั่วประเทศ พร้อมแจ้งเลขพัสดุ",
 ];
 
-export default function Hero() {
+type HeroSettings = {
+  headline1?: string;
+  headlineHighlight?: string;
+  headline2?: string;
+  subtitle?: string;
+  trustPoints?: string[];
+  bgImage?: string;
+  phone?: string;
+  lineUrl?: string;
+};
+
+export default function Hero({ settings }: { settings?: HeroSettings }) {
+  const hero = settings || {};
+  const trustPoints = Array.isArray(hero.trustPoints) && hero.trustPoints.length > 0
+    ? hero.trustPoints.filter(Boolean)
+    : defaultTrustPoints;
+  const bgImage = hero.bgImage || "/images/hero-bg-home.jpg";
+  const phone = hero.phone || "065-916-1539";
+  const tel = phone.replace(/[^\d+]/g, "");
+  const lineUrl = hero.lineUrl || "https://lin.ee/O0nPl03";
+
   return (
     <section
       id="hero"
       className="relative flex min-h-[720px] items-center overflow-hidden lg:min-h-[760px]"
       style={{ background: "#0B0F19" }}
     >
-      {/* Background */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/images/hero-bg-home.jpg"
+          src={bgImage}
           alt="Display Works Media"
           fill
           priority
@@ -47,8 +66,6 @@ export default function Hero() {
         style={{ paddingTop: "96px", paddingBottom: "56px" }}
       >
         <div className="max-w-3xl">
-
-          {/* Badge */}
           <div className="hero-badge inline-flex items-center gap-2 mb-6 sm:mb-8">
             <div
               className="px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold tracking-[2px] sm:tracking-[3px] uppercase border"
@@ -62,17 +79,21 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Headline */}
           <h1
             className="hero-h1 font-kanit font-extrabold leading-[1.1] mb-5 sm:mb-6 text-white"
             style={{ fontSize: "clamp(32px, 7vw, 72px)" }}
           >
-            ผลิตสื่อโฆษณา
+            {hero.headline1 || "ผลิตสื่อโฆษณา"}
             <br />
-            <span style={{ color: "#FF6B00" }}>ครบวงจร</span>
+            <span style={{ color: "#FF6B00" }}>{hero.headlineHighlight || "ครบวงจร"}</span>
+            {hero.headline2 ? (
+              <>
+                <br />
+                {hero.headline2}
+              </>
+            ) : null}
           </h1>
 
-          {/* Subtitle */}
           <p
             className="hero-sub leading-relaxed mb-6 sm:mb-8"
             style={{
@@ -81,11 +102,10 @@ export default function Hero() {
               color: "#A8B0C0",
             }}
           >
-            ออกแบบ ผลิต ติดตั้ง งานป้าย ร้านค้า และสื่อโฆษณาทุกประเภท
-            พร้อมทีมงานมืออาชีพดูแลตลอดกระบวนการ
+            {hero.subtitle ||
+              "ออกแบบ ผลิต ติดตั้ง งานป้าย ร้านค้า และสื่อโฆษณาทุกประเภท พร้อมทีมงานมืออาชีพดูแลตลอดกระบวนการ"}
           </p>
 
-          {/* Trust points */}
           <div className="hero-trust flex flex-col gap-2 mb-8 sm:mb-10">
             {trustPoints.map((point) => (
               <div key={point} className="flex items-center gap-3">
@@ -105,7 +125,6 @@ export default function Hero() {
             ))}
           </div>
 
-          {/* CTA Buttons */}
           <div className="hero-cta flex flex-col sm:flex-row gap-3 sm:gap-4 mb-5">
             <a
               href="#quote"
@@ -134,44 +153,40 @@ export default function Hero() {
             </a>
           </div>
 
-          {/* Quick contact */}
           <div
             className="hero-contact inline-flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2.5"
-            style={{ color: "#A8B0C0", fontSize: "13px", background: "rgba(11,15,25,0.72)", borderColor: "rgba(255,255,255,0.1)" }}
+            style={{
+              color: "#A8B0C0",
+              fontSize: "13px",
+              background: "rgba(11,15,25,0.72)",
+              borderColor: "rgba(255,255,255,0.1)",
+            }}
           >
             <a
-              href="tel:0659161539"
+              href={`tel:${tel}`}
               className="flex items-center gap-2 rounded-lg px-2 py-1 hover:text-white transition-colors"
             >
-              <Phone size={14} style={{ color: "#FF6B00" }} /> 065-916-1539
+              <Phone size={14} style={{ color: "#FF6B00" }} /> {phone}
             </a>
             <span className="hidden h-4 w-px bg-white/10 sm:block" />
             <a
-              href="https://lin.ee/O0nPl03"
+              href={lineUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-lg px-2 py-1 hover:text-white transition-colors"
             >
-              <MessageCircle size={14} style={{ color: "#06C755" }} />{" "}
-              ปรึกษาฟรีผ่าน LINE
+              <MessageCircle size={14} style={{ color: "#06C755" }} /> ปรึกษาฟรีผ่าน LINE
             </a>
           </div>
         </div>
       </div>
 
-      {/* Scroll indicator — hidden on mobile */}
       <div className="hero-scroll absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 opacity-40 xl:flex">
-        <div
-          className="text-xs tracking-widest uppercase"
-          style={{ color: "#A8B0C0" }}
-        >
+        <div className="text-xs tracking-widest uppercase" style={{ color: "#A8B0C0" }}>
           scroll
         </div>
         <div className="w-5 h-8 border border-white/20 rounded-full flex items-start justify-center pt-1">
-          <div
-            className="hero-scroll-dot w-1 h-2 rounded-full"
-            style={{ background: "#FF6B00" }}
-          />
+          <div className="hero-scroll-dot w-1 h-2 rounded-full" style={{ background: "#FF6B00" }} />
         </div>
       </div>
     </section>

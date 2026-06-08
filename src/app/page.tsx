@@ -1,35 +1,40 @@
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import TrustBar from "@/components/TrustBar";
 import Services from "@/components/Services";
 import Portfolio from "@/components/Portfolio";
 import WhyUs from "@/components/WhyUs";
+import { getCmsSettings } from "@/lib/cms-settings";
 
 // Below-the-fold components — lazy loaded to reduce initial JS bundle
-const Process      = dynamic(() => import("@/components/Process"));
-const Reviews      = dynamic(() => import("@/components/Reviews"));
-const BlogSection  = dynamic(() => import("@/components/BlogSection"));
-const FAQ          = dynamic(() => import("@/components/FAQ"));
-const QuoteForm    = dynamic(() => import("@/components/QuoteForm"));
-const CTA          = dynamic(() => import("@/components/CTA"));
-const Footer       = dynamic(() => import("@/components/Footer"));
-const FloatingButtons = dynamic(() => import("@/components/FloatingButtons"));
+const Process      = nextDynamic(() => import("@/components/Process"));
+const Reviews      = nextDynamic(() => import("@/components/Reviews"));
+const BlogSection  = nextDynamic(() => import("@/components/BlogSection"));
+const FAQ          = nextDynamic(() => import("@/components/FAQ"));
+const QuoteForm    = nextDynamic(() => import("@/components/QuoteForm"));
+const CTA          = nextDynamic(() => import("@/components/CTA"));
+const Footer       = nextDynamic(() => import("@/components/Footer"));
+const FloatingButtons = nextDynamic(() => import("@/components/FloatingButtons"));
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const cms = await getCmsSettings();
+
   return (
     <main>
       <Navbar />
-      <Hero />
+      <Hero settings={cms.hero} />
       <TrustBar />
-      <Services />
-      <Portfolio />
+      <Services items={cms.services} />
+      <Portfolio items={cms.portfolio} />
       <WhyUs />
       <Process />
-      <Reviews />
+      <Reviews items={cms.reviews} />
       <BlogSection />
       <FAQ />
-      <QuoteForm />
+      <QuoteForm contact={cms.contact} />
       <CTA />
       <Footer />
       <FloatingButtons />

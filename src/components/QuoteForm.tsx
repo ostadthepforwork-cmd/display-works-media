@@ -34,10 +34,14 @@ const onBlurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement
   e.target.style.borderColor = "rgba(255,255,255,0.08)";
 };
 
-export default function QuoteForm() {
+export default function QuoteForm({ contact }: { contact?: any }) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+  const phone = contact?.phone || "065-916-1539";
+  const email = contact?.email || "info.displayworksmedia@gmail.com";
+  const lineUrl = contact?.line || "https://lin.ee/O0nPl03";
+  const tel = phone.replace(/[^\d+]/g, "");
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -83,14 +87,14 @@ export default function QuoteForm() {
             </div>
             <div className="mt-10 p-6 rounded-xl border" style={{ background: "#141A24", borderColor: "rgba(255,107,0,0.2)" }}>
               <div className="text-sm font-semibold text-white mb-3">ติดต่อด่วน</div>
-              <a href="https://lin.ee/O0nPl03" className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors mb-2">
+              <a href={lineUrl} className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors mb-2">
                 💬 LINE: @displayworks
               </a>
-              <a href="tel:0659161539" className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors mb-2">
-                📞 065-916-1539
+              <a href={`tel:${tel}`} className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors mb-2">
+                📞 {phone}
               </a>
-              <a href="mailto:info.displayworksmedia@gmail.com" className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors">
-                ✉️ info.displayworksmedia@gmail.com
+              <a href={`mailto:${email}`} className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors">
+                ✉️ {email}
               </a>
             </div>
           </div>

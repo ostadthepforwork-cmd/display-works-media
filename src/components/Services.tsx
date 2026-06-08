@@ -1,10 +1,10 @@
 "use client";
 
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
-const services = [
+const defaultServices = [
   {
     image: "/images/services/vinyl.jpg",
     name: "ป้ายไวนิล",
@@ -43,7 +43,46 @@ const services = [
   },
 ];
 
-export default function Services() {
+const imageByHref: Record<string, string> = {
+  "/services/vinyl-banner": "/images/services/vinyl.jpg",
+  "/services/sticker": "/images/services/sticker.jpg",
+  "/services/label-sticker": "/images/services/product-label-hero.jpg",
+  "/services/pp-board": "/images/services/ppboard.jpg",
+  "/services/standee": "/images/services/ppboard.jpg",
+  "/services/roll-up": "/images/services/rollup-xstand.jpg",
+  "/services/x-stand": "/images/services/rollup-xstand.jpg",
+  "/services/backdrop": "/images/services/backdrop.jpg",
+};
+
+type ServiceItem = {
+  id?: string;
+  image?: string;
+  img?: string;
+  name?: string;
+  desc?: string;
+  url?: string;
+  href?: string;
+};
+
+function normalizeServices(items?: ServiceItem[]) {
+  if (!Array.isArray(items) || items.length === 0) return defaultServices;
+
+  return items
+    .filter((item) => item?.name)
+    .map((item) => {
+      const href = item.href || item.url || "";
+      return {
+        image: item.image || item.img || imageByHref[href] || "/images/services/vinyl.jpg",
+        name: item.name || "",
+        desc: item.desc || "",
+        href,
+      };
+    });
+}
+
+export default function Services({ items }: { items?: ServiceItem[] }) {
+  const services = normalizeServices(items);
+
   return (
     <section id="services" className="py-16 sm:py-24 px-5 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -56,13 +95,13 @@ export default function Services() {
         </div>
 
         <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {services.map((s) => {
+          {services.map((service) => {
             const cardContent = (
               <>
                 <div className="relative w-full h-52 overflow-hidden bg-bg-card2">
                   <Image
-                    src={s.image}
-                    alt={s.name}
+                    src={service.image}
+                    alt={service.name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -75,7 +114,7 @@ export default function Services() {
                     className="absolute top-3 right-3 px-3 py-1 rounded-full text-white text-xs font-semibold backdrop-blur-sm"
                     style={{ background: "rgba(255,107,0,0.85)" }}
                   >
-                    {s.name}
+                    {service.name}
                   </div>
                 </div>
                 <div className="p-6 relative">
@@ -83,11 +122,11 @@ export default function Services() {
                     className="absolute left-0 top-6 bottom-6 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     style={{ background: "#FF6B00" }}
                   />
-                  <h3 className="font-kanit font-bold text-lg text-white mb-2">{s.name}</h3>
+                  <h3 className="font-kanit font-bold text-lg text-white mb-2">{service.name}</h3>
                   <p className="text-sm leading-relaxed mb-5" style={{ color: "#A8B0C0" }}>
-                    {s.desc}
+                    {service.desc}
                   </p>
-                  {s.href && (
+                  {service.href && (
                     <div
                       className="inline-flex items-center gap-1.5 text-xs font-semibold transition-colors duration-200"
                       style={{ color: "#FF6B00" }}
@@ -112,12 +151,12 @@ export default function Services() {
               },
             };
 
-            return s.href ? (
-              <Link key={s.name} href={s.href} className={sharedClass} style={sharedStyle} {...hoverHandlers}>
+            return service.href ? (
+              <Link key={`${service.name}-${service.href}`} href={service.href} className={sharedClass} style={sharedStyle} {...hoverHandlers}>
                 {cardContent}
               </Link>
             ) : (
-              <div key={s.name} className={sharedClass} style={sharedStyle} {...hoverHandlers}>
+              <div key={service.name} className={sharedClass} style={sharedStyle} {...hoverHandlers}>
                 {cardContent}
               </div>
             );

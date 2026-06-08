@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-const portfolioImages = [
+const defaultPortfolio = [
   "/images/portfolio/work-01.webp",
   "/images/portfolio/work-02.webp",
   "/images/portfolio/work-03.webp",
@@ -10,9 +10,35 @@ const portfolioImages = [
   "/images/portfolio/work-07.webp",
   "/images/portfolio/work-08.webp",
   "/images/portfolio/work-09.webp",
-];
+].map((img, index) => ({
+  id: String(index + 1),
+  img,
+  title: `ผลงาน ${index + 1}`,
+}));
 
-export default function Portfolio() {
+type PortfolioItem = {
+  id?: string;
+  img?: string;
+  image?: string;
+  title?: string;
+  category?: string;
+};
+
+function normalizePortfolio(items?: PortfolioItem[]) {
+  if (!Array.isArray(items) || items.length === 0) return defaultPortfolio;
+
+  return items
+    .filter((item) => item?.img || item?.image)
+    .map((item, index) => ({
+      id: item.id || String(index),
+      img: item.img || item.image || "",
+      title: item.title || item.category || `ผลงาน ${index + 1}`,
+    }));
+}
+
+export default function Portfolio({ items }: { items?: PortfolioItem[] }) {
+  const portfolioItems = normalizePortfolio(items);
+
   return (
     <section
       id="portfolio"
@@ -20,7 +46,6 @@ export default function Portfolio() {
       style={{ background: "linear-gradient(180deg, #0B0F19 0%, #0d1220 100%)" }}
     >
       <div className="max-w-7xl mx-auto">
-
         <div className="reveal-section mb-14">
           <div className="section-label">PORTFOLIO</div>
           <h2 className="section-title">ผลงานของเรา</h2>
@@ -30,15 +55,15 @@ export default function Portfolio() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {portfolioImages.map((src, i) => (
+          {portfolioItems.map((item, index) => (
             <div
-              key={i}
+              key={item.id || index}
               className="group relative overflow-hidden rounded-xl reveal-item"
               style={{ aspectRatio: "1 / 1" }}
             >
               <Image
-                src={src}
-                alt={`ผลงาน ${i + 1}`}
+                src={item.img}
+                alt={item.title}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -73,7 +98,6 @@ export default function Portfolio() {
             สนใจงานแบบนี้? ขอใบเสนอราคาเลย
           </a>
         </div>
-
       </div>
     </section>
   );
