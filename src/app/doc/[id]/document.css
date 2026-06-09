@@ -112,15 +112,15 @@ body {
 .doc-brand {
   display: flex;
   align-items: center;
-  width: 220px;
-  height: 56px;
-  overflow: hidden;
+  width: 200px;
+  height: auto;
+  overflow: visible;
   background: #fff;
 }
 
 .doc-brand img {
-  width: 220px;
-  height: 56px;
+  width: 100%;
+  height: auto;
   object-fit: contain;
   object-position: left center;
   display: block;
