@@ -684,7 +684,7 @@ export default function AdminPage() {
           })));
         } catch (error) {
           console.warn("Supplier load fallback:", error);
-          setSuppliers(loadLocal("erp_suppliers", []));
+          setSuppliers([]);
         }
 
         // map documents + inject items
@@ -1936,7 +1936,6 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
   });
   const commitLocal = (next: any[]) => {
     setSuppliers(next);
-    saveLocal("erp_suppliers", next);
   };
   const save = async (form: any) => {
     if (!String(form.name || "").trim()) return showToast("กรุณาใส่ชื่อ Supplier", "error");
@@ -1948,8 +1947,8 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
         const { error } = await supabase.from("erp_suppliers").update(row).eq("id", form.id);
         if (error) throw error;
       } catch (error) {
-        savedRemote = false;
         console.warn("Supplier update fallback:", error);
+        return showToast("บันทึก Supplier ลง database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
       }
       commitLocal(suppliers.map((supplier: any) => supplier.id === form.id ? clean : supplier));
       showToast(savedRemote ? "แก้ไข Supplier แล้ว" : "แก้ไข Supplier แล้ว (บันทึกสำรองในเครื่อง)");
@@ -1961,8 +1960,8 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
         if (error) throw error;
         saved = normalizeSupplier(clean, data.id);
       } catch (error) {
-        savedRemote = false;
         console.warn("Supplier insert fallback:", error);
+        return showToast("บันทึก Supplier ลง database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
       }
       commitLocal([...suppliers, saved]);
       showToast(savedRemote ? "เพิ่ม Supplier ใหม่แล้ว" : "เพิ่ม Supplier ใหม่แล้ว (บันทึกสำรองในเครื่อง)");
@@ -1976,8 +1975,8 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
       const { error } = await supabase.from("erp_suppliers").delete().eq("id", id);
       if (error) throw error;
     } catch (error) {
-      savedRemote = false;
       console.warn("Supplier delete fallback:", error);
+      return showToast("ลบ Supplier จาก database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
     }
     commitLocal(suppliers.filter((supplier: any) => supplier.id !== id));
     showToast(savedRemote ? "ลบ Supplier แล้ว" : "ลบ Supplier แล้ว (บันทึกสำรองในเครื่อง)");
