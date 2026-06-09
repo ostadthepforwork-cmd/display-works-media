@@ -112,15 +112,15 @@ body {
 .doc-brand {
   display: flex;
   align-items: center;
-  width: 200px;
-  height: auto;
-  overflow: visible;
+  width: 220px;
+  height: 56px;
+  overflow: hidden;
   background: #fff;
 }
 
 .doc-brand img {
-  width: 100%;
-  height: auto;
+  width: 220px;
+  height: 56px;
   object-fit: contain;
   object-position: left center;
   display: block;
@@ -369,8 +369,8 @@ body {
   color: #fff;
   font-family: "Prompt", Arial, sans-serif;
   font-weight: 900;
-  font-size: 14pt;           /* Grand Total โดดเด่น */
-  line-height: 1.3;
+  font-size: 10pt;
+  line-height: 1.4;
 }
 
 /* ข้อมูลบัญชี */
@@ -516,46 +516,6 @@ body {
     transform: none !important;
   }
 
-  .doc-head {
-    border-bottom: 2px solid #e5edf5 !important;
-  }
-
-  .doc-company-name {
-    color: #1e293b !important;
-  }
-
-  .doc-company-meta {
-    color: #64748b !important;
-  }
-
-  .doc-title h1 {
-    color: #07122d !important;
-  }
-
-  .doc-title p {
-    color: #ff5500 !important;
-  }
-
-  .doc-section-kicker {
-    color: #ff5500 !important;
-  }
-
-  .doc-customer-name {
-    color: #0f172a !important;
-  }
-
-  .doc-meta-row span:first-child {
-    color: #ff5500 !important;
-  }
-
-  .doc-meta-row span:last-child {
-    color: #0f172a !important;
-  }
-
-  .doc-table {
-    border: 1px solid #dfe6ee !important;
-  }
-
   .doc-table th {
     background: #2b2d31 !important;
     color: #fff !important;
@@ -565,18 +525,6 @@ body {
     color: #cbd5e1 !important;
   }
 
-  .doc-table .num {
-    color: #ff5500 !important;
-  }
-
-  .doc-table td strong[style] {
-    color: #ff5500 !important;
-  }
-
-  .doc-summary-row strong {
-    color: #334155 !important;
-  }
-
   .doc-summary-total {
     background: #ff5500 !important;
     color: #fff !important;
@@ -584,13 +532,5 @@ body {
 
   .doc-footer-line {
     background: #ff5500 !important;
-  }
-
-  .doc-note ul {
-    color: #64748b !important;
-  }
-
-  .doc-small {
-    color: #334155 !important;
   }
 }

@@ -73,6 +73,59 @@ function fmtQty(value?: number) {
     : n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function bahtText(amount: number): string {
+  const ones = ["", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
+  const tens = ["", "สิบ", "ยี่สิบ", "สามสิบ", "สี่สิบ", "ห้าสิบ", "หกสิบ", "เจ็ดสิบ", "แปดสิบ", "เก้าสิบ"];
+  const places = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];
+
+  if (amount === 0) return "ศูนย์บาทถ้วน";
+
+  const rounded = Math.round(amount * 100) / 100;
+  const [intPart, decPart] = rounded.toFixed(2).split(".");
+  const satang = parseInt(decPart, 10);
+
+  function readGroup(n: number): string {
+    if (n === 0) return "";
+    if (n < 10) return ones[n];
+    if (n < 100) {
+      const t = Math.floor(n / 10);
+      const o = n % 10;
+      const tensStr = t === 1 ? "สิบ" : t === 2 ? "ยี่สิบ" : tens[t];
+      const onesStr = o === 1 && t > 0 ? "เอ็ด" : ones[o];
+      return tensStr + onesStr;
+    }
+    let result = "";
+    const digits = String(n).split("").map(Number);
+    digits.forEach((d, i) => {
+      if (d === 0) return;
+      const placeIndex = digits.length - 1 - i;
+      if (placeIndex === 1) {
+        result += d === 1 ? "สิบ" : d === 2 ? "ยี่สิบ" : ones[d] + "สิบ";
+      } else if (placeIndex === 0) {
+        result += (d === 1 && digits.length > 1) ? "เอ็ด" : ones[d];
+      } else {
+        result += ones[d] + places[placeIndex];
+      }
+    });
+    return result;
+  }
+
+  function readNumber(numStr: string): string {
+    const num = parseInt(numStr, 10);
+    if (num === 0) return "";
+    if (num < 1000000) return readGroup(num);
+    const millions = Math.floor(num / 1000000);
+    const remainder = num % 1000000;
+    return readGroup(millions) + "ล้าน" + (remainder > 0 ? readGroup(remainder) : "");
+  }
+
+  const bahtStr = readNumber(intPart);
+  const bahtPart = bahtStr ? bahtStr + "บาท" : "";
+  const satangPart = satang > 0 ? readGroup(satang) + "สตางค์" : "ถ้วน";
+
+  return bahtPart + satangPart;
+}
+
 function lineQty(item: any) {
   return Number(item.qty || 0);
 }
@@ -230,7 +283,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
           <header className="doc-head">
             <div>
               <div className="doc-brand">
-                <img src="/images/logo DWM PNG long.png" alt="Display Works Media" />
+                <img src="/images/logo%20DWM%20PNG%20long.png" alt="Display Works Media" />
               </div>
               <div className="doc-company-name">{companyName}</div>
               <div className="doc-company-meta">
@@ -325,7 +378,8 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
               {doc.discount > 0 && <div className="doc-summary-row"><strong>DISCOUNT {doc.discount}%</strong><span>- {fmtMoney(totals.discountAmt)}</span></div>}
               {doc.vat && <div className="doc-summary-row"><strong>VAT {fmtMoney(docVatRate(doc))}%</strong><span>{fmtMoney(totals.vatAmt)}</span></div>}
               {doc.wht && <div className="doc-summary-row"><strong>หัก ณ ที่จ่าย {doc.whtRate}%</strong><span>- {fmtMoney(totals.whtAmt)}</span></div>}
-              <div className="doc-summary-total"><span>GRAND TOTAL</span><span>{fmtMoney(totals.netPay)} THB</span></div>
+              <div className="doc-summary-total"><span>TOTAL</span><span>{fmtMoney(totals.netPay)} THB</span></div>
+              <div className="doc-summary-bahttext">{bahtText(totals.netPay)}</div>
             </div>
           </section>
 
