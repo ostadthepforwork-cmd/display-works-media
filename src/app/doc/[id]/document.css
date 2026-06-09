@@ -1,3 +1,8 @@
+/* ─── FONT IMPORT ──────────────────────────────────────────────────────────── */
+/* ใช้ 2 font เท่านั้น: Prompt (heading/bold) + Sarabun (body/content) */
+@import url("https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&family=Sarabun:wght@400;500;600;700&display=swap");
+
+/* ─── RESET ──────────────────────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
 }
@@ -8,13 +13,18 @@ body {
   background: #e9edf3;
 }
 
+/* ─── SHELL ──────────────────────────────────────────────────────────────── */
 .doc-public-shell {
   min-height: 100vh;
   padding: 84px 16px 32px;
   color: #101827;
-  font-family: "Prompt", "Sarabun", Arial, sans-serif;
+  /* Prompt = heading/label, Sarabun = body text ทั่วไป */
+  font-family: "Sarabun", "Prompt", Arial, sans-serif;
+  font-size: 11pt;           /* base: ข้อมูลบริษัท + ลูกค้า 11-12pt */
+  line-height: 1.35;         /* line spacing 1.35 ทั้วไป */
 }
 
+/* ─── TOOLBAR ────────────────────────────────────────────────────────────── */
 .doc-toolbar {
   position: fixed;
   top: 0;
@@ -29,12 +39,13 @@ body {
   background: rgba(255, 255, 255, 0.96);
   border-bottom: 1px solid #d9e0ea;
   box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+  font-family: "Sarabun", Arial, sans-serif;
 }
 
 .doc-toolbar strong {
   display: block;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .doc-toolbar span {
@@ -68,6 +79,7 @@ body {
   color: #fff;
 }
 
+/* ─── A4 PAGE ────────────────────────────────────────────────────────────── */
 .doc-a4 {
   width: 210mm;
   min-height: 297mm;
@@ -78,55 +90,61 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  /* ใช้ font เดียวทั้ง A4 */
+  font-family: "Sarabun", "Prompt", Arial, sans-serif;
+  line-height: 1.4;
 }
 
 .doc-main {
   flex: 1;
 }
 
+/* ─── HEADER ─────────────────────────────────────────────────────────────── */
 .doc-head {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 24px;
   align-items: start;
-  padding-bottom: 16px;
+  padding-bottom: 14px;
   border-bottom: 2px solid #e5edf5;
 }
 
 .doc-brand {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 178px;
-  height: 62px;
+  width: 220px;
+  height: 56px;
   overflow: hidden;
   background: #fff;
 }
 
 .doc-brand img {
-  width: 178px;
-  height: 62px;
-  object-fit: cover;
-  object-position: center 56%;
+  width: 220px;
+  height: 56px;
+  object-fit: contain;
+  object-position: left center;
   display: block;
 }
 
+/* ข้อมูลบริษัทของเรา: 11-12pt, font-family Prompt สำหรับ label */
 .doc-company-name {
-  margin-top: 12px;
-  font-size: 12px;
-  font-weight: 800;
+  margin-top: 10px;
+  font-family: "Prompt", Arial, sans-serif;
+  font-size: 12pt;           /* 11-12pt ตามสเปก */
+  font-weight: 700;
   color: #1e293b;
+  line-height: 1.3;
 }
 
 .doc-company-meta {
-  margin-top: 5px;
+  margin-top: 4px;
   max-width: 430px;
   color: #64748b;
-  font-size: 9.5px;
-  line-height: 1.75;
+  font-size: 9pt;            /* meta เล็กกว่า body เล็กน้อย */
+  line-height: 1.5;
 }
 
+/* หัวเอกสาร (QUOTATION / INVOICE ฯลฯ): 16-18pt, ตัวหนา */
 .doc-title {
   min-width: 235px;
   text-align: right;
@@ -134,73 +152,88 @@ body {
 
 .doc-title h1 {
   margin: 0;
-  color: #07122d;
-  font-size: 27px;
+  font-family: "Prompt", Arial, sans-serif;
+  font-size: 18pt;           /* 16-18pt ตามสเปก */
   font-weight: 900;
-  letter-spacing: 0;
+  color: #07122d;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
 }
 
 .doc-title p {
-  margin: 2px 0 0;
+  margin: 4px 0 0;
+  font-family: "Prompt", Arial, sans-serif;
+  font-size: 10pt;
+  font-weight: 700;
   color: #ff5500;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
 }
 
+/* ─── INFO SECTION (ข้อมูลลูกค้า + meta) ────────────────────────────────── */
 .doc-info {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 86mm;
   gap: 12mm;
-  padding: 16px 0;
+  padding: 14px 0;
+  line-height: 1.45;         /* line spacing 1.15-1.5 สำหรับข้อมูล */
 }
 
 .doc-section-kicker {
+  font-family: "Prompt", Arial, sans-serif;
   color: #ff5500;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
+  font-size: 8pt;
+  font-weight: 800;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
+/* ชื่อลูกค้า: 11-12pt ตัวหนา */
 .doc-customer-name {
-  margin-top: 8px;
-  font-size: 13px;
-  font-weight: 800;
+  margin-top: 6px;
+  font-family: "Prompt", Arial, sans-serif;
+  font-size: 12pt;           /* 11-12pt ตามสเปก */
+  font-weight: 700;
   color: #0f172a;
+  line-height: 1.3;
 }
 
+/* ข้อมูลรายละเอียดลูกค้า: 11pt */
 .doc-small {
-  margin-top: 4px;
+  margin-top: 3px;
   color: #334155;
-  font-size: 10px;
-  line-height: 1.7;
+  font-size: 10pt;           /* 10-11pt ตามสเปก */
+  line-height: 1.5;
 }
 
 .doc-meta {
   border-left: 2px solid #e2e8f0;
-  padding-left: 16px;
+  padding-left: 14px;
 }
 
+/* เลขที่เอกสาร และ meta row: ตัวหนา, 10-11pt */
 .doc-meta-row {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
-  gap: 10px;
-  padding: 7px 0;
+  gap: 8px;
+  padding: 6px 0;
   border-bottom: 1px dashed #e2e8f0;
-  font-size: 10px;
+  font-size: 10pt;           /* 10-11pt */
+  line-height: 1.4;
 }
 
 .doc-meta-row span:first-child {
+  font-family: "Prompt", Arial, sans-serif;
   color: #ff5500;
-  font-weight: 800;
-}
-
-.doc-meta-row span:last-child {
-  color: #0f172a;
   font-weight: 700;
 }
 
+/* เลขที่เอกสาร: เน้นหนาตามสเปก */
+.doc-meta-row span:last-child {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ─── TABLE (รายการสินค้า: 10-11pt, line-spacing 1.3) ─────────────────── */
 .doc-table {
   width: 100%;
   border-collapse: collapse;
@@ -208,46 +241,58 @@ body {
 }
 
 .doc-table th {
-  padding: 8px 6px;
+  padding: 8px 7px;
   background: #2b2d31;
   color: #fff;
   border-right: 1px solid #60646c;
-  font-size: 8.5px;
-  font-weight: 800;
+  font-family: "Prompt", Arial, sans-serif;
+  font-size: 9pt;            /* header ตาราง */
+  font-weight: 700;
   text-align: left;
+  line-height: 1.3;
 }
 
 .doc-table th span {
   display: block;
   margin-top: 2px;
   color: #cbd5e1;
-  font-size: 7px;
-  font-weight: 500;
+  font-family: "Sarabun", Arial, sans-serif;
+  font-size: 7.5pt;
+  font-weight: 400;
 }
 
+/* รายละเอียดในตาราง: 10-11pt, line-spacing 1.4 */
 .doc-table td {
-  padding: 9px 8px;
+  padding: 8px 7px;
   border-right: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
   vertical-align: top;
   color: #1e293b;
-  font-size: 10px;
+  font-size: 10pt;           /* 10-11pt ตามสเปก */
+  line-height: 1.4;
 }
 
+/* ลำดับ */
 .doc-table .num {
+  font-family: "Prompt", Arial, sans-serif;
   color: #ff5500;
-  font-size: 12px;
+  font-size: 11pt;
   font-weight: 900;
   text-align: center;
 }
 
+/* ชื่อสินค้า: ตัวหนา */
 .doc-table .name {
-  font-weight: 800;
+  font-family: "Prompt", Arial, sans-serif;
+  font-size: 10.5pt;
+  font-weight: 700;
 }
 
+/* รายละเอียด: Sarabun สีอ่อน line-spacing넓 */
 .doc-table .detail {
   color: #64748b;
-  line-height: 1.7;
+  font-size: 9.5pt;
+  line-height: 1.5;
 }
 
 .doc-table .right {
@@ -261,11 +306,12 @@ body {
 .doc-table .doc-empty-row {
   padding: 24px 16px;
   color: #64748b;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 11pt;
+  font-weight: 600;
   text-align: center;
 }
 
+/* ─── BOTTOM (หมายเหตุ + ชำระเงิน + summary) ────────────────────────────── */
 .doc-bottom {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 82mm;
@@ -287,27 +333,33 @@ body {
   padding: 10px 12px;
 }
 
+/* หมายเหตุ: 8-9pt ตามสเปก */
 .doc-note ul {
-  margin: 6px 0 0;
+  margin: 5px 0 0;
   padding-left: 14px;
   color: #64748b;
-  font-size: 9px;
+  font-size: 9pt;            /* 8-9pt ตามสเปก */
   line-height: 1.8;
 }
 
+/* summary rows: 10pt */
 .doc-summary-row {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 7px 12px;
   border-bottom: 1px solid #edf2f7;
-  font-size: 10px;
+  font-size: 10pt;
+  line-height: 1.4;
 }
 
 .doc-summary-row strong {
+  font-family: "Prompt", Arial, sans-serif;
   color: #334155;
+  font-weight: 600;
 }
 
+/* Grand Total: เน้นหนาตามสเปก, 13-14pt */
 .doc-summary-total {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -315,10 +367,13 @@ body {
   padding: 10px 12px;
   background: #ff5500;
   color: #fff;
+  font-family: "Prompt", Arial, sans-serif;
   font-weight: 900;
-  font-size: 14px;
+  font-size: 14pt;           /* Grand Total โดดเด่น */
+  line-height: 1.3;
 }
 
+/* ข้อมูลบัญชี */
 .doc-payment {
   margin-top: 10px;
   display: grid;
@@ -335,6 +390,7 @@ body {
   border-radius: 6px;
 }
 
+/* ─── SIGNATURES ─────────────────────────────────────────────────────────── */
 .doc-signatures {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -346,9 +402,10 @@ body {
   min-height: 84px;
   padding: 10px 14px;
   text-align: center;
+  font-family: "Prompt", Arial, sans-serif;
   color: #64748b;
-  font-size: 8px;
-  font-weight: 700;
+  font-size: 8pt;            /* 8-9pt */
+  font-weight: 600;
 }
 
 .doc-sign-line {
@@ -357,10 +414,12 @@ body {
   margin-bottom: 8px;
 }
 
+/* ─── FOOTER ─────────────────────────────────────────────────────────────── */
 .doc-footer {
-  padding-top: 18px;
+  padding-top: 16px;
   color: #94a3b8;
-  font-size: 8px;
+  font-size: 8pt;            /* 8-9pt */
+  line-height: 1.5;
 }
 
 .doc-footer-line {
@@ -369,6 +428,7 @@ body {
   background: #ff5500;
 }
 
+/* ─── ERROR ──────────────────────────────────────────────────────────────── */
 .doc-error {
   max-width: 720px;
   margin: 80px auto;
@@ -379,6 +439,7 @@ body {
   text-align: center;
 }
 
+/* ─── RESPONSIVE (mobile) ────────────────────────────────────────────────── */
 @media (max-width: 820px) {
   .doc-public-shell {
     padding: 78px 12px 20px;
@@ -414,6 +475,7 @@ body {
   }
 }
 
+/* ─── PRINT ──────────────────────────────────────────────────────────────── */
 @page {
   size: A4 portrait;
   margin: 0;
