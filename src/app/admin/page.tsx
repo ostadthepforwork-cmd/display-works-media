@@ -251,7 +251,7 @@ function printDocument(doc: any, customers: any[], company: any) {
       <div>
         <!-- Logo Image -->
         <div style="margin-bottom:8px;">
-          <img src="/images/logo DWM PNG long.png" alt="Display Works Media"
+          <img src="/images/logo%20DWM%20PNG%20long.png" alt="Display Works Media"
                style="height:48px;width:auto;max-width:280px;object-fit:contain;display:block;"
                onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';">
           <!-- Fallback if image not found -->
