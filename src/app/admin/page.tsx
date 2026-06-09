@@ -694,7 +694,7 @@ export default function AdminPage() {
                 email: supplier.email || "",
                 address: supplier.address || "",
                 tax_id: supplier.taxId || supplier.tax_id || "",
-                note: supplier.note || "",
+                notes: supplier.notes || supplier.note || "",
                 items: Array.isArray(supplier.items) ? supplier.items : [],
               }));
             if (rows.length > 0) {
@@ -713,7 +713,7 @@ export default function AdminPage() {
             email: s.email || "",
             address: s.address || "",
             taxId: s.tax_id || s.taxId || "",
-            note: s.note || "",
+            note: s.notes || s.note || "",
             items: Array.isArray(s.items) ? s.items : [],
           })));
         } catch (error) {
@@ -1966,7 +1966,7 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
     email: supplier.email,
     address: supplier.address,
     tax_id: supplier.taxId,
-    note: supplier.note,
+    notes: supplier.note,
     items: supplier.items,
   });
   const commitLocal = (next: any[]) => {
