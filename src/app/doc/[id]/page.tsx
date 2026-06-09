@@ -76,10 +76,8 @@ function fmtQty(value?: number) {
 function bahtText(amount: number): string {
   const ones = ["", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
   const tens = ["", "สิบ", "ยี่สิบ", "สามสิบ", "สี่สิบ", "ห้าสิบ", "หกสิบ", "เจ็ดสิบ", "แปดสิบ", "เก้าสิบ"];
-  const places = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];
 
   if (amount === 0) return "ศูนย์บาทถ้วน";
-
   const rounded = Math.round(amount * 100) / 100;
   const [intPart, decPart] = rounded.toFixed(2).split(".");
   const satang = parseInt(decPart, 10);
@@ -90,7 +88,7 @@ function bahtText(amount: number): string {
     if (n < 100) {
       const t = Math.floor(n / 10);
       const o = n % 10;
-      const tensStr = t === 1 ? "สิบ" : t === 2 ? "ยี่สิบ" : tens[t];
+      const tensStr = t === 1 ? "สิบ" : t === 2 ? "ยี่สิบ" : ones[t] + "สิบ";
       const onesStr = o === 1 && t > 0 ? "เอ็ด" : ones[o];
       return tensStr + onesStr;
     }
@@ -99,13 +97,10 @@ function bahtText(amount: number): string {
     digits.forEach((d, i) => {
       if (d === 0) return;
       const placeIndex = digits.length - 1 - i;
-      if (placeIndex === 1) {
-        result += d === 1 ? "สิบ" : d === 2 ? "ยี่สิบ" : ones[d] + "สิบ";
-      } else if (placeIndex === 0) {
-        result += (d === 1 && digits.length > 1) ? "เอ็ด" : ones[d];
-      } else {
-        result += ones[d] + places[placeIndex];
-      }
+      const placeNames = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน"];
+      if (placeIndex === 1) result += d === 1 ? "สิบ" : d === 2 ? "ยี่สิบ" : ones[d] + "สิบ";
+      else if (placeIndex === 0) result += (d === 1 && digits.length > 1) ? "เอ็ด" : ones[d];
+      else result += ones[d] + placeNames[placeIndex];
     });
     return result;
   }
@@ -122,7 +117,6 @@ function bahtText(amount: number): string {
   const bahtStr = readNumber(intPart);
   const bahtPart = bahtStr ? bahtStr + "บาท" : "";
   const satangPart = satang > 0 ? readGroup(satang) + "สตางค์" : "ถ้วน";
-
   return bahtPart + satangPart;
 }
 
@@ -288,7 +282,8 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
               <div className="doc-company-name">{companyName}</div>
               <div className="doc-company-meta">
                 <div>{company?.address || "2028/7 ถ.ประชาสงเคราะห์ แขวงรัชดาภิเษก เขตดินแดง กรุงเทพมหานคร 10400"}</div>
-                <div>โทร. {company?.phone || "065-916-1539"} | {company?.email || "info.displayworksmedia@gmail.com"}{company?.tax_id ? ` | เลขผู้เสียภาษี: ${company.tax_id}` : ""}</div>
+                <div>เลขผู้เสียภาษี: {company?.tax_id || "1130200152600"}</div>
+                <div>โทร. {company?.phone || "065-916-1539"} | {company?.email || "info.displayworksmedia@gmail.com"}</div>
               </div>
             </div>
             <div className="doc-title">
@@ -378,8 +373,13 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
               {doc.discount > 0 && <div className="doc-summary-row"><strong>DISCOUNT {doc.discount}%</strong><span>- {fmtMoney(totals.discountAmt)}</span></div>}
               {doc.vat && <div className="doc-summary-row"><strong>VAT {fmtMoney(docVatRate(doc))}%</strong><span>{fmtMoney(totals.vatAmt)}</span></div>}
               {doc.wht && <div className="doc-summary-row"><strong>หัก ณ ที่จ่าย {doc.whtRate}%</strong><span>- {fmtMoney(totals.whtAmt)}</span></div>}
-              <div className="doc-summary-total"><span>TOTAL</span><span>{fmtMoney(totals.netPay)} THB</span></div>
-              <div className="doc-summary-bahttext">{bahtText(totals.netPay)}</div>
+              <div className="doc-summary-total">
+                <div>
+                  <div>TOTAL</div>
+                  <div className="doc-summary-bahttext">{bahtText(totals.netPay)}</div>
+                </div>
+                <span>{fmtMoney(totals.netPay)} THB</span>
+              </div>
             </div>
           </section>
 
