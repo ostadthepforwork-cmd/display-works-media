@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
-import { blogCategories } from '@/lib/seo-content';
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,29 +16,6 @@ function loadLocal(key: string, def: unknown) {
 }
 function saveLocal(key: string, val: unknown) {
   try { localStorage.setItem("cms_" + key, JSON.stringify(val)); } catch {}
-}
-
-async function loadCmsSetting(key: string, fallback: unknown) {
-  try {
-    const { data, error } = await supabase
-      .from("cms_settings")
-      .select("value")
-      .eq("key", key)
-      .maybeSingle();
-    if (error) throw error;
-    return data?.value ?? fallback;
-  } catch (error) {
-    console.warn("CMS setting load fallback:", key, error);
-    return fallback;
-  }
-}
-
-async function saveCmsSetting(key: string, value: unknown) {
-  saveLocal(key, value);
-  const { error } = await supabase
-    .from("cms_settings")
-    .upsert({ key, value, updated_at: new Date().toISOString() });
-  if (error) throw error;
 }
 
 
@@ -75,94 +51,6 @@ const PRICE_BASIS_OPTIONS = [
 ];
 const priceBasisLabel = (value?: string) =>
   PRICE_BASIS_OPTIONS.find((option) => option.value === value)?.label || "ต่อชิ้น";
-const isSqmBasis = (value?: string) => value === "sqm";
-const itemBillingBasis = (item: any) =>
-  isSqmBasis(item?.priceUnit) || isSqmBasis(item?.costUnit) || String(item?.unit || "").includes("ตร.ม")
-    ? "sqm"
-    : "piece";
-const lineQty = (item: any) => Number(item.qty || 0);
-const lineAmount = (item: any) => lineQty(item) * Number(item.price || 0);
-const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) => lineQty(item) * Number(unitCost || 0);
-const isShippingItem = (item: any) =>
-  /ems|shipping|delivery|ขนส่ง|จัดส่ง|ค่าส่ง|ส่งของ|พัสดุ/i.test(String(item?.name || ""));
-const fallbackItemCost = (products: any[], item: any) => {
-  const snapshot = Number(item.costSnapshot || 0);
-  if (snapshot > 0) return snapshot;
-  if (isShippingItem(item)) return Number(item.price || 0);
-  return findProductForItem(products, item)?.cost || 0;
-};
-const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
-const isReportDoc = (doc: any) => doc?.type === "receipt" && !doc?.deleted && doc?.status !== "cancelled";
-const reportRootId = (doc: any, byId: Map<string, any>) => {
-  let current = doc;
-  const seen = new Set<string>();
-  while (current?.orderId && byId.has(current.orderId) && !seen.has(current.id)) {
-    seen.add(current.id);
-    current = byId.get(current.orderId);
-  }
-  return current?.id || doc?.orderId || doc?.reference || doc?.id;
-};
-const reportingDocuments = (documents: any[]) => (documents || []).filter(isReportDoc);
-const normalizeName = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
-const findProductForItem = (products: any[], item: any) => {
-  const itemName = normalizeName(item?.name);
-  if (!itemName) return null;
-  return products.find((product: any) => {
-    const productName = normalizeName(product?.name);
-    const itemTokens = itemName.split(" ").filter((token) => token.length >= 3);
-    return productName === itemName
-      || productName.includes(itemName)
-      || itemName.includes(productName)
-      || itemTokens.some((token) => productName.includes(token));
-  }) || null;
-};
-const supplierCatalogProducts = (suppliers: any[]) =>
-  (suppliers || []).flatMap((supplier: any) =>
-    (supplier.items || []).map((item: any) => {
-      const basis = item.pricingBasis === "sqm" ? "sqm" : "piece";
-      return {
-        id: `supplier:${supplier.id}:${item.id}`,
-        name: item.name,
-        supplierName: supplier.name,
-        supplierId: supplier.id,
-        supplierItemId: item.id,
-        unit: item.unit || (basis === "sqm" ? "ตร.ม." : "ชิ้น"),
-        cost: Number(item.supplierPrice || 0),
-        price: Number(item.salePrice || 0),
-        costUnit: basis,
-        priceUnit: basis,
-        fromSupplierCatalog: true,
-      };
-    }).filter((product: any) => product.name)
-  );
-const customerFacingLineItem = (item: any) => {
-  const detailText = String(item?.detail || "");
-  const parsedPieces = Number(
-    detailText.match(/(?:จำนวน|qty|pieces?)\D{0,12}(\d+(?:\.\d+)?)/i)?.[1]
-    || detailText.match(/[x×]\s*(\d+(?:\.\d+)?)\s*(?:ชิ้น|pcs?)/i)?.[1]
-    || 0
-  );
-  const pieces = Number(item?.pieces || 0) || parsedPieces;
-  if (itemBillingBasis(item) !== "sqm") return item;
-
-  const amount = lineAmount(item);
-  const cost = lineCost(item);
-  const displayQty = pieces > 0 ? pieces : 1;
-  return {
-    ...item,
-    qty: displayQty,
-    unit: "ชิ้น",
-    price: amount / displayQty,
-    costSnapshot: cost / displayQty,
-    priceUnit: "piece",
-    costUnit: "piece",
-  };
-};
-const customerFacingDetail = (detail?: string) =>
-  String(detail || "")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line && !/(ตร\.?ม|ตารางเมตร|sqm|square\s*meter|พื้นที่รวม|คำนวณพื้นที่)/i.test(line));
 
 const documentCompanyName = (name?: string) => {
   const cleanName = String(name || DEFAULT_DOCUMENT_COMPANY_NAME)
@@ -194,10 +82,10 @@ const sanitizeForPrint = (value: any): any => {
 
 // ── Shared calculation utility — ใช้ร่วมกันทุกจุด ──────────
 const calcDocTotal = (doc: any) => {
-  const subtotal    = (doc.items || []).reduce((s, i) => s + lineAmount(i), 0);
+  const subtotal    = (doc.items || []).reduce((s, i) => s + (i.qty || 0) * (i.price || 0), 0);
   const discountAmt = subtotal * ((doc.discount || 0) / 100);
   const afterDisc   = subtotal - discountAmt;
-  const vatAmt      = doc.vat  ? afterDisc * (docVatRate(doc) / 100)     : 0;
+  const vatAmt      = doc.vat  ? afterDisc * 0.07                        : 0;
   const total       = afterDisc + vatAmt;
   const whtAmt      = doc.wht  ? afterDisc * ((doc.whtRate || 0) / 100)  : 0;
   const netPay      = total - whtAmt;
@@ -226,13 +114,13 @@ const INIT_CUSTOMERS = [
   { id: genId(), name: "ร้าน XYZ มาร์เก็ตติ้ง", contact: "คุณสมหญิง", phone: "089-876-5432", email: "xyz@example.com", address: "456 ถ.รัชดา กรุงเทพฯ 10400", taxId: "" },
 ];
 const INIT_PRODUCTS = [
-  { id: genId(), name: "ป้ายไวนิล (ต่อตร.ม.)", unit: "ตร.ม.", cost: 80, price: 200, costUnit: "sqm", priceUnit: "sqm" },
-  { id: genId(), name: "สติ๊กเกอร์ Indoor", unit: "ตร.ม.", cost: 120, price: 350, costUnit: "sqm", priceUnit: "sqm" },
-  { id: genId(), name: "สติ๊กเกอร์ Outdoor", unit: "ตร.ม.", cost: 180, price: 450, costUnit: "sqm", priceUnit: "sqm" },
-  { id: genId(), name: "PP Board", unit: "แผ่น", cost: 150, price: 400, costUnit: "piece", priceUnit: "piece" },
-  { id: genId(), name: "Roll Up Stand", unit: "ชิ้น", cost: 800, price: 2200, costUnit: "piece", priceUnit: "piece" },
-  { id: genId(), name: "Backdrop 3x2m", unit: "ชุด", cost: 1200, price: 3500, costUnit: "piece", priceUnit: "piece" },
-  { id: genId(), name: "ฉลากสินค้า A5", unit: "100 ชิ้น", cost: 150, price: 400, costUnit: "piece", priceUnit: "piece" },
+  { id: genId(), name: "ป้ายไวนิล (ต่อตร.ม.)", unit: "ตร.ม.", cost: 80, price: 200 },
+  { id: genId(), name: "สติ๊กเกอร์ Indoor", unit: "ตร.ม.", cost: 120, price: 350 },
+  { id: genId(), name: "สติ๊กเกอร์ Outdoor", unit: "ตร.ม.", cost: 180, price: 450 },
+  { id: genId(), name: "PP Board", unit: "แผ่น", cost: 150, price: 400 },
+  { id: genId(), name: "Roll Up Stand", unit: "ชิ้น", cost: 800, price: 2200 },
+  { id: genId(), name: "Backdrop 3x2m", unit: "ชุด", cost: 1200, price: 3500 },
+  { id: genId(), name: "ฉลากสินค้า A5", unit: "100 ชิ้น", cost: 150, price: 400 },
 ];
 
 function loadStore(key: string, def: unknown) {
@@ -248,8 +136,12 @@ function saveStore(key: string, val: unknown) {
 // ============================================================
 // PRINT / PDF helper — Premium A4 Design (Display Works Media)
 // ============================================================
-function printDocument(doc: any, customers: any[], company: any, options: any = {}) {
-  const autoPrint = options.autoPrint !== false;
+function printDocument(doc: any, customers: any[], company: any) {
+  if (doc?.id && typeof window !== "undefined") {
+    const w = window.open(`/doc/${doc.id}?print=1`, "_blank", "width=960,height=780");
+    if (w) return;
+  }
+
   doc = sanitizeForPrint(doc);
   customers = sanitizeForPrint(customers);
   company = sanitizeForPrint(company);
@@ -272,9 +164,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   const lbl = DOC_LABELS[doc.type] || DOC_LABELS.quote;
 
   // ── Table rows — with bullet detail list ─────────────────
-  const rows = doc.items.map((rawItem, i) => {
-    const item = customerFacingLineItem(rawItem);
-    return `
+  const rows = doc.items.map((item, i) => `
     <tr style="border-bottom:1px solid #e5e7eb;vertical-align:top;">
       <td style="padding:9px 6px;text-align:center;font-weight:700;font-size:13px;color:#FF5500;border-right:1px solid #e5e7eb;">${String(i + 1).padStart(2, "0")}</td>
       <td style="padding:9px 10px;border-right:1px solid #e5e7eb;">
@@ -282,14 +172,13 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
         ${item.subTitle ? `<div style="font-size:9.5px;color:#94a3b8;margin-top:2px;">${item.subTitle}</div>` : ""}
       </td>
       <td style="padding:9px 10px;border-right:1px solid #e5e7eb;">
-        ${customerFacingDetail(item.detail).length ? `<ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.7;margin:0;">${customerFacingDetail(item.detail).map(d => `<li>${d}</li>`).join("")}</ul>` : ""}
+        ${item.detail ? `<ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.7;margin:0;">${item.detail.split("\n").filter(Boolean).map(d => `<li>${d}</li>`).join("")}</ul>` : ""}
       </td>
       <td style="padding:9px 6px;text-align:center;font-size:11px;color:#1e293b;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.qty)}</td>
       <td style="padding:9px 6px;text-align:center;font-size:10px;color:#94a3b8;border-right:1px solid #e5e7eb;">${item.unit}</td>
       <td style="padding:9px 8px;text-align:right;font-size:11px;color:#475569;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.price)}</td>
-      <td style="padding:9px 8px;text-align:right;font-size:11px;font-weight:700;color:#FF5500;">${fmtMoney(lineAmount(item))}</td>
-    </tr>`;
-  }).join("");
+      <td style="padding:9px 8px;text-align:right;font-size:11px;font-weight:700;color:#FF5500;">${fmtMoney(item.qty * item.price)}</td>
+    </tr>`).join("");
 
   // ── Summary rows ──────────────────────────────────────────
   const summaryRows = `
@@ -308,7 +197,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     </tr>` : ""}
     ${doc.vat ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">VAT ${fmtMoney(docVatRate(doc))}%</td>
+      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">VAT 7%</td>
       <td style="padding:7px 12px;text-align:right;font-size:11px;color:#1e293b;">${fmtMoney(vatAmt)}</td>
     </tr>` : ""}
     ${doc.wht ? `
@@ -330,11 +219,6 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     ? doc.notes.split("\n").filter(Boolean).map(n =>
         `<li style="margin-bottom:3px;">${n}</li>`).join("")
     : "<li>ขอบคุณที่ไว้วางใจ Display Works Media</li>";
-
-  const logoUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/images/logo.png?v=doc-logo`
-      : "/images/logo.png?v=doc-logo";
 
   // ── Full HTML — Premium quotation layout ─────────────────
   const html = `<!DOCTYPE html>
@@ -366,9 +250,9 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       <!-- Brand + address left -->
       <div>
         <!-- Logo Image -->
-        <div style="width:178px;height:62px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#fff;margin-bottom:8px;">
-          <img src="${logoUrl}" alt="Display Works Media"
-               style="width:178px;height:62px;object-fit:cover;object-position:center 56%;display:block;"
+        <div style="margin-bottom:8px;">
+          <img src="/images/logo DWM PNG long.png" alt="Display Works Media"
+               style="height:48px;width:auto;max-width:280px;object-fit:contain;display:block;"
                onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';">
           <!-- Fallback if image not found -->
           <div id="logoFallback" style="display:none;align-items:center;gap:8px;">
@@ -591,19 +475,12 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
 </body>
 </html>`;
 
-  const htmlToOpen = autoPrint
-    ? html.replace("</body>", `<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},700);});</script></body>`)
-    : html;
-  const blob = new Blob([htmlToOpen], { type: "text/html;charset=utf-8" });
-  const blobUrl = URL.createObjectURL(blob);
-  const w = window.open(blobUrl, "_blank", "width=960,height=780");
-  if (!w) {
-    URL.revokeObjectURL(blobUrl);
-    alert("ไม่สามารถเปิดหน้าต่างเอกสารได้ กรุณาอนุญาต Pop-up สำหรับเว็บนี้");
-    return;
-  }
+  const w = window.open("", "_blank", "width=960,height=780");
+  if (!w) return;
+  w.document.write(html);
+  w.document.close();
   w.focus();
-  setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+  setTimeout(() => w.print(), 800);
 }
 
 // ============================================================
@@ -611,17 +488,8 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
 // ============================================================
 
 export default function AdminPage() {
-  const initialSection = () => {
-    if (typeof window === "undefined") return "erp";
-    return new URLSearchParams(window.location.search).get("section") === "cms" ? "cms" : "erp";
-  };
-  const initialCmsTab = () => {
-    if (typeof window === "undefined") return "blog";
-    const requestedTab = new URLSearchParams(window.location.search).get("tab");
-    return ["blog", "hero", "services", "reviews", "portfolio", "contact"].includes(requestedTab || "") ? requestedTab! : "blog";
-  };
-  const [mainTab, setMainTab] = useState(initialSection);
-  const [tab, setTab] = useState(initialCmsTab);
+  const [mainTab, setMainTab] = useState("erp");
+  const [tab, setTab] = useState("blog");
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: string } | null>(null);
   const showToast = (msg, type = "success") => {
@@ -646,9 +514,10 @@ export default function AdminPage() {
     async function loadAll() {
       setErpLoading(true);
       try {
-        const [custRes, prodRes, docRes, itemRes, compRes] = await Promise.all([
+        const [custRes, prodRes, suppRes, docRes, itemRes, compRes] = await Promise.all([
           supabase.from("erp_customers").select("*").order("created_at"),
           supabase.from("erp_products").select("*").order("created_at"),
+          supabase.from("erp_suppliers").select("*").order("created_at"),
           supabase.from("erp_documents").select("*").eq("deleted", false).order("created_at", { ascending: false }),
           supabase.from("erp_document_items").select("*").order("sort_order"),
           supabase.from("erp_company").select("*").limit(1).maybeSingle(),
@@ -663,29 +532,17 @@ export default function AdminPage() {
         // map products
         if (prodRes.data) setProducts(prodRes.data.map(p => ({
           id: p.id, name: p.name, unit: p.unit, cost: p.cost, price: p.price,
-          supplierName: p.supplier_name || p.supplierName || "",
           costUnit: p.cost_unit || p.costUnit || "piece",
           priceUnit: p.price_unit || p.priceUnit || "piece",
         })));
 
-        try {
-          const { data, error } = await supabase.from("erp_suppliers").select("*").order("created_at");
-          if (error) throw error;
-          if (data) setSuppliers(data.map(s => ({
-            id: s.id,
-            name: s.name || "",
-            contact: s.contact || "",
-            phone: s.phone || "",
-            email: s.email || "",
-            address: s.address || "",
-            taxId: s.tax_id || s.taxId || "",
-            note: s.note || "",
-            items: Array.isArray(s.items) ? s.items : [],
-          })));
-        } catch (error) {
-          console.warn("Supplier load fallback:", error);
-          setSuppliers([]);
-        }
+        // map suppliers
+        if (suppRes.data) setSuppliers(suppRes.data.map(s => ({
+          id: s.id, name: s.name, contact: s.contact, phone: s.phone,
+          email: s.email, taxId: s.tax_id, address: s.address,
+          notes: s.notes, items: s.items || [],
+        })));
+        if (suppRes.error) console.error("suppliers error:", suppRes.error);
 
         // map documents + inject items
         if (docRes.data) {
@@ -696,7 +553,7 @@ export default function AdminPage() {
             projectName: d.project_name, orderId: d.order_id,
             reference: d.reference, salesPerson: d.sales_person,
             date: d.date, dueDate: d.due_date,
-            discount: d.discount, vat: d.vat, vatRate: d.vat_rate ?? 7, wht: d.wht, whtRate: d.wht_rate,
+            discount: d.discount, vat: d.vat, wht: d.wht, whtRate: d.wht_rate,
             notes: d.notes, overrideAddress: d.override_address,
             bankName: d.bank_name, bankBranch: d.bank_branch,
             bankAccount: d.bank_account, bankType: d.bank_type, qrImage: d.qr_image,
@@ -706,12 +563,6 @@ export default function AdminPage() {
             items: items.filter(i => i.document_id === d.id).map(i => ({
               id: i.id, name: i.name, subTitle: i.sub_title, detail: i.detail,
               unit: i.unit, qty: i.qty, price: i.price, costSnapshot: i.cost_snapshot,
-              costUnit: i.cost_unit || "piece",
-              priceUnit: i.price_unit || "piece",
-              supplierName: i.supplier_name || "",
-              widthM: i.width_m ?? undefined,
-              heightM: i.height_m ?? undefined,
-              pieces: i.pieces ?? undefined,
             })),
           })));
         }
@@ -737,19 +588,22 @@ export default function AdminPage() {
   }, []);
 
   const docCounts = Object.keys(DOC_TYPES).reduce((acc, t) => {
-    acc[t] = documents.filter((d) => d.type === t && !d.deleted && d.status !== "cancelled").length;
+    acc[t] = documents.filter((d) => d.type === t).length;
     return acc;
   }, {});
 
-  const reportDocs = reportingDocuments(documents);
-  const catalogProducts = [...products, ...supplierCatalogProducts(suppliers)];
-  const totalRevenue = reportDocs
+  const totalRevenue = documents
+    .filter((d) => d.status === "paid")
     .reduce((s, d) => s + calcDocTotal(d).total, 0);
-  const resolveItemCost = (item: any) => fallbackItemCost(catalogProducts, item);
-  const totalCost = reportDocs.reduce((s, d) => {
+  const resolveItemCost = (item: any) => {
+    const snapshot = Number(item.costSnapshot || 0);
+    if (snapshot > 0) return snapshot;
+    return products.find((p) => p.name === item.name)?.cost || 0;
+  };
+  const totalCost = documents.filter((d) => d.status === "paid").reduce((s, d) => {
     return s + d.items.reduce((ss, i) => {
       // ใช้ costSnapshot (บันทึกตอน save) ถ้ามี — ไม่งั้นหาจาก products list (backward compat)
-      return ss + lineCost(i, resolveItemCost(i));
+      return ss + i.qty * resolveItemCost(i);
     }, 0);
   }, 0);
   const totalProfit = totalRevenue - totalCost;
@@ -792,7 +646,7 @@ export default function AdminPage() {
         <div className="show-mobile" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
             {mainTab === "erp"
-              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
+              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : (cmsTabs.find(t => t.id === tab)?.label || "CMS")}
           </span>
           {/* ERP / CMS switcher pill */}
@@ -828,19 +682,19 @@ export default function AdminPage() {
                 </div>
               ) : (<>
               {erpPage === "dashboard" && (
-                <Dashboard documents={documents} customers={customers} products={catalogProducts}
+                <Dashboard documents={documents} customers={customers} products={products}
                   totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
                   docCounts={docCounts} setPage={setErpPage} />
               )}
               {erpPage === "customers" && <CustomerPage customers={customers} setCustomers={setCustomers} showToast={showToast} />}
-              {erpPage === "products" && <ProductPage products={products} setProducts={setProducts} suppliers={suppliers} showToast={showToast} />}
               {erpPage === "suppliers" && <SupplierPage suppliers={suppliers} setSuppliers={setSuppliers} showToast={showToast} />}
+              {erpPage === "products" && <ProductPage products={products} setProducts={setProducts} showToast={showToast} />}
               {erpPage === "company" && <CompanyPage company={company} setCompany={setCompany} showToast={showToast} />}
               {["quote","bill","invoice","receipt"].includes(erpPage) && (
                 <DocumentPage type={erpPage}
                   documents={documents.filter(d => d.type === erpPage)}
                   allDocuments={documents} setDocuments={setDocuments}
-                  customers={customers} products={catalogProducts} company={company} showToast={showToast} />
+                  customers={customers} products={products} company={company} showToast={showToast} />
               )}
               </>)}
             </div>
@@ -954,8 +808,8 @@ export default function AdminPage() {
               { id: "invoice",   icon: "🧾", label: "ใบแจ้งหนี้",     color: (DOC_TYPES as any).invoice.color },
               { id: "receipt",   icon: "✅", label: "ใบเสร็จรับเงิน", color: (DOC_TYPES as any).receipt.color },
               { id: "customers", icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
+              { id: "suppliers", icon: "🏭", label: "ซัพพลายเออร์",    color: "#34D399" },
               { id: "products",  icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
-              { id: "suppliers", icon: "🏭", label: "Supplier",       color: "#F97316" },
               { id: "company",   icon: "🏢", label: "ตั้งค่าบริษัท",  color: "#34D399" },
               { id: "__cms__",   icon: "✏️", label: "ไปหน้า CMS",     color: "#F59E0B" },
             ] as any[]).map(item => {
@@ -1117,13 +971,14 @@ export default function AdminPage() {
 
           /* Document table → card list on mobile */
           .doc-list-panel {
-            overflow-x: visible !important;
+            overflow-x: auto !important;
             -webkit-overflow-scrolling: touch;
           }
           .doc-table {
-            display: none !important;
+            display: table !important;
+            min-width: 920px !important;
           }
-          .doc-cards { display: flex !important; }
+          .doc-cards { display: none !important; }
 
           /* Dashboard grid 1 col */
           .dash-grid { grid-template-columns: 1fr !important; }
@@ -1195,8 +1050,8 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
   const navItems = [
     { id: "dashboard", icon: "⊞", label: "ภาพรวม" },
     { id: "customers", icon: "👥", label: "ลูกค้า" },
+    { id: "suppliers", icon: "🏭", label: "ซัพพลายเออร์" },
     { id: "products", icon: "📦", label: "สินค้า/บริการ" },
-    { id: "suppliers", icon: "🏭", label: "Supplier" },
     null,
     { id: "quote", icon: "📋", label: "ใบเสนอราคา", count: docCounts.quote, color: DOC_TYPES.quote.color },
     { id: "bill", icon: "📄", label: "ใบวางบิล", count: docCounts.bill, color: DOC_TYPES.bill.color },
@@ -1251,15 +1106,19 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
   const lastMonthEnd   = thisMonthStart - 1;
 
-  const reportDocs = reportingDocuments(documents);
+  const paidDocs = documents.filter((d: any) => d.status === "paid");
 
   const calcRev = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcDocTotal(d).total, 0);
-  const itemCost = (item: any) => fallbackItemCost(products, item);
+  const itemCost = (item: any) => {
+    const snapshot = Number(item.costSnapshot || 0);
+    if (snapshot > 0) return snapshot;
+    return products.find((product: any) => product.name === item.name)?.cost || 0;
+  };
   const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
-    s + d.items.reduce((ss: number, i: any) => ss + lineCost(i, itemCost(i)), 0), 0);
+    s + d.items.reduce((ss: number, i: any) => ss + i.qty * itemCost(i), 0), 0);
 
-  const thisMonthDocs = reportDocs.filter((d: any) => new Date(d.date).getTime() >= thisMonthStart);
-  const lastMonthDocs = reportDocs.filter((d: any) => {
+  const thisMonthDocs = paidDocs.filter((d: any) => new Date(d.date).getTime() >= thisMonthStart);
+  const lastMonthDocs = paidDocs.filter((d: any) => {
     const t = new Date(d.date).getTime();
     return t >= lastMonthStart && t <= lastMonthEnd;
   });
@@ -1271,7 +1130,6 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const marginThis    = revThisMonth > 0 ? (profitThis / revThisMonth) * 100 : 0;
   const revChange     = revLastMonth > 0 ? ((revThisMonth - revLastMonth) / revLastMonth) * 100 : null;
   const profitMarginAll = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : "0";
-  const profitMarginPct = Math.max(0, Math.min(100, Number(profitMarginAll)));
 
   // ─── Pending & alerts ─────────────────────────────────────────
   const pendingDocs = documents.filter((d: any) => ["draft","sent"].includes(d.status));
@@ -1283,11 +1141,11 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
 
   // ─── Top Products by profit ───────────────────────────────────
   const productProfit: Record<string, { revenue: number; cost: number }> = {};
-  reportDocs.forEach((d: any) => {
+  paidDocs.forEach((d: any) => {
     d.items.forEach((i: any) => {
       if (!productProfit[i.name]) productProfit[i.name] = { revenue: 0, cost: 0 };
-      productProfit[i.name].revenue += lineAmount(i);
-      productProfit[i.name].cost    += lineCost(i, itemCost(i));
+      productProfit[i.name].revenue += i.qty * i.price;
+      productProfit[i.name].cost    += i.qty * itemCost(i);
     });
   });
   const topProducts = Object.entries(productProfit)
@@ -1301,14 +1159,14 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
       for (let i = 6; i >= 0; i--) {
         const d = new Date(); d.setDate(d.getDate() - i);
         const ds = d.toISOString().slice(0,10);
-        const dayDocs = reportDocs.filter((x: any) => x.date === ds);
+        const dayDocs = paidDocs.filter((x: any) => x.date === ds);
         points.push({ label: d.toLocaleDateString("th-TH",{weekday:"short"}), rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
       }
     } else if (chartRange === "30d") {
       for (let i = 29; i >= 0; i--) {
         const d = new Date(); d.setDate(d.getDate() - i);
         const ds = d.toISOString().slice(0,10);
-        const dayDocs = reportDocs.filter((x: any) => x.date === ds);
+        const dayDocs = paidDocs.filter((x: any) => x.date === ds);
         points.push({ label: i % 5 === 0 ? d.toLocaleDateString("th-TH",{day:"numeric",month:"short"}) : "", rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
       }
     } else {
@@ -1316,7 +1174,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
         const start = d.getTime();
         const end   = new Date(d.getFullYear(), d.getMonth()+1, 1).getTime();
-        const mDocs = reportDocs.filter((x: any) => { const t = new Date(x.date).getTime(); return t >= start && t < end; });
+        const mDocs = paidDocs.filter((x: any) => { const t = new Date(x.date).getTime(); return t >= start && t < end; });
         points.push({ label: d.toLocaleDateString("th-TH",{month:"short"}), rev: calcRev(mDocs), cost: calcCost(mDocs), profit: calcRev(mDocs)-calcCost(mDocs) });
       }
     }
@@ -1546,8 +1404,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
               </div>
               <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
                 <div style={{ height: "100%", display: "flex", borderRadius: 99, overflow: "hidden" }}>
-                  <div style={{ width: `${100 - profitMarginPct}%`, background: "rgba(239,68,68,0.5)", transition: "width 0.5s" }} />
-                  <div style={{ width: `${profitMarginPct}%`, background: "linear-gradient(90deg,#10B981,#34D399)", transition: "width 0.5s" }} />
+                  <div style={{ width: `${100 - +profitMarginAll}%`, background: "rgba(239,68,68,0.5)", transition: "width 0.5s" }} />
+                  <div style={{ width: `${+profitMarginAll}%`, background: "linear-gradient(90deg,#10B981,#34D399)", transition: "width 0.5s" }} />
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#4B5563", marginTop: 4 }}>
@@ -1610,15 +1468,176 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
 
 
 // ============================================================
+// SUPPLIER PAGE
+// ============================================================
+function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
+  const [editing, setEditing] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "", notes: "", items: [] };
+  const filtered = suppliers.filter(s =>
+    s.name?.includes(search) || s.contact?.includes(search) || s.phone?.includes(search)
+  );
+
+  const save = async (form) => {
+    if (!form.name.trim()) return showToast("กรุณาใส่ชื่อซัพพลายเออร์", "error");
+    if (form.taxId && !/^\d{13}$/.test(form.taxId.replace(/-/g, "")))
+      return showToast("เลขผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก", "error");
+    const row = {
+      name: form.name, contact: form.contact, phone: form.phone,
+      email: form.email, address: form.address, tax_id: form.taxId,
+      notes: form.notes, items: form.items || [],
+    };
+    if (form.id) {
+      const { error } = await supabase.from("erp_suppliers").update(row).eq("id", form.id);
+      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      setSuppliers(prev => prev.map(s => s.id === form.id ? { ...form } : s));
+      showToast("แก้ไขข้อมูลซัพพลายเออร์แล้ว");
+    } else {
+      const { data, error } = await supabase.from("erp_suppliers").insert(row).select().single();
+      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      setSuppliers(prev => [...prev, { ...form, id: data.id }]);
+      showToast("เพิ่มซัพพลายเออร์ใหม่แล้ว");
+    }
+    setEditing(null);
+  };
+
+  const del = async (id) => {
+    if (!confirm("ลบซัพพลายเออร์นี้?")) return;
+    const { error } = await supabase.from("erp_suppliers").delete().eq("id", id);
+    if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+    setSuppliers(prev => prev.filter(s => s.id !== id));
+    showToast("ลบซัพพลายเออร์แล้ว");
+  };
+
+  return (
+    <div style={{ animation: "fadeIn 0.3s ease" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>🏭 ซัพพลายเออร์</h2>
+          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{suppliers.length} ราย</p>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 220 }} />
+          <Btn onClick={() => setEditing({ ...blank })} color="#34D399">+ เพิ่มซัพพลายเออร์</Btn>
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{ padding: 60, textAlign: "center", color: "#555" }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🏭</div>
+          <div style={{ marginBottom: 16 }}>ยังไม่มีซัพพลายเออร์</div>
+          <Btn onClick={() => setEditing({ ...blank })} color="#34D399">+ เพิ่มซัพพลายเออร์แรก</Btn>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }}>
+          {filtered.map(s => (
+            <div key={s.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 18px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: "#fff" }}>{s.name}</div>
+                  {s.contact && <div style={{ fontSize: 12, color: "#34D399", marginTop: 2 }}>👤 {s.contact}</div>}
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <IconBtn onClick={() => setEditing({ ...s })} title="แก้ไข">✏️</IconBtn>
+                  <IconBtn onClick={() => del(s.id)} title="ลบ" danger>🗑️</IconBtn>
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: "#888", lineHeight: 2 }}>
+                {s.phone    && <div>📞 {s.phone}</div>}
+                {s.email    && <div>✉️ {s.email}</div>}
+                {s.address  && <div>📍 {s.address}</div>}
+                {s.taxId    && <div>🪪 {s.taxId}</div>}
+                {s.notes    && (
+                  <div style={{ marginTop: 8, padding: "8px 10px", background: "rgba(52,211,153,0.06)", borderRadius: 8, border: "1px solid rgba(52,211,153,0.15)", color: "#A8B0C0", lineHeight: 1.6 }}>
+                    📝 {s.notes}
+                  </div>
+                )}
+              </div>
+              {s.items && s.items.length > 0 && (
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ fontSize: 11, color: "#34D399", fontWeight: 700, marginBottom: 6, letterSpacing: 1 }}>สินค้า/บริการที่จัดหา</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {s.items.map((item, i) => (
+                      <span key={i} style={{ fontSize: 11, background: "rgba(52,211,153,0.1)", color: "#34D399", padding: "2px 10px", borderRadius: 99, border: "1px solid rgba(52,211,153,0.2)" }}>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {editing && (
+        <Modal title={editing.id ? "แก้ไขซัพพลายเออร์" : "เพิ่มซัพพลายเออร์"} onClose={() => setEditing(null)} width={520}>
+          <SupplierForm data={editing} onSave={save} onCancel={() => setEditing(null)} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function SupplierForm({ data, onSave, onCancel }: any) {
+  const [f, setF] = useState({ ...data, itemInput: "" });
+  const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
+
+  const addItem = () => {
+    const v = f.itemInput.trim();
+    if (!v) return;
+    setF(prev => ({ ...prev, items: [...(prev.items || []), v], itemInput: "" }));
+  };
+  const removeItem = (i) => setF(prev => ({ ...prev, items: prev.items.filter((_, idx) => idx !== i) }));
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <Field label="ชื่อบริษัท/ซัพพลายเออร์ *"><input value={f.name} onChange={set("name")} /></Field>
+      <Field label="ชื่อผู้ติดต่อ"><input value={f.contact} onChange={set("contact")} /></Field>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Field label="โทรศัพท์"><input value={f.phone} onChange={set("phone")} /></Field>
+        <Field label="อีเมล"><input value={f.email} onChange={set("email")} /></Field>
+      </div>
+      <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
+      <Field label="เลขประจำตัวผู้เสียภาษี"><input value={f.taxId} onChange={set("taxId")} placeholder="13 หลัก" /></Field>
+      <Field label="หมายเหตุ"><textarea value={f.notes} onChange={set("notes")} rows={2} style={{ resize: "vertical" }} placeholder="เงื่อนไขการชำระเงิน, เครดิต, ข้อมูลพิเศษ..." /></Field>
+
+      {/* Items tag input */}
+      <div>
+        <label style={{ fontSize: 13, color: "#A8B0C0", display: "block", marginBottom: 6 }}>สินค้า/บริการที่จัดหา</label>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input value={f.itemInput} onChange={set("itemInput")} placeholder="เช่น ป้ายไวนิล, หมึกพิมพ์" style={{ flex: 1 }}
+            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addItem(); } }} />
+          <Btn onClick={addItem} color="#34D399" small>+ เพิ่ม</Btn>
+        </div>
+        {f.items && f.items.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+            {f.items.map((item, i) => (
+              <span key={i} style={{ fontSize: 12, background: "rgba(52,211,153,0.1)", color: "#34D399", padding: "3px 10px", borderRadius: 99, border: "1px solid rgba(52,211,153,0.2)", display: "flex", alignItems: "center", gap: 6 }}>
+                {item}
+                <button onClick={() => removeItem(i)} style={{ background: "none", border: "none", color: "#34D399", cursor: "pointer", padding: 0, fontSize: 14, lineHeight: 1 }}>×</button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+        <Btn onClick={() => onSave({ ...f, itemInput: undefined })} color="#34D399" style={{ flex: 1 }}>💾 บันทึก</Btn>
+        <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // CUSTOMER PAGE
 // ============================================================
 function CustomerPage({ customers, setCustomers, showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "" };
-  const filtered = customers.filter(c =>
-    [c.name, c.contact, c.phone].some((value) => String(value || "").includes(search))
-  );
+  const filtered = customers.filter(c => c.name.includes(search) || c.contact?.includes(search) || c.phone?.includes(search));
   const save = async (form) => {
     if (!form.name.trim()) return showToast("กรุณาใส่ชื่อลูกค้า", "error");
     if (form.taxId && !/^\d{13}$/.test(form.taxId.replace(/-/g, "")))
@@ -1698,21 +1717,17 @@ function CustomerForm({ data, onSave, onCancel }: any) {
 // ============================================================
 // PRODUCT PAGE — แก้ไข/ลบได้
 // ============================================================
-function ProductPage({ products, setProducts, suppliers = [], showToast }: any) {
+function ProductPage({ products, setProducts, showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const blank = { id: "", name: "", supplierName: "", unit: "ชิ้น", cost: "", price: "", costUnit: "piece", priceUnit: "piece" };
-  const catalogProducts = [...products, ...supplierCatalogProducts(suppliers)];
-  const filtered = catalogProducts.filter(p =>
-    [p.name, p.supplierName].some((value) => String(value || "").toLowerCase().includes(search.toLowerCase()))
-  );
+  const blank = { id: "", name: "", unit: "ชิ้น", cost: "", price: "" };
+  const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
   const isLegacyProductColumnError = (error: any) =>
     error?.code === "42703" || /cost_unit|price_unit|column/i.test(error?.message || "");
   const save = async (f) => {
     if (!f.name.trim()) return showToast("กรุณาใส่ชื่อสินค้า", "error");
     const row = {
       name: f.name,
-      supplier_name: f.supplierName || "",
       unit: f.unit,
       cost: parseFloat(f.cost) || 0,
       price: parseFloat(f.price) || 0,
@@ -1726,7 +1741,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
         ({ error } = await supabase.from("erp_products").update(legacyRow).eq("id", f.id));
       }
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-      setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...legacyRow, supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit } : p));
+      setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...legacyRow, costUnit: row.cost_unit, priceUnit: row.price_unit } : p));
       showToast("แก้ไขสินค้าแล้ว");
     } else {
       let { data, error } = await supabase.from("erp_products").insert(row).select().single();
@@ -1734,7 +1749,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
         ({ data, error } = await supabase.from("erp_products").insert(legacyRow).select().single());
       }
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-      setProducts(prev => [...prev, { ...f, id: data.id, ...legacyRow, supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit }]);
+      setProducts(prev => [...prev, { ...f, id: data.id, ...legacyRow, costUnit: row.cost_unit, priceUnit: row.price_unit }]);
       showToast("เพิ่มสินค้าใหม่แล้ว");
     }
     setEditing(null);
@@ -1749,7 +1764,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>สินค้า/บริการ</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{catalogProducts.length} รายการ</p></div>
+        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>สินค้า/บริการ</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{products.length} รายการ</p></div>
         <div style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มสินค้า</Btn>
@@ -1759,7 +1774,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#1A2233" }}>
-              {["ชื่อสินค้า/บริการ", "Supplier", "หน่วย", "ต้นทุน", "ราคาขาย", "กำไร", "จัดการ"].map(h => (
+              {["ชื่อสินค้า/บริการ", "หน่วย", "ต้นทุน", "ราคาขาย", "กำไร", "จัดการ"].map(h => (
                 <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, color: "#A8B0C0", fontWeight: 500 }}>{h}</th>
               ))}
             </tr>
@@ -1770,28 +1785,18 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
               const pct = p.cost > 0 ? (margin / p.cost * 100).toFixed(0) : 0;
               return (
                 <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                  <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 500 }}>
-                    {p.name}
-                    {p.fromSupplierCatalog && <span style={{ marginLeft: 8, fontSize: 10, color: "#F97316", background: "rgba(249,115,22,0.12)", padding: "1px 6px", borderRadius: 99 }}>Supplier</span>}
-                  </td>
-                  <td style={{ padding: "12px 16px", fontSize: 12, color: "#A8B0C0" }}>{p.supplierName || "-"}</td>
+                  <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 500 }}>{p.name}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#A8B0C0" }}>{p.unit}</td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#ef4444" }}>฿{fmtMoney(p.cost)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.costUnit)}</span></td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 600 }}>฿{fmtMoney(p.price)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.priceUnit)}</span></td>
+                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#ef4444" }}>฿{fmtMoney(p.cost)}</td>
+                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 600 }}>฿{fmtMoney(p.price)}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13 }}>
                     <span style={{ color: margin > 0 ? "#10b981" : "#ef4444" }}>฿{fmtMoney(margin)}</span>
                     <span style={{ fontSize: 11, color: "#555", marginLeft: 6 }}>({pct}%)</span>
                   </td>
                   <td style={{ padding: "12px 16px" }}>
                     <div style={{ display: "flex", gap: 6 }}>
-                      {p.fromSupplierCatalog ? (
-                        <span style={{ fontSize: 11, color: "#6B7280" }}>แก้ไขที่เมนู Supplier</span>
-                      ) : (
-                        <>
-                          <IconBtn onClick={() => setEditing({ ...p })} title="แก้ไข">✏️</IconBtn>
-                          <IconBtn onClick={() => del(p.id)} title="ลบ" danger>🗑️</IconBtn>
-                        </>
-                      )}
+                      <IconBtn onClick={() => setEditing({ ...p })} title="แก้ไข">✏️</IconBtn>
+                      <IconBtn onClick={() => del(p.id)} title="ลบ" danger>🗑️</IconBtn>
                     </div>
                   </td>
                 </tr>
@@ -1802,16 +1807,15 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
       </div>
       {editing && (
         <Modal title={editing.id ? "แก้ไขสินค้า" : "เพิ่มสินค้า"} onClose={() => setEditing(null)} width={420}>
-          <ProductForm data={editing} suppliers={suppliers} onSave={save} onCancel={() => setEditing(null)} />
+          <ProductForm data={editing} onSave={save} onCancel={() => setEditing(null)} />
         </Modal>
       )}
     </div>
   );
 }
-function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
+function ProductForm({ data, onSave, onCancel }: any) {
   const [f, setF] = useState({
     ...data,
-    supplierName: data.supplierName || data.supplier_name || "",
     cost: data.cost || "",
     price: data.price || "",
     costUnit: data.costUnit || data.cost_unit || "piece",
@@ -1820,41 +1824,9 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const margin = (parseFloat(f.price) || 0) - (parseFloat(f.cost) || 0);
   const pct = f.cost > 0 ? (margin / parseFloat(f.cost) * 100).toFixed(1) : 0;
-  const selectedSupplier = suppliers.find((supplier: any) => supplier.name === f.supplierName);
-  const supplierItems = selectedSupplier?.items || [];
-  const pickSupplierItem = (e) => {
-    const item = supplierItems.find((entry: any) => entry.id === e.target.value);
-    if (!item) return;
-    const basis = item.pricingBasis === "sqm" ? "sqm" : "piece";
-    setF(prev => ({
-      ...prev,
-      name: item.name || prev.name,
-      unit: item.unit || (basis === "sqm" ? "ตร.ม." : prev.unit),
-      cost: Number(item.supplierPrice || 0),
-      price: Number(item.salePrice || 0),
-      costUnit: basis,
-      priceUnit: basis,
-    }));
-  };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <Field label="ชื่อสินค้า/บริการ *"><input value={f.name} onChange={set("name")} /></Field>
-      <Field label="Supplier">
-        <input value={f.supplierName} onChange={set("supplierName")} list="supplier-list" placeholder="เลือกหรือพิมพ์ชื่อ Supplier" />
-        <datalist id="supplier-list">{suppliers.map((supplier: any) => <option key={supplier.id || supplier.name} value={supplier.name} />)}</datalist>
-      </Field>
-      {supplierItems.length > 0 && (
-        <Field label="รายการจาก Supplier">
-          <select onChange={pickSupplierItem} defaultValue="">
-            <option value="">-- เลือกรายการเพื่อเติมข้อมูลสินค้า --</option>
-            {supplierItems.map((item: any) => (
-              <option key={item.id} value={item.id}>
-                {item.name} · ทุน ฿{fmtMoney(item.supplierPrice)} · ขาย ฿{fmtMoney(item.salePrice)}
-              </option>
-            ))}
-          </select>
-        </Field>
-      )}
       <Field label="หน่วย">
         <input value={f.unit} onChange={set("unit")} list="unit-list" />
         <datalist id="unit-list">{["ชิ้น","อัน","ตร.ม.","เมตร","แผ่น","ชุด","งาน","ครั้ง","100 ชิ้น"].map(u => <option key={u} value={u} />)}</datalist>
@@ -1882,267 +1854,6 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
       )}
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
         <Btn onClick={() => onSave({ ...f, cost: parseFloat(f.cost) || 0, price: parseFloat(f.price) || 0 })} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
-        <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// SUPPLIER PAGE
-// ============================================================
-function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
-  const [editing, setEditing] = useState<any>(null);
-  const [search, setSearch] = useState("");
-  const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "", note: "", items: [] };
-  const filtered = suppliers.filter((supplier: any) => {
-    const q = search.toLowerCase();
-    return [supplier.name, supplier.contact, supplier.phone, supplier.email]
-      .some((value) => String(value || "").toLowerCase().includes(q));
-  });
-  const normalizeSupplier = (supplier: any, id?: string) => ({
-    id: id || supplier.id || genId(),
-    name: String(supplier.name || "").trim(),
-    contact: supplier.contact || "",
-    phone: supplier.phone || "",
-    email: supplier.email || "",
-    address: supplier.address || "",
-    taxId: supplier.taxId || "",
-    note: supplier.note || "",
-    items: (supplier.items || []).map((item: any) => ({
-      id: item.id || genId(),
-      name: item.name || "",
-      category: item.category || "สินค้า",
-      unit: item.unit || "ชิ้น",
-      pricingBasis: item.pricingBasis || item.priceBasis || "piece",
-      widthM: Number(item.widthM || 0),
-      heightM: Number(item.heightM || 0),
-      quantity: Number(item.quantity || 1),
-      totalSqm: Number(item.totalSqm || (Number(item.widthM || 0) * Number(item.heightM || 0) * Number(item.quantity || 1))),
-      supplierPrice: Number(item.supplierPrice || 0),
-      salePrice: Number(item.salePrice || 0),
-      note: item.note || "",
-    })).filter((item: any) => item.name.trim()),
-  });
-  const toRow = (supplier: any) => ({
-    name: supplier.name,
-    contact: supplier.contact,
-    phone: supplier.phone,
-    email: supplier.email,
-    address: supplier.address,
-    tax_id: supplier.taxId,
-    note: supplier.note,
-    items: supplier.items,
-  });
-  const commitLocal = (next: any[]) => {
-    setSuppliers(next);
-  };
-  const save = async (form: any) => {
-    if (!String(form.name || "").trim()) return showToast("กรุณาใส่ชื่อ Supplier", "error");
-    const clean = normalizeSupplier(form);
-    const row = toRow(clean);
-    if (form.id) {
-      let savedRemote = true;
-      try {
-        const { error } = await supabase.from("erp_suppliers").update(row).eq("id", form.id);
-        if (error) throw error;
-      } catch (error) {
-        console.warn("Supplier update fallback:", error);
-        return showToast("บันทึก Supplier ลง database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
-      }
-      commitLocal(suppliers.map((supplier: any) => supplier.id === form.id ? clean : supplier));
-      showToast(savedRemote ? "แก้ไข Supplier แล้ว" : "แก้ไข Supplier แล้ว (บันทึกสำรองในเครื่อง)");
-    } else {
-      let saved = clean;
-      let savedRemote = true;
-      try {
-        const { data, error } = await supabase.from("erp_suppliers").insert(row).select().single();
-        if (error) throw error;
-        saved = normalizeSupplier(clean, data.id);
-      } catch (error) {
-        console.warn("Supplier insert fallback:", error);
-        return showToast("บันทึก Supplier ลง database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
-      }
-      commitLocal([...suppliers, saved]);
-      showToast(savedRemote ? "เพิ่ม Supplier ใหม่แล้ว" : "เพิ่ม Supplier ใหม่แล้ว (บันทึกสำรองในเครื่อง)");
-    }
-    setEditing(null);
-  };
-  const del = async (id: string) => {
-    if (!confirm("ลบ Supplier นี้?")) return;
-    let savedRemote = true;
-    try {
-      const { error } = await supabase.from("erp_suppliers").delete().eq("id", id);
-      if (error) throw error;
-    } catch (error) {
-      console.warn("Supplier delete fallback:", error);
-      return showToast("ลบ Supplier จาก database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
-    }
-    commitLocal(suppliers.filter((supplier: any) => supplier.id !== id));
-    showToast(savedRemote ? "ลบ Supplier แล้ว" : "ลบ Supplier แล้ว (บันทึกสำรองในเครื่อง)");
-  };
-
-  return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>Supplier</h2>
-          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{suppliers.length} รายการ</p>
-        </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ค้นหา Supplier..." style={{ width: 220 }} />
-          <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่ม Supplier</Btn>
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
-        {filtered.map((supplier: any) => {
-          const itemCount = supplier.items?.length || 0;
-          const minSupplierPrice = itemCount ? Math.min(...supplier.items.map((item: any) => Number(item.supplierPrice || 0)).filter((price: number) => price >= 0)) : 0;
-          return (
-            <div key={supplier.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 18 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>{supplier.name}</div>
-                  <div style={{ fontSize: 12, color: "#A8B0C0", marginTop: 4 }}>{supplier.contact || supplier.phone || "ยังไม่มีข้อมูลติดต่อ"}</div>
-                </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <IconBtn onClick={() => setEditing({ ...supplier, items: supplier.items || [] })} title="แก้ไข">✏️</IconBtn>
-                  <IconBtn onClick={() => del(supplier.id)} title="ลบ" danger>🗑️</IconBtn>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
-                <div style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
-                  <div style={{ fontSize: 11, color: "#6B7280" }}>สินค้า/บริการ</div>
-                  <div style={{ fontSize: 18, color: "#FF6B00", fontWeight: 800 }}>{itemCount}</div>
-                </div>
-                <div style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
-                  <div style={{ fontSize: 11, color: "#6B7280" }}>ราคา Supplier เริ่มต้น</div>
-                  <div style={{ fontSize: 18, color: "#10b981", fontWeight: 800 }}>฿{fmtMoney(minSupplierPrice)}</div>
-                </div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {(supplier.items || []).slice(0, 3).map((item: any) => (
-                  <div key={item.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#CBD5E1", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>
-                    <span>{item.name}</span>
-                    <span style={{ color: "#A8B0C0" }}>
-                      ฿{fmtMoney(item.supplierPrice)} → ฿{fmtMoney(item.salePrice)}
-                      {item.pricingBasis === "sqm" ? ` / ${fmtMoney(item.totalSqm)} ตร.ม.` : ""}
-                    </span>
-                  </div>
-                ))}
-                {itemCount === 0 && <div style={{ fontSize: 12, color: "#6B7280", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>ยังไม่มีรายการสินค้า/บริการ</div>}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {editing && (
-        <Modal title={editing.id ? "แก้ไข Supplier" : "เพิ่ม Supplier"} onClose={() => setEditing(null)} width={860}>
-          <SupplierForm data={editing} onSave={save} onCancel={() => setEditing(null)} />
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-function SupplierForm({ data, onSave, onCancel }: any) {
-  const [f, setF] = useState({ ...data, items: data.items || [] });
-  const set = (key: string) => (e: any) => setF((prev: any) => ({ ...prev, [key]: e.target.value }));
-  const setItem = (id: string, key: string, value: any) => {
-    setF((prev: any) => ({
-      ...prev,
-      items: prev.items.map((item: any) => item.id === id ? { ...item, [key]: value } : item),
-    }));
-  };
-  const addItem = () => {
-    setF((prev: any) => ({
-      ...prev,
-      items: [...prev.items, { id: genId(), name: "", category: "สินค้า", unit: "ชิ้น", pricingBasis: "piece", widthM: "", heightM: "", quantity: 1, supplierPrice: "", salePrice: "", note: "" }],
-    }));
-  };
-  const removeItem = (id: string) => {
-    setF((prev: any) => ({ ...prev, items: prev.items.filter((item: any) => item.id !== id) }));
-  };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 12 }}>
-        <Field label="ชื่อ Supplier *"><input value={f.name} onChange={set("name")} /></Field>
-        <Field label="ผู้ติดต่อ"><input value={f.contact} onChange={set("contact")} /></Field>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-        <Field label="โทรศัพท์"><input value={f.phone} onChange={set("phone")} /></Field>
-        <Field label="อีเมล"><input value={f.email} onChange={set("email")} /></Field>
-        <Field label="เลขผู้เสียภาษี"><input value={f.taxId} onChange={set("taxId")} /></Field>
-      </div>
-      <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
-
-      <div style={{ background: "#0F1420", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 10 }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>รายการสินค้า/บริการที่ Supplier จำหน่าย</div>
-            <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>ใส่ราคาจาก Supplier และราคาขายของเรา</div>
-          </div>
-          <Btn onClick={addItem} color="#2563eb">+ เพิ่มรายการ</Btn>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {f.items.map((item: any) => {
-            const pricingBasis = item.pricingBasis || "piece";
-            const totalSqm = Number(item.widthM || 0) * Number(item.heightM || 0) * Number(item.quantity || 0);
-            const multiplier = pricingBasis === "sqm" ? totalSqm : 1;
-            const margin = (Number(item.salePrice || 0) - Number(item.supplierPrice || 0)) * multiplier;
-            return (
-              <div key={item.id} style={{ background: "#141A24", borderRadius: 10, padding: 10 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1.4fr .8fr .8fr .8fr .8fr .7fr auto", gap: 8, alignItems: "end" }}>
-                  <Field label="ชื่อรายการ"><input value={item.name} onChange={(e) => setItem(item.id, "name", e.target.value)} /></Field>
-                  <Field label="ประเภท">
-                    <select value={item.category} onChange={(e) => setItem(item.id, "category", e.target.value)}>
-                      <option value="สินค้า">สินค้า</option>
-                      <option value="บริการ">บริการ</option>
-                    </select>
-                  </Field>
-                  <Field label="คิดราคา">
-                    <select value={pricingBasis} onChange={(e) => {
-                      setItem(item.id, "pricingBasis", e.target.value);
-                      setItem(item.id, "unit", e.target.value === "sqm" ? "ตร.ม." : "ชิ้น");
-                    }}>
-                      <option value="piece">ต่อชิ้น</option>
-                      <option value="sqm">ต่อตารางเมตร</option>
-                    </select>
-                  </Field>
-                  <Field label="ราคา Supplier"><input type="number" min="0" value={item.supplierPrice} onChange={(e) => setItem(item.id, "supplierPrice", e.target.value)} /></Field>
-                  <Field label="ราคาขาย"><input type="number" min="0" value={item.salePrice} onChange={(e) => setItem(item.id, "salePrice", e.target.value)} /></Field>
-                  <div style={{ paddingBottom: 9, fontSize: 12, color: margin >= 0 ? "#10b981" : "#ef4444", fontWeight: 800 }}>
-                    ฿{fmtMoney(margin)}
-                  </div>
-                  <IconBtn onClick={() => removeItem(item.id)} title="ลบรายการ" danger>🗑️</IconBtn>
-                </div>
-                {pricingBasis === "sqm" && (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                    <Field label="กว้าง (เมตร)"><input type="number" min="0" step="0.01" value={item.widthM} onChange={(e) => setItem(item.id, "widthM", e.target.value)} /></Field>
-                    <Field label="สูง (เมตร)"><input type="number" min="0" step="0.01" value={item.heightM} onChange={(e) => setItem(item.id, "heightM", e.target.value)} /></Field>
-                    <Field label="จำนวนชิ้น"><input type="number" min="1" step="1" value={item.quantity} onChange={(e) => setItem(item.id, "quantity", e.target.value)} /></Field>
-                    <Field label="พื้นที่รวม">
-                      <input value={`${fmtMoney(totalSqm)} ตร.ม.`} readOnly style={{ color: "#10b981", fontWeight: 800 }} />
-                    </Field>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          {f.items.length === 0 && (
-            <div style={{ border: "1px dashed rgba(255,255,255,0.12)", borderRadius: 10, padding: 18, textAlign: "center", color: "#6B7280", fontSize: 13 }}>
-              ยังไม่มีรายการ กดเพิ่มรายการเพื่อบันทึกสินค้า/บริการของ Supplier
-            </div>
-          )}
-        </div>
-      </div>
-
-      <Field label="หมายเหตุ"><textarea value={f.note} onChange={set("note")} rows={2} style={{ resize: "vertical" }} /></Field>
-      <div style={{ display: "flex", gap: 10, marginTop: 2 }}>
-        <Btn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
         <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
       </div>
     </div>
@@ -2286,7 +1997,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const filtered = documents.filter(d =>
     !d.deleted &&
     (filterStatus === "all" || d.status === filterStatus) &&
-    ([d.docNo, d.customerName].some((value) => String(value || "").includes(search)))
+    (d.docNo?.includes(search) || d.customerName?.includes(search))
   );
   const nextDocNoForType = (targetType: string) => {
     const year = new Date().getFullYear() + 543;
@@ -2303,7 +2014,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
   const nextDocNo = () => nextDocNoForType(type);
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, vatRate: 7, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
+    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
   const save = async (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
@@ -2312,15 +2023,9 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       return showToast("จำนวนและราคาต้องไม่ติดลบ", "error");
     if (!doc.docNo?.trim()) return showToast("กรุณาระบุเลขที่เอกสาร", "error");
     const itemsWithCost = doc.items.map(item => {
-      const prod = findProductForItem(products, item);
-      const costedItem = {
-        ...item,
-        costSnapshot: Number(item.costSnapshot || 0) > 0 ? item.costSnapshot : (prod ? prod.cost : 0),
-        costUnit: item.costUnit || prod?.costUnit || prod?.cost_unit || "piece",
-        priceUnit: item.priceUnit || prod?.priceUnit || prod?.price_unit || "piece",
-        supplierName: item.supplierName || prod?.supplierName || prod?.supplier_name || "",
-      };
-      return costedItem;
+      if (Number(item.costSnapshot || 0) > 0) return item;
+      const prod = products.find(p => p.name === item.name);
+      return { ...item, costSnapshot: prod ? prod.cost : 0 };
     });
     const docRow = {
       type: doc.type, doc_no: doc.docNo, status: doc.status,
@@ -2328,35 +2033,22 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       project_name: doc.projectName, order_id: doc.orderId || null,
       reference: doc.reference, sales_person: doc.salesPerson,
       date: doc.date, due_date: doc.dueDate,
-      discount: doc.discount, vat: doc.vat, vat_rate: docVatRate(doc), wht: doc.wht, wht_rate: doc.whtRate,
+      discount: doc.discount, vat: doc.vat, wht: doc.wht, wht_rate: doc.whtRate,
       notes: doc.notes, override_address: doc.overrideAddress,
       bank_name: doc.bankName, bank_branch: doc.bankBranch,
       bank_account: doc.bankAccount, bank_type: doc.bankType, qr_image: doc.qrImage,
       deleted: false,
     };
-    const { vat_rate, ...legacyDocRow } = docRow;
-    const isLegacyVatColumnError = (error: any) =>
-      error?.code === "42703" || /vat_rate|column/i.test(error?.message || "");
     try {
       let docId = doc.id;
       if (doc.id) {
         const { error } = await supabase.from("erp_documents").update(docRow).eq("id", doc.id);
-        if (error) {
-          if (!isLegacyVatColumnError(error)) throw error;
-          const { error: legacyError } = await supabase.from("erp_documents").update(legacyDocRow).eq("id", doc.id);
-          if (legacyError) throw legacyError;
-        }
+        if (error) throw error;
         // ลบ items เก่า แล้วใส่ใหม่
       } else {
         const { data, error } = await supabase.from("erp_documents").insert(docRow).select().single();
-        if (error) {
-          if (!isLegacyVatColumnError(error)) throw error;
-          const { data: legacyData, error: legacyError } = await supabase.from("erp_documents").insert(legacyDocRow).select().single();
-          if (legacyError) throw legacyError;
-          docId = legacyData.id;
-        } else {
-          docId = data.id;
-        }
+        if (error) throw error;
+        docId = data.id;
       }
       // insert items ใหม่
       if (itemsWithCost.length > 0) {
@@ -2364,26 +2056,11 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           document_id: docId, sort_order: idx,
           name: item.name, sub_title: item.subTitle, detail: item.detail,
           unit: item.unit, qty: item.qty, price: item.price, cost_snapshot: item.costSnapshot,
-          cost_unit: item.costUnit || "piece",
-          price_unit: item.priceUnit || "piece",
-          supplier_name: item.supplierName || "",
-          width_m: item.widthM ?? null,
-          height_m: item.heightM ?? null,
-          pieces: item.pieces ?? null,
         }));
-        const legacyItemRows = itemRows.map(({ cost_unit, price_unit, supplier_name, width_m, height_m, pieces, ...row }) => row);
-        const isLegacyItemColumnError = (error: any) =>
-          error?.code === "42703" || /cost_unit|price_unit|supplier_name|width_m|height_m|pieces|column/i.test(error?.message || "");
-        let { data: insertedItems, error: itemErr } = await supabase
+        const { data: insertedItems, error: itemErr } = await supabase
           .from("erp_document_items")
           .insert(itemRows)
           .select("id");
-        if (itemErr && isLegacyItemColumnError(itemErr)) {
-          ({ data: insertedItems, error: itemErr } = await supabase
-            .from("erp_document_items")
-            .insert(legacyItemRows)
-            .select("id"));
-        }
         if (itemErr) throw itemErr;
         if (doc.id) {
           const insertedIds = (insertedItems || []).map((item) => item.id).filter(Boolean);
@@ -2461,10 +2138,6 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     } catch {
       showToast("ไม่สามารถแชร์ลิงก์เอกสารได้", "error");
     }
-  };
-
-  const previewDocumentPdf = (doc) => {
-    printDocument(doc, customers, company, { autoPrint: false });
   };
 
   const [emailModal, setEmailModal] = useState<any>(null);
@@ -2625,7 +2298,6 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
                             {/* พิมพ์ */}
-                            <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             {/* แชร์ลิงค์ */}
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
@@ -2726,7 +2398,6 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
-                            <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
@@ -2841,7 +2512,7 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
   const setQty = (id, v) => setItems(prev => prev.map(i => i.id === id ? { ...i, selectedQty: Math.min(parseFloat(v) || 0, i.qty) } : i));
 
   const selectedItems = items.filter(i => i.selected && i.selectedQty > 0).map(i => ({ ...i, qty: i.selectedQty }));
-  const subTotal = selectedItems.reduce((s, i) => s + lineAmount(i), 0);
+  const subTotal = selectedItems.reduce((s, i) => s + i.qty * i.price, 0);
 
   const confirm = () => {
     if (selectedItems.length === 0) return;
@@ -2874,7 +2545,7 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
                   onChange={e => { setQty(item.id, e.target.value); if (!item.selected) toggleItem(item.id); }}
                   style={{ width: 70, textAlign: "right", fontSize: 13, padding: "4px 8px" }} />
                 <div style={{ fontSize: 11, color: "#888", width: 30 }}>{item.unit}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#FF6B00", width: 90, textAlign: "right" }}>฿{fmtMoney(lineAmount({ ...item, qty: item.selectedQty }))}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#FF6B00", width: 90, textAlign: "right" }}>฿{fmtMoney(item.selectedQty * item.price)}</div>
               </div>
             </div>
           ))}
@@ -2915,46 +2586,13 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   };
 
   // ── รายการสินค้า ─────────────────────────────────────────
-  const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0, costUnit: "piece", priceUnit: "piece", widthM: 1, heightM: 1, pieces: 1 }] }));
+  const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0 }] }));
   const removeItem = (id) => setF(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
-  const setItem = (id, k, v) => setF(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, [k]: (["qty", "price", "costSnapshot"].includes(k)) ? parseFloat(v) || 0 : v } : i) }));
-  const setItemDimension = (id, key, value) => setF(prev => ({
-    ...prev,
-    items: prev.items.map(i => {
-      if (i.id !== id) return i;
-      const next = { ...i, [key]: parseFloat(value) || 0 };
-      const width = Number(next.widthM || 0);
-      const height = Number(next.heightM || 0);
-      const pieces = Number(next.pieces || 0);
-      return { ...next, qty: Number((width * height * pieces).toFixed(4)) };
-    }),
-  }));
+  const setItem = (id, k, v) => setF(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, [k]: (k === "qty" || k === "price") ? parseFloat(v) || 0 : v } : i) }));
   const pickProduct = (itemId, prodId) => {
     const p = products.find(p => p.id === prodId);
     if (!p) return;
-    const priceUnit = p.priceUnit || p.price_unit || "piece";
-    const costUnit = p.costUnit || p.cost_unit || priceUnit;
-    const isSqm = isSqmBasis(priceUnit) || isSqmBasis(costUnit);
-    setF(prev => ({ ...prev, items: prev.items.map(i => {
-      if (i.id !== itemId) return i;
-      const widthM = Number(i.widthM || 1);
-      const heightM = Number(i.heightM || 1);
-      const pieces = Number(i.pieces || 1);
-      return {
-        ...i,
-        name: p.name,
-        unit: isSqm ? "ตร.ม." : p.unit,
-        price: p.price,
-        costSnapshot: p.cost || 0,
-        costUnit,
-        priceUnit,
-        supplierName: p.supplierName || p.supplier_name || "",
-        widthM,
-        heightM,
-        pieces,
-        qty: isSqm ? Number((widthM * heightM * pieces).toFixed(4)) : (Number(i.qty || 1) || 1),
-      };
-    }) }));
+    setF(prev => ({ ...prev, items: prev.items.map(i => i.id === itemId ? { ...i, name: p.name, unit: p.unit, price: p.price, costSnapshot: p.cost || 0 } : i) }));
   };
 
   // ── คำนวณ ────────────────────────────────────────────────
@@ -3069,15 +2707,6 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
 
         {f.items.map((item, idx) => (
           <div key={item.id} style={{ background: "#0B0F19", borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column" as const, gap: 10 }}>
-            {(() => {
-              const basis = itemBillingBasis(item);
-              const isSqm = basis === "sqm";
-              const widthM = Number(item.widthM || 0);
-              const heightM = Number(item.heightM || 0);
-              const pieces = Number(item.pieces || 0);
-              const area = widthM * heightM * pieces;
-              return (
-                <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: dt.color }}>รายการ #{String(idx + 1).padStart(2, "0")}</span>
               <IconBtn onClick={() => removeItem(item.id)} danger small>🗑 ลบออก</IconBtn>
@@ -3087,7 +2716,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
                 <div style={{ display: "flex", gap: 6 }}>
                   <select onChange={e => pickProduct(item.id, e.target.value)} style={{ width: 100, fontSize: 11, padding: "4px 6px" }} defaultValue="">
                     <option value="">เลือก</option>
-                    {products.map(p => <option key={p.id} value={p.id}>{p.supplierName ? `${p.name} — ${p.supplierName}` : p.name}</option>)}
+                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                   <input value={item.name} onChange={e => setItem(item.id, "name", e.target.value)} placeholder="ชื่อรายการ" style={{ flex: 1 }} />
                 </div>
@@ -3099,46 +2728,19 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
             <Field label="รายละเอียดทางเทคนิค (พิมพ์บรรทัดละหัวข้อ)">
               <textarea value={item.detail || ""} onChange={e => setItem(item.id, "detail", e.target.value)} rows={3} style={{ resize: "vertical", fontFamily: "inherit" }} placeholder={"ขนาด 120 x 300 cm.\nโครงสร้างอลูมิเนียม\nติดตั้งหน้างาน"} />
             </Field>
-            {isSqm && (
-              <div style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 10, padding: 12 }}>
-                <div style={{ color: "#10B981", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>คำนวณพื้นที่งานพิมพ์</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1.2fr", gap: 10 }}>
-                  <Field label="กว้าง (เมตร)"><input type="number" value={item.widthM ?? 1} onChange={e => setItemDimension(item.id, "widthM", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
-                  <Field label="สูง (เมตร)"><input type="number" value={item.heightM ?? 1} onChange={e => setItemDimension(item.id, "heightM", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
-                  <Field label="จำนวนชิ้น"><input type="number" value={item.pieces ?? 1} onChange={e => setItemDimension(item.id, "pieces", e.target.value)} min="0" step="1" style={{ textAlign: "center" }} /></Field>
-                  <Field label="พื้นที่รวม (ตร.ม.)"><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center", color: "#10B981", fontWeight: 700 }} /></Field>
-                </div>
-                <div style={{ marginTop: 8, fontSize: 12, color: "#A8B0C0" }}>
-                  {fmtMoney(widthM)} x {fmtMoney(heightM)} x {fmtMoney(pieces)} = <strong style={{ color: "#10B981" }}>{fmtMoney(area)} ตร.ม.</strong>
-                </div>
-              </div>
-            )}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10 }}>
-              <Field label={isSqm ? "จำนวนที่คิดเงิน" : "จำนวน"}><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 10 }}>
+              <Field label="จำนวน"><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
               <Field label="หน่วย"><input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} style={{ textAlign: "center" }} /></Field>
-              <Field label={`ต้นทุน (${priceBasisLabel(item.costUnit)})`}>
-                <div style={{ position: "relative" }}>
-                  <input type="number" value={item.costSnapshot || 0} onChange={e => setItem(item.id, "costSnapshot", e.target.value)} min="0" step="0.01" style={{ textAlign: "right", paddingRight: 36, color: "#ef4444", fontWeight: 700 }} />
-                  <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#555" }}>THB</span>
-                </div>
-              </Field>
-              <Field label={`ราคาขาย (${priceBasisLabel(item.priceUnit)})`}>
+              <Field label="ราคาต่อหน่วย">
                 <div style={{ position: "relative" }}>
                   <input type="number" value={item.price} onChange={e => setItem(item.id, "price", e.target.value)} min="0" step="0.01" style={{ textAlign: "right", paddingRight: 36 }} />
                   <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#555" }}>THB</span>
                 </div>
               </Field>
             </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 14, fontSize: 13, fontWeight: 700 }}>
-              {(item.supplierName || findProductForItem(products, item)?.supplierName) && (
-                <span style={{ color: "#F97316" }}>Supplier: {item.supplierName || findProductForItem(products, item)?.supplierName}</span>
-              )}
-              <span style={{ color: "#ef4444" }}>ต้นทุน: ฿{fmtMoney(lineCost(item))}</span>
-              <span style={{ color: dt.color }}>รวม: ฿{fmtMoney(lineAmount(item))}</span>
+            <div style={{ textAlign: "right", fontSize: 13, fontWeight: 700, color: dt.color }}>
+              รวม: ฿{fmtMoney(item.qty * item.price)}
             </div>
-                </>
-              );
-            })()}
           </div>
         ))}
 
@@ -3207,14 +2809,8 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         {/* VAT / WHT */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 14, display: "flex", gap: 16, flexWrap: "wrap" as const }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
-            <input type="checkbox" checked={f.vat} onChange={setBool("vat")} style={{ width: "auto" }} />คิด VAT
+            <input type="checkbox" checked={f.vat} onChange={setBool("vat")} style={{ width: "auto" }} />คิด VAT 7%
           </label>
-          {f.vat && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input type="number" value={f.vatRate ?? 7} onChange={setN("vatRate")} min="0" max="100" step="0.01" style={{ width: 80 }} />
-              <span style={{ fontSize: 13, color: "#ccc" }}>%</span>
-            </div>
-          )}
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
             <input type="checkbox" checked={f.wht} onChange={setBool("wht")} style={{ width: "auto" }} />หัก ณ ที่จ่าย
           </label>
@@ -3238,7 +2834,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         <SumRow label="มูลค่ารวม (Subtotal)" value={subtotal} />
         {f.discount > 0 && <SumRow label={`ส่วนลด ${f.discount}%`} value={-discAmt} />}
         {f.discount > 0 && <SumRow label="หลังหักส่วนลด" value={afterDisc} />}
-        {f.vat && <SumRow label={`VAT ${fmtMoney(docVatRate(f))}%`} value={vatAmt} />}
+        {f.vat && <SumRow label="VAT 7%" value={vatAmt} />}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 4, paddingTop: 8 }}>
           <SumRow label="ยอดรวมสุทธิ" value={total} bold color={dt.color} big />
         </div>
@@ -3580,9 +3176,7 @@ function BlogManager({ showToast }: any) {
     fetchPosts();
   };
 
-  const filtered = posts.filter(p =>
-    [p.title, p.category, p.excerpt].some((value) => String(value || "").includes(search))
-  );
+  const filtered = posts.filter(p => p.title.includes(search) || p.category.includes(search));
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
@@ -3708,7 +3302,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <CField label="หมวดหมู่">
           <input value={f.category} onChange={set("category")} list="cat-list" placeholder="เช่น ป้ายไวนิล" />
-          <datalist id="cat-list">{Array.from(new Set([...blogCategories.map(c => c.name), "ป้ายไวนิล","สติ๊กเกอร์","Roll Up","Backdrop","PP Board","ฉลากสินค้า","ทั่วไป"])).map(c => <option key={c} value={c} />)}</datalist>
+          <datalist id="cat-list">{["ป้ายไวนิล","สติ๊กเกอร์","Roll Up","Backdrop","PP Board","ฉลากสินค้า","ทั่วไป"].map(c => <option key={c} value={c} />)}</datalist>
         </CField>
         <CField label="วันที่เผยแพร่"><input type="date" value={f.date} onChange={set("date")} /></CField>
       </div>
@@ -3749,13 +3343,6 @@ function HeroManager({ showToast }: any) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const set = k => e => setHero(p => ({ ...p, [k]: e.target.value }));
-  useEffect(() => {
-    let alive = true;
-    loadCmsSetting("hero", hero).then((value) => {
-      if (alive) setHero(value);
-    });
-    return () => { alive = false; };
-  }, []);
 
   const uploadBg = async (file: File | undefined) => {
     if (!file) return;
@@ -3782,14 +3369,7 @@ function HeroManager({ showToast }: any) {
   const addTrust = () => setHero(p => ({ ...p, trustPoints: [...p.trustPoints, ""] }));
   const delTrust = (i) => setHero(p => ({ ...p, trustPoints: p.trustPoints.filter((_, idx) => idx !== i) }));
 
-  const save = async () => {
-    try {
-      await saveCmsSetting("hero", hero);
-      showToast("บันทึก Hero Section แล้ว");
-    } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
-    }
-  };
+  const save = () => { saveLocal("hero", hero); showToast("บันทึก Hero Section แล้ว"); };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 680 }}>
@@ -3848,44 +3428,23 @@ function HeroManager({ showToast }: any) {
 // ============================================================
 function ServicesManager({ showToast }: any) {
   const [services, setServices] = useState(() => loadLocal("services", [
-    { id: "1", name: "ป้ายไวนิล", icon: "🪟", desc: "พิมพ์งานคุณภาพสูง ทนต่อแสงและฝน เหมาะสำหรับป้ายหน้าร้าน ป้ายโฆษณา ขนาดใหญ่", price: "ตร.ม.ละ 200฿", url: "/services/vinyl-banner" },
-    { id: "2", name: "สติ๊กเกอร์", icon: "🏷️", desc: "สติ๊กเกอร์กันน้ำ indoor/outdoor พิมพ์สี 4 สี คมชัด ติดทนนาน", price: "ตร.ม.ละ 350฿", url: "/services/label-sticker" },
-    { id: "3", name: "PP Board", icon: "📋", desc: "ป้ายพีพีบอร์ดน้ำหนักเบา พกพาง่าย เหมาะสำหรับงาน Event และป้ายชั่วคราว", price: "แผ่นละ 400฿", url: "/services/pp-board" },
-    { id: "4", name: "Roll Up", icon: "🎪", desc: "ป้าย Roll Up สำหรับงานนิทรรศการ ประชุม และงานกิจกรรมต่างๆ", price: "ชิ้นละ 2,200฿", url: "/services/roll-up" },
+    { id: "1", name: "ป้ายไวนิล", icon: "🪟", desc: "พิมพ์งานคุณภาพสูง ทนต่อแสงและฝน เหมาะสำหรับป้ายหน้าร้าน ป้ายโฆษณา ขนาดใหญ่", price: "ตร.ม.ละ 200฿", url: "/services/vinyl" },
+    { id: "2", name: "สติ๊กเกอร์", icon: "🏷️", desc: "สติ๊กเกอร์กันน้ำ indoor/outdoor พิมพ์สี 4 สี คมชัด ติดทนนาน", price: "ตร.ม.ละ 350฿", url: "/services/sticker" },
+    { id: "3", name: "PP Board", icon: "📋", desc: "ป้ายพีพีบอร์ดน้ำหนักเบา พกพาง่าย เหมาะสำหรับงาน Event และป้ายชั่วคราว", price: "แผ่นละ 400฿", url: "/services/ppboard" },
+    { id: "4", name: "Roll Up", icon: "🎪", desc: "ป้าย Roll Up สำหรับงานนิทรรศการ ประชุม และงานกิจกรรมต่างๆ", price: "ชิ้นละ 2,200฿", url: "/services/rollup" },
     { id: "5", name: "Backdrop", icon: "🖼", desc: "ป้าย Backdrop ขนาดใหญ่สำหรับงานอีเวนต์ ถ่ายรูป และงานแถลงข่าว", price: "ชุดละ 3,500฿", url: "/services/backdrop" },
-    { id: "6", name: "ฉลากสินค้า", icon: "🏷", desc: "พิมพ์ฉลากสินค้าคุณภาพสูง ทั้งแบบม้วนและแผ่น รองรับทุกขนาด", price: "100 ชิ้นละ 400฿", url: "/services/label-sticker" },
+    { id: "6", name: "ฉลากสินค้า", icon: "🏷", desc: "พิมพ์ฉลากสินค้าคุณภาพสูง ทั้งแบบม้วนและแผ่น รองรับทุกขนาด", price: "100 ชิ้นละ 400฿", url: "/services/label" },
   ]));
   const [editing, setEditing] = useState<any>(null);
-  useEffect(() => {
-    let alive = true;
-    loadCmsSetting("services", services).then((value) => {
-      if (alive) setServices(value);
-    });
-    return () => { alive = false; };
-  }, []);
 
-  const save = async (s) => {
+  const save = (s) => {
     const newSvc = s.id ? services.map(x => x.id === s.id ? s : x) : [...services, { ...s, id: Date.now().toString() }];
     setServices(newSvc);
-    try {
-      await saveCmsSetting("services", newSvc);
-      showToast("บันทึกบริการแล้ว");
-    } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
-    }
+    saveLocal("services", newSvc);
+    showToast("บันทึกบริการแล้ว");
     setEditing(null);
   };
-  const del = async (id) => {
-    if (!confirm("ลบบริการนี้?")) return;
-    const ns = services.filter(s => s.id !== id);
-    setServices(ns);
-    try {
-      await saveCmsSetting("services", ns);
-      showToast("ลบบริการแล้ว");
-    } catch (error: any) {
-      showToast("ลบแล้วแต่บันทึกฐานข้อมูลไม่ได้: " + error.message, "error");
-    }
-  };
+  const del = (id) => { if (!confirm("ลบบริการนี้?")) return; const ns = services.filter(s => s.id !== id); setServices(ns); saveLocal("services", ns); showToast("ลบบริการแล้ว"); };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
@@ -3918,7 +3477,7 @@ function ServicesManager({ showToast }: any) {
             </div>
             <CField label="คำอธิบาย"><textarea value={editing.desc} onChange={e => setEditing(p => ({ ...p, desc: e.target.value }))} rows={3} /></CField>
             <CField label="ราคาเริ่มต้น"><input value={editing.price} onChange={e => setEditing(p => ({ ...p, price: e.target.value }))} placeholder="เช่น ตร.ม.ละ 200฿" /></CField>
-            <CField label="URL หน้าบริการ"><input value={editing.url} onChange={e => setEditing(p => ({ ...p, url: e.target.value }))} placeholder="/services/vinyl-banner" /></CField>
+            <CField label="URL หน้าบริการ"><input value={editing.url} onChange={e => setEditing(p => ({ ...p, url: e.target.value }))} placeholder="/services/vinyl" /></CField>
             <div style={{ display: "flex", gap: 10 }}>
               <CBtn onClick={() => save(editing)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</CBtn>
               <CBtn onClick={() => setEditing(null)} outline style={{ flex: 1 }}>ยกเลิก</CBtn>
@@ -3940,36 +3499,14 @@ function ReviewsManager({ showToast }: any) {
     { id: "3", name: "คุณวิชัย", company: "บริษัทออแกนิก", stars: 4, text: "งานคุณภาพดี ทีมงานให้คำปรึกษาเรื่องขนาดและวัสดุได้ดีมาก" },
   ]));
   const [editing, setEditing] = useState<any>(null);
-  useEffect(() => {
-    let alive = true;
-    loadCmsSetting("reviews", reviews).then((value) => {
-      if (alive) setReviews(value);
-    });
-    return () => { alive = false; };
-  }, []);
 
-  const save = async (r) => {
+  const save = (r) => {
     const nr = r.id ? reviews.map(x => x.id === r.id ? r : x) : [...reviews, { ...r, id: Date.now().toString() }];
-    setReviews(nr);
-    try {
-      await saveCmsSetting("reviews", nr);
-      showToast(r.id ? "บันทึกรีวิวแล้ว" : "เพิ่มรีวิวแล้ว");
-    } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
-    }
+    setReviews(nr); saveLocal("reviews", nr);
+    showToast(r.id ? "บันทึกรีวิวแล้ว" : "เพิ่มรีวิวแล้ว");
     setEditing(null);
   };
-  const del = async (id) => {
-    if (!confirm("ลบรีวิวนี้?")) return;
-    const nr = reviews.filter(r => r.id !== id);
-    setReviews(nr);
-    try {
-      await saveCmsSetting("reviews", nr);
-      showToast("ลบรีวิวแล้ว");
-    } catch (error: any) {
-      showToast("ลบแล้วแต่บันทึกฐานข้อมูลไม่ได้: " + error.message, "error");
-    }
-  };
+  const del = (id) => { if (!confirm("ลบรีวิวนี้?")) return; const nr = reviews.filter(r => r.id !== id); setReviews(nr); saveLocal("reviews", nr); showToast("ลบรีวิวแล้ว"); };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
@@ -4029,13 +3566,6 @@ function PortfolioManager({ showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    let alive = true;
-    loadCmsSetting("portfolio", items).then((value) => {
-      if (alive) setItems(value);
-    });
-    return () => { alive = false; };
-  }, []);
 
   const uploadImg = async (file: File | undefined, callback: (url: string) => void) => {
     if (!file) return;
@@ -4054,28 +3584,13 @@ function PortfolioManager({ showToast }: any) {
     setUploading(false);
   };
 
-  const save = async (item) => {
+  const save = (item) => {
     const ni = item.id ? items.map(x => x.id === item.id ? item : x) : [...items, { ...item, id: Date.now().toString() }];
-    setItems(ni);
-    try {
-      await saveCmsSetting("portfolio", ni);
-      showToast("บันทึกผลงานแล้ว");
-    } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
-    }
+    setItems(ni); saveLocal("portfolio", ni);
+    showToast("บันทึกผลงานแล้ว");
     setEditing(null);
   };
-  const del = async (id) => {
-    if (!confirm("ลบผลงานนี้?")) return;
-    const ni = items.filter(i => i.id !== id);
-    setItems(ni);
-    try {
-      await saveCmsSetting("portfolio", ni);
-      showToast("ลบผลงานแล้ว");
-    } catch (error: any) {
-      showToast("ลบแล้วแต่บันทึกฐานข้อมูลไม่ได้: " + error.message, "error");
-    }
-  };
+  const del = (id) => { if (!confirm("ลบผลงานนี้?")) return; const ni = items.filter(i => i.id !== id); setItems(ni); saveLocal("portfolio", ni); showToast("ลบผลงานแล้ว"); };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
@@ -4142,21 +3657,7 @@ function ContactManager({ showToast }: any) {
     address: "123 ถ.ตัวอย่าง กรุงเทพฯ 10110", facebook: "", instagram: "", hours: "จ-ศ 9:00-18:00 น.",
   }));
   const set = k => e => setC(p => ({ ...p, [k]: e.target.value }));
-  useEffect(() => {
-    let alive = true;
-    loadCmsSetting("contact", c).then((value) => {
-      if (alive) setC(value);
-    });
-    return () => { alive = false; };
-  }, []);
-  const save = async () => {
-    try {
-      await saveCmsSetting("contact", c);
-      showToast("บันทึกข้อมูลติดต่อแล้ว");
-    } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
-    }
-  };
+  const save = () => { saveLocal("contact", c); showToast("บันทึกข้อมูลติดต่อแล้ว"); };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 560 }}>
