@@ -230,7 +230,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
           <header className="doc-head">
             <div>
               <div className="doc-brand">
-                <img src="/images/logo%20DWM%20PNG%20long.png" alt="Display Works Media" />
+                <img src="/images/logo DWM PNG long.png" alt="Display Works Media" />
               </div>
               <div className="doc-company-name">{companyName}</div>
               <div className="doc-company-meta">
