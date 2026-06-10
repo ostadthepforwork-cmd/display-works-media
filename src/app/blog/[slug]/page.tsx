@@ -7,6 +7,8 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+// อนุญาตให้ render slugs ที่ไม่ได้ pre-render ณ build-time (dynamic SSR)
+export const dynamicParams = true;
 // revalidate ทุก 1 ชั่วโมง — ให้ Google crawl เจอเนื้อหาจริงเสมอ
 export const revalidate = 3600;
 
