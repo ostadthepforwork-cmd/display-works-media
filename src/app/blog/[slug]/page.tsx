@@ -104,8 +104,8 @@ export default async function BlogPostPage({ params }: Props) {
     throw new Error("Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
   }
 
-  let post: Record<string, unknown> | null = null;
-  let related: Record<string, unknown>[] = [];
+  let post: { id: string; title: string; excerpt: string; category: string; date: string; slug: string; cover: string; published: boolean; body: string } | null = null;
+  let related: typeof post[] = [];
 
   try {
     const { data } = await supabase
