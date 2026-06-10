@@ -55,8 +55,7 @@ export default async function BlogPage() {
   }
 
   allPosts = allPosts
-    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
-    .slice(0, 5);
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
 
   const featuredPost = allPosts[0];
   const regularPosts = allPosts.slice(1);
