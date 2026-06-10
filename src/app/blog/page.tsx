@@ -8,6 +8,8 @@ import BlogClientShell from "./BlogClientShell";
 import { blogCategories } from "@/lib/seo-content";
 import { safeImageSrc } from "@/lib/image-utils";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "บทความและความรู้งานพิมพ์ | Display Works Media",
   description: "เทคนิค ไอเดีย และความรู้เกี่ยวกับงานพิมพ์และสื่อโฆษณา จากทีมผู้เชี่ยวชาญ Display Works Media",
