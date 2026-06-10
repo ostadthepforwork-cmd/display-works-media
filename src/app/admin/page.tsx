@@ -3600,28 +3600,57 @@ function BlogManager({ showToast }: any) {
         title: p.title, excerpt: p.excerpt, category: p.category,
         date: p.date, slug: p.slug, cover: p.cover,
         published: p.published, body: p.body,
+        seo_title: p.seo_title || "", meta_desc: p.meta_desc || "",
+        focus_keyword: p.focus_keyword || "", author: p.author || "Display Works Media",
+        last_updated: new Date().toISOString().slice(0, 10),
+        tags: p.tags || "", ai_summary: p.ai_summary || "",
+        key_takeaways: p.key_takeaways || "",
+        faqs: p.faqs || [], related_services: p.related_services || [],
       }).eq("id", p.id);
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
       showToast("บันทึกบทความแล้ว");
+      await revalidateBlog(p.slug);
     } else {
       // เพิ่มใหม่
       const { error } = await supabase.from("posts").insert({
         title: p.title, excerpt: p.excerpt, category: p.category,
         date: p.date, slug: p.slug, cover: p.cover,
         published: p.published, body: p.body,
+        seo_title: p.seo_title || "", meta_desc: p.meta_desc || "",
+        focus_keyword: p.focus_keyword || "", author: p.author || "Display Works Media",
+        last_updated: new Date().toISOString().slice(0, 10),
+        tags: p.tags || "", ai_summary: p.ai_summary || "",
+        key_takeaways: p.key_takeaways || "",
+        faqs: p.faqs || [], related_services: p.related_services || [],
       });
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
       showToast("เพิ่มบทความใหม่แล้ว");
+      await revalidateBlog(p.slug);
     }
     setEditing(null);
     fetchPosts();
   };
 
+
+  // ── revalidate เว็บทันทีหลัง save/delete ──
+  const revalidateBlog = async (slug?: string) => {
+    try {
+      await fetch("/api/revalidate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, secret: process.env.NEXT_PUBLIC_REVALIDATE_SECRET || "" }),
+      });
+    } catch {
+      // revalidate ล้มเหลวไม่ให้ block UX
+    }
+  };
   const del = async (id) => {
     if (!confirm("ลบบทความนี้?")) return;
+    const postToDelete = posts.find(p => p.id === id);
     const { error } = await supabase.from("posts").delete().eq("id", id);
     if (error) { showToast("ลบไม่สำเร็จ", "error"); return; }
     showToast("ลบบทความแล้ว");
+    await revalidateBlog(postToDelete?.slug);
     fetchPosts();
   };
 
@@ -3638,7 +3667,7 @@ function BlogManager({ showToast }: any) {
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
-          <CBtn onClick={() => setEditing({ id: "", title: "", excerpt: "", category: "", date: new Date().toISOString().slice(0,10), slug: "", cover: "", published: true, body: "" })} color="#FF6B00">+ เพิ่มบทความ</CBtn>
+          <CBtn onClick={() => setEditing({ id: "", title: "", excerpt: "", category: "", date: new Date().toISOString().slice(0,10), slug: "", cover: "", published: true, body: "", seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media", last_updated: "", tags: "", ai_summary: "", key_takeaways: "", faqs: [], related_services: [] })} color="#FF6B00">+ เพิ่มบทความ</CBtn>
         </div>
       </div>
 
@@ -3678,10 +3707,28 @@ function BlogManager({ showToast }: any) {
 }
 
 function BlogForm({ data, onSave, onCancel, showToast }: any) {
-  const [f, setF] = useState({ ...data });
+  const [f, setF] = useState({
+    seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media",
+    last_updated: "", tags: "", ai_summary: "", key_takeaways: "", faqs: [], related_services: [],
+    ...data
+  });
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
   const fileRef = useRef<HTMLInputElement>(null);
   const set = k => e => setF(p => ({ ...p, [k]: e.target.value }));
+
+  const SERVICE_OPTIONS = [
+    { value: "vinyl-banner", label: "รับทำป้ายไวนิล" },
+    { value: "roll-up", label: "รับทำ Roll Up" },
+    { value: "backdrop", label: "รับทำ Backdrop" },
+    { value: "sticker", label: "รับทำสติ๊กเกอร์" },
+    { value: "pp-board", label: "รับทำ PP Board" },
+    { value: "label-sticker", label: "รับทำฉลากสินค้า" },
+    { value: "x-stand", label: "รับทำ X-Stand" },
+    { value: "standee", label: "รับทำ Standee" },
+  ];
+
+  const AUTHOR_OPTIONS = ["Display Works Media", "Editorial Team", "Tadthep Sukthum"];
 
   const uploadCover = async (file: File | undefined) => {
     if (!file) return;
@@ -3689,33 +3736,14 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
       const path = `blog/${Date.now()}.${ext}`;
-
-      // อัปโหลดไฟล์
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("cms-media")
-        .upload(path, file, { upsert: true, contentType: file.type });
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        showToast("อัปโหลดไม่ได้: " + uploadError.message, "error");
-        setUploading(false);
-        return;
-      }
-
-      // ดึง public URL
+        .from("cms-media").upload(path, file, { upsert: true, contentType: file.type });
+      if (uploadError) { showToast("อัปโหลดไม่ได้: " + uploadError.message, "error"); setUploading(false); return; }
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
-      if (!urlData?.publicUrl) {
-        showToast("ได้รูปแล้วแต่ URL ไม่ถูกต้อง", "error");
-        setUploading(false);
-        return;
-      }
-
+      if (!urlData?.publicUrl) { showToast("ได้รูปแล้วแต่ URL ไม่ถูกต้อง", "error"); setUploading(false); return; }
       setF(p => ({ ...p, cover: urlData.publicUrl }));
       showToast("อัปโหลดรูปสำเร็จ ✓");
-    } catch (err: any) {
-      console.error("Upload catch:", err);
-      showToast("เกิดข้อผิดพลาด: " + (err?.message || err), "error");
-    }
+    } catch (err: any) { showToast("เกิดข้อผิดพลาด: " + (err?.message || err), "error"); }
     setUploading(false);
   };
 
@@ -3724,54 +3752,272 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
     setF(p => ({ ...p, slug }));
   };
 
+  const toggleService = (val: string) => {
+    const arr: string[] = Array.isArray(f.related_services) ? f.related_services : [];
+    setF(p => ({ ...p, related_services: arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val] }));
+  };
+
+  const addFaq = () => setF(p => ({ ...p, faqs: [...(Array.isArray(p.faqs) ? p.faqs : []), { q: "", a: "" }] }));
+  const setFaq = (i: number, field: "q" | "a", val: string) => {
+    const faqs = [...(Array.isArray(f.faqs) ? f.faqs : [])];
+    faqs[i] = { ...faqs[i], [field]: val };
+    setF(p => ({ ...p, faqs }));
+  };
+  const removeFaq = (i: number) => setF(p => ({ ...p, faqs: (Array.isArray(p.faqs) ? p.faqs : []).filter((_, idx) => idx !== i) }));
+
+  // SEO Score calculation
+  const seoScore = (() => {
+    let score = 0;
+    const checks = [
+      { ok: !!f.seo_title, label: "มี SEO Title" },
+      { ok: !!f.meta_desc, label: "มี Meta Description" },
+      { ok: !!f.focus_keyword, label: "มี Focus Keyword" },
+      { ok: Array.isArray(f.faqs) && f.faqs.length > 0, label: "มี FAQ" },
+      { ok: Array.isArray(f.related_services) && f.related_services.length > 0, label: "มี Internal Links" },
+      { ok: !!f.ai_summary, label: "มี AI Summary" },
+      { ok: !!f.cover, label: "มีรูป Cover" },
+      { ok: !!f.excerpt, label: "มี Excerpt" },
+      { ok: !!f.tags, label: "มี Tags" },
+      { ok: !!f.author, label: "มี Author" },
+    ];
+    checks.forEach(c => { if (c.ok) score += 10; });
+    return { score, checks };
+  })();
+
+  const tabs = [
+    { id: "general", label: "📝 ทั่วไป" },
+    { id: "seo", label: "🔍 SEO" },
+    { id: "ai", label: "🤖 AI Search" },
+    { id: "publish", label: "🚀 เผยแพร่" },
+  ];
+
+  const inputStyle = { width: "100%", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 12px", color: "#fff", fontSize: 13, fontFamily: "inherit", boxSizing: "border-box" as const };
+  const labelStyle = { fontSize: 11, color: "#A8B0C0", display: "block", marginBottom: 5, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.05em" };
+  const fieldStyle = { display: "flex", flexDirection: "column" as const, gap: 4 };
+  const charCountStyle = (len: number, max: number) => ({ fontSize: 11, color: len > max ? "#ef4444" : "#6B7280", textAlign: "right" as const, marginTop: 2 });
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {/* Cover Upload */}
-      <div>
-        <label>รูป Cover บทความ</label>
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <div style={{ width: 160, height: 100, borderRadius: 10, overflow: "hidden", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            {f.cover ? <img src={f.cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 32, opacity: 0.4 }}>🖼️</span>}
+    <div style={{ display: "flex", gap: 0, minHeight: 500 }}>
+      {/* Sidebar Tabs */}
+      <div style={{ width: 130, background: "#0D1320", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px", flexShrink: 0 }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ background: activeTab === t.id ? "rgba(255,107,0,0.15)" : "transparent", border: activeTab === t.id ? "1px solid rgba(255,107,0,0.3)" : "1px solid transparent", borderRadius: 8, padding: "10px 8px", color: activeTab === t.id ? "#FF6B00" : "#888", fontSize: 12, cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.15s" }}>
+            {t.label}
+          </button>
+        ))}
+        {/* SEO Score in sidebar */}
+        <div style={{ marginTop: "auto", paddingTop: 16 }}>
+          <div style={{ fontSize: 10, color: "#555", marginBottom: 4, textAlign: "center" }}>SEO Score</div>
+          <div style={{ textAlign: "center", fontSize: 22, fontWeight: 700, color: seoScore.score >= 80 ? "#10b981" : seoScore.score >= 50 ? "#f59e0b" : "#ef4444" }}>
+            {seoScore.score}<span style={{ fontSize: 11, color: "#555" }}>/100</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadCover(e.target.files?.[0])} />
-            <CBtn onClick={() => fileRef.current?.click()} color="#3B82F6" small disabled={uploading}>
-              {uploading ? "⏳ กำลังอัปโหลด..." : "📁 เลือกรูปภาพ"}
-            </CBtn>
-            <input value={f.cover} onChange={set("cover")} placeholder="หรือวาง URL รูปภาพ" style={{ fontSize: 12 }} />
+          <div style={{ height: 4, background: "#1A2233", borderRadius: 99, overflow: "hidden", marginTop: 6 }}>
+            <div style={{ height: "100%", width: `${seoScore.score}%`, background: seoScore.score >= 80 ? "#10b981" : seoScore.score >= 50 ? "#f59e0b" : "#ef4444", transition: "width 0.3s" }} />
           </div>
         </div>
       </div>
 
-      <CField label="หัวข้อบทความ *"><input value={f.title} onChange={set("title")} onBlur={genSlug} placeholder="หัวข้อบทความ" /></CField>
-      <CField label="Slug (URL)">
-        <div style={{ display: "flex", gap: 8 }}>
-          <input value={f.slug} onChange={set("slug")} placeholder="url-slug" style={{ flex: 1 }} />
-          <CBtn onClick={genSlug} small color="#6B7280">สร้างอัตโนมัติ</CBtn>
-        </div>
-      </CField>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <CField label="หมวดหมู่">
-          <input value={f.category} onChange={set("category")} list="cat-list" placeholder="เช่น ป้ายไวนิล" />
-          <datalist id="cat-list">{Array.from(new Set([...blogCategories.map(c => c.name), "ป้ายไวนิล","สติ๊กเกอร์","Roll Up","Backdrop","PP Board","ฉลากสินค้า","ทั่วไป"])).map(c => <option key={c} value={c} />)}</datalist>
-        </CField>
-        <CField label="วันที่เผยแพร่"><input type="date" value={f.date} onChange={set("date")} /></CField>
-      </div>
-      <CField label="บทสรุป (แสดงในหน้าแรก)"><textarea value={f.excerpt} onChange={set("excerpt")} rows={2} placeholder="อธิบายสั้นๆ ว่าบทความนี้เกี่ยวกับอะไร..." /></CField>
-      {/* ─── RICH TEXT EDITOR ─── */}
-      <div>
-        <label style={{ fontSize: 12, color: "#A8B0C0", display: "block", marginBottom: 6 }}>เนื้อหาบทความ</label>
-        <RichEditor value={f.body} onChange={val => setF(p => ({ ...p, body: val }))} showToast={showToast} />
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#ccc", marginBottom: 0 }}>
-          <input type="checkbox" checked={f.published} onChange={e => setF(p => ({ ...p, published: e.target.checked }))} style={{ width: "auto" }} />
-          เผยแพร่บทความนี้
-        </label>
-      </div>
-      <div style={{ display: "flex", gap: 10 }}>
-        <CBtn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>💾 บันทึก</CBtn>
-        <CBtn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</CBtn>
+      {/* Tab Content */}
+      <div style={{ flex: 1, padding: "20px 24px", overflowY: "auto", maxHeight: 580 }}>
+
+        {/* ── TAB: GENERAL ── */}
+        {activeTab === "general" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Cover */}
+            <div style={fieldStyle}>
+              <label style={labelStyle}>รูป Cover บทความ</label>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <div style={{ width: 140, height: 88, borderRadius: 8, overflow: "hidden", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {f.cover ? <img src={f.cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 28, opacity: 0.4 }}>🖼️</span>}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                  <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadCover(e.target.files?.[0])} />
+                  <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ ...inputStyle, width: "auto", padding: "8px 14px", cursor: "pointer", background: "#3B82F6", border: "none", fontWeight: 600 }}>
+                    {uploading ? "⏳ กำลังอัปโหลด..." : "📁 เลือกรูปภาพ"}
+                  </button>
+                  <input value={f.cover} onChange={set("cover")} placeholder="หรือวาง URL รูปภาพ" style={{ ...inputStyle, fontSize: 12 }} />
+                </div>
+              </div>
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>หัวข้อบทความ *</label>
+              <input value={f.title} onChange={set("title")} onBlur={genSlug} placeholder="หัวข้อบทความ" style={inputStyle} />
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Slug (URL)</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input value={f.slug} onChange={set("slug")} placeholder="url-slug" style={{ ...inputStyle, flex: 1 }} />
+                <button onClick={genSlug} style={{ ...inputStyle, width: "auto", padding: "8px 14px", cursor: "pointer", background: "#374151", border: "none", flexShrink: 0 }}>สร้างอัตโนมัติ</button>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>หมวดหมู่</label>
+                <input value={f.category} onChange={set("category")} list="cat-list" placeholder="เช่น ป้ายไวนิล" style={inputStyle} />
+                <datalist id="cat-list">{Array.from(new Set([...blogCategories.map(c => c.name), "ป้ายไวนิล","สติ๊กเกอร์","Roll Up","Backdrop","PP Board","ฉลากสินค้า","ทั่วไป"])).map(c => <option key={c} value={c} />)}</datalist>
+              </div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>วันที่เผยแพร่</label>
+                <input type="date" value={f.date} onChange={set("date")} style={inputStyle} />
+              </div>
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>บทสรุป (Excerpt)</label>
+              <textarea value={f.excerpt} onChange={set("excerpt")} rows={3} placeholder="อธิบายสั้นๆ ว่าบทความนี้เกี่ยวกับอะไร..." style={{ ...inputStyle, resize: "vertical" }} />
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>เนื้อหาบทความ</label>
+              <RichEditor value={f.body} onChange={val => setF(p => ({ ...p, body: val }))} showToast={showToast} />
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: SEO ── */}
+        {activeTab === "seo" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* SEO Score Checklist */}
+            <div style={{ background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>SEO Checklist</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {seoScore.checks.map((c, i) => (
+                  <div key={i} style={{ fontSize: 12, color: c.ok ? "#10b981" : "#6B7280", display: "flex", gap: 6, alignItems: "center" }}>
+                    <span>{c.ok ? "✅" : "❌"}</span> {c.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>SEO Title <span style={{ color: "#6B7280", fontWeight: 400 }}>(แสดงบน Google)</span></label>
+              <input value={f.seo_title} onChange={set("seo_title")} placeholder="ป้ายไวนิลคืออะไร? | Display Works Media" style={inputStyle} maxLength={70} />
+              <div style={charCountStyle((f.seo_title || "").length, 60)}>{(f.seo_title || "").length}/60 ตัวอักษร</div>
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Meta Description</label>
+              <textarea value={f.meta_desc} onChange={set("meta_desc")} rows={3} placeholder="คำอธิบายที่แสดงใน Google Search..." style={{ ...inputStyle, resize: "vertical" }} maxLength={170} />
+              <div style={charCountStyle((f.meta_desc || "").length, 160)}>{(f.meta_desc || "").length}/160 ตัวอักษร</div>
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Focus Keyword</label>
+              <input value={f.focus_keyword} onChange={set("focus_keyword")} placeholder="เช่น รับทำป้ายไวนิล" style={inputStyle} />
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Author <span style={{ color: "#6B7280", fontWeight: 400 }}>(E-E-A-T)</span></label>
+              <select value={f.author} onChange={set("author")} style={inputStyle}>
+                {AUTHOR_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Tags <span style={{ color: "#6B7280", fontWeight: 400 }}>(คั่นด้วยจุลภาค)</span></label>
+              <input value={f.tags} onChange={set("tags")} placeholder="ป้ายไวนิล, SME, ร้านอาหาร, โฆษณา" style={inputStyle} />
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Related Services <span style={{ color: "#6B7280", fontWeight: 400 }}>(Internal Links)</span></label>
+              <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8 }}>
+                {SERVICE_OPTIONS.map(s => {
+                  const arr: string[] = Array.isArray(f.related_services) ? f.related_services : [];
+                  const checked = arr.includes(s.value);
+                  return (
+                    <label key={s.value} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, padding: "6px 12px", borderRadius: 99, border: `1px solid ${checked ? "#FF6B00" : "rgba(255,255,255,0.1)"}`, background: checked ? "rgba(255,107,0,0.1)" : "transparent", color: checked ? "#FF6B00" : "#888", transition: "all 0.15s" }}>
+                      <input type="checkbox" checked={checked} onChange={() => toggleService(s.value)} style={{ display: "none" }} />
+                      {checked ? "☑" : "☐"} {s.label}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: AI SEARCH ── */}
+        {activeTab === "ai" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 10, padding: 12, fontSize: 12, color: "#a5b4fc" }}>
+              🤖 ฟิลด์เหล่านี้ช่วยให้ Google AI Overview, ChatGPT, Gemini และ Perplexity อ้างอิงบทความของคุณได้
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>AI Summary <span style={{ color: "#6B7280", fontWeight: 400 }}>(50-150 คำ)</span></label>
+              <textarea value={f.ai_summary} onChange={set("ai_summary")} rows={5} placeholder="สรุปบทความสำหรับ AI เช่น: ป้ายไวนิลเป็นสื่อโฆษณาที่ได้รับความนิยมสำหรับธุรกิจ SME..." style={{ ...inputStyle, resize: "vertical" }} />
+              <div style={charCountStyle(0, 0)}>{(f.ai_summary || "").split(/\s+/).filter(Boolean).length} คำ</div>
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Key Takeaways <span style={{ color: "#6B7280", fontWeight: 400 }}>(แต่ละบรรทัด = 1 ประเด็น)</span></label>
+              <textarea value={f.key_takeaways} onChange={set("key_takeaways")} rows={4} placeholder={"ป้ายไวนิลเหมาะกับงานกลางแจ้ง\nควรเลือกความหนาตามลักษณะการใช้งาน\nไวนิล 400 แกรมทนทานกว่า 360 แกรม"} style={{ ...inputStyle, resize: "vertical" }} />
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>FAQ Builder <span style={{ color: "#6B7280", fontWeight: 400 }}>(สร้าง FAQ Schema อัตโนมัติ)</span></label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {(Array.isArray(f.faqs) ? f.faqs : []).map((faq: any, i: number) => (
+                  <div key={i} style={{ background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 11, color: "#6B7280", fontWeight: 700 }}>FAQ #{i + 1}</span>
+                      <button onClick={() => removeFaq(i)} style={{ background: "rgba(239,68,68,0.15)", border: "none", color: "#ef4444", borderRadius: 4, padding: "2px 8px", cursor: "pointer", fontSize: 11 }}>ลบ</button>
+                    </div>
+                    <input value={faq.q} onChange={e => setFaq(i, "q", e.target.value)} placeholder="คำถาม เช่น สั่งขั้นต่ำเท่าไหร่?" style={{ ...inputStyle, fontSize: 12 }} />
+                    <textarea value={faq.a} onChange={e => setFaq(i, "a", e.target.value)} rows={2} placeholder="คำตอบ..." style={{ ...inputStyle, fontSize: 12, resize: "vertical" }} />
+                  </div>
+                ))}
+                <button onClick={addFaq} style={{ ...inputStyle, width: "auto", padding: "10px", cursor: "pointer", background: "rgba(99,102,241,0.1)", border: "1px dashed rgba(99,102,241,0.3)", color: "#a5b4fc", textAlign: "center" as const }}>
+                  + เพิ่มคำถาม FAQ
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: PUBLISH ── */}
+        {activeTab === "publish" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: 16 }}>
+              <input type="checkbox" id="published" checked={f.published} onChange={e => setF(p => ({ ...p, published: e.target.checked }))} style={{ width: 18, height: 18, cursor: "pointer" }} />
+              <div>
+                <label htmlFor="published" style={{ fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#fff" }}>เผยแพร่บทความนี้</label>
+                <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>บทความจะแสดงบนเว็บไซต์ทันทีหลังบันทึก</div>
+              </div>
+              <span style={{ marginLeft: "auto", padding: "4px 12px", borderRadius: 99, fontSize: 12, fontWeight: 600, background: f.published ? "rgba(16,185,129,0.15)" : "rgba(107,114,128,0.2)", color: f.published ? "#10b981" : "#6b7280" }}>
+                {f.published ? "เผยแพร่แล้ว" : "ฉบับร่าง"}
+              </span>
+            </div>
+
+            <div style={{ background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>📊 สรุปก่อนบันทึก</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  { label: "หัวข้อ", value: f.title || "-" },
+                  { label: "Slug", value: f.slug || "-" },
+                  { label: "SEO Title", value: f.seo_title || <span style={{ color: "#ef4444" }}>ยังไม่กรอก</span> },
+                  { label: "Meta Desc", value: f.meta_desc ? `${(f.meta_desc).slice(0, 50)}...` : <span style={{ color: "#ef4444" }}>ยังไม่กรอก</span> },
+                  { label: "Focus KW", value: f.focus_keyword || <span style={{ color: "#f59e0b" }}>ยังไม่กรอก</span> },
+                  { label: "FAQ", value: `${Array.isArray(f.faqs) ? f.faqs.length : 0} ข้อ` },
+                  { label: "SEO Score", value: `${seoScore.score}/100` },
+                ].map((row, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, fontSize: 12 }}>
+                    <span style={{ color: "#6B7280", width: 90, flexShrink: 0 }}>{row.label}</span>
+                    <span style={{ color: "#ccc" }}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => onSave(f)} style={{ flex: 1, padding: "12px", background: "#FF6B00", border: "none", borderRadius: 8, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>💾 บันทึก</button>
+              <button onClick={onCancel} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "#888", fontSize: 14, cursor: "pointer" }}>ยกเลิก</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
