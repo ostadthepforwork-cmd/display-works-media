@@ -105,7 +105,8 @@ export default async function BlogPostPage({ params }: Props) {
   }
 
   let post: { id: string; title: string; excerpt: string; category: string; date: string; slug: string; cover: string; published: boolean; body: string } | null = null;
-  let related: typeof post[] = [];
+  type Post = { id: string; title: string; excerpt: string; category: string; date: string; slug: string; cover: string; published: boolean; body: string };
+  let related: Post[] = [];
 
   try {
     const { data } = await supabase
