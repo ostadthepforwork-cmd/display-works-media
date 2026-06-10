@@ -3709,8 +3709,10 @@ function BlogManager({ showToast }: any) {
 function BlogForm({ data, onSave, onCancel, showToast }: any) {
   const [f, setF] = useState({
     seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media",
-    last_updated: "", tags: "", ai_summary: "", key_takeaways: "", faqs: [], related_services: [],
-    ...data
+    last_updated: "", tags: "", ai_summary: "", key_takeaways: "",
+    ...data,
+    faqs: Array.isArray(data.faqs) ? data.faqs : [],
+    related_services: Array.isArray(data.related_services) ? data.related_services : [],
   });
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
