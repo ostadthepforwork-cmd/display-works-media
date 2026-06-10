@@ -7,24 +7,8 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-// อนุญาตให้ render slugs ที่ไม่ได้ pre-render ณ build-time (dynamic SSR)
-export const dynamicParams = true;
-// revalidate ทุก 1 ชั่วโมง — ให้ Google crawl เจอเนื้อหาจริงเสมอ
-export const revalidate = 3600;
-
-// pre-render slugs ที่มีอยู่จริงใน Supabase ณ build-time
-export async function generateStaticParams() {
-  try {
-    const supabase = getSupabase();
-    if (!supabase) return [];
-    const { data: posts } = await supabase
-      .from("posts")
-      .select("slug")
-      .eq("published", true);
-    return (posts || []).map((p) => ({ slug: p.slug }));
-  } catch {
-    return [];
-  }
+export function generateStaticParams() {
+  return [];
 }
 
 function getSupabase() {
@@ -100,44 +84,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
 
-  const supabase = getSupabase();
-  // ถ้า env ไม่ครบ = config error ไม่ใช่ 404
-  if (!supabase) {
-    throw new Error("Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
-  }
-
-  let post: { id: string; title: string; excerpt: string; category: string; date: string; slug: string; cover: string; published: boolean; body: string } | null = null;
-  type Post = { id: string; title: string; excerpt: string; category: string; date: string; slug: string; cover: string; published: boolean; body: string };
-  let related: Post[] = [];
-
   try {
-    const { data } = await supabase
+    const supabase = getSupabase();
+    if (!supabase) notFound();
+
+    const { data: post } = await supabase
       .from("posts")
       .select("*")
       .eq("slug", slug)
       .eq("published", true)
       .single();
-    post = data;
-  } catch {
-    // network/timeout error — throw ให้ Next.js แสดง error boundary แทน 404
-    throw new Error(`Failed to fetch blog post: ${slug}`);
-  }
 
-  // slug ไม่มีในฐานข้อมูลจริงๆ → 404
-  if (!post) notFound();
+    if (!post) notFound();
 
-  try {
-    const { data } = await supabase
+    const { data: related } = await supabase
       .from("posts")
       .select("*")
       .eq("published", true)
       .eq("category", post.category)
       .neq("slug", slug)
       .limit(3);
-    related = data || [];
-  } catch {
-    related = [];
-  }
 
-  return <BlogPostClient initialPost={post} initialRelated={related} />;
+    return <BlogPostClient initialPost={post} initialRelated={related || []} />;
+  } catch {
+    notFound();
+  }
 }
