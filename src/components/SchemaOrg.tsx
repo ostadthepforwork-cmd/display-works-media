@@ -106,70 +106,6 @@ const localBusinessSchema = {
   // เพิ่มกลับได้เมื่อดึงข้อมูล review จริงจาก Supabase มาแสดงในหน้าเว็บ
 };
 
-// ─── FAQPage Schema (AEO — ให้ AI ตอบแทนได้) ─────────────────────────────────
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "สั่งพิมพ์ขั้นต่ำเท่าไหร่?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "ไม่มีขั้นต่ำในหลายรายการ สามารถสั่ง 1 ชิ้นได้เลย บางรายการอาจมีขั้นต่ำตามเงื่อนไขการผลิต ทีมงานจะแจ้งรายละเอียดเมื่อรับงาน",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "ใช้เวลาผลิตนานเท่าไหร่?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "โดยปกติ 1–3 วันทำการ งานด่วนสามารถแจ้งได้เพื่อดำเนินการเร่งด่วน อาจมีค่าบริการเพิ่มเติม",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "ต้องส่งไฟล์งานอะไรบ้าง?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "รองรับไฟล์ AI, PDF, PSD ความละเอียด 150–300 dpi ขึ้นไป หากยังไม่มีไฟล์ ทีมงานสามารถช่วยออกแบบได้ (มีค่าบริการเพิ่มเติม)",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "ชำระเงินอย่างไร?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "โอนเงินผ่านธนาคาร, พร้อมเพย์ หรือ QR Code ชำระเต็มจำนวนก่อนผลิต",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Display Works Media จัดส่งทั่วประเทศได้จริงไหม?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "ใช่ครับ Display Works Media จัดส่งทุกจังหวัดในประเทศไทย ผ่านขนส่งเอกชนที่เชื่อถือได้ พร้อมแจ้งเลขพัสดุทุกออเดอร์",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "ถ้างานออกมาไม่ตรงแบบ ทำอย่างไร?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "เราตรวจสอบคุณภาพก่อนส่งทุกครั้ง หากงานไม่ตรงตามที่ตกลงไว้ ยินดีผลิตใหม่ให้โดยไม่มีค่าใช้จ่ายเพิ่มเติม",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "รับออกแบบกราฟิกด้วยไหม?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "รับออกแบบครับ เรามีทีมกราฟิกช่วยออกแบบและจัดวางให้เหมาะสม มีค่าบริการออกแบบแยกต่างหาก",
-      },
-    },
-  ],
-};
-
 // ─── WebSite Schema ──────────────────────────────────────────────────────────
 const websiteSchema = {
   "@context": "https://schema.org",
@@ -191,7 +127,7 @@ const websiteSchema = {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function SchemaOrg({ extra }: SchemaOrgProps) {
-  const schemas: Record<string, unknown>[] = [localBusinessSchema, faqSchema, websiteSchema];
+  const schemas: Record<string, unknown>[] = [localBusinessSchema, websiteSchema];
   if (extra) schemas.push(extra);
 
   return (
