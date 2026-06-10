@@ -3594,6 +3594,11 @@ function BlogManager({ showToast }: any) {
   useEffect(() => { fetchPosts(); }, []);
 
   const save = async (p) => {
+    console.log("=== SAVE DEBUG ===");
+    console.log("faqs:", p.faqs, "| type:", typeof p.faqs, "| isArray:", Array.isArray(p.faqs));
+    console.log("related_services:", p.related_services, "| type:", typeof p.related_services, "| isArray:", Array.isArray(p.related_services));
+    console.log("tags:", JSON.stringify(p.tags), "| type:", typeof p.tags);
+    console.log("==================");
     if (p.id) {
       // อัปเดต
       const { error } = await supabase.from("posts").update({
