@@ -3594,40 +3594,33 @@ function BlogManager({ showToast }: any) {
   useEffect(() => { fetchPosts(); }, []);
 
   const save = async (p) => {
-    console.log("=== SAVE DEBUG ===");
-    console.log("faqs:", p.faqs, "| type:", typeof p.faqs, "| isArray:", Array.isArray(p.faqs));
-    console.log("related_services:", p.related_services, "| type:", typeof p.related_services, "| isArray:", Array.isArray(p.related_services));
-    console.log("tags:", JSON.stringify(p.tags), "| type:", typeof p.tags);
-    console.log("==================");
+    // แปลง tags จาก string "a,b,c" → array ["a","b","c"]
+    const tagsArray = Array.isArray(p.tags)
+      ? p.tags
+      : (p.tags || "").split(",").map((t: string) => t.trim()).filter(Boolean);
+
+    const postData = {
+      title: p.title, excerpt: p.excerpt, category: p.category,
+      date: p.date, slug: p.slug, cover: p.cover,
+      published: p.published, body: p.body,
+      seo_title: p.seo_title || "", meta_desc: p.meta_desc || "",
+      focus_keyword: p.focus_keyword || "", author: p.author || "Display Works Media",
+      last_updated: new Date().toISOString().slice(0, 10),
+      tags: tagsArray, ai_summary: p.ai_summary || "",
+      key_takeaways: p.key_takeaways || "",
+      faqs: Array.isArray(p.faqs) ? p.faqs : [],
+      related_services: Array.isArray(p.related_services) ? p.related_services : [],
+    };
+
     if (p.id) {
       // อัปเดต
-      const { error } = await supabase.from("posts").update({
-        title: p.title, excerpt: p.excerpt, category: p.category,
-        date: p.date, slug: p.slug, cover: p.cover,
-        published: p.published, body: p.body,
-        seo_title: p.seo_title || "", meta_desc: p.meta_desc || "",
-        focus_keyword: p.focus_keyword || "", author: p.author || "Display Works Media",
-        last_updated: new Date().toISOString().slice(0, 10),
-        tags: p.tags || "", ai_summary: p.ai_summary || "",
-        key_takeaways: p.key_takeaways || "",
-        faqs: p.faqs || [], related_services: p.related_services || [],
-      }).eq("id", p.id);
+      const { error } = await supabase.from("posts").update(postData).eq("id", p.id);
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
       showToast("บันทึกบทความแล้ว");
       await revalidateBlog(p.slug);
     } else {
       // เพิ่มใหม่
-      const { error } = await supabase.from("posts").insert({
-        title: p.title, excerpt: p.excerpt, category: p.category,
-        date: p.date, slug: p.slug, cover: p.cover,
-        published: p.published, body: p.body,
-        seo_title: p.seo_title || "", meta_desc: p.meta_desc || "",
-        focus_keyword: p.focus_keyword || "", author: p.author || "Display Works Media",
-        last_updated: new Date().toISOString().slice(0, 10),
-        tags: p.tags || "", ai_summary: p.ai_summary || "",
-        key_takeaways: p.key_takeaways || "",
-        faqs: p.faqs || [], related_services: p.related_services || [],
-      });
+      const { error } = await supabase.from("posts").insert(postData);
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
       showToast("เพิ่มบทความใหม่แล้ว");
       await revalidateBlog(p.slug);
