@@ -69,7 +69,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
   const relatedServices = category.serviceLinks.map(serviceByHref).filter(Boolean);
 
   return (
-    <main className="min-h-screen bg-[#050816] text-white" style={{ fontFamily: "'Prompt','Sarabun',sans-serif" }}>
+    <main className="brand-interior min-h-screen bg-[#050806] text-white" style={{ fontFamily: "'Prompt','Sarabun',sans-serif" }}>
       <Navbar />
       <section className="pt-[120px] pb-14 px-6 lg:px-8 border-b border-white/5">
         <div className="max-w-7xl mx-auto">
@@ -89,7 +89,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
                 {posts.map((post: any) => {
                   const cover = safeImageSrc(post.cover);
                   return (
-                  <article key={post.id} className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
+                  <article key={post.id} className="group bg-[#0E1310] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
                     <Link href={`/blog/${post.slug}`} className="block">
                       <div className="relative h-48 bg-[#141A24]">
                         {cover ? (
@@ -113,7 +113,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
                 })}
               </div>
             ) : (
-              <div className="rounded-2xl bg-[#0B1220] border border-white/5 p-8 text-[#A7B0C0]">
+              <div className="rounded-2xl bg-[#0E1310] border border-white/5 p-8 text-[#A7B0C0]">
                 <h2 className="font-kanit text-2xl text-white mb-3">กำลังเตรียมบทความในหมวดนี้</h2>
                 <p className="leading-relaxed">โครงหมวดบทความพร้อมแล้ว สามารถเพิ่มบทความจาก Admin → CMS และเลือกหมวดนี้เพื่อให้แสดงในหน้านี้ได้ทันที</p>
               </div>
@@ -121,7 +121,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
           </div>
 
           <aside className="space-y-5">
-            <div className="rounded-2xl bg-[#0B1220] border border-white/5 p-6">
+            <div className="rounded-2xl bg-[#0E1310] border border-white/5 p-6">
               <h2 className="font-kanit font-bold text-xl mb-4">บริการที่เกี่ยวข้อง</h2>
               <div className="space-y-3">
                 {relatedServices.map((service) => (
@@ -132,7 +132,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl bg-[#0B1220] border border-white/5 p-6">
+            <div className="rounded-2xl bg-[#0E1310] border border-white/5 p-6">
               <h2 className="font-kanit font-bold text-xl mb-4">หมวดบทความ</h2>
               <div className="space-y-2">
                 {blogCategories.map((item) => (

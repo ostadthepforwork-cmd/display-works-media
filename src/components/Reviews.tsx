@@ -100,19 +100,19 @@ export default function Reviews({ items }: { items?: ReviewItem[] }) {
   };
 
   return (
-    <section className="py-20 lg:py-24 px-6 lg:px-8" style={{ background: "#0B0F19" }}>
+    <section className="brand-section py-20 lg:py-28 px-5 sm:px-6 lg:px-8" style={{ background: "#0D121A" }}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchemaJson) }}
       />
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1380px] mx-auto">
         <div className="reveal-section flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
           <div>
             <div className="section-label">CUSTOMER VOICE</div>
             <h2 className="section-title">รีวิวจากลูกค้า</h2>
           </div>
           <div
-            className="flex items-center gap-4 px-6 py-4 rounded-2xl border flex-shrink-0"
+            className="flex items-center gap-4 px-6 py-4 rounded-lg border flex-shrink-0"
             style={{
               background: "#141A24",
               borderColor: "rgba(255,255,255,0.08)",
@@ -142,7 +142,7 @@ export default function Reviews({ items }: { items?: ReviewItem[] }) {
           {reviews.map((review) => (
             <div
               key={`${review.name}-${review.project}`}
-              className="reveal-item relative p-7 rounded-2xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
+              className="reveal-item relative p-7 rounded-lg border overflow-hidden transition-all duration-300 hover:-translate-y-1"
               style={{
                 background: "#141A24",
                 borderColor: "rgba(255,255,255,0.08)",

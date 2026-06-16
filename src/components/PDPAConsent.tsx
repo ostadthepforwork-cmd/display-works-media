@@ -18,6 +18,7 @@ export default function PDPAConsent() {
   const acceptAll = () => {
     localStorage.setItem('pdpa_consent', 'all')
     localStorage.setItem('pdpa_consent_date', new Date().toISOString())
+    window.dispatchEvent(new Event('pdpa-consent-changed'))
     setVisible(false)
     // Fire tracking scripts after consent
     if (typeof window !== 'undefined' && (window as any).fbq) {
@@ -34,6 +35,7 @@ export default function PDPAConsent() {
   const acceptNecessary = () => {
     localStorage.setItem('pdpa_consent', 'necessary')
     localStorage.setItem('pdpa_consent_date', new Date().toISOString())
+    window.dispatchEvent(new Event('pdpa-consent-changed'))
     setVisible(false)
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('consent', 'update', {
@@ -187,6 +189,7 @@ export default function PDPAConsent() {
 
       {/* Main Banner */}
       <div
+        className="pdpa-banner-wrap"
         style={{
           position: 'fixed',
           bottom: 0,
@@ -202,9 +205,55 @@ export default function PDPAConsent() {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
           }
+
+          @media (max-width: 640px) {
+            .pdpa-banner-wrap {
+              padding: 0 8px 8px !important;
+            }
+
+            .pdpa-banner-panel {
+              gap: 10px !important;
+              padding: 13px !important;
+              border-radius: 14px !important;
+            }
+
+            .pdpa-banner-icon {
+              display: none;
+            }
+
+            .pdpa-banner-copy {
+              width: 100%;
+              min-width: 0 !important;
+            }
+
+            .pdpa-banner-copy p,
+            .pdpa-banner-copy button {
+              font-size: 11px !important;
+              line-height: 1.45 !important;
+            }
+
+            .pdpa-banner-actions {
+              display: grid !important;
+              grid-template-columns: minmax(0, 1fr);
+              width: 100%;
+              gap: 8px !important;
+              flex-shrink: 1 !important;
+            }
+
+            .pdpa-banner-actions button {
+              width: 100%;
+              min-width: 0;
+              padding: 10px 6px !important;
+              white-space: normal !important;
+              overflow-wrap: anywhere;
+              font-size: 11px !important;
+              line-height: 1.25;
+            }
+          }
         `}</style>
 
         <div
+          className="pdpa-banner-panel"
           style={{
             background: 'rgba(15, 15, 25, 0.97)',
             backdropFilter: 'blur(20px)',
@@ -220,10 +269,10 @@ export default function PDPAConsent() {
           }}
         >
           {/* Icon */}
-          <div style={{ fontSize: '28px', flexShrink: 0 }}>🍪</div>
+          <div className="pdpa-banner-icon" style={{ fontSize: '28px', flexShrink: 0 }}>🍪</div>
 
           {/* Text */}
-          <div style={{ flex: 1, minWidth: '200px' }}>
+          <div className="pdpa-banner-copy" style={{ flex: 1, minWidth: '200px' }}>
             <p style={{ margin: 0, fontSize: '14px', color: '#e0e0e0', lineHeight: 1.6 }}>
               เว็บไซต์นี้ใช้คุกกี้เพื่อวิเคราะห์การใช้งาน (Google Analytics), ติดตามประสิทธิภาพโฆษณา (Facebook Pixel, GTM)
               และเพิ่มประสบการณ์ที่ดีขึ้นให้คุณ ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล (PDPA){' '}
@@ -245,7 +294,7 @@ export default function PDPAConsent() {
           </div>
 
           {/* Buttons */}
-          <div style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
+          <div className="pdpa-banner-actions" style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
             <button
               onClick={acceptNecessary}
               style={{

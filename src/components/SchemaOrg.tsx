@@ -97,7 +97,7 @@ const localBusinessSchema = {
         itemOffered: {
           "@type": "Service",
           name: "ฉลากสินค้า (Product Label)",
-          url: "https://displayworksmedia.com/services/storefront-signage",
+          url: "https://displayworksmedia.com/services/label-sticker",
         },
       },
     ],

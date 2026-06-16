@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import FAQ from "@/components/FAQ";
+import Footer from "@/components/Footer";
+import { CmsText } from "@/components/CmsSettingsProvider";
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -78,25 +80,32 @@ export const metadata: Metadata = {
 
 export default function FAQPage() {
   return (
-    <main className="min-h-screen bg-[#050816] text-white" style={{ fontFamily: "'Prompt','Sarabun',sans-serif" }}>
+    <main className="brand-interior min-h-screen bg-[#050806] text-white" style={{ fontFamily: "'Prompt','Sarabun',sans-serif" }}>
       <script
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD ปลอดภัย
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <Navbar />
-      <section className="pt-[116px] pb-4 px-6 lg:px-8 bg-[#050816]">
+      <section className="pt-[116px] pb-4 px-6 lg:px-8 bg-[#050806]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-[#FF7A00] text-xs font-bold tracking-[0.18em] uppercase mb-4">FAQ</div>
-          <h1 className="font-kanit font-extrabold text-4xl lg:text-6xl max-w-3xl leading-tight">
-            คำถามที่พบบ่อยก่อนสั่งผลิตงานป้าย
-          </h1>
-          <p className="mt-5 text-[#A7B0C0] max-w-2xl leading-relaxed">
-            รวมคำตอบเรื่องขั้นต่ำ ระยะเวลาผลิต ไฟล์ Artwork การชำระเงิน และการจัดส่ง เพื่อช่วยให้เตรียมงานได้ง่ายขึ้น
-          </p>
+          <CmsText path="faq.eyebrow" fallback="FAQ" as="div" className="text-[#FF7A00] text-xs font-bold tracking-[0.18em] uppercase mb-4" />
+          <CmsText
+            path="faq.title"
+            fallback="คำถามที่พบบ่อยก่อนสั่งผลิตงานป้าย"
+            as="h1"
+            className="font-kanit font-extrabold text-4xl lg:text-6xl max-w-3xl leading-tight"
+          />
+          <CmsText
+            path="faq.subtitle"
+            fallback="รวมคำตอบเรื่องขั้นต่ำ ระยะเวลาผลิต ไฟล์ Artwork การชำระเงิน และการจัดส่ง เพื่อช่วยให้เตรียมงานได้ง่ายขึ้น"
+            as="p"
+            className="mt-5 text-[#A7B0C0] max-w-2xl leading-relaxed"
+          />
         </div>
       </section>
       <FAQ />
+      <Footer />
     </main>
   );
 }

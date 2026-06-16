@@ -58,8 +58,8 @@ const reasons = [
 
 export default function WhyUs() {
   return (
-    <section id="about" className="py-20 lg:py-28 px-6 lg:px-8" style={{ background: "#141A24" }}>
-      <div className="max-w-7xl mx-auto">
+    <section id="about" className="brand-section py-20 lg:py-28 px-5 sm:px-6 lg:px-8" style={{ background: "#10151D" }}>
+      <div className="max-w-[1380px] mx-auto">
 
         <div className="reveal-section flex flex-col lg:flex-row lg:items-end gap-6 mb-16">
           <div className="flex-1">
@@ -77,15 +77,15 @@ export default function WhyUs() {
             return (
               <div
                 key={r.num}
-                className="reveal-item group relative p-8 rounded-2xl border transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-                style={{ background: "#0B0F19", borderColor: "rgba(255,255,255,0.07)" }}
+                className="reveal-item group relative p-7 lg:p-8 rounded-lg border transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                style={{ background: "#070A0F", borderColor: "rgba(255,255,255,0.08)" }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,107,0,0.3)";
                   (e.currentTarget as HTMLElement).style.background = "#0f1520";
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)";
-                  (e.currentTarget as HTMLElement).style.background = "#0B0F19";
+                  (e.currentTarget as HTMLElement).style.background = "#070A0F";
                 }}
               >
                 <div
@@ -99,7 +99,7 @@ export default function WhyUs() {
                   {r.num}
                 </div>
                 <div
-                  className="relative w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-105"
+                  className="relative w-14 h-14 rounded-md flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-105"
                   style={{ background: "rgba(255,107,0,0.1)" }}
                 >
                   <Icon size={26} style={{ color: "#FF6B00" }} strokeWidth={1.5} />

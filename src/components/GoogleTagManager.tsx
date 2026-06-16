@@ -1,8 +1,20 @@
 'use client'
 
 import Script from 'next/script'
+import { useEffect, useState } from 'react'
 
 export default function GoogleTagManager() {
+  const [enabled, setEnabled] = useState(false)
+
+  useEffect(() => {
+    const syncConsent = () => setEnabled(localStorage.getItem('pdpa_consent') === 'all')
+    syncConsent()
+    window.addEventListener('pdpa-consent-changed', syncConsent)
+    return () => window.removeEventListener('pdpa-consent-changed', syncConsent)
+  }, [])
+
+  if (!enabled) return null
+
   return (
     <Script id="gtm-script" strategy="afterInteractive">
       {`
@@ -13,18 +25,5 @@ export default function GoogleTagManager() {
         })(window,document,'script','dataLayer','GTM-T7CKSG6N');
       `}
     </Script>
-  )
-}
-
-export function GoogleTagManagerNoScript() {
-  return (
-    <noscript>
-      <iframe
-        src="https://www.googletagmanager.com/ns.html?id=GTM-T7CKSG6N"
-        height="0"
-        width="0"
-        style={{ display: 'none', visibility: 'hidden' }}
-      />
-    </noscript>
   )
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Images, PackageCheck, Truck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { CmsText } from "@/components/CmsSettingsProvider";
 import FloatingButtons from "@/components/FloatingButtons";
 import SchemaOrg from "@/components/SchemaOrg";
 
@@ -60,7 +61,7 @@ export default function AboutPage() {
   return (
     <>
       <SchemaOrg extra={aboutSchema} />
-      <main className="min-h-screen bg-[#050816] text-white font-['Prompt',sans-serif]">
+      <main className="brand-interior min-h-screen bg-[#050806] text-white font-['Prompt',sans-serif]">
         <Navbar />
 
         <section className="relative overflow-hidden px-5 pt-28 pb-20 lg:pt-32 lg:pb-24">
@@ -70,15 +71,19 @@ export default function AboutPage() {
           />
           <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_0.92fr]">
             <div>
-              <div className="section-label">
-                เกี่ยวกับเรา
-              </div>
-              <h1 className="font-['Kanit'] text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-                ผู้เชี่ยวชาญด้านงานพิมพ์และสื่อโฆษณาครบวงจร
-              </h1>
-              <p className="mt-6 max-w-2xl text-base leading-8 text-[#A7B0C0] sm:text-lg">
-                ให้คำปรึกษา ออกแบบ ผลิต และจัดส่งสื่อโฆษณาคุณภาพ เพื่อช่วยให้ธุรกิจของคุณโดดเด่นและน่าจดจำมากยิ่งขึ้น
-              </p>
+              <CmsText path="about.eyebrow" fallback="เกี่ยวกับเรา" as="div" className="section-label" />
+              <CmsText
+                path="about.title"
+                fallback="ผู้เชี่ยวชาญด้านงานพิมพ์และสื่อโฆษณาครบวงจร"
+                as="h1"
+                className="font-['Kanit'] text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl"
+              />
+              <CmsText
+                path="about.subtitle"
+                fallback="ให้คำปรึกษา ออกแบบ ผลิต และจัดส่งสื่อโฆษณาคุณภาพ เพื่อช่วยให้ธุรกิจของคุณโดดเด่นและน่าจดจำมากยิ่งขึ้น"
+                as="p"
+                className="mt-6 max-w-2xl text-base leading-8 text-[#A7B0C0] sm:text-lg"
+              />
 
               <div className="mt-8 space-y-4 text-sm leading-7 text-[#A7B0C0] sm:text-base">
                 <p>
@@ -127,7 +132,7 @@ export default function AboutPage() {
                 ].map((src, index) => (
                   <div
                     key={src}
-                    className={`relative overflow-hidden rounded-2xl border border-white/10 bg-[#0B1220] ${index === 1 ? "mt-8" : ""} ${index === 2 ? "-mt-8" : ""}`}
+                    className={`relative overflow-hidden rounded-2xl border border-white/10 bg-[#0E1310] ${index === 1 ? "mt-8" : ""} ${index === 2 ? "-mt-8" : ""}`}
                     style={{ aspectRatio: "1 / 1" }}
                   >
                     <Image src={src} alt="ตัวอย่างผลงาน Display Works Media" fill sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover" />
@@ -142,7 +147,7 @@ export default function AboutPage() {
           <div className="mx-auto max-w-7xl">
             <div className="grid gap-4 md:grid-cols-3">
               {proofCards.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="rounded-2xl border border-white/10 bg-[#0B1220] p-6">
+                <div key={title} className="rounded-2xl border border-white/10 bg-[#0E1310] p-6">
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FF7A00]/10 text-[#FF7A00]">
                     <Icon size={24} />
                   </div>

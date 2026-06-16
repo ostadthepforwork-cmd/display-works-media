@@ -51,10 +51,10 @@ export default function Process() {
   return (
     <section
       id="process"
-      className="py-20 px-6 lg:px-8 lg:pt-24 lg:pb-20"
-      style={{ background: "#0B0F19" }}
+      className="brand-section py-20 px-5 sm:px-6 lg:px-8 lg:py-28"
+      style={{ background: "#070A0F" }}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1380px] mx-auto">
 
         {/* Header */}
         <motion.div
@@ -239,10 +239,10 @@ export default function Process() {
         >
           <a
             href="#quote"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5"
+            className="btn-primary"
             style={{
-              background: "#FF6B00",
-              boxShadow: "0 4px 24px rgba(255,107,0,0.25)",
+              background: "#FF6500",
+              boxShadow: "0 4px 24px rgba(255,101,0,0.25)",
             }}
           >
             เริ่มต้นสั่งงานเลย

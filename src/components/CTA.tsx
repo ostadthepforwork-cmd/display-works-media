@@ -13,9 +13,9 @@ const points = [
 export default function CTA() {
   return (
     <section
-      className="py-20 lg:py-24 px-6 lg:px-8 relative overflow-hidden"
+      className="brand-section py-20 lg:py-28 px-5 sm:px-6 lg:px-8 relative overflow-hidden"
       style={{
-        background: "#141A24",
+        background: "#10151D",
         borderTop: "1px solid rgba(255,255,255,0.06)",
       }}
     >
@@ -44,14 +44,7 @@ export default function CTA() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div
-              className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold tracking-[3px] uppercase border mb-8"
-              style={{
-                background: "rgba(255,107,0,0.1)",
-                borderColor: "rgba(255,107,0,0.25)",
-                color: "#FF6B00",
-              }}
-            >
+            <div className="section-label">
               FREE CONSULTATION
             </div>
 
@@ -102,8 +95,9 @@ export default function CTA() {
             <div
               className="rounded-3xl p-8 lg:p-10"
               style={{
-                background: "#0B0F19",
+                background: "#070A0F",
                 border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "8px",
               }}
             >
               <h3 className="font-kanit font-bold text-white text-2xl mb-2">
@@ -118,8 +112,8 @@ export default function CTA() {
                 href="#quote"
                 className="group flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-white text-base mb-4 transition-all duration-200 hover:-translate-y-0.5"
                 style={{
-                  background: "#FF6B00",
-                  boxShadow: "0 8px 32px rgba(255,107,0,0.3)",
+                  background: "#FF6500",
+                  boxShadow: "0 8px 32px rgba(255,101,0,0.3)",
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.background = "#FF8C33";
@@ -127,7 +121,7 @@ export default function CTA() {
                     "0 12px 40px rgba(255,107,0,0.45)";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "#FF6B00";
+                  (e.currentTarget as HTMLElement).style.background = "#FF6500";
                   (e.currentTarget as HTMLElement).style.boxShadow =
                     "0 8px 32px rgba(255,107,0,0.3)";
                 }}
@@ -174,7 +168,7 @@ export default function CTA() {
                   className="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm border transition-all duration-200 hover:bg-white/5"
                   style={{ borderColor: "rgba(255,255,255,0.15)" }}
                 >
-                  <Phone size={16} style={{ color: "#FF6B00" }} />
+                  <Phone size={16} style={{ color: "#FF6500" }} />
                   065-916-1539
                 </a>
               </div>
@@ -184,7 +178,7 @@ export default function CTA() {
                 className="text-center text-xs mt-6"
                 style={{ color: "#A8B0C0" }}
               >
-                🔒 ข้อมูลของคุณปลอดภัย ไม่มีการขายข้อมูลให้บุคคลที่สาม
+                ข้อมูลของคุณใช้เพื่อการติดต่อและประเมินราคาเท่านั้น
               </p>
             </div>
           </motion.div>

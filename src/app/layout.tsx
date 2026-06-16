@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import "../styles/globals.css";
-import GoogleTagManager, { GoogleTagManagerNoScript } from "@/components/GoogleTagManager";
+import GoogleTagManager from "@/components/GoogleTagManager";
 import FacebookPixel from "@/components/FacebookPixel";
 import PDPAConsent from "@/components/PDPAConsent";
 import SchemaOrg from "@/components/SchemaOrg";
 import ScrollReveal from "@/components/ScrollReveal";
+import { CmsSettingsProvider } from "@/components/CmsSettingsProvider";
+import { getCmsSettings } from "@/lib/cms-settings";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -56,26 +58,17 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const cmsSettings = await getCmsSettings();
+
   return (
     <html lang="th">
       <head>
         {/* preconnect ก่อน แล้วค่อย preload — ลำดับนี้สำคัญ */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/*
-          preload เฉพาะ Kanit 400 (weight ที่ใช้จริงบน Hero)
-          ใช้ v17 ซึ่งเป็น version ปัจจุบัน — v15 ที่เคยใช้ให้ 404 error
-        */}
-        <link
-          rel="preload"
-          as="font"
-          href="https://fonts.gstatic.com/s/kanit/v17/nKKZ-Co32cUR0fj.woff2"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
         {/*
           Prompt:400 เท่านั้น — ตัด weight 600 ออกเพราะ globals.css ไม่ได้ใช้
           ประหยัดได้อีก ~40KB และลด dependency chain ของ LCP
@@ -88,8 +81,7 @@ export default function RootLayout({
         <SchemaOrg />
       </head>
       <body>
-        <GoogleTagManagerNoScript />
-        {children}
+        <CmsSettingsProvider initialSettings={cmsSettings}>{children}</CmsSettingsProvider>
         {/*
           FacebookPixel ย้ายมาไว้ใน body — strategy="lazyOnload" จะโหลด
           หลัง page load เสร็จแล้ว ไม่บล็อก FCP/LCP

@@ -1,66 +1,30 @@
 // Server Component — ไม่ใช้ framer-motion ป้องกัน hydration mismatch
 
 // ป้องกัน hydration mismatch ที่ทำให้ต้อง refresh 2 รอบ
-import { ShoppingCart, Zap, UserCheck, Truck } from "lucide-react";
+import { FileCheck2, MessagesSquare, Truck } from "lucide-react";
 
 const trustFeatures = [
-  { icon: ShoppingCart, main: "สั่งออนไลน์ 100%", sub: "ไม่ต้องเดินทาง สะดวกทุกที่" },
-  { icon: Zap, main: "งานไว ตรงเวลา", sub: "ตามที่ตกลงไว้ทุกครั้ง" },
-  { icon: UserCheck, main: "ดูแลเคสส่วนตัว", sub: "มี Project Manager ดูแลตลอด" },
-  { icon: Truck, main: "จัดส่งทั่วประเทศ", sub: "พร้อมแจ้งเลขพัสดุทุกออเดอร์" },
-];
-
-const bigStats = [
-  { num: "500+", label: "งานที่ส่งมอบแล้ว" },
-  { num: "120+", label: "ลูกค้าที่ไว้วางใจ" },
-  { num: "5+", label: "ปีประสบการณ์" },
-  { num: "100%", label: "พึงพอใจในคุณภาพ" },
+  { icon: MessagesSquare, main: "ปรึกษาก่อนตัดสินใจ", sub: "ช่วยเลือกวัสดุและรูปแบบที่เหมาะกับงาน" },
+  { icon: FileCheck2, main: "ตรวจไฟล์ก่อนผลิต", sub: "ลดความผิดพลาดก่อนเริ่มงานจริง" },
+  { icon: Truck, main: "จัดส่งทั่วประเทศ", sub: "แจ้งรายละเอียดและติดตามสถานะได้" },
 ];
 
 export default function TrustBar() {
   return (
     <section
       style={{
-        background: "#141A24",
+        background: "#0D121A",
         borderTop: "1px solid rgba(255,255,255,0.06)",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      {/* Big Stats Row */}
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }} className="py-10">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-0">
-            {bigStats.map((s, i) => (
-              <div key={s.label} className="reveal-item text-center lg:py-2 relative">
-                {i > 0 && (
-                  <div
-                    className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 w-px h-10"
-                    style={{ background: "rgba(255,255,255,0.08)" }}
-                  />
-                )}
-                <div
-                  className="font-kanit font-extrabold"
-                  style={{ fontSize: "clamp(32px, 4vw, 48px)", color: "#FF6B00" }}
-                >
-                  {s.num}
-                </div>
-                <div className="text-sm mt-1" style={{ color: "#A8B0C0" }}>
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Trust Features Row */}
-      <div className="py-8">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-center gap-6 lg:gap-12">
+      <div className="py-7">
+        <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-0">
             {trustFeatures.map((item, i) => {
               const Icon = item.icon;
               return (
-                <div key={i} className="reveal-item flex items-center gap-4">
+                <div key={i} className="reveal-item flex items-center gap-4 md:px-8 first:md:pl-0 last:md:pr-0">
                   {i > 0 && (
                     <div
                       className="hidden lg:block w-px h-10 self-center"
@@ -70,9 +34,9 @@ export default function TrustBar() {
                   <div className="flex items-center gap-4">
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: "rgba(255,107,0,0.1)" }}
+                      style={{ background: "rgba(255,101,0,0.1)" }}
                     >
-                      <Icon size={22} style={{ color: "#FF6B00" }} />
+                      <Icon size={22} style={{ color: "#FF6500" }} />
                     </div>
                     <div>
                       <div className="text-base font-semibold text-white leading-tight">{item.main}</div>

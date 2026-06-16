@@ -43,11 +43,24 @@ async function loadCmsSetting(key: string, fallback: unknown) {
 }
 
 async function saveCmsSetting(key: string, value: unknown) {
-  saveLocal(key, value);
+  await requireErpSession();
   const { error } = await supabase
     .from("cms_settings")
     .upsert({ key, value, updated_at: new Date().toISOString() });
   if (error) throw error;
+
+  const { data: saved, error: verifyError } = await supabase
+    .from("cms_settings")
+    .select("value")
+    .eq("key", key)
+    .maybeSingle();
+
+  if (verifyError) throw verifyError;
+  if (!saved) {
+    throw new Error("CMS save verification failed. Please check cms_settings RLS/policies.");
+  }
+
+  saveLocal(key, value);
 }
 
 
@@ -795,6 +808,7 @@ export default function AdminPage() {
     { id: "services", icon: "🛠️", label: "บริการ" },
     { id: "reviews", icon: "⭐", label: "รีวิว" },
     { id: "portfolio", icon: "🖼", label: "ผลงาน" },
+    { id: "page_content", icon: "📄", label: "ข้อความรายหน้า" },
     { id: "contact", icon: "📞", label: "ข้อมูลติดต่อ" },
   ];
 
@@ -904,6 +918,7 @@ export default function AdminPage() {
               {tab === "services" && <ServicesManager showToast={showToast} />}
               {tab === "reviews" && <ReviewsManager showToast={showToast} />}
               {tab === "portfolio" && <PortfolioManager showToast={showToast} />}
+              {tab === "page_content" && <PageContentManager showToast={showToast} />}
               {tab === "contact" && <ContactManager showToast={showToast} />}
             </div>
           </div>
@@ -4420,6 +4435,262 @@ function PortfolioManager({ showToast }: any) {
           </div>
         </CModal>
       )}
+    </div>
+  );
+}
+
+// ============================================================
+// PAGE CONTENT MANAGER
+// ============================================================
+const defaultPageContent = {
+  home: {
+    servicesEyebrow: "OUR SERVICES",
+    servicesTitle: "บริการของเรา",
+    servicesSubtitle: "ครบวงจรทุกงาน ตั้งแต่ขั้นตอนการออกแบบ ผลิต จนถึงการจัดส่ง",
+  },
+  shared: {
+    workflowEyebrow: "OUR PROCESS",
+    workflowTitle: "จากไอเดีย สู่การมองเห็น",
+    workflowSubtitle: "กระบวนการทำงานที่ใส่ใจในทุกรายละเอียด เพื่อผลงานที่มีคุณภาพและตรงตามเป้าหมาย",
+    portfolioEyebrow: "OUR WORK",
+    portfolioTitle: "ผลงานของเรา",
+    portfolioSubtitle: "ตัวอย่างผลงานจริงที่ผลิตและส่งมอบให้ลูกค้า ด้วยมาตรฐานเดียวกันในทุกประเภทงาน",
+    quoteEyebrow: "FREE CONSULTATION",
+    quoteTitle: "มีงานอยู่?\nเราช่วยดูแลให้",
+    quoteSubtitle: "กรอกรายละเอียดงาน ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง",
+  },
+  about: {
+    eyebrow: "เกี่ยวกับเรา",
+    title: "ผู้เชี่ยวชาญด้านงานพิมพ์และสื่อโฆษณาครบวงจร",
+    subtitle: "ให้คำปรึกษา ออกแบบ ผลิต และจัดส่งสื่อโฆษณาคุณภาพ เพื่อช่วยให้ธุรกิจของคุณโดดเด่นและน่าจดจำมากยิ่งขึ้น",
+  },
+  services: {
+    eyebrow: "OUR SERVICES",
+    title: "บริการงานป้ายและงานพิมพ์สำหรับธุรกิจ",
+    subtitle: "เลือกประเภทงานที่ต้องการ ทีม Display Works Media ช่วยแนะนำวัสดุ ตรวจไฟล์ ประเมินราคา และดูแลการผลิตให้เหมาะกับการใช้งานจริง",
+  },
+  contact: {
+    eyebrow: "ติดต่อเรา",
+    title: "กำลังมองหางานป้ายหรือสื่อโฆษณา?",
+    subtitle: "ติดต่อสอบถามและปรึกษาได้ฟรี ทีมงานพร้อมให้คำแนะนำและประเมินราคาเบื้องต้นโดยไม่มีค่าใช้จ่าย",
+  },
+  faq: {
+    eyebrow: "FAQ",
+    title: "คำถามที่พบบ่อยก่อนสั่งผลิตงานป้าย",
+    subtitle: "รวมคำตอบเรื่องขั้นต่ำ ระยะเวลาผลิต ไฟล์ Artwork การชำระเงิน และการจัดส่ง เพื่อช่วยให้เตรียมงานได้ง่ายขึ้น",
+  },
+  footer: {
+    eyebrow: "FREE CONSULTATION",
+    title: "พร้อมให้คำปรึกษาและผลิตสื่อโฆษณาสำหรับธุรกิจของคุณ",
+    subtitle: "สอบถามงานและประเมินราคาเบื้องต้นฟรี",
+  },
+  servicesDetail: {
+    vinyl: {
+      eyebrow: "บริการออกแบบและผลิต",
+      title: "ป้ายไวนิล",
+      highlight: "คุณภาพสูง",
+      subtitle: "พิมพ์ไวนิลสีสด คมชัด ทนแดด ทนฝน เหมาะสำหรับป้ายร้านค้า โฆษณา โปรโมชั่น และตกแต่งอาคารทุกประเภท",
+    },
+    sticker: {
+      eyebrow: "บริการออกแบบและผลิต",
+      title: "สั่งสติ๊กเกอร์",
+      highlight: "คุณภาพสูง",
+      subtitle: "พิมพ์สติ๊กเกอร์สีสด คมชัด ไดคัทได้ตามรูปแบบที่ต้องการ รองรับทั้งงาน Indoor และ Outdoor เหมาะสำหรับฉลากสินค้าและตกแต่งกระจกร้าน",
+    },
+    backdrop: {
+      eyebrow: "บริการออกแบบและผลิตแบ็คดรอป",
+      title: "แบ็คดรอป",
+      highlight: "ฉากหลังจัดงาน",
+      subtitle: "ผลิตแบ็คดรอปสำหรับงานอีเวนต์ นิทรรศการ และงานแต่งงาน ภาพคมชัด โครงสร้างแข็งแรง ติดตั้งง่าย สะกดทุกสายตาให้งานคุณโดดเด่นยิ่งขึ้น",
+    },
+    rollup: {
+      eyebrow: "บริการพิมพ์และจัดจำหน่ายโครง",
+      title: "Roll Up",
+      highlight: "/ X-Stand",
+      subtitle: "ป้ายตั้งพื้นเคลื่อนที่ ติดตั้งง่ายภายใน 1 นาที มาพร้อมกระเป๋าพกพาสะดวก เหมาะสำหรับงานออกบูธ นิทรรศการ และป้ายส่งเสริมการขายหน้าร้าน พิมพ์สีคมชัดโดดเด่น",
+    },
+    label: {
+      eyebrow: "บริการพิมพ์และไดคัทสติกเกอร์",
+      title: "พิมพ์ฉลากสินค้า",
+      highlight: "ระบบดิจิตอล",
+      subtitle: "ยกระดับแบรนด์ของคุณด้วยฉลากสินค้าสีสด คมชัด ไดคัทฟรีฟอร์ม ลอกแปะง่าย ติดแน่นทนนาน รองรับงานกันน้ำ แช่เย็นได้ 100%",
+    },
+  },
+};
+
+function PageContentManager({ showToast }: any) {
+  const [content, setContent] = useState(() => loadLocal("page_content", defaultPageContent));
+  const [section, setSection] = useState("home");
+
+  useEffect(() => {
+    let alive = true;
+    loadCmsSetting("page_content", defaultPageContent).then((value) => {
+      if (alive) setContent({ ...defaultPageContent, ...value });
+    });
+    return () => { alive = false; };
+  }, []);
+
+  const update = (key: string, value: string) => {
+    setContent((current: any) => {
+      if (section.startsWith("servicesDetail.")) {
+        const serviceKey = section.split(".")[1];
+        return {
+          ...current,
+          servicesDetail: {
+            ...current.servicesDetail,
+            [serviceKey]: { ...current.servicesDetail?.[serviceKey], [key]: value },
+          },
+        };
+      }
+      return {
+        ...current,
+        [section]: { ...current[section], [key]: value },
+      };
+    });
+  };
+
+  const save = async () => {
+    try {
+      await saveCmsSetting("page_content", content);
+      showToast("บันทึกข้อความรายหน้าแล้ว");
+    } catch (error: any) {
+      showToast("บันทึกไม่ได้: " + error.message, "error");
+    }
+  };
+
+  const fields: Record<string, Array<{ key: string; label: string; rows?: number }>> = {
+    home: [
+      { key: "servicesEyebrow", label: "ป้ายกำกับส่วนบริการ" },
+      { key: "servicesTitle", label: "หัวข้อบริการ" },
+      { key: "servicesSubtitle", label: "คำอธิบายบริการ", rows: 3 },
+    ],
+    shared: [
+      { key: "workflowEyebrow", label: "ป้ายกำกับขั้นตอนการทำงาน" },
+      { key: "workflowTitle", label: "หัวข้อขั้นตอนการทำงาน" },
+      { key: "workflowSubtitle", label: "คำอธิบายขั้นตอนการทำงาน", rows: 3 },
+      { key: "portfolioEyebrow", label: "ป้ายกำกับผลงาน" },
+      { key: "portfolioTitle", label: "หัวข้อผลงาน" },
+      { key: "portfolioSubtitle", label: "คำอธิบายผลงาน", rows: 3 },
+      { key: "quoteEyebrow", label: "ป้ายกำกับฟอร์ม" },
+      { key: "quoteTitle", label: "หัวข้อฟอร์ม (ขึ้นบรรทัดใหม่ได้)", rows: 2 },
+      { key: "quoteSubtitle", label: "คำอธิบายฟอร์ม", rows: 2 },
+    ],
+    about: [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อหลัก", rows: 2 },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+    ],
+    services: [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อหลัก", rows: 2 },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+    ],
+    contact: [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อหลัก", rows: 2 },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+    ],
+    faq: [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อหลัก", rows: 2 },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+    ],
+    footer: [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อ" },
+      { key: "subtitle", label: "คำอธิบาย" },
+    ],
+    "servicesDetail.vinyl": [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อบรรทัดหลัก" },
+      { key: "highlight", label: "ข้อความสีส้ม" },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+    ],
+    "servicesDetail.sticker": [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อบรรทัดหลัก" },
+      { key: "highlight", label: "ข้อความสีส้ม" },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+    ],
+    "servicesDetail.backdrop": [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อบรรทัดหลัก" },
+      { key: "highlight", label: "ข้อความสีส้ม" },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+    ],
+    "servicesDetail.rollup": [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อบรรทัดหลัก" },
+      { key: "highlight", label: "ข้อความสีส้ม" },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+    ],
+    "servicesDetail.label": [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อบรรทัดหลัก" },
+      { key: "highlight", label: "ข้อความสีส้ม" },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+    ],
+  };
+
+  const sections = [
+    ["home", "หน้าแรก"],
+    ["shared", "ส่วนกลางทุกหน้า"],
+    ["about", "เกี่ยวกับเรา"],
+    ["services", "บริการ"],
+    ["contact", "ติดต่อเรา"],
+    ["faq", "FAQ"],
+    ["footer", "Footer"],
+    ["servicesDetail.vinyl", "บริการ: ไวนิล"],
+    ["servicesDetail.sticker", "บริการ: สติ๊กเกอร์"],
+    ["servicesDetail.backdrop", "บริการ: Backdrop"],
+    ["servicesDetail.rollup", "บริการ: Roll Up"],
+    ["servicesDetail.label", "บริการ: ฉลากสินค้า"],
+  ];
+
+  const sectionValue = section.startsWith("servicesDetail.")
+    ? content.servicesDetail?.[section.split(".")[1]]
+    : content[section];
+
+  return (
+    <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 760 }}>
+      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>ข้อความรายหน้า</h2>
+      <p style={{ color: "#888", fontSize: 13, marginBottom: 20 }}>แก้หัวข้อหลักและข้อความส่วนกลางที่แสดงบนเว็บไซต์</p>
+      <div style={{
+        background: "rgba(59,130,246,0.1)",
+        border: "1px solid rgba(59,130,246,0.25)",
+        color: "#BFDBFE",
+        borderRadius: 12,
+        padding: "12px 14px",
+        fontSize: 13,
+        lineHeight: 1.7,
+        marginBottom: 16,
+      }}>
+        หากยังไม่เคยบันทึก ระบบจะแสดงค่าตั้งต้นจากโค้ดก่อน ให้กด “บันทึกข้อความ” หนึ่งครั้งเพื่อสร้างข้อมูลชุดแรกใน database จากนั้นหน้าเว็บจะอ่านค่าจาก CMS หลัง refresh
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+        {sections.map(([id, label]) => (
+          <button key={id} onClick={() => setSection(id)} style={{
+            border: section === id ? "1px solid #FF6B00" : "1px solid rgba(255,255,255,0.12)",
+            background: section === id ? "rgba(255,107,0,0.14)" : "#141A24",
+            color: section === id ? "#FF6B00" : "#A8B0C0",
+            borderRadius: 8, padding: "8px 12px", cursor: "pointer", fontFamily: "inherit",
+          }}>{label}</button>
+        ))}
+      </div>
+      <Card>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {fields[section].map((field) => (
+            <CField key={field.key} label={field.label}>
+              {field.rows ? (
+                <textarea value={sectionValue?.[field.key] || ""} onChange={(e) => update(field.key, e.target.value)} rows={field.rows} />
+              ) : (
+                <input value={sectionValue?.[field.key] || ""} onChange={(e) => update(field.key, e.target.value)} />
+              )}
+            </CField>
+          ))}
+          <CBtn onClick={save} color="#FF6B00">💾 บันทึกข้อความ</CBtn>
+        </div>
+      </Card>
     </div>
   );
 }

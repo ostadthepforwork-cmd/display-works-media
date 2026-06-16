@@ -45,20 +45,20 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
           placeholder="ค้นหาบทความ..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#0B1220] border border-white/10 text-white text-sm placeholder-[#A7B0C0] focus:border-[#FF7A00]/50 focus:outline-none transition-colors"
+          className="w-full pl-11 pr-4 py-3.5 rounded-md bg-[#10151D] border border-white/10 text-white text-sm placeholder-[#A7B0C0] focus:border-[#FF6500]/50 focus:outline-none transition-colors"
         />
       </div>
 
       {/* Category tabs */}
-      <div className="border-b border-white/5 bg-[#050816] sticky top-[70px] z-40 -mx-6 lg:-mx-8 px-6 lg:px-8 mt-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="sticky top-[72px] z-40 mt-6 border-b border-white/5 bg-[#070A0F]">
+        <div className="mx-auto max-w-7xl">
           <div className="flex gap-1 overflow-x-auto py-3">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0 ${
-                  activeCategory === cat ? "bg-[#FF7A00] text-white" : "text-[#A7B0C0] hover:text-white hover:bg-white/5"
+                  activeCategory === cat ? "bg-[#FF6500] text-white" : "text-[#A7B0C0] hover:text-white hover:bg-white/5"
                 }`}
               >
                 {cat}
@@ -70,7 +70,7 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
 
       {/* Filtered results — only shown when searching/filtering */}
       {isFiltered && (
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+        <div className="mx-auto max-w-7xl py-10">
           {filteredPosts.length === 0 ? (
             <div className="text-center py-20 text-[#A7B0C0]">
               <p>ไม่พบบทความที่ค้นหา</p>
@@ -80,7 +80,7 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
               {filteredPosts.map((post) => {
                 const cover = safeImageSrc(post.cover);
                 return (
-                <article key={post.id} className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
+                <article key={post.id} className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300">
                   <Link href={`/blog/${post.slug}`} className="block">
                     <div className="relative h-48 overflow-hidden bg-[#141A24]">
                       {cover ? (

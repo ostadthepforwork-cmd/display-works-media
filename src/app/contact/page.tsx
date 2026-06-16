@@ -13,7 +13,8 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingButtons from "@/components/FloatingButtons";
-import Process from "@/components/Process";
+import { SharedWorkflow } from "@/components/SharedMarketingSections";
+import { CmsText } from "@/components/CmsSettingsProvider";
 import SchemaOrg from "@/components/SchemaOrg";
 
 export const metadata: Metadata = {
@@ -111,7 +112,7 @@ export default function ContactPage() {
   return (
     <>
       <SchemaOrg extra={contactSchema} />
-      <main className="min-h-screen bg-[#050816] text-white font-['Prompt',sans-serif]">
+      <main className="brand-interior min-h-screen bg-[#050806] text-white font-['Prompt',sans-serif]">
         <Navbar />
 
         <section className="relative overflow-hidden px-5 pt-28 pb-16 lg:pt-32 lg:pb-20">
@@ -120,16 +121,20 @@ export default function ContactPage() {
             style={{ background: "linear-gradient(180deg, rgba(255,122,0,0.08), transparent)" }}
           />
           <div className="relative mx-auto max-w-4xl text-center">
-            <div className="section-label">
-              ติดต่อเรา
-            </div>
-            <h1 className="font-['Kanit'] text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-              กำลังมองหางานป้ายหรือสื่อโฆษณา?
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#A7B0C0] sm:text-lg">
-              ติดต่อสอบถามและปรึกษาได้ฟรี ทีมงานพร้อมให้คำแนะนำและประเมินราคาเบื้องต้นโดยไม่มีค่าใช้จ่าย
-            </p>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-[#A7B0C0]">
+            <CmsText path="contact.eyebrow" fallback="ติดต่อเรา" as="div" className="section-label" />
+            <CmsText
+              path="contact.title"
+              fallback="กำลังมองหางานป้ายหรือสื่อโฆษณา?"
+              as="h1"
+              className="contact-hero-title font-['Kanit'] text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl"
+            />
+            <CmsText
+              path="contact.subtitle"
+              fallback="ติดต่อสอบถามและปรึกษาได้ฟรี ทีมงานพร้อมให้คำแนะนำและประเมินราคาเบื้องต้นโดยไม่มีค่าใช้จ่าย"
+              as="p"
+              className="contact-hero-copy mx-auto mt-6 max-w-2xl text-base leading-8 text-[#A7B0C0] sm:text-lg"
+            />
+            <p className="contact-hero-copy mx-auto mt-3 max-w-2xl text-sm leading-7 text-[#A7B0C0]">
               ไม่ว่าจะมีแบบพร้อมผลิต หรือมีเพียงไอเดีย เรายินดีช่วยแนะนำแนวทางที่เหมาะกับธุรกิจของคุณ
             </p>
           </div>
@@ -143,7 +148,7 @@ export default function ContactPage() {
                 href={href}
                 target={href.startsWith("http") ? "_blank" : undefined}
                 rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="rounded-2xl border border-white/10 bg-[#0B1220] p-6 transition hover:-translate-y-1 hover:border-[#FF7A00]/40"
+                className="contact-channel-card min-w-0 rounded-2xl border border-white/10 bg-[#0E1310] p-6 transition hover:-translate-y-1 hover:border-[#FF7A00]/40"
               >
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: `${color}18`, color }}>
                   <Icon size={24} />
@@ -161,8 +166,8 @@ export default function ContactPage() {
 
         <section className="px-5 pb-16">
           <div className="mx-auto max-w-5xl">
-            <div className="mb-6 text-xs font-bold uppercase tracking-[0.24em] text-[#FF7A00]">ข้อมูลธุรกิจ</div>
-            <div className="grid overflow-hidden rounded-2xl border border-white/10 bg-[#0B1220] md:grid-cols-2">
+            <div className="section-label">ข้อมูลธุรกิจ</div>
+            <div className="grid overflow-hidden rounded-2xl border border-white/10 bg-[#0E1310] md:grid-cols-2">
               {info.map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex gap-4 border-b border-white/5 p-5 last:border-b-0 md:border-r md:last:border-r-0">
                   <Icon size={18} className="mt-1 flex-shrink-0 text-[#FF7A00]" />
@@ -176,14 +181,14 @@ export default function ContactPage() {
           </div>
         </section>
 
-        <Process />
+        <SharedWorkflow />
 
         <section className="px-5 pb-16">
           <div className="mx-auto max-w-5xl">
-            <div className="mb-6 text-xs font-bold uppercase tracking-[0.24em] text-[#FF7A00]">คำถามที่พบบ่อย</div>
+            <div className="section-label">คำถามที่พบบ่อย</div>
             <div className="grid gap-4 md:grid-cols-2">
               {faqs.map(({ q, a }) => (
-                <div key={q} className="rounded-2xl border border-white/10 bg-[#0B1220] p-6">
+                <div key={q} className="rounded-2xl border border-white/10 bg-[#0E1310] p-6">
                   <h2 className="font-['Kanit'] text-lg font-bold text-white">{q}</h2>
                   <p className="mt-3 text-sm leading-7 text-[#A7B0C0]">{a}</p>
                 </div>
@@ -195,7 +200,7 @@ export default function ContactPage() {
         <section className="px-5 pb-24">
           <div
             className="mx-auto max-w-5xl rounded-2xl border border-[#FF7A00]/25 p-8 text-center sm:p-10"
-            style={{ background: "linear-gradient(135deg, #0B1220 0%, #1a0f05 100%)" }}
+            style={{ background: "linear-gradient(135deg, #0E1310 0%, #1a0f05 100%)" }}
           >
             <h2 className="font-['Kanit'] text-3xl font-extrabold text-white sm:text-4xl">ปรึกษางานกับเราได้ฟรี</h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-[#A7B0C0]">

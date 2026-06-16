@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import GlobalNavbar from "@/components/Navbar";
+import GlobalFooter from "@/components/Footer";
+import SharedServiceSections from "@/components/SharedMarketingSections";
+import { cmsValue, useCmsSettings } from "@/components/CmsSettingsProvider";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -185,7 +189,7 @@ function Navbar() {
   }, []);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#050816]/95 backdrop-blur-md border-b border-white/10" : "bg-transparent"}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#050806]/95 backdrop-blur-md border-b border-white/10" : "bg-transparent"}`}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-[70px]">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 relative flex-shrink-0">
@@ -210,7 +214,7 @@ function Navbar() {
       </div>
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="lg:hidden bg-[#0B1220] border-t border-white/10 px-6 py-6 flex flex-col gap-4 overflow-hidden">
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="lg:hidden bg-[#0E1310] border-t border-white/10 px-6 py-6 flex flex-col gap-4 overflow-hidden">
             {navLinks.map((link) => (
               <a key={link.label} href={link.href} className="text-[#A7B0C0] hover:text-white text-base" onClick={() => setMobileOpen(false)}>{link.label}</a>
             ))}
@@ -225,6 +229,8 @@ function Navbar() {
 // ─── MAIN PAGE ─────────────────────────────────────────────────────────────
 
 export default function LabelServicePage() {
+  const cms = useCmsSettings();
+  const serviceText = (field: string, fallback: string) => cmsValue(cms, `servicesDetail.label.${field}`, fallback);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   
   // Form State
@@ -246,11 +252,11 @@ export default function LabelServicePage() {
   };
 
   return (
-    <div className="min-h-screen font-['Prompt',sans-serif] text-white bg-[#050816]">
-      <Navbar />
+    <div className="brand-interior brand-service-detail min-h-screen font-['Prompt',sans-serif] text-white bg-[#050806]">
+      <GlobalNavbar />
 
       {/* ── BREADCRUMB ── */}
-      <div className="pt-[70px] bg-[#050816] border-b border-white/5">
+      <div className="pt-[70px] bg-[#050806] border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center gap-2 text-sm text-[#A7B0C0]">
           <Home size={14} />
           <ChevronRight size={14} />
@@ -261,33 +267,33 @@ export default function LabelServicePage() {
       </div>
 
       {/* ── 1. HERO SECTION ── */}
-      <section id="hero" className="relative overflow-hidden flex items-center min-h-[560px] bg-[#050816]">
+      <section id="hero" className="relative overflow-hidden flex items-center min-h-[560px] bg-[#050806]">
         <Image src="/images/services/product-label-hero.jpg" alt="Product Label Printing" fill priority className="object-cover object-[center_right] z-0" />
         
         {/* Overlays */}
-        <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(to right, #050816 10%, rgba(5, 8, 22, 0.85) 45%, rgba(5, 8, 22, 0.3) 75%, transparent 100%)" }} />
-        <div className="absolute -bottom-2 left-0 right-0 h-[300px] lg:h-[400px] z-0 pointer-events-none" style={{ background: "linear-gradient(to top, #050816 0%, rgba(5,8,22,0.8) 50%, transparent 100%)" }} />
+        <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(to right, #050806 10%, rgba(5, 8, 6, 0.85) 45%, rgba(5, 8, 6, 0.3) 75%, transparent 100%)" }} />
+        <div className="absolute -bottom-2 left-0 right-0 h-[300px] lg:h-[400px] z-0 pointer-events-none" style={{ background: "linear-gradient(to top, #050806 0%, rgba(5,8,6,0.8) 50%, transparent 100%)" }} />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full pt-16 pb-24"> 
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="max-w-3xl">
             
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-transparent">
-              บริการพิมพ์และไดคัทสติกเกอร์
+              {serviceText("eyebrow", "บริการพิมพ์และไดคัทสติกเกอร์")}
             </div>
             
             <h1 className="font-['Kanit'] font-extrabold text-5xl lg:text-7xl mb-6 leading-tight text-white">
-              พิมพ์ฉลากสินค้า
-              <span className="block text-[#FF7A00]">ระบบดิจิตอล</span>
+              {serviceText("title", "พิมพ์ฉลากสินค้า")}
+              <span className="block text-[#FF7A00]">{serviceText("highlight", "ระบบดิจิตอล")}</span>
             </h1>
             
             <p className="text-base text-gray-300 max-w-xl mb-10 leading-relaxed">
-              ยกระดับแบรนด์ของคุณด้วยฉลากสินค้าสีสด คมชัด ไดคัทฟรีฟอร์ม ลอกแปะง่าย ติดแน่นทนนาน รองรับงานกันน้ำ แช่เย็นได้ 100%
+              {serviceText("subtitle", "ยกระดับแบรนด์ของคุณด้วยฉลากสินค้าสีสด คมชัด ไดคัทฟรีฟอร์ม ลอกแปะง่าย ติดแน่นทนนาน รองรับงานกันน้ำ แช่เย็นได้ 100%")}
             </p>
             
             {/* Features Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
               {stickerFeatures.map((f, i) => (
-                <div key={i} className="bg-[#0B1220]/80 backdrop-blur-sm p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                <div key={i} className="bg-[#0E1310]/80 backdrop-blur-sm p-4 rounded-xl border border-white/5 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,122,0,0.1)", color: "#FF7A00" }}>
                     <f.icon size={20} />
                   </div>
@@ -314,7 +320,7 @@ export default function LabelServicePage() {
       </section>
 
       {/* ── 2. STICKER KNOWLEDGE ── */}
-      <section id="knowledge" className="py-24 bg-[#0B1220]">
+      <section id="knowledge" className="py-24 bg-[#0E1310]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-['Kanit'] font-bold text-white mb-6">เลือกเนื้อวัสดุสติกเกอร์ที่เหมาะกับสินค้า</h2>
@@ -329,7 +335,7 @@ export default function LabelServicePage() {
 
             <div className="grid lg:grid-cols-3 gap-8">
               {materials.map((item, idx) => (
-                <motion.div key={idx} whileHover={{ y: -5 }} className="bg-[#050816] rounded-3xl border border-white/5 overflow-hidden flex flex-col h-full shadow-2xl">
+                <motion.div key={idx} whileHover={{ y: -5 }} className="bg-[#050806] rounded-3xl border border-white/5 overflow-hidden flex flex-col h-full shadow-2xl">
                   {/* Image Header */}
                   <div className="relative aspect-video w-full bg-[#141A24] border-b border-white/5">
                     <Image src={item.image} alt={item.name} fill className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
@@ -372,7 +378,7 @@ export default function LabelServicePage() {
       </section>
 
       {/* ── 3. EDGE FINISHING (รูปแบบไดคัท) ── */}
-      <section className="py-24 bg-[#050816]">
+      <section className="py-24 bg-[#050806]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-['Kanit'] font-bold text-white mb-2">รูปแบบการไดคัท</h2>
@@ -381,7 +387,7 @@ export default function LabelServicePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {edgeOptions.map((opt, i) => (
-              <div key={i} className="bg-[#0B1220] rounded-2xl border border-white/5 flex flex-col sm:flex-row items-stretch hover:border-[#FF7A00]/50 transition-colors shadow-xl overflow-hidden group cursor-pointer">
+              <div key={i} className="bg-[#0E1310] rounded-2xl border border-white/5 flex flex-col sm:flex-row items-stretch hover:border-[#FF7A00]/50 transition-colors shadow-xl overflow-hidden group cursor-pointer">
                 {/* Left Side Image */}
                 <div className="relative w-full sm:w-48 aspect-[16/9] sm:aspect-square bg-[#141A24] flex-shrink-0 border-b sm:border-b-0 sm:border-r border-white/5 overflow-hidden">
                   <Image src={opt.image} alt={opt.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
@@ -398,14 +404,14 @@ export default function LabelServicePage() {
       </section>
 
       {/* ── 4. SIZES TABLE ── */}
-      <section id="services" className="py-24 bg-[#0B1220]">
+      <section id="services" className="py-24 bg-[#0E1310]">
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-['Kanit'] font-bold mb-4">ขนาดยอดนิยมที่แนะนำ</h2>
             <p className="text-gray-400">ตัวอย่างสัดส่วนที่เหมาะกับบรรจุภัณฑ์ประเภทต่างๆ</p>
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-            <table className="w-full text-left bg-[#050816]">
+            <table className="w-full text-left bg-[#050806]">
               <thead className="bg-[#FF7A00] text-white">
                 <tr>
                   <th className="px-6 py-4 font-bold">ขนาด</th>
@@ -429,7 +435,7 @@ export default function LabelServicePage() {
       </section>
 
       {/* ── 5. PORTFOLIO GALLERY ── */}
-      <section id="portfolio" className="py-24 bg-[#050816]">
+      <section id="legacy-portfolio" className="py-24 bg-[#050806]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-['Kanit'] font-bold text-white mb-2">ตัวอย่างผลงานฉลากสินค้า</h2>
@@ -437,7 +443,7 @@ export default function LabelServicePage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
             {portfolioImages.map((src, i) => (
-              <motion.div key={i} whileHover={{ scale: 1.05 }} className="relative aspect-square rounded-3xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer bg-[#0B1220]">
+              <motion.div key={i} whileHover={{ scale: 1.05 }} className="relative aspect-square rounded-3xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer bg-[#0E1310]">
                 <Image src={src} alt="Portfolio" fill className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6">
                    <div className="bg-[#FF7A00] p-3 rounded-full"><Check size={24} className="text-white" /></div>
@@ -449,7 +455,7 @@ export default function LabelServicePage() {
       </section>
 
       {/* ── 6. PROCESS ── */}
-      <section id="process" className="py-24 lg:py-32 px-6 lg:px-8" style={{ background: "#0B0F19" }}>
+      <section id="legacy-process" className="py-24 lg:py-32 px-6 lg:px-8" style={{ background: "#0B0F19" }}>
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <motion.div
@@ -542,12 +548,12 @@ export default function LabelServicePage() {
       </section>
 
       {/* ── 7. FAQ ── */}
-      <section className="py-24 bg-[#050816]">
+      <section className="py-24 bg-[#050806]">
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <h2 className="text-3xl font-['Kanit'] font-bold text-center mb-12">คำถามที่พบบ่อย (FAQ)</h2>
           <div className="space-y-4">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 shadow-lg">
+              <div key={i} className="bg-[#0E1310] rounded-2xl overflow-hidden border border-white/5 shadow-lg">
                 <button className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span className="font-bold text-sm">{faq.q}</span>
                   {openFaq === i ? <Minus size={18} className="text-[#FF7A00]" /> : <Plus size={18} className="text-gray-500" />}
@@ -566,7 +572,7 @@ export default function LabelServicePage() {
       </section>
 
       {/* ── 8. QUOTE FORM ── */}
-      <section id="quote" className="py-24 bg-[#0B0F19] border-t border-white/5">
+      <section id="legacy-quote" className="py-24 bg-[#0B0F19] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
             
@@ -677,90 +683,8 @@ export default function LabelServicePage() {
       </section>
 
       {/* ── 9. FOOTER ── */}
-      <footer id="contact" className="bg-[#080B13] border-t border-white/5">
-        <div className="py-8 px-6 lg:px-8 border-b border-white/5">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <p className="font-['Kanit'] font-bold text-white text-lg">พร้อมเริ่มโปรเจกต์แล้วหรือยัง?</p>
-              <p className="text-sm text-gray-400">ประเมินราคาฟรี ตอบกลับภายใน 24 ชั่วโมง</p>
-            </div>
-            <div className="flex gap-3 flex-shrink-0">
-              <a href="https://lin.ee/O0nPl03" target="_blank" className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white bg-[#06C755] hover:-translate-y-0.5 transition-all shadow-lg shadow-[#06C755]/20">
-                <MessageCircle size={18} /> LINE
-              </a>
-              <a href="#quote" className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white bg-[#FF7A00] hover:-translate-y-0.5 transition-all shadow-lg shadow-[#FF7A00]/20">
-                ขอใบเสนอราคา
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-14 pb-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-            
-            {/* Brand */}
-            <div className="lg:col-span-1">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="relative w-10 h-10 flex-shrink-0"><Image src="/images/logo.png" alt="Display Works Media" fill className="object-contain" /></div>
-                <div>
-                  <div className="font-bold text-sm tracking-wider text-white leading-none">DISPLAY WORKS</div>
-                  <div className="font-bold text-sm tracking-wider leading-none text-[#FF7A00]">MEDIA</div>
-                </div>
-              </div>
-              <p className="text-sm leading-relaxed mb-6 text-gray-400">บริการสั่งป้ายและงานพิมพ์ออนไลน์ครบวงจร ง่าย เร็ว มืออาชีพ ส่งทั่วประเทศ</p>
-              <div className="flex gap-2.5">
-                {socials.map(({ icon: Icon, href, label, hoverBg }) => (
-                  <a key={label} href={href} target="_blank" className="w-10 h-10 rounded-xl bg-[#141A24] border border-white/5 flex items-center justify-center text-gray-400 transition-all duration-200" onMouseEnter={(e) => { e.currentTarget.style.background = hoverBg; e.currentTarget.style.borderColor = hoverBg; e.currentTarget.style.color = "#fff"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "#141A24"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#9ca3af"; }}>
-                    <Icon size={18} />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Nav Links */}
-            <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">เมนู</h4>
-              <div className="flex flex-col gap-3">
-                {navLinks.map((link) => (
-                  <a key={link.href} href={link.href} className="text-sm text-gray-400 hover:text-white transition-colors">{link.label}</a>
-                ))}
-              </div>
-            </div>
-
-            {/* Services */}
-            <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">บริการของเรา</h4>
-              <div className="flex flex-col gap-3">
-                {serviceLinks.map((s) => (
-                  <a key={s} href="#services" className="text-sm text-gray-400 hover:text-white transition-colors">{s}</a>
-                ))}
-              </div>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">ติดต่อเรา</h4>
-              <div className="flex flex-col gap-4">
-                <a href="https://lin.ee/O0nPl03" target="_blank" className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors"><MessageCircle size={16} className="text-[#06C755] flex-shrink-0 mt-0.5" /> LINE @displayworks</a>
-                <a href="tel:0659161539" className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors"><Phone size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> 065-916-1539</a>
-                <a href="mailto:info.displayworksmedia@gmail.com" className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors"><Mail size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> info.displayworksmedia@gmail.com</a>
-                <div className="flex items-start gap-3 text-sm text-gray-400"><MapPin size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> ให้บริการทั่วประเทศไทย</div>
-              </div>
-              <div className="mt-6 p-4 rounded-xl text-xs bg-[#141A24] border border-white/5 text-gray-400">
-                <div className="font-bold text-white mb-1.5">เวลาทำการ</div>
-                <div>จันทร์ – เสาร์: 9:00 – 18:00</div>
-                <div>ตอบ LINE ทุกวัน ตลอด 24 ชม.</div>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="flex flex-col md:flex-row justify-between items-center gap-3 pt-8 border-t border-white/5 text-xs text-gray-500">
-            <span>© {new Date().getFullYear()} Display Works Media. All Rights Reserved.</span>
-            <span>ออกแบบและพัฒนาโดยทีมงาน Display Works Media</span>
-          </div>
-        </div>
-      </footer>
+      <SharedServiceSections serviceKey="label" />
+      <GlobalFooter />
     </div>
   );
 }

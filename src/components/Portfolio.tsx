@@ -42,10 +42,10 @@ export default function Portfolio({ items }: { items?: PortfolioItem[] }) {
   return (
     <section
       id="portfolio"
-      className="py-16 sm:py-24 px-5 sm:px-6 lg:px-8"
-      style={{ background: "linear-gradient(180deg, #0B0F19 0%, #0d1220 100%)" }}
+      className="brand-section py-20 sm:py-28 px-5 sm:px-6 lg:px-8"
+      style={{ background: "#0D121A" }}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1380px] mx-auto">
         <div className="reveal-section mb-14">
           <div className="section-label">PORTFOLIO</div>
           <h2 className="section-title">ผลงานของเรา</h2>
@@ -54,12 +54,14 @@ export default function Portfolio({ items }: { items?: PortfolioItem[] }) {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-3">
           {portfolioItems.map((item, index) => (
             <div
               key={item.id || index}
-              className="group relative overflow-hidden rounded-xl reveal-item"
-              style={{ aspectRatio: "1 / 1" }}
+              className={`group relative overflow-hidden rounded-md reveal-item ${
+                index % 5 === 0 || index % 5 === 3 ? "md:col-span-5" : "md:col-span-4"
+              } ${index % 5 === 2 ? "md:col-span-3" : ""}`}
+              style={{ aspectRatio: index % 5 === 0 || index % 5 === 3 ? "4 / 3" : "1 / 1" }}
             >
               <Image
                 src={item.img}
@@ -70,11 +72,11 @@ export default function Portfolio({ items }: { items?: PortfolioItem[] }) {
               />
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center"
-                style={{ background: "rgba(255,107,0,0.15)", backdropFilter: "blur(2px)" }}
+                style={{ background: "rgba(255,101,0,0.15)", backdropFilter: "blur(2px)" }}
               >
                 <div
                   className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center"
-                  style={{ background: "rgba(255,107,0,0.8)" }}
+                  style={{ background: "rgba(255,101,0,0.85)" }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                     <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
@@ -92,10 +94,9 @@ export default function Portfolio({ items }: { items?: PortfolioItem[] }) {
         <div className="text-center mt-12 reveal-section">
           <a
             href="#quote"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-lg font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5"
-            style={{ background: "#FF6B00", boxShadow: "0 4px 24px rgba(255,107,0,0.25)" }}
+            className="btn-primary"
           >
-            สนใจงานแบบนี้? ขอใบเสนอราคาเลย
+            ปรึกษางานและประเมินราคาเบื้องต้น
           </a>
         </div>
       </div>

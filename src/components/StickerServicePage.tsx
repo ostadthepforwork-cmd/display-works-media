@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import GlobalNavbar from "@/components/Navbar";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -188,7 +189,7 @@ function Navbar() {
         scrolled ? "backdrop-blur-md shadow-lg shadow-black/20" : "bg-transparent"
       }`}
       style={{
-        background: scrolled ? "rgba(5, 8, 22, 0.95)" : "transparent",
+        background: scrolled ? "rgba(5, 8, 6, 0.95)" : "transparent",
         borderBottom: scrolled ? "1px solid rgba(255,255,255,0.08)" : "none",
       }}
     >
@@ -287,7 +288,7 @@ function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="lg:hidden px-6 py-6 flex flex-col gap-4 border-t overflow-hidden"
-            style={{ background: "#0B1220", borderColor: "rgba(255,255,255,0.08)" }}
+            style={{ background: "#0E1310", borderColor: "rgba(255,255,255,0.08)" }}
           >
             {navLinks.map((link) => (
               <a
@@ -324,17 +325,17 @@ export default function StickerServicePage() {
 
   return (
     <div
-      className="min-h-screen font-['Prompt',sans-serif] text-white"
-      style={{ background: "#050816" }}
+      className="brand-interior brand-service-detail min-h-screen font-['Prompt',sans-serif] text-white"
+      style={{ background: "#050806" }}
     >
       {/* ── NAVBAR ── */}
-      <Navbar />
+      <GlobalNavbar />
 
       {/* ── BREADCRUMB ── */}
       <div
         id="hero"
         className="pt-[70px]"
-        style={{ background: "#050816", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ background: "#050806", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center gap-2 text-sm"
           style={{ color: "#A7B0C0" }}>
@@ -367,7 +368,7 @@ export default function StickerServicePage() {
         />
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-[#050816]/70 z-0" />
+        <div className="absolute inset-0 bg-[#050806]/70 z-0" />
 
         {/* Ambient glow */}
         <div
@@ -466,7 +467,7 @@ export default function StickerServicePage() {
       {/* ════════════════════════════════════════════════════════
           2. SIZE SELECTOR
       ════════════════════════════════════════════════════════ */}
-      <section id="services" className="py-16 px-6 lg:px-8" style={{ background: "#050816" }}>
+      <section id="services" className="py-16 px-6 lg:px-8" style={{ background: "#050806" }}>
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -500,7 +501,7 @@ export default function StickerServicePage() {
                 onClick={() => setSelectedSize(i)}
                 className="relative flex flex-col items-center gap-3 p-5 rounded-2xl border text-center transition-all duration-200 hover:-translate-y-1"
                 style={{
-                  background: selectedSize === i ? "rgba(255,122,0,0.1)" : "#0B1220",
+                  background: selectedSize === i ? "rgba(255,122,0,0.1)" : "#0E1310",
                   borderColor: selectedSize === i ? "#FF7A00" : "rgba(255,255,255,0.08)",
                   boxShadow: selectedSize === i ? "0 0 24px rgba(255,122,0,0.15)" : "none",
                 }}
@@ -541,7 +542,7 @@ export default function StickerServicePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.35 }}
               className="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border text-center"
-              style={{ background: "#0B1220", borderColor: "rgba(255,255,255,0.08)", borderStyle: "dashed" }}
+              style={{ background: "#0E1310", borderColor: "rgba(255,255,255,0.08)", borderStyle: "dashed" }}
             >
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -569,7 +570,7 @@ export default function StickerServicePage() {
       {/* ════════════════════════════════════════════════════════
           3. MATERIAL + CUT OPTIONS
       ════════════════════════════════════════════════════════ */}
-      <section className="py-16 px-6 lg:px-8" style={{ background: "#0B1220" }}>
+      <section className="py-16 px-6 lg:px-8" style={{ background: "#0E1310" }}>
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8">
 
           {/* Materials */}
@@ -602,7 +603,7 @@ export default function StickerServicePage() {
                   className="flex-shrink-0 rounded-2xl overflow-hidden border"
                   style={{
                     width: "130px",
-                    background: "#050816",
+                    background: "#050806",
                     borderColor: "rgba(255,255,255,0.08)",
                   }}
                 >
@@ -653,7 +654,7 @@ export default function StickerServicePage() {
                 <div
                   key={i}
                   className="rounded-2xl p-4 flex flex-col items-center gap-2 text-center border"
-                  style={{ background: "#050816", borderColor: "rgba(255,255,255,0.08)" }}
+                  style={{ background: "#050806", borderColor: "rgba(255,255,255,0.08)" }}
                 >
                   <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
@@ -782,7 +783,7 @@ export default function StickerServicePage() {
       {/* ════════════════════════════════════════════════════════
           5. PORTFOLIO
       ════════════════════════════════════════════════════════ */}
-      <section id="portfolio" className="py-16 px-6 lg:px-8" style={{ background: "#0B1220" }}>
+      <section id="portfolio" className="py-16 px-6 lg:px-8" style={{ background: "#0E1310" }}>
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -809,14 +810,14 @@ export default function StickerServicePage() {
               <button
                 onClick={() => setPortfolioIndex(Math.max(0, portfolioIndex - 1))}
                 className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all"
-                style={{ background: "#050816", borderColor: "rgba(255,255,255,0.1)" }}
+                style={{ background: "#050806", borderColor: "rgba(255,255,255,0.1)" }}
               >
                 <ChevronLeft size={18} />
               </button>
               <button
                 onClick={() => setPortfolioIndex(Math.min(portfolioItems.length - 1, portfolioIndex + 1))}
                 className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all"
-                style={{ background: "#050816", borderColor: "rgba(255,255,255,0.1)" }}
+                style={{ background: "#050806", borderColor: "rgba(255,255,255,0.1)" }}
               >
                 <ChevronRight size={18} />
               </button>
@@ -1077,7 +1078,7 @@ export default function StickerServicePage() {
       {/* ════════════════════════════════════════════════════════
           7. FAQ
       ════════════════════════════════════════════════════════ */}
-      <section className="py-16 px-6 lg:px-8" style={{ background: "#0B1220" }}>
+      <section className="py-16 px-6 lg:px-8" style={{ background: "#0E1310" }}>
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1110,7 +1111,7 @@ export default function StickerServicePage() {
                 transition={{ duration: 0.4, delay: i * 0.06 }}
                 className="overflow-hidden rounded-2xl border transition-all duration-200"
                 style={{
-                  background: openFaq === i ? "#151e30" : "#050816",
+                  background: openFaq === i ? "#151e30" : "#050806",
                   borderColor: openFaq === i ? "rgba(255,122,0,0.35)" : "rgba(255,255,255,0.07)",
                 }}
               >
@@ -1163,7 +1164,7 @@ export default function StickerServicePage() {
       <section
         id="quote"
         className="py-16 px-6 lg:px-8 relative overflow-hidden"
-        style={{ background: "#050816" }}
+        style={{ background: "#050806" }}
       >
         <div
           className="absolute inset-0 pointer-events-none"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MessageCircle, Facebook, Phone } from "lucide-react";
+import { MessageCircle, Facebook, Phone, FileText } from "lucide-react";
 
 const floatButtons = [
   {
@@ -105,12 +105,12 @@ export default function FloatingButtons() {
             href="#quote"
             className="flex flex-col items-center justify-center gap-1 py-4 text-white font-bold text-sm transition-all duration-200 active:scale-95"
             style={{
-              background: "#FF6B00",
-              boxShadow: "0 0 30px rgba(255,107,0,0.3)",
+            background: "#FF6500",
+            boxShadow: "0 0 30px rgba(255,101,0,0.3)",
             }}
           >
-            <span className="text-base leading-none">💬</span>
-            <span className="text-xs font-semibold">ขอใบเสนอราคา</span>
+            <FileText size={20} />
+            <span className="text-xs font-semibold">ขอประเมินราคา</span>
           </a>
 
           {/* โทร */}
@@ -118,7 +118,7 @@ export default function FloatingButtons() {
             href="tel:0659161539"
             className="flex flex-col items-center justify-center gap-1 py-4 transition-colors hover:bg-white/5"
           >
-            <Phone size={20} style={{ color: "#FF6B00" }} />
+            <Phone size={20} style={{ color: "#FF6500" }} />
             <span className="text-xs text-white font-medium">โทรเลย</span>
           </a>
         </div>

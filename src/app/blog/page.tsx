@@ -65,12 +65,12 @@ export default async function BlogPage() {
   const featuredCover = safeImageSrc(featuredPost?.cover);
 
   return (
-    <div className="min-h-screen text-white bg-[#050816]" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="brand-interior min-h-screen text-white bg-[#070A0F]" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <Navbar />
 
       {/* BREADCRUMB */}
-      <div className="pt-[70px] bg-[#050816] border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center gap-2 text-sm text-[#A7B0C0]">
+      <div className="pt-[72px] bg-[#070A0F] border-b border-white/5">
+        <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-sm text-[#A7B0C0]">
           <Home size={14} aria-hidden="true" />
           <ChevronRight size={14} aria-hidden="true" />
           <span className="text-[#FF7A00]">บทความ</span>
@@ -78,16 +78,16 @@ export default async function BlogPage() {
       </div>
 
       {/* HERO */}
-      <section className="py-16 lg:py-20 bg-[#050816]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <section className="brand-section py-16 lg:py-24 bg-[#070A0F]">
+        <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-5 border border-[#FF7A00]/30 text-[#FF7A00]">
+            <div className="section-label">
               KNOWLEDGE CENTER
             </div>
-            <h1 className="font-kanit font-extrabold text-4xl lg:text-6xl text-white mb-4">
+            <h1 className="blog-knowledge-title w-full text-center font-kanit font-extrabold text-4xl lg:text-6xl text-white mb-4">
               บทความและ<span style={{ color: "#FF7A00" }}>ความรู้</span>
             </h1>
-            <p className="text-[#A7B0C0] text-base max-w-xl mx-auto">
+            <p className="blog-knowledge-subtitle text-[#A7B0C0] text-base max-w-xl mx-auto">
               เทคนิค ไอเดีย และความรู้เกี่ยวกับงานพิมพ์และสื่อโฆษณา จากทีมผู้เชี่ยวชาญ
             </p>
           </div>
@@ -96,11 +96,11 @@ export default async function BlogPage() {
         </div>
       </section>
 
-      <section className="py-10 bg-[#050816]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <section className="py-12 bg-[#0D121A]">
+        <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between gap-4 mb-6">
             <div>
-              <p className="text-xs font-bold tracking-widest text-[#FF7A00] mb-2 uppercase">CONTENT HUB</p>
+              <div className="section-label">CONTENT HUB</div>
               <h2 className="font-kanit font-bold text-2xl lg:text-3xl text-white">หมวดบทความ</h2>
             </div>
             <Link href="/services" className="hidden sm:inline-flex items-center gap-2 text-[#FF7A00] text-sm font-semibold">
@@ -112,7 +112,7 @@ export default async function BlogPage() {
               <Link
                 key={category.slug}
                 href={`/blog/category/${category.slug}`}
-                className="rounded-2xl bg-[#0B1220] border border-white/5 p-5 hover:border-[#FF7A00]/35 transition-colors"
+                className="rounded-lg bg-[#10151D] border border-white/5 p-5 hover:border-[#FF6500]/35 transition-colors"
               >
                 <h3 className="font-kanit font-bold text-white mb-2">{category.name}</h3>
                 <p className="text-[#A7B0C0] text-sm leading-relaxed">{category.description}</p>
@@ -124,12 +124,12 @@ export default async function BlogPage() {
 
       {/* FEATURED — server-rendered, Google เห็นทันที */}
       {featuredPost && (
-        <section className="py-12 bg-[#050816]">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <section className="py-16 bg-[#070A0F]">
+          <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8">
             <p className="text-xs font-bold tracking-widest text-[#FF7A00] mb-6 uppercase">บทความล่าสุด</p>
             <Link
               href={`/blog/${featuredPost.slug}`}
-              className="group grid lg:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-white/5 bg-[#0B1220] hover:border-[#FF7A00]/30 transition-all duration-300"
+              className="group grid lg:grid-cols-2 gap-0 rounded-lg overflow-hidden border border-white/5 bg-[#10151D] hover:border-[#FF6500]/30 transition-all duration-300"
             >
               <div className="relative h-64 lg:h-auto min-h-[300px] bg-[#141A24]">
                 {featuredCover ? (
@@ -167,13 +167,13 @@ export default async function BlogPage() {
 
       {/* GRID — server-rendered */}
       {regularPosts.length > 0 && (
-        <section className="py-12 bg-[#050816]">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <section className="py-16 bg-[#070A0F]">
+          <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {regularPosts.map((post) => {
                 const cover = safeImageSrc(post.cover);
                 return (
-                <article key={post.id} className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300 reveal-item">
+                <article key={post.id} className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300 reveal-item">
                   <Link href={`/blog/${post.slug}`} className="block">
                     <div className="relative h-48 overflow-hidden bg-[#141A24]">
                       {cover ? (

@@ -1,8 +1,20 @@
 'use client'
 
 import Script from 'next/script'
+import { useEffect, useState } from 'react'
 
 export default function FacebookPixel() {
+  const [enabled, setEnabled] = useState(false)
+
+  useEffect(() => {
+    const syncConsent = () => setEnabled(localStorage.getItem('pdpa_consent') === 'all')
+    syncConsent()
+    window.addEventListener('pdpa-consent-changed', syncConsent)
+    return () => window.removeEventListener('pdpa-consent-changed', syncConsent)
+  }, [])
+
+  if (!enabled) return null
+
   return (
     <>
       {/*
@@ -24,15 +36,6 @@ export default function FacebookPixel() {
           fbq('track', 'PageView');
         `}
       </Script>
-      <noscript>
-        <img
-          height="1"
-          width="1"
-          style={{ display: 'none' }}
-          src="https://www.facebook.com/tr?id=1487578759691939&ev=PageView&noscript=1"
-          alt=""
-        />
-      </noscript>
     </>
   )
 }

@@ -1,10 +1,10 @@
-import { ArrowRight, CheckCircle2, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, CheckCircle2, MessageCircle, Phone, Sparkles } from "lucide-react";
 import Image from "next/image";
 
 const defaultTrustPoints = [
-  "ออกแบบ ผลิต ติดตั้ง ครบจบในที่เดียว",
-  "บริการหลังการขายครบวงจร",
-  "จัดส่งทั่วประเทศ พร้อมแจ้งเลขพัสดุ",
+  "ให้คำปรึกษาและตรวจไฟล์ก่อนผลิต",
+  "ดูแลตั้งแต่ไอเดียจนถึงงานพร้อมใช้งาน",
+  "ผลิตและจัดส่งงานทั่วประเทศไทย",
 ];
 
 type HeroSettings = {
@@ -31,8 +31,8 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
   return (
     <section
       id="hero"
-      className="relative flex min-h-[720px] items-center overflow-hidden lg:min-h-[760px]"
-      style={{ background: "#0B0F19" }}
+      className="relative flex min-h-[700px] items-center overflow-hidden sm:min-h-[720px] lg:min-h-[820px]"
+      style={{ background: "#070A0F" }}
     >
       <div className="absolute inset-0 z-0">
         <Image
@@ -42,50 +42,39 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
           priority
           quality={75}
           sizes="100vw"
-          className="object-cover"
+          className="object-cover object-[62%_center] sm:object-center"
         />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to right, rgba(11,15,25,0.95) 40%, rgba(11,15,25,0.7) 70%, rgba(11,15,25,0.5) 100%)",
+              "linear-gradient(90deg, rgba(7,10,15,0.98) 0%, rgba(7,10,15,0.94) 40%, rgba(7,10,15,0.62) 74%, rgba(7,10,15,0.42) 100%)",
           }}
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-[#070A0F]/35" />
       </div>
 
-      <div
-        className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full pointer-events-none z-0"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(255,107,0,0.07) 0%, transparent 70%)",
-        }}
-      />
+      <div className="absolute inset-y-0 right-[9%] z-[1] hidden w-px bg-gradient-to-b from-transparent via-[#FF6500]/70 to-transparent lg:block" />
+      <div className="absolute right-[6%] top-[25%] z-[1] hidden h-[360px] w-[360px] rotate-45 border-b border-r border-[#FF6500]/35 lg:block" />
 
       <div
-        className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 lg:px-8"
-        style={{ paddingTop: "96px", paddingBottom: "56px" }}
+        className="relative z-10 w-full max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8"
+        style={{ paddingTop: "118px", paddingBottom: "72px" }}
       >
-        <div className="max-w-3xl">
+        <div className="max-w-[760px]">
           <div className="hero-badge inline-flex items-center gap-2 mb-6 sm:mb-8">
-            <div
-              className="px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold tracking-[2px] sm:tracking-[3px] uppercase border"
-              style={{
-                background: "rgba(255,107,0,0.1)",
-                borderColor: "rgba(255,107,0,0.3)",
-                color: "#FF6B00",
-              }}
-            >
-              DISPLAY WORKS MEDIA
+            <div className="section-label mb-0 gap-2">
+              <Sparkles size={13} /> YOUR IDEA. MADE VISIBLE.
             </div>
           </div>
 
           <h1
-            className="hero-h1 font-kanit font-extrabold leading-[1.1] mb-5 sm:mb-6 text-white"
-            style={{ fontSize: "clamp(32px, 7vw, 72px)" }}
+            className="hero-h1 font-kanit font-extrabold leading-[1.05] mb-5 sm:mb-6 text-white"
+            style={{ fontSize: "clamp(40px, 6.4vw, 82px)" }}
           >
-            {hero.headline1 || "ผลิตสื่อโฆษณา"}
+            {hero.headline1 || "รับทำป้ายและ"}
             <br />
-            <span style={{ color: "#FF6B00" }}>{hero.headlineHighlight || "ครบวงจร"}</span>
+            <span style={{ color: "#FF6500" }}>{hero.headlineHighlight || "สื่อโฆษณา"}</span>
             {hero.headline2 ? (
               <>
                 <br />
@@ -103,7 +92,7 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
             }}
           >
             {hero.subtitle ||
-              "ออกแบบ ผลิต ติดตั้ง งานป้าย ร้านค้า และสื่อโฆษณาทุกประเภท พร้อมทีมงานมืออาชีพดูแลตลอดกระบวนการ"}
+              "ให้ธุรกิจของคุณมองเห็นชัดขึ้น ด้วยบริการให้คำปรึกษา ออกแบบ ผลิต และจัดส่งสื่อโฆษณาคุณภาพสำหรับธุรกิจ"}
           </p>
 
           <div className="hero-trust flex flex-col gap-2 mb-8 sm:mb-10">
@@ -128,14 +117,12 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
           <div className="hero-cta flex flex-col sm:flex-row gap-3 sm:gap-4 mb-5">
             <a
               href="#quote"
-              className="group inline-flex items-center justify-center gap-2 text-white font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto"
+              className="btn-primary group w-full sm:w-auto"
               style={{
-                background: "#FF6B00",
-                boxShadow: "0 4px 24px rgba(255,107,0,0.3)",
                 fontSize: "15px",
               }}
             >
-              ขอใบเสนอราคา
+              ปรึกษางานและประเมินราคาฟรี
               <ArrowRight
                 size={18}
                 className="transition-transform group-hover:translate-x-1"
@@ -143,7 +130,7 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
             </a>
             <a
               href="#portfolio"
-              className="inline-flex items-center justify-center gap-2 text-white font-medium px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl border transition-all duration-200 hover:bg-white/5 w-full sm:w-auto"
+              className="btn-secondary w-full sm:w-auto"
               style={{
                 borderColor: "rgba(255,255,255,0.2)",
                 fontSize: "15px",
@@ -154,19 +141,18 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
           </div>
 
           <div
-            className="hero-contact inline-flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2.5"
+            className="hero-contact inline-flex flex-wrap items-center gap-2 border-l-2 border-[#FF6500] px-3 py-2.5"
             style={{
               color: "#A8B0C0",
               fontSize: "13px",
-              background: "rgba(11,15,25,0.72)",
-              borderColor: "rgba(255,255,255,0.1)",
+              background: "rgba(7,10,15,0.76)",
             }}
           >
             <a
               href={`tel:${tel}`}
               className="flex items-center gap-2 rounded-lg px-2 py-1 hover:text-white transition-colors"
             >
-              <Phone size={14} style={{ color: "#FF6B00" }} /> {phone}
+              <Phone size={14} style={{ color: "#FF6500" }} /> {phone}
             </a>
             <span className="hidden h-4 w-px bg-white/10 sm:block" />
             <a
@@ -186,7 +172,7 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
           scroll
         </div>
         <div className="w-5 h-8 border border-white/20 rounded-full flex items-start justify-center pt-1">
-          <div className="hero-scroll-dot w-1 h-2 rounded-full" style={{ background: "#FF6B00" }} />
+          <div className="hero-scroll-dot w-1 h-2 rounded-full" style={{ background: "#FF6500" }} />
         </div>
       </div>
     </section>

@@ -6,10 +6,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { safeImageSrc } from "@/lib/image-utils";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 import {
-  Menu, X, Facebook, MessageCircle, Phone, Mail, MapPin,
-  Instagram, ArrowRight, Calendar, Clock, ChevronRight,
+  ArrowRight, Calendar, Clock, ChevronRight,
   Home, Tag, AlertCircle,
 } from "lucide-react";
 
@@ -17,21 +18,6 @@ type Post = {
   id: string; title: string; excerpt: string; category: string;
   date: string; slug: string; cover: string; published: boolean; body: string;
 };
-
-const navLinks = [
-  { label: "หน้าแรก", href: "/" },
-  { label: "บริการของเรา", href: "/#services" },
-  { label: "ผลงานของเรา", href: "/#portfolio" },
-  { label: "ขั้นตอนการทำงาน", href: "/#process" },
-  { label: "บทความ", href: "/blog" },
-  { label: "ติดต่อเรา", href: "/#quote" },
-];
-
-const socials = [
-  { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61581015452518", label: "Facebook", hoverBg: "#1877F2" },
-  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#06C755" },
-  { icon: Instagram, href: "https://instagram.com", label: "Instagram", hoverBg: "#E1306C" },
-];
 
 function fmtDateTH(dateStr: string) {
   if (!dateStr) return "";
@@ -57,42 +43,6 @@ function bodyToHtml(body: string): string {
     }
     return `<p>${t.replace(/\n/g, "<br/>")}</p>`;
   }).join("");
-}
-
-function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-  return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#050816]/95 backdrop-blur-md border-b border-white/10" : "bg-transparent"}`}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-[70px]">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 relative flex-shrink-0"><Image src="/images/logo.png" alt="Display Works Media" width={40} height={40} priority className="object-contain" /></div>
-          <div>
-            <div className="font-bold text-sm tracking-wider leading-none text-white uppercase">DISPLAY WORKS</div>
-            <div className="font-bold text-sm tracking-wider leading-none uppercase" style={{ color: "#FF7A00" }}>MEDIA</div>
-          </div>
-        </Link>
-        <div className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className={`text-sm transition-colors ${link.href === "/blog" ? "text-[#FF7A00] font-semibold" : "text-[#A7B0C0] hover:text-white"}`}>{link.label}</a>
-          ))}
-        </div>
-        <a href="/#quote" className="hidden lg:block bg-[#FF7A00] hover:bg-[#e56a00] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all">ขอใบเสนอราคา</a>
-        <button className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X size={24} /> : <Menu size={24} />}</button>
-      </div>
-      {mobileOpen && (
-          <div className="lg:hidden bg-[#0B1220] border-t border-white/10 px-6 py-6 flex flex-col gap-4">
-            {navLinks.map((link) => (<a key={link.label} href={link.href} className="text-[#A7B0C0] hover:text-white text-base" onClick={() => setMobileOpen(false)}>{link.label}</a>))}
-            <a href="/#quote" className="mt-2 bg-[#FF7A00] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
-          </div>
-      )}
-    </nav>
-  );
 }
 
 export default function BlogPostPage({
@@ -141,7 +91,7 @@ export default function BlogPostPage({
 
   if (notFound) {
     return (
-      <div className="min-h-screen bg-[#050816] text-white flex flex-col items-center justify-center gap-6">
+      <div className="min-h-screen bg-[#050806] text-white flex flex-col items-center justify-center gap-6">
         <AlertCircle size={48} className="text-[#FF7A00]" />
         <h1 className="font-['Kanit'] font-bold text-2xl">ไม่พบบทความนี้</h1>
         <p className="text-[#A7B0C0] text-sm">อาจถูกลบหรือ URL ไม่ถูกต้อง</p>
@@ -152,7 +102,7 @@ export default function BlogPostPage({
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-[#050816] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#050806] text-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#FF7A00] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -161,53 +111,55 @@ export default function BlogPostPage({
   const postCover = safeImageSrc(post.cover);
 
   return (
-    <div className="min-h-screen font-['Prompt',sans-serif] text-white bg-[#050816]">
+    <div className="brand-interior brand-article min-h-screen font-['Prompt',sans-serif] text-white bg-[#070A0F]">
       <Navbar />
 
-      <div className="pt-[70px] bg-[#050816] border-b border-white/5">
+      <div className="pt-[72px] bg-[#070A0F] border-b border-white/5">
         <div className="max-w-4xl mx-auto px-6 py-3 flex items-center gap-2 text-sm text-[#A7B0C0] flex-wrap">
           <Home size={14} /><ChevronRight size={14} />
           <Link href="/blog" className="hover:text-white transition-colors">บทความ</Link>
           <ChevronRight size={14} />
-          <span className="text-[#FF7A00] line-clamp-1">{post.title}</span>
+          <span className="text-[#FF6500] line-clamp-1">{post.title}</span>
         </div>
       </div>
 
       {postCover && (
-        <div className="relative w-full h-64 md:h-96">
-          <Image src={postCover} alt={post.title} fill sizes="100vw" className="object-cover" priority />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050816] via-[#050816]/40 to-transparent" />
+        <div className="mx-auto mt-5 max-w-5xl px-5 sm:px-6">
+          <div className="relative aspect-[16/9] max-h-[520px] w-full overflow-hidden rounded-lg border border-white/10 bg-[#101412]">
+            <Image src={postCover} alt={post.title} fill sizes="(max-width: 1024px) 100vw, 1024px" className="object-cover" priority />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#070A0F]/55 via-transparent to-transparent" />
+          </div>
         </div>
       )}
 
-      <article className="max-w-4xl mx-auto px-6 lg:px-8 py-12">
-        <div className="reveal-section">
+      <article className="brand-article-body mx-auto px-6 lg:px-8 py-14">
+        <div className="reveal-section text-center">
           {post.category && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FF7A00]/10 text-[#FF7A00] border border-[#FF7A00]/20 mb-5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-xs font-semibold bg-[#FF6500]/10 text-[#FF6500] border border-[#FF6500]/20 mb-5">
               <Tag size={11} /> {post.category}
             </span>
           )}
           <h1 className="font-['Kanit'] font-extrabold text-3xl md:text-4xl lg:text-5xl text-white leading-tight mb-6">{post.title}</h1>
-          <div className="flex flex-wrap items-center gap-4 text-sm text-[#A7B0C0] mb-8 pb-8 border-b border-white/10">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-[#A7B0C0] mb-8 pb-8 border-b border-white/10">
             <span className="flex items-center gap-1.5"><Calendar size={15} /> {fmtDateTH(post.date)}</span>
             <span className="flex items-center gap-1.5"><Clock size={15} /> อ่าน {readTimeTH(post.body)}</span>
           </div>
           {post.excerpt && (
-            <p className="text-lg text-[#A7B0C0] leading-relaxed mb-10 border-l-4 border-[#FF7A00] pl-5 italic">{post.excerpt}</p>
+            <p className="brand-article-excerpt text-lg text-[#A7B0C0] leading-relaxed mb-12">{post.excerpt}</p>
           )}
         </div>
 
         <div className="prose-blog" dangerouslySetInnerHTML={{ __html: bodyToHtml(post.body) }} />
 
         <div className="mt-16 pt-8 border-t border-white/10">
-          <Link href="/blog" className="inline-flex items-center gap-2 text-[#FF7A00] font-semibold text-sm hover:gap-3 transition-all">
+          <Link href="/blog" className="inline-flex items-center gap-2 text-[#FF6500] font-semibold text-sm hover:gap-3 transition-all">
             <ArrowRight size={16} className="rotate-180" /> กลับไปหน้าบทความทั้งหมด
           </Link>
         </div>
       </article>
 
       {related.length > 0 && (
-        <section className="bg-[#080B13] border-t border-white/5 py-16">
+        <section className="bg-[#0D121A] border-t border-white/5 py-16">
           <div className="max-w-4xl mx-auto px-6 lg:px-8">
             <h2 className="font-['Kanit'] font-bold text-xl text-white mb-8">บทความที่เกี่ยวข้อง</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -215,14 +167,14 @@ export default function BlogPostPage({
                 const cover = safeImageSrc(r.cover);
                 return (
                 <Link key={r.id} href={`/blog/${r.slug}`}
-                  className="group bg-[#0B1220] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
+                  className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300">
                   <div className="relative h-40 bg-[#141A24]">
                     {cover ? <Image src={cover} alt={r.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       : <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>}
                   </div>
                   <div className="p-4">
                     <p className="text-xs text-[#A7B0C0] mb-2 flex items-center gap-1"><Calendar size={11} /> {fmtDateTH(r.date)}</p>
-                    <h3 className="font-['Kanit'] font-bold text-sm text-white group-hover:text-[#FF7A00] transition-colors line-clamp-2">{r.title}</h3>
+                    <h3 className="font-['Kanit'] font-bold text-sm text-white group-hover:text-[#FF6500] transition-colors line-clamp-2">{r.title}</h3>
                   </div>
                 </Link>
                 );
@@ -232,7 +184,7 @@ export default function BlogPostPage({
         </section>
       )}
 
-      {/* FOOTER */}
+      {/* Legacy footer retained temporarily for reference.
       <footer className="bg-[#080B13] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-14 pb-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
@@ -285,6 +237,8 @@ export default function BlogPostPage({
           </div>
         </div>
       </footer>
+      */}
+      <Footer />
 
       <style jsx global>{`
         .prose-blog h1 { font-family: 'Kanit', sans-serif; font-size: 2rem; font-weight: 800; color: #fff; margin: 2rem 0 1rem; line-height: 1.3; }

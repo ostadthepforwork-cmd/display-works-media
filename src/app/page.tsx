@@ -1,43 +1,39 @@
-import nextDynamic from "next/dynamic";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import TrustBar from "@/components/TrustBar";
-import Services from "@/components/Services";
-import Portfolio from "@/components/Portfolio";
-import WhyUs from "@/components/WhyUs";
 import { getCmsSettings } from "@/lib/cms-settings";
-
-// Below-the-fold components — lazy loaded to reduce initial JS bundle
-const Process      = nextDynamic(() => import("@/components/Process"));
-const Reviews      = nextDynamic(() => import("@/components/Reviews"));
-const BlogSection  = nextDynamic(() => import("@/components/BlogSection"));
-const FAQ          = nextDynamic(() => import("@/components/FAQ"));
-const QuoteForm    = nextDynamic(() => import("@/components/QuoteForm"));
-const CTA          = nextDynamic(() => import("@/components/CTA"));
-const Footer       = nextDynamic(() => import("@/components/Footer"));
-const FloatingButtons = nextDynamic(() => import("@/components/FloatingButtons"));
+import HomeExperience from "@/components/HomeExperience";
+import type { BlogPost } from "@/components/BlogSection";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const cms = await getCmsSettings();
+async function getLatestPosts(): Promise<BlogPost[]> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return [];
 
-  return (
-    <main>
-      <Navbar />
-      <Hero settings={cms.hero} />
-      <TrustBar />
-      <Services items={cms.services} />
-      <Portfolio items={cms.portfolio} />
-      <WhyUs />
-      <Process />
-      <Reviews items={cms.reviews} />
-      <BlogSection />
-      <FAQ />
-      <QuoteForm contact={cms.contact} />
-      <CTA />
-      <Footer />
-      <FloatingButtons />
-    </main>
-  );
+  try {
+    const supabase = createClient(url, key);
+    const query = supabase
+      .from("posts")
+      .select("id, title, excerpt, category, date, slug, cover, published, body")
+      .eq("published", true)
+      .order("date", { ascending: false })
+      .limit(3);
+
+    const result = await Promise.race([
+      Promise.resolve(query),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Homepage blog query timed out")), 3000)
+      ),
+    ]);
+
+    return (result.data || []) as BlogPost[];
+  } catch {
+    return [];
+  }
+}
+
+export default async function Home() {
+  const [cms, posts] = await Promise.all([getCmsSettings(), getLatestPosts()]);
+
+  return <HomeExperience cms={cms} posts={posts} />;
 }

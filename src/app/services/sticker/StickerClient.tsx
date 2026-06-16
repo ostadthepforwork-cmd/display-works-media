@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import GlobalNavbar from "@/components/Navbar";
+import GlobalFooter from "@/components/Footer";
+import SharedServiceSections from "@/components/SharedMarketingSections";
+import { cmsValue, useCmsSettings } from "@/components/CmsSettingsProvider";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -206,7 +210,7 @@ function Navbar() {
   }, []);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#050816]/95 backdrop-blur-md border-b border-white/10" : "bg-transparent"}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#050806]/95 backdrop-blur-md border-b border-white/10" : "bg-transparent"}`}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-[70px]">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 relative flex-shrink-0">
@@ -231,7 +235,7 @@ function Navbar() {
       </div>
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="lg:hidden bg-[#0B1220] border-t border-white/10 px-6 py-6 flex flex-col gap-4 overflow-hidden">
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="lg:hidden bg-[#0E1310] border-t border-white/10 px-6 py-6 flex flex-col gap-4 overflow-hidden">
             {navLinks.map((link) => (
               <a key={link.label} href={link.href} className="text-[#A7B0C0] hover:text-white text-base border-b border-white/5 pb-2" onClick={() => setMobileOpen(false)}>{link.label}</a>
             ))}
@@ -246,6 +250,8 @@ function Navbar() {
 // ─── MAIN PAGE ─────────────────────────────────────────────────────────────
 
 export default function StickerLandingPage() {
+  const cms = useCmsSettings();
+  const serviceText = (field: string, fallback: string) => cmsValue(cms, `servicesDetail.sticker.${field}`, fallback);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -269,11 +275,11 @@ export default function StickerLandingPage() {
   };
 
   return (
-    <div className="min-h-screen font-['Prompt',sans-serif] text-white bg-[#050816]">
-      <Navbar />
+    <div className="brand-interior brand-service-detail min-h-screen font-['Prompt',sans-serif] text-white bg-[#050806]">
+      <GlobalNavbar />
 
       {/* ── BREADCRUMB ── */}
-      <div className="pt-[70px] bg-[#050816] border-b border-white/5">
+      <div className="pt-[70px] bg-[#050806] border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center gap-2 text-sm text-[#A7B0C0]">
           <Home size={14} />
           <ChevronRight size={14} />
@@ -284,27 +290,27 @@ export default function StickerLandingPage() {
       </div>
 
       {/* ── 1. HERO SECTION ── */}
-      <section id="hero" className="relative overflow-hidden flex items-center min-h-[560px] bg-[#050816]">
+      <section id="hero" className="relative overflow-hidden flex items-center min-h-[560px] bg-[#050806]">
         <Image src="/images/services/sticker.jpg" alt="Sticker Printing" fill priority sizes="100vw" className="object-cover object-[center_right] z-0" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#050816] via-[#050816]/85 to-transparent/30" />
-        <div className="absolute -bottom-2 left-0 right-0 h-[300px] lg:h-[400px] z-0 pointer-events-none bg-gradient-to-t from-[#050816] to-transparent" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#050806] via-[#050806]/85 to-transparent/30" />
+        <div className="absolute -bottom-2 left-0 right-0 h-[300px] lg:h-[400px] z-0 pointer-events-none bg-gradient-to-t from-[#050806] to-transparent" />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full pt-16 pb-24"> 
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-transparent">
-              บริการออกแบบและผลิต
+              {serviceText("eyebrow", "บริการออกแบบและผลิต")}
             </div>
             <h1 className="font-['Kanit'] font-extrabold text-5xl lg:text-7xl mb-6 leading-tight text-white">
-              สั่งสติ๊กเกอร์
-              <span className="block text-[#FF7A00]">คุณภาพสูง</span>
+              {serviceText("title", "สั่งสติ๊กเกอร์")}
+              <span className="block text-[#FF7A00]">{serviceText("highlight", "คุณภาพสูง")}</span>
             </h1>
             <p className="text-base text-gray-300 max-w-xl mb-10 leading-relaxed">
-              พิมพ์สติ๊กเกอร์สีสด คมชัด ไดคัทได้ตามรูปแบบที่ต้องการ รองรับทั้งงาน Indoor และ Outdoor เหมาะสำหรับฉลากสินค้าและตกแต่งกระจกร้าน
+              {serviceText("subtitle", "พิมพ์สติ๊กเกอร์สีสด คมชัด ไดคัทได้ตามรูปแบบที่ต้องการ รองรับทั้งงาน Indoor และ Outdoor เหมาะสำหรับฉลากสินค้าและตกแต่งกระจกร้าน")}
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
               {stickerFeatures.map((f, i) => (
-                <div key={i} className="bg-[#0B1220]/80 backdrop-blur-sm p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                <div key={i} className="bg-[#0E1310]/80 backdrop-blur-sm p-4 rounded-xl border border-white/5 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#FF7A00]/10 text-[#FF7A00]"><f.icon size={20} /></div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-white leading-tight">{f.title}</span>
@@ -327,7 +333,7 @@ export default function StickerLandingPage() {
       </section>
 
       {/* ── 2. STICKER KNOWLEDGE (GRID LAYOUT) ── */}
-      <section id="knowledge" className="py-24 bg-[#0B1220]">
+      <section id="knowledge" className="py-24 bg-[#0E1310]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           
           {/* Intro */}
@@ -352,7 +358,7 @@ export default function StickerLandingPage() {
 
             <div className="grid lg:grid-cols-3 gap-8">
               {indoorMaterials.map((item, idx) => (
-                <motion.div key={idx} whileHover={{ y: -5 }} className="bg-[#050816] rounded-3xl border border-white/5 overflow-hidden flex flex-col h-full shadow-xl">
+                <motion.div key={idx} whileHover={{ y: -5 }} className="bg-[#050806] rounded-3xl border border-white/5 overflow-hidden flex flex-col h-full shadow-xl">
                   {/* Image Header */}
                   <div className="relative aspect-video w-full bg-[#141A24] border-b border-white/5">
                     <Image src={item.image} alt={item.name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
@@ -401,7 +407,7 @@ export default function StickerLandingPage() {
 
             <div className="grid lg:grid-cols-3 gap-8">
               {outdoorMaterials.map((item, idx) => (
-                <motion.div key={idx} whileHover={{ y: -5 }} className="bg-[#050816] rounded-3xl border border-white/5 overflow-hidden flex flex-col h-full shadow-xl">
+                <motion.div key={idx} whileHover={{ y: -5 }} className="bg-[#050806] rounded-3xl border border-white/5 overflow-hidden flex flex-col h-full shadow-xl">
                   {/* Image Header */}
                   <div className="relative aspect-video w-full bg-[#141A24] border-b border-white/5">
                     <Image src={item.image} alt={item.name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
@@ -442,7 +448,7 @@ export default function StickerLandingPage() {
       </section>
 
       {/* ── 2.5 USAGE GUIDELINES TABLE ── */}
-      <section className="py-24 bg-[#050816] border-t border-white/5">
+      <section className="py-24 bg-[#050806] border-t border-white/5">
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-['Kanit'] font-bold mb-4 text-white">สรุปแนวทางการใช้งานตาม <span className="text-[#FF7A00]">"วัตถุประสงค์"</span></h2>
@@ -450,7 +456,7 @@ export default function StickerLandingPage() {
           </div>
 
           <div className="hidden md:block overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-            <table className="w-full text-left bg-[#0B1220]">
+            <table className="w-full text-left bg-[#0E1310]">
               <thead className="bg-[#FF7A00] text-white border-b border-white/10">
                 <tr>
                   <th className="px-6 py-4 font-bold w-1/3">หน้างาน / วัตถุประสงค์</th>
@@ -472,7 +478,7 @@ export default function StickerLandingPage() {
 
           <div className="md:hidden flex flex-col gap-4">
             {usageGuidelines.map((item, i) => (
-              <div key={i} className="bg-[#0B1220] p-5 rounded-2xl border border-white/5 shadow-lg">
+              <div key={i} className="bg-[#0E1310] p-5 rounded-2xl border border-white/5 shadow-lg">
                 <div className="font-bold text-white mb-2 text-lg">{item.useCase}</div>
                 <div className="bg-[#FF7A00]/10 border border-[#FF7A00]/20 px-3 py-2 rounded-lg mb-3">
                   <span className="text-xs text-gray-400 block mb-1">แนะนำ:</span>
@@ -487,7 +493,7 @@ export default function StickerLandingPage() {
       </section>
 
       {/* ── 3. CUT FINISHING ── */}
-      <section id="cut-options" className="py-24 bg-[#0B1220]">
+      <section id="cut-options" className="py-24 bg-[#0E1310]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-['Kanit'] font-bold text-white mb-2">รูปแบบการตัดสติ๊กเกอร์</h2>
@@ -496,7 +502,7 @@ export default function StickerLandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {cutOptions.map((opt, i) => (
-              <div key={i} className="bg-[#050816] rounded-2xl border border-white/5 flex flex-col sm:flex-row items-stretch hover:border-[#FF7A00]/50 transition-colors shadow-xl overflow-hidden group cursor-pointer">
+              <div key={i} className="bg-[#050806] rounded-2xl border border-white/5 flex flex-col sm:flex-row items-stretch hover:border-[#FF7A00]/50 transition-colors shadow-xl overflow-hidden group cursor-pointer">
                 <div className="relative w-full sm:w-48 aspect-[16/9] sm:aspect-square bg-[#141A24] flex-shrink-0 border-b sm:border-b-0 sm:border-r border-white/5 overflow-hidden">
                   <Image src={opt.image} alt={opt.name} fill sizes="(max-width: 640px) 100vw, 192px" className="object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 </div>
@@ -511,14 +517,14 @@ export default function StickerLandingPage() {
       </section>
 
       {/* ── 4. SIZES TABLE ── */}
-      <section className="py-24 bg-[#050816]">
+      <section className="py-24 bg-[#050806]">
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-['Kanit'] font-bold mb-4">ขนาดสติ๊กเกอร์ยอดฮิต</h2>
             <p className="text-gray-400">ขนาดมาตรฐานที่ลูกค้าส่วนใหญ่เลือกใช้</p>
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-            <table className="w-full text-left bg-[#0B1220]">
+            <table className="w-full text-left bg-[#0E1310]">
               <thead className="bg-[#FF7A00] text-white">
                 <tr>
                   <th className="px-6 py-4 font-bold">ขนาด</th>
@@ -542,7 +548,7 @@ export default function StickerLandingPage() {
       </section>
 
       {/* ── 5. PORTFOLIO GALLERY ── */}
-      <section id="portfolio" className="py-24 bg-[#0B1220]">
+      <section id="legacy-portfolio" className="py-24 bg-[#0E1310]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-['Kanit'] font-bold text-white mb-2">ตัวอย่างผลงานสติ๊กเกอร์</h2>
@@ -550,7 +556,7 @@ export default function StickerLandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {portfolioImages.map((src, i) => (
-              <motion.div key={i} whileHover={{ scale: 1.02 }} className="relative aspect-[16/10] rounded-3xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer bg-[#050816]">
+              <motion.div key={i} whileHover={{ scale: 1.02 }} className="relative aspect-[16/10] rounded-3xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer bg-[#050806]">
                 <Image src={src} alt="Portfolio" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
                    <div className="bg-[#FF7A00] p-3 rounded-full"><Check size={24} className="text-white" /></div>
@@ -562,7 +568,7 @@ export default function StickerLandingPage() {
       </section>
 
       {/* ── 6. PROCESS ── */}
-      <section id="process" className="py-24 lg:py-32 px-6 lg:px-8" style={{ background: "#050816" }}>
+      <section id="legacy-process" className="py-24 lg:py-32 px-6 lg:px-8" style={{ background: "#050806" }}>
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-20">
             <div className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF6B00]/30 text-[#FF6B00] bg-[#FF6B00]/10" style={{ textAlign: "center" }}>ขั้นตอนการทำงาน</div>
@@ -619,12 +625,12 @@ export default function StickerLandingPage() {
       </section>
 
       {/* ── 7. FAQ ── */}
-      <section className="py-24 bg-[#0B1220]">
+      <section className="py-24 bg-[#0E1310]">
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <h2 className="text-3xl font-['Kanit'] font-bold text-center mb-12">คำถามที่พบบ่อย (FAQ)</h2>
           <div className="space-y-4">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-[#050816] rounded-2xl overflow-hidden border border-white/5 shadow-lg">
+              <div key={i} className="bg-[#050806] rounded-2xl overflow-hidden border border-white/5 shadow-lg">
                 <button className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span className="font-bold text-sm">{faq.q}</span>
                   {openFaq === i ? <Minus size={18} className="text-[#FF7A00]" /> : <Plus size={18} className="text-gray-500" />}
@@ -643,7 +649,7 @@ export default function StickerLandingPage() {
       </section>
 
       {/* ── 8. QUOTE FORM ── */}
-      <section id="quote" className="py-24 bg-[#050816] border-t border-white/5">
+      <section id="legacy-quote" className="py-24 bg-[#050806] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="lg:col-span-2">
@@ -660,7 +666,7 @@ export default function StickerLandingPage() {
                 ))}
               </div>
 
-              <div className="mt-10 p-6 rounded-xl border border-[#FF7A00]/20 bg-[#0B1220]">
+              <div className="mt-10 p-6 rounded-xl border border-[#FF7A00]/20 bg-[#0E1310]">
                 <div className="text-sm font-semibold text-white mb-3">ติดต่อด่วน</div>
                 <a href="https://lin.ee/O0nPl03" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-2">💬 LINE: @displayworks</a>
                 <a href="tel:0659161539" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-2">📞 065-916-1539</a>
@@ -669,7 +675,7 @@ export default function StickerLandingPage() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.15 }} className="lg:col-span-3">
-              <div className="p-8 lg:p-10 rounded-3xl border border-white/10 bg-[#0B1220] shadow-2xl">
+              <div className="p-8 lg:p-10 rounded-3xl border border-white/10 bg-[#0E1310] shadow-2xl">
                 {submitted ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center gap-5">
                     <CheckCircle size={56} className="text-[#FF7A00]" />
@@ -682,49 +688,49 @@ export default function StickerLandingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
                         <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">ชื่อ-นามสกุล *</label>
-                        <input {...register("name", { required: true })} placeholder="ชื่อของคุณ" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none transition-colors bg-[#050816]" style={{ border: `1px solid ${errors.name ? "#FF4444" : "rgba(255,255,255,0.08)"}` }} onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,0,0.5)")} onBlur={(e) => (e.target.style.borderColor = errors.name ? "#FF4444" : "rgba(255,255,255,0.08)")} />
+                        <input {...register("name", { required: true })} placeholder="ชื่อของคุณ" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none transition-colors bg-[#050806]" style={{ border: `1px solid ${errors.name ? "#FF4444" : "rgba(255,255,255,0.08)"}` }} onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,0,0.5)")} onBlur={(e) => (e.target.style.borderColor = errors.name ? "#FF4444" : "rgba(255,255,255,0.08)")} />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">เบอร์โทรศัพท์ *</label>
-                        <input {...register("phone", { required: true })} placeholder="08X-XXX-XXXX" type="tel" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050816]" style={{ border: `1px solid ${errors.phone ? "#FF4444" : "rgba(255,255,255,0.08)"}` }} onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,0,0.5)")} onBlur={(e) => (e.target.style.borderColor = errors.phone ? "#FF4444" : "rgba(255,255,255,0.08)")} />
+                        <input {...register("phone", { required: true })} placeholder="08X-XXX-XXXX" type="tel" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050806]" style={{ border: `1px solid ${errors.phone ? "#FF4444" : "rgba(255,255,255,0.08)"}` }} onFocus={(e) => (e.target.style.borderColor = "rgba(255,107,0,0.5)")} onBlur={(e) => (e.target.style.borderColor = errors.phone ? "#FF4444" : "rgba(255,255,255,0.08)")} />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">LINE ID</label>
-                        <input {...register("lineId")} placeholder="@lineid" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050816] border border-white/10 focus:border-[#FF7A00]/50" />
+                        <input {...register("lineId")} placeholder="@lineid" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050806] border border-white/10 focus:border-[#FF7A00]/50" />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">ประเภทสินค้า *</label>
-                        <select {...register("serviceType", { required: true })} className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050816]" style={{ border: `1px solid ${errors.serviceType ? "#FF4444" : "rgba(255,255,255,0.08)"}` }}>
+                        <select {...register("serviceType", { required: true })} className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050806]" style={{ border: `1px solid ${errors.serviceType ? "#FF4444" : "rgba(255,255,255,0.08)"}` }}>
                           <option value="">เลือกประเภท</option>
                           {serviceLinks.map((s) => (<option key={s} value={s}>{s}</option>))}
                         </select>
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">ขนาดกว้าง (cm)</label>
-                        <input {...register("width")} placeholder="เช่น 100" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050816] border border-white/10 focus:border-[#FF7A00]/50" />
+                        <input {...register("width")} placeholder="เช่น 100" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050806] border border-white/10 focus:border-[#FF7A00]/50" />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">ขนาดสูง (cm)</label>
-                        <input {...register("height")} placeholder="เช่น 200" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050816] border border-white/10 focus:border-[#FF7A00]/50" />
+                        <input {...register("height")} placeholder="เช่น 200" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050806] border border-white/10 focus:border-[#FF7A00]/50" />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">จำนวน (ชิ้น)</label>
-                        <input {...register("quantity")} type="number" min={1} placeholder="1" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050816] border border-white/10 focus:border-[#FF7A00]/50" />
+                        <input {...register("quantity")} type="number" min={1} placeholder="1" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050806] border border-white/10 focus:border-[#FF7A00]/50" />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">วันที่ต้องการรับงาน</label>
-                        <input {...register("needDate")} type="date" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050816] border border-white/10" style={{ colorScheme: "dark" }} />
+                        <input {...register("needDate")} type="date" className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none bg-[#050806] border border-white/10" style={{ colorScheme: "dark" }} />
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">รายละเอียดเพิ่มเติม</label>
-                      <textarea {...register("details")} rows={4} placeholder="รายละเอียดงาน วัสดุ ความต้องการพิเศษ หรือสิ่งที่อยากให้เราทราบ..." className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none resize-y bg-[#050816] border border-white/10 focus:border-[#FF7A00]/50" />
+                      <textarea {...register("details")} rows={4} placeholder="รายละเอียดงาน วัสดุ ความต้องการพิเศษ หรือสิ่งที่อยากให้เราทราบ..." className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none resize-y bg-[#050806] border border-white/10 focus:border-[#FF7A00]/50" />
                     </div>
 
                     <div>
                       <label className="block text-xs text-gray-400 mb-2 font-medium tracking-wide">แนบไฟล์ (ถ้ามี)</label>
-                      <label className="flex flex-col items-center justify-center py-8 rounded-lg border border-dashed cursor-pointer transition-colors duration-200 border-[#FF7A00]/30 hover:border-[#FF7A00]/60 bg-[#050816]/50">
+                      <label className="flex flex-col items-center justify-center py-8 rounded-lg border border-dashed cursor-pointer transition-colors duration-200 border-[#FF7A00]/30 hover:border-[#FF7A00]/60 bg-[#050806]/50">
                         <Upload size={24} className="text-[#FF7A00]/70 mb-2" />
                         <span className="text-gray-400 text-sm">คลิกเพื่ออัปโหลดไฟล์ หรือลากวางที่นี่</span>
                         <span className="text-xs mt-1 text-gray-500">รองรับ AI, PDF, PSD, JPG, PNG (สูงสุด 50MB)</span>
@@ -745,79 +751,8 @@ export default function StickerLandingPage() {
       </section>
 
       {/* ── 9. FOOTER ── */}
-      <footer id="contact" className="bg-[#080B13] border-t border-white/5">
-        <div className="py-8 px-6 lg:px-8 border-b border-white/5">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <p className="font-['Kanit'] font-bold text-white text-lg">พร้อมเริ่มโปรเจกต์แล้วหรือยัง?</p>
-              <p className="text-sm text-gray-400">ประเมินราคาฟรี ตอบกลับภายใน 24 ชั่วโมง</p>
-            </div>
-            <div className="flex gap-3 flex-shrink-0">
-              <a href="https://lin.ee/O0nPl03" target="_blank" className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white bg-[#06C755] hover:-translate-y-0.5 transition-all shadow-lg shadow-[#06C755]/20"><MessageCircle size={18} /> LINE</a>
-              <a href="#quote" className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white bg-[#FF7A00] hover:-translate-y-0.5 transition-all shadow-lg shadow-[#FF7A00]/20">ขอใบเสนอราคา</a>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-14 pb-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-            <div className="lg:col-span-1">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="relative w-10 h-10 flex-shrink-0"><img src="/images/logo.png" alt="Display Works Media" className="h-10 w-10 object-contain" style={{ width: 40, height: 40 }} /></div>
-                <div>
-                  <div className="font-bold text-sm tracking-wider text-white leading-none">DISPLAY WORKS</div>
-                  <div className="font-bold text-sm tracking-wider leading-none text-[#FF7A00]">MEDIA</div>
-                </div>
-              </div>
-              <p className="text-sm leading-relaxed mb-6 text-gray-400">บริการสั่งป้ายและงานพิมพ์ออนไลน์ครบวงจร ง่าย เร็ว มืออาชีพ ส่งทั่วประเทศ</p>
-              <div className="flex gap-2.5">
-                {socials.map(({ icon: Icon, href, label, hoverBg }) => (
-                  <a key={label} href={href} target="_blank" className="w-10 h-10 rounded-xl bg-[#141A24] border border-white/5 flex items-center justify-center text-gray-400 transition-all duration-200" onMouseEnter={(e) => { e.currentTarget.style.background = hoverBg; e.currentTarget.style.borderColor = hoverBg; e.currentTarget.style.color = "#fff"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "#141A24"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#9ca3af"; }}>
-                    <Icon size={18} />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">เมนู</h4>
-              <div className="flex flex-col gap-3">
-                {navLinks.map((link) => (
-                  <a key={link.href} href={link.href} className="text-sm text-gray-400 hover:text-white transition-colors">{link.label}</a>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">บริการของเรา</h4>
-              <div className="flex flex-col gap-3">
-                {serviceLinks.map((s) => (
-                  <a key={s} href="#knowledge" className="text-sm text-gray-400 hover:text-white transition-colors">{s}</a>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">ติดต่อเรา</h4>
-              <div className="flex flex-col gap-4">
-                <a href="https://lin.ee/O0nPl03" target="_blank" className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors"><MessageCircle size={16} className="text-[#06C755] flex-shrink-0 mt-0.5" /> LINE @displayworks</a>
-                <a href="tel:0659161539" className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors"><Phone size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> 065-916-1539</a>
-                <a href="mailto:info.displayworksmedia@gmail.com" className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors"><Mail size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> info.displayworksmedia@gmail.com</a>
-                <div className="flex items-start gap-3 text-sm text-gray-400"><MapPin size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> ให้บริการทั่วประเทศไทย</div>
-              </div>
-              <div className="mt-6 p-4 rounded-xl text-xs bg-[#141A24] border border-white/5 text-gray-400">
-                <div className="font-bold text-white mb-1.5">เวลาทำการ</div>
-                <div>จันทร์ – เสาร์: 9:00 – 18:00</div>
-                <div>ตอบ LINE ทุกวัน ตลอด 24 ชม.</div>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col md:flex-row justify-between items-center gap-3 pt-8 border-t border-white/5 text-xs text-gray-500">
-            <span>© {new Date().getFullYear()} Display Works Media. All Rights Reserved.</span>
-            <span>ออกแบบและพัฒนาโดยทีมงาน Display Works Media</span>
-          </div>
-        </div>
-      </footer>
+      <SharedServiceSections serviceKey="sticker" />
+      <GlobalFooter />
     </div>
   );
 }

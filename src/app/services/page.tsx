@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { CmsText } from "@/components/CmsSettingsProvider";
 import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -59,30 +60,34 @@ const services = [
 
 export default function ServicesHubPage() {
   return (
-    <main className="min-h-screen bg-[#050816] text-white" style={{ fontFamily: "'Prompt','Sarabun',sans-serif" }}>
+    <main className="brand-interior min-h-screen bg-[#070A0F] text-white" style={{ fontFamily: "'Prompt','Sarabun',sans-serif" }}>
       <Navbar />
 
-      <section className="px-6 pb-10 pt-[120px] lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="section-label w-fit rounded-full border border-[#FF7A00]/30 bg-[#FF7A00]/10 px-4 py-1.5">
-            บริการของเรา
-          </div>
-          <h1 className="mt-5 max-w-4xl font-kanit text-4xl font-extrabold leading-tight text-white lg:text-6xl">
-            บริการงานป้ายและงานพิมพ์สำหรับธุรกิจ
-          </h1>
-          <p className="mt-5 max-w-3xl text-base leading-relaxed text-[#A7B0C0] lg:text-lg">
-            เลือกประเภทงานที่ต้องการ ทีม Display Works Media ช่วยแนะนำวัสดุ ตรวจไฟล์ ประเมินราคา และดูแลการผลิตให้เหมาะกับการใช้งานจริง
-          </p>
+      <section className="brand-section px-5 pb-12 pt-[132px] sm:px-6 lg:px-8 lg:pb-16">
+        <div className="mx-auto max-w-[1380px]">
+          <CmsText path="services.eyebrow" fallback="OUR SERVICES" as="div" className="section-label w-fit" />
+          <CmsText
+            path="services.title"
+            fallback="บริการงานป้ายและงานพิมพ์สำหรับธุรกิจ"
+            as="h1"
+            className="mt-5 max-w-4xl font-kanit text-4xl font-extrabold leading-tight text-white lg:text-6xl"
+          />
+          <CmsText
+            path="services.subtitle"
+            fallback="เลือกประเภทงานที่ต้องการ ทีม Display Works Media ช่วยแนะนำวัสดุ ตรวจไฟล์ ประเมินราคา และดูแลการผลิตให้เหมาะกับการใช้งานจริง"
+            as="p"
+            className="mt-5 max-w-3xl text-base leading-relaxed text-[#A7B0C0] lg:text-lg"
+          />
         </div>
       </section>
 
-      <section className="px-6 pb-20 lg:px-8">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="px-5 pb-24 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-[1380px] grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((service) => (
             <Link
               key={service.title}
               href={service.href}
-              className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0B1220] transition-all hover:-translate-y-1 hover:border-[#FF7A00]/40"
+              className="group overflow-hidden rounded-lg border border-white/10 bg-[#10151D] transition-all hover:-translate-y-1 hover:border-[#FF6500]/40"
             >
               <div className="relative h-56 overflow-hidden bg-[#141A24]">
                 <Image
@@ -92,19 +97,19 @@ export default function ServicesHubPage() {
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1220] via-[#0B1220]/25 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#10151D] via-[#10151D]/25 to-transparent" />
                 {service.label && (
-                  <span className="absolute right-4 top-4 rounded-full bg-[#FF7A00] px-3 py-1 text-xs font-bold text-white">
+                  <span className="absolute right-4 top-4 rounded-sm bg-[#FF6500] px-3 py-1 text-xs font-bold text-white">
                     {service.label}
                   </span>
                 )}
               </div>
               <div className="p-6">
-                <h2 className="font-kanit text-xl font-bold text-white transition-colors group-hover:text-[#FF7A00]">
+                <h2 className="font-kanit text-xl font-bold text-white transition-colors group-hover:text-[#FF6500]">
                   {service.title}
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-[#A7B0C0]">{service.desc}</p>
-                <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-[#FF7A00]">
+                <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-[#FF6500]">
                   ดูรายละเอียด <ArrowRight size={15} />
                 </span>
               </div>
