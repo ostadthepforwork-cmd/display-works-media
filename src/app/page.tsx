@@ -14,7 +14,7 @@ async function getLatestPosts(): Promise<BlogPost[]> {
     const supabase = createClient(url, key);
     const query = supabase
       .from("posts")
-      .select("id, title, excerpt, category, date, slug, cover, published, body")
+      .select("id, title, excerpt, category, date, slug, cover, cover_alt, published, body")
       .eq("published", true)
       .order("date", { ascending: false })
       .limit(3);

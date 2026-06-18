@@ -88,12 +88,13 @@ export default async function BlogCategoryPage({ params }: PageProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {posts.map((post: any) => {
                   const cover = safeImageSrc(post.cover);
+                  const coverAlt = String(post.cover_alt || "").trim() || post.title;
                   return (
                   <article key={post.id} className="group bg-[#0E1310] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
                     <Link href={`/blog/${post.slug}`} className="block">
                       <div className="relative h-48 bg-[#141A24]">
                         {cover ? (
-                          <Image src={cover} alt={post.title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <Image src={cover} alt={coverAlt} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>
                         )}

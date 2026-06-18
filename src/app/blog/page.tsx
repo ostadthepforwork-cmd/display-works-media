@@ -63,6 +63,7 @@ export default async function BlogPage() {
   const regularPosts = allPosts.slice(1);
   const categories = ["ทั้งหมด", ...Array.from(new Set(allPosts.map((p) => p.category).filter(Boolean)))];
   const featuredCover = safeImageSrc(featuredPost?.cover);
+  const featuredCoverAlt = featuredPost?.cover_alt?.trim() || featuredPost?.title || "";
 
   return (
     <div className="brand-interior min-h-screen text-white bg-[#070A0F]" style={{ fontFamily: "'Prompt', sans-serif" }}>
@@ -135,7 +136,7 @@ export default async function BlogPage() {
                 {featuredCover ? (
                   <Image
                     src={featuredCover}
-                    alt={featuredPost.title}
+                    alt={featuredCoverAlt}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -172,6 +173,7 @@ export default async function BlogPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {regularPosts.map((post) => {
                 const cover = safeImageSrc(post.cover);
+                const coverAlt = post.cover_alt?.trim() || post.title;
                 return (
                 <article key={post.id} className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300 reveal-item">
                   <Link href={`/blog/${post.slug}`} className="block">
@@ -179,7 +181,7 @@ export default async function BlogPage() {
                       {cover ? (
                         <Image
                           src={cover}
-                          alt={post.title}
+                          alt={coverAlt}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-500"

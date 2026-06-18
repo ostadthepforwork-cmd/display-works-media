@@ -8,7 +8,7 @@ import { safeImageSrc } from "@/lib/image-utils";
 
 type Post = {
   id: string; title: string; excerpt: string; category: string;
-  date: string; slug: string; cover: string; published: boolean; body: string;
+  date: string; slug: string; cover: string; cover_alt?: string; published: boolean; body: string;
 };
 
 function fmtDateTH(dateStr: string) {
@@ -79,6 +79,7 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredPosts.map((post) => {
                 const cover = safeImageSrc(post.cover);
+                const coverAlt = post.cover_alt?.trim() || post.title;
                 return (
                 <article key={post.id} className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300">
                   <Link href={`/blog/${post.slug}`} className="block">
@@ -86,7 +87,7 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
                       {cover ? (
                         <Image
                           src={cover}
-                          alt={post.title}
+                          alt={coverAlt}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-500"

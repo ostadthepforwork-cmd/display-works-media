@@ -3616,7 +3616,7 @@ function BlogManager({ showToast }: any) {
 
     const postData = {
       title: p.title, excerpt: p.excerpt, category: p.category,
-      date: p.date, slug: p.slug, cover: p.cover,
+      date: p.date, slug: p.slug, cover: p.cover, cover_alt: p.cover_alt || "",
       published: p.published, body: p.body,
       seo_title: p.seo_title || "", meta_desc: p.meta_desc || "",
       focus_keyword: p.focus_keyword || "", author: p.author || "Display Works Media",
@@ -3680,7 +3680,7 @@ function BlogManager({ showToast }: any) {
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
-          <CBtn onClick={() => setEditing({ id: "", title: "", excerpt: "", category: "", date: new Date().toISOString().slice(0,10), slug: "", cover: "", published: true, body: "", seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media", last_updated: "", tags: "", ai_summary: "", key_takeaways: "", faqs: [], related_services: [] })} color="#FF6B00">+ เพิ่มบทความ</CBtn>
+          <CBtn onClick={() => setEditing({ id: "", title: "", excerpt: "", category: "", date: new Date().toISOString().slice(0,10), slug: "", cover: "", cover_alt: "", published: true, body: "", seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media", last_updated: "", tags: "", ai_summary: "", key_takeaways: "", faqs: [], related_services: [] })} color="#FF6B00">+ เพิ่มบทความ</CBtn>
         </div>
       </div>
 
@@ -3689,7 +3689,7 @@ function BlogManager({ showToast }: any) {
           <div key={p.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
             {/* Cover */}
             <div style={{ width: 80, height: 60, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#1A2233", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {p.cover ? <img src={p.cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 24 }}>📄</span>}
+              {p.cover ? <img src={p.cover} alt={p.cover_alt || p.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 24 }}>📄</span>}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
@@ -3722,7 +3722,7 @@ function BlogManager({ showToast }: any) {
 function BlogForm({ data, onSave, onCancel, showToast }: any) {
   const [f, setF] = useState({
     seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media",
-    last_updated: "", tags: "", ai_summary: "", key_takeaways: "",
+    last_updated: "", tags: "", ai_summary: "", key_takeaways: "", cover_alt: "",
     ...data,
     faqs: Array.isArray(data.faqs) ? data.faqs : [],
     related_services: Array.isArray(data.related_services) ? data.related_services : [],
@@ -3791,12 +3791,13 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
       { ok: Array.isArray(f.related_services) && f.related_services.length > 0, label: "มี Internal Links" },
       { ok: !!f.ai_summary, label: "มี AI Summary" },
       { ok: !!f.cover, label: "มีรูป Cover" },
+      { ok: !!f.cover_alt, label: "มี Alt Text รูป Cover" },
       { ok: !!f.excerpt, label: "มี Excerpt" },
       { ok: !!f.tags, label: "มี Tags" },
       { ok: !!f.author, label: "มี Author" },
     ];
     checks.forEach(c => { if (c.ok) score += 10; });
-    return { score, checks };
+    return { score: Math.min(score, 100), checks };
   })();
 
   const tabs = [
@@ -3851,6 +3852,10 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
                     {uploading ? "⏳ กำลังอัปโหลด..." : "📁 เลือกรูปภาพ"}
                   </button>
                   <input value={f.cover} onChange={set("cover")} placeholder="หรือวาง URL รูปภาพ" style={{ ...inputStyle, fontSize: 12 }} />
+                  <input value={f.cover_alt} onChange={set("cover_alt")} placeholder="Alt Text รูป Cover เช่น ป้ายไวนิลหน้าร้านอาหาร Display Works Media" style={{ ...inputStyle, fontSize: 12 }} />
+                  <div style={{ fontSize: 11, color: "#6B7280", lineHeight: 1.5 }}>
+                    ใช้อธิบายรูปให้ Google และผู้ใช้ที่ใช้ Screen Reader เห็นความหมายของภาพ
+                  </div>
                 </div>
               </div>
             </div>
@@ -4015,6 +4020,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
                   { label: "Slug", value: f.slug || "-" },
                   { label: "SEO Title", value: f.seo_title || <span style={{ color: "#ef4444" }}>ยังไม่กรอก</span> },
                   { label: "Meta Desc", value: f.meta_desc ? `${(f.meta_desc).slice(0, 50)}...` : <span style={{ color: "#ef4444" }}>ยังไม่กรอก</span> },
+                  { label: "Cover Alt", value: f.cover_alt || <span style={{ color: "#f59e0b" }}>ยังไม่กรอก</span> },
                   { label: "Focus KW", value: f.focus_keyword || <span style={{ color: "#f59e0b" }}>ยังไม่กรอก</span> },
                   { label: "FAQ", value: `${Array.isArray(f.faqs) ? f.faqs.length : 0} ข้อ` },
                   { label: "SEO Score", value: `${seoScore.score}/100` },

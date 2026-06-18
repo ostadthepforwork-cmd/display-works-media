@@ -15,6 +15,7 @@ export interface BlogPost {
   date: string;
   slug: string;
   cover?: string;
+  cover_alt?: string;
   published?: boolean;
   body: string;
 }
@@ -52,7 +53,7 @@ export default function BlogSection({ initialPosts = [] }: { initialPosts?: Blog
     async function fetchPosts() {
       const { data } = await supabase
         .from("posts")
-        .select("id, title, excerpt, category, date, slug, cover, published, body")
+        .select("id, title, excerpt, category, date, slug, cover, cover_alt, published, body")
         .eq("published", true)
         .order("date", { ascending: false })
         .limit(3);
@@ -86,6 +87,7 @@ export default function BlogSection({ initialPosts = [] }: { initialPosts?: Blog
               ))
             : posts.map((post, index) => {
                 const cover = safeImageSrc(post.cover);
+                const coverAlt = post.cover_alt?.trim() || post.title;
                 return (
                   <Link
                     key={post.id}
@@ -96,7 +98,7 @@ export default function BlogSection({ initialPosts = [] }: { initialPosts?: Blog
                       {cover ? (
                         <Image
                           src={cover}
-                          alt={post.title}
+                          alt={coverAlt}
                           fill
                           sizes="(max-width: 768px) 100vw, 33vw"
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
