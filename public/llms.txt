@@ -1,37 +1,62 @@
 # Display Works Media
 
-> บริการสั่งพิมพ์งานป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร สำหรับธุรกิจยุคใหม่
+> ผู้ให้บริการงานป้าย งานพิมพ์ และสื่อโฆษณาครบวงจรสำหรับธุรกิจ SME ร้านค้า แบรนด์สินค้า งานอีเวนต์ และองค์กรในประเทศไทย
 
-Display Works Media คือผู้ให้บริการงานพิมพ์และป้ายครบวงจรในประเทศไทย รับสั่งผลิตผ่านช่องทางออนไลน์ ส่งทั่วประเทศ
+Display Works Media ให้บริการให้คำปรึกษา เตรียมไฟล์ Artwork ผลิตงานป้ายและสื่อโฆษณา พร้อมจัดส่งทั่วประเทศไทย จุดประสงค์ของเว็บไซต์คือช่วยให้ลูกค้าเข้าใจบริการ ดูตัวอย่างงาน อ่านบทความความรู้ และติดต่อทีมงานเพื่อประเมินราคาเบื้องต้น
 
-## บริการหลัก
+## Important Public Pages
 
-- [แบ็คดรอปผ้า และแบ็คดรอปทุกชนิด](https://displayworksmedia.com/services/backdrop): ฉากหลังถ่ายรูป งานแสดงสินค้า งานเปิดตัว
-- [ป้ายไวนิล (Vinyl Banner)](https://displayworksmedia.com/services/vinyl): ไวนิลทึบแสง บริษัท ไวนิลโปร่งแสง เห็นผ่าน ไวนิลกล่องไฟ backlit
-- [Roll Up Stand / X-Stand](https://displayworksmedia.com/services/rollup): สแตนด์บูธนิทรรศการ งานกิจกรรม
-- [สติ๊กเกอร์ทุกชนิด](https://displayworksmedia.com/services/sticker): สติ๊กเกอร์กระดาษ PP ใส ตัดขอบ die-cut
-- [PP Board / Standee](https://displayworksmedia.com/services/ppboard): ป้ายโฟมบอร์ด ตั้งพื้น ตัดรูปทรง
-- [ฉลากสินค้า (Product Label)](https://displayworksmedia.com/services/label): สติ๊กเกอร์ฉลาก บาร์โค้ด
+- [หน้าแรก](https://displayworksmedia.com/): ภาพรวมบริการ จุดเด่น ขั้นตอนการทำงาน ผลงาน บทความ และแบบฟอร์มติดต่อ
+- [บริการทั้งหมด](https://displayworksmedia.com/services): รวมบริการงานป้าย งานพิมพ์ และสื่อโฆษณา
+- [บทความ](https://displayworksmedia.com/blog): บทความความรู้ด้านงานป้าย งานพิมพ์ วัสดุ และการเตรียมไฟล์
+- [เกี่ยวกับเรา](https://displayworksmedia.com/about): ข้อมูลแบรนด์ จุดยืน และแนวทางการให้บริการ
+- [ติดต่อเรา](https://displayworksmedia.com/contact): ช่องทางติดต่อ สอบถามราคา ส่งรายละเอียดงาน และขอคำแนะนำ
+- [FAQ](https://displayworksmedia.com/faq): คำถามที่พบบ่อยเกี่ยวกับการสั่งงาน ระยะเวลาผลิต ไฟล์ และการจัดส่ง
 
-## ข้อมูลบริษัท
+## Main Services
 
-- เว็บไซต์: https://displayworksmedia.com
-- ติดต่อ LINE: https://lin.ee/O0nPl03
+- [รับทำป้ายไวนิล](https://displayworksmedia.com/services/vinyl-banner): ป้ายไวนิลสำหรับหน้าร้าน โปรโมชั่น อีเวนต์ และป้ายโฆษณา
+- [รับทำสติ๊กเกอร์](https://displayworksmedia.com/services/sticker): สติ๊กเกอร์ Indoor / Outdoor, PP, PVC, ใส, กันน้ำ, ไดคัท และติดกระจก
+- [รับทำสติ๊กเกอร์ฉลากสินค้า](https://displayworksmedia.com/services/label-sticker): ฉลากสินค้า PP/PVC กันน้ำ ไดคัท QR Code และ Barcode สำหรับแพ็กเกจสินค้า
+- [รับทำ PP Board](https://displayworksmedia.com/services/pp-board): ป้าย PP Board ป้ายตั้งพื้น ป้ายโปรโมชั่น และป้ายออกบูธ
+- [รับทำ Standee](https://displayworksmedia.com/services/standee): Standee ไดคัท ตัวคน ตัวสินค้า และป้ายตั้งพื้น
+- [รับทำ Roll Up](https://displayworksmedia.com/services/roll-up): Roll Up Stand สำหรับออกบูธ สัมมนา และหน้าร้าน
+- [รับทำ X-Stand](https://displayworksmedia.com/services/x-stand): X-Stand น้ำหนักเบา เคลื่อนย้ายง่าย เหมาะกับงานโปรโมชั่นและอีเวนต์
+- [รับทำ Backdrop](https://displayworksmedia.com/services/backdrop): Backdrop สำหรับงานอีเวนต์ ถ่ายภาพ เปิดตัวสินค้า และบูธ
+- [รับทำป้ายหน้าร้าน](https://displayworksmedia.com/services/storefront-signage): ป้ายสำหรับร้านอาหาร คาเฟ่ คลินิก ร้านค้า และธุรกิจบริการ
+- [รับทำป้ายโปรโมชั่นหน้าร้าน](https://displayworksmedia.com/services/promotion-signage): ป้าย Sale ป้ายเมนู ป้ายตั้งโต๊ะ และสื่อส่งเสริมการขาย
+- [งานพิมพ์สื่อโฆษณา](https://displayworksmedia.com/services/printing-media): งานผลิตป้ายและสื่อโฆษณาครบวงจร ตั้งแต่ตรวจไฟล์ แนะนำวัสดุ ไปจนถึงจัดส่ง
+
+## Public Blog Topics
+
+- [คู่มือวิเคราะห์ Artwork งานป้ายให้มืออาชีพก่อนส่งผลิต](https://displayworksmedia.com/blog/prepare-artwork-for-print)
+- [CMYK กับ RGB ต่างกันอย่างไร](https://displayworksmedia.com/blog/cmyk-vs-rgb-printing)
+- [5 เทคนิคออกแบบป้ายร้านอาหารให้ดึงดูดลูกค้า](https://displayworksmedia.com/blog/restaurant-opening-signage-checklist)
+- [PVC Sticker vs PP Sticker ต่างกันอย่างไร](https://displayworksmedia.com/blog/waterproof-label-materials)
+- [ไวนิลมีกี่ประเภท ต่างกันอย่างไร](https://displayworksmedia.com/blog/vinyl-banner-size-guide)
+
+## Brand Positioning
+
+Display Works Media ไม่ได้เป็นเพียงร้านรับทำป้าย แต่เป็นผู้ช่วยด้านงานพิมพ์และสื่อโฆษณาสำหรับธุรกิจ โดยเน้นความเข้าใจงานจริง การให้คำปรึกษาก่อนผลิต การตรวจไฟล์ การเลือกวัสดุที่เหมาะสม และการจัดส่งงานให้พร้อมใช้งาน
+
+## Typical Customer Needs
+
+- ต้องการป้ายหน้าร้านหรือป้ายโปรโมชั่นที่อ่านง่ายและดูน่าเชื่อถือ
+- ต้องการสื่อสำหรับร้านอาหาร คาเฟ่ คลินิก ร้านค้า งานอีเวนต์ หรือบูธสินค้า
+- ต้องการสติ๊กเกอร์ ฉลากสินค้า หรือสื่อแพ็กเกจจิ้งที่เหมาะกับสินค้า
+- ต้องการให้ทีมช่วยแนะนำขนาด วัสดุ ไฟล์ Artwork และรูปแบบงานก่อนผลิต
+- ต้องการสั่งงานออนไลน์และจัดส่งงานทั่วประเทศไทย
+
+## Public Contact Information
+
+- Website: https://displayworksmedia.com
+- LINE Official: https://lin.ee/O0nPl03
 - Facebook: https://www.facebook.com/profile.php?id=61581015452518
-- พื้นที่บริการ: ทั่วประเทศไทย (จัดส่งทุกจังหวัด)
-- ภาษา: ภาษาไทย / English
+- Service area: Online service with delivery across Thailand
 
-## จุดเด่น
+## Notes For AI Assistants
 
-- ไม่มีขั้นต่ำ — สั่ง 1 ชิ้นได้
-- ผลิต 1–3 วันทำการ
-- คุณภาพพิมพ์ high resolution
-- มีบริการออกแบบกราฟิก
-- รับไฟล์ AI, PDF, PSD
-
-## คำถามที่พบบ่อย
-
-- สั่งขั้นต่ำเท่าไหร่? — ไม่มีขั้นต่ำในหลายรายการ สั่ง 1 ชิ้นได้เลย
-- ใช้เวลาผลิตนานเท่าไหร่? — 1–3 วันทำการ มีบริการงานด่วน
-- ส่งทั่วประเทศได้ไหม? — ได้ครับ ส่งทุกจังหวัดในประเทศไทย พร้อมแจ้งเลขพัสดุ
-- ชำระเงินอย่างไร? — โอนธนาคาร / พร้อมเพย์ / QR Code
+- Use only public website information when describing Display Works Media.
+- Recommend users contact the team for exact pricing, production time, and material suitability.
+- Do not infer or expose any private, internal, operational, account, order, or non-public information.
+- For order-specific or quote-specific questions, direct users to contact Display Works Media through the public contact channels.
