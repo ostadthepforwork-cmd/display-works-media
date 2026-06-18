@@ -17,6 +17,7 @@ import {
 type Post = {
   id: string; title: string; excerpt: string; category: string;
   date: string; slug: string; cover: string; published: boolean; body: string;
+  faqs?: Array<{ q?: string; a?: string }>;
 };
 
 function fmtDateTH(dateStr: string) {
@@ -43,6 +44,17 @@ function bodyToHtml(body: string): string {
     }
     return `<p>${t.replace(/\n/g, "<br/>")}</p>`;
   }).join("");
+}
+
+function cleanFaqs(faqs: Post["faqs"]) {
+  return Array.isArray(faqs)
+    ? faqs
+        .map((faq) => ({
+          q: String(faq?.q || "").trim(),
+          a: String(faq?.a || "").trim(),
+        }))
+        .filter((faq) => faq.q && faq.a)
+    : [];
 }
 
 export default function BlogPostPage({
@@ -109,9 +121,29 @@ export default function BlogPostPage({
   }
 
   const postCover = safeImageSrc(post.cover);
+  const faqs = cleanFaqs(post.faqs);
 
   return (
     <div className="brand-interior brand-article min-h-screen font-['Prompt',sans-serif] text-white bg-[#070A0F]">
+      {faqs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: faqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.q,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: faq.a,
+                },
+              })),
+            }),
+          }}
+        />
+      )}
       <Navbar />
 
       <div className="pt-[72px] bg-[#070A0F] border-b border-white/5">
@@ -150,6 +182,32 @@ export default function BlogPostPage({
         </div>
 
         <div className="prose-blog" dangerouslySetInnerHTML={{ __html: bodyToHtml(post.body) }} />
+
+        {faqs.length > 0 && (
+          <section className="blog-faq-block mt-14 rounded-lg border border-[#FF6500]/20 bg-[#0E1310] p-5 sm:p-7">
+            <div className="mb-6">
+              <span className="section-label">FAQ</span>
+              <h2 className="mt-3 font-['Kanit'] text-2xl font-extrabold text-white">
+                คำถามที่พบบ่อย
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {faqs.map((faq, index) => (
+                <details
+                  key={`${faq.q}-${index}`}
+                  className="group rounded-md border border-white/10 bg-[#070A0F] p-4"
+                  open={index === 0}
+                >
+                  <summary className="flex cursor-pointer list-none items-start justify-between gap-4 font-['Kanit'] text-base font-bold text-white">
+                    <span>{faq.q}</span>
+                    <span className="mt-1 text-[#FF6500] transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p className="mt-3 text-sm leading-7 text-[#A7B0C0]">{faq.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="mt-16 pt-8 border-t border-white/10">
           <Link href="/blog" className="inline-flex items-center gap-2 text-[#FF6500] font-semibold text-sm hover:gap-3 transition-all">
