@@ -387,9 +387,9 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       <!-- Brand + address left -->
       <div>
         <!-- Logo Image -->
-        <div style="width:178px;height:62px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#fff;margin-bottom:8px;">
+        <div style="width:178px;height:62px;display:flex;align-items:center;justify-content:flex-start;background:#fff;margin-bottom:8px;">
           <img src="${logoUrl}" alt="Display Works Media"
-               style="width:178px;height:62px;object-fit:cover;object-position:center 56%;display:block;"
+               style="max-width:178px;max-height:62px;width:auto;height:auto;object-fit:contain;object-position:left center;display:block;"
                onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';">
           <!-- Fallback if image not found -->
           <div id="logoFallback" style="display:none;align-items:center;gap:8px;">
@@ -612,8 +612,25 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
 </body>
 </html>`;
 
+  const printReadyScript = `<script>
+    async function waitForDocumentAssets(){
+      try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(e) {}
+      var images = Array.prototype.slice.call(document.images || []);
+      await Promise.all(images.map(function(img){
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        if (img.decode) return img.decode().catch(function(){});
+        return new Promise(function(resolve){
+          img.addEventListener("load", resolve, { once: true });
+          img.addEventListener("error", resolve, { once: true });
+        });
+      }));
+    }
+    window.addEventListener("load", function(){
+      waitForDocumentAssets().then(function(){ setTimeout(function(){ window.print(); }, 250); });
+    });
+  </script>`;
   const htmlToOpen = autoPrint
-    ? html.replace("</body>", `<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},700);});</script></body>`)
+    ? html.replace("</body>", `${printReadyScript}</body>`)
     : html;
   const blob = new Blob([htmlToOpen], { type: "text/html;charset=utf-8" });
   const blobUrl = URL.createObjectURL(blob);

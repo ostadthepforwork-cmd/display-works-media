@@ -277,7 +277,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
           <header className="doc-head">
             <div>
               <div className="doc-brand">
-                <img src="/images/logo%20DWM%20PNG%20long.png" alt="Display Works Media" />
+                <img src="/images/logo.png?v=doc-logo" alt="Display Works Media" />
               </div>
               <div className="doc-company-name">{companyName}</div>
               <div className="doc-company-meta">
@@ -386,12 +386,19 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
           <section className="doc-signatures">
             <div className="doc-signature">
               <div>PREPARED BY</div>
-              <div className="doc-sign-line" />
+              <div className="doc-sign-space">
+                {company?.signature_image ? (
+                  <img src={company.signature_image} alt="ลายเซ็นผู้เสนอราคา" />
+                ) : null}
+                <div className="doc-sign-line" />
+              </div>
               <div>( {doc.salesPerson || "ผู้เสนอราคา"} )</div>
             </div>
             <div className="doc-signature">
               <div>AUTHORIZED BY</div>
-              <div className="doc-sign-line" />
+              <div className="doc-sign-space">
+                <div className="doc-sign-line" />
+              </div>
               <div>( ผู้อนุมัติสั่งซื้อ )</div>
             </div>
           </section>

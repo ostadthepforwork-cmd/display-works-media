@@ -112,15 +112,17 @@ body {
 .doc-brand {
   display: flex;
   align-items: center;
-  width: 220px;
-  height: 56px;
-  overflow: hidden;
+  justify-content: flex-start;
+  width: 178px;
+  height: 62px;
   background: #fff;
 }
 
 .doc-brand img {
-  width: 220px;
-  height: 56px;
+  max-width: 178px;
+  max-height: 62px;
+  width: auto;
+  height: auto;
   object-fit: contain;
   object-position: left center;
   display: block;
@@ -419,10 +421,28 @@ body {
   font-weight: 600;
 }
 
-.doc-sign-line {
-  height: 36px;
-  border-bottom: 1px solid #cbd5e1;
+.doc-sign-space {
+  position: relative;
+  height: 42px;
   margin-bottom: 8px;
+}
+
+.doc-sign-space img {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  max-width: 120px;
+  max-height: 36px;
+  object-fit: contain;
+  transform: translateX(-50%);
+}
+
+.doc-sign-line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 0;
+  border-bottom: 1px solid #cbd5e1;
 }
 
 /* ─── FOOTER ─────────────────────────────────────────────────────────────── */

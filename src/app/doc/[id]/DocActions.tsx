@@ -8,6 +8,27 @@ type DocActionsProps = {
 };
 
 export default function DocActions({ title, autoPrint = false }: DocActionsProps) {
+  async function waitForDocumentAssets() {
+    try {
+      if (document.fonts?.ready) await document.fonts.ready;
+    } catch {}
+
+    const images = Array.from(document.images || []);
+    await Promise.all(images.map((img) => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      if (img.decode) return img.decode().catch(() => {});
+      return new Promise<void>((resolve) => {
+        img.addEventListener("load", () => resolve(), { once: true });
+        img.addEventListener("error", () => resolve(), { once: true });
+      });
+    }));
+  }
+
+  async function printDocument() {
+    await waitForDocumentAssets();
+    window.setTimeout(() => window.print(), 150);
+  }
+
   useEffect(() => {
     // คำนวณ scale ให้ A4 พอดีจอมือถือ
     function updateScale() {
@@ -30,7 +51,9 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
 
   useEffect(() => {
     if (!autoPrint) return;
-    const timer = window.setTimeout(() => window.print(), 700);
+    const timer = window.setTimeout(() => {
+      void printDocument();
+    }, 300);
     return () => window.clearTimeout(timer);
   }, [autoPrint]);
 
@@ -57,7 +80,7 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
       </div>
       <div className="doc-toolbar-actions">
         <button type="button" onClick={shareLink}>แชร์ลิงก์</button>
-        <button type="button" className="primary" onClick={() => window.print()}>ดาวน์โหลด PDF</button>
+        <button type="button" className="primary" onClick={() => void printDocument()}>ดาวน์โหลด PDF</button>
       </div>
     </div>
   );
