@@ -102,8 +102,16 @@ const itemBillingBasis = (item: any) =>
     ? "sqm"
     : "piece";
 const lineQty = (item: any) => Number(item.qty || 0);
-const lineAmount = (item: any) => lineQty(item) * Number(item.price || 0);
-const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) => lineQty(item) * Number(unitCost || 0);
+const hasAreaDimensions = (item: any) =>
+  Number(item?.widthM || 0) > 0 || Number(item?.heightM || 0) > 0 || Number(item?.pieces || 0) > 0;
+const lineQtyForBasis = (item: any, basis?: string) => {
+  if (isSqmBasis(basis)) return lineQty(item);
+  const pieces = Number(item?.pieces || 0);
+  return itemBillingBasis(item) === "sqm" && hasAreaDimensions(item) ? (pieces > 0 ? pieces : 1) : lineQty(item);
+};
+const lineAmount = (item: any) => lineQtyForBasis(item, item?.priceUnit || "piece") * Number(item.price || 0);
+const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) =>
+  lineQtyForBasis(item, item?.costUnit || "piece") * Number(unitCost || 0);
 const isShippingItem = (item: any) =>
   /ems|shipping|delivery|ขนส่ง|จัดส่ง|ค่าส่ง|ส่งของ|พัสดุ/i.test(String(item?.name || ""));
 const fallbackItemCost = (products: any[], item: any) => {
@@ -3153,6 +3161,8 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
               const heightM = Number(item.heightM || 0);
               const pieces = Number(item.pieces || 0);
               const area = widthM * heightM * pieces;
+              const costCalcQty = lineQtyForBasis(item, item.costUnit || "piece");
+              const priceCalcQty = lineQtyForBasis(item, item.priceUnit || "piece");
               return (
                 <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -3205,6 +3215,10 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
                   <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#555" }}>THB</span>
                 </div>
               </Field>
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 14, fontSize: 12, fontWeight: 600, color: "#8B95A7", flexWrap: "wrap" }}>
+              <span>จำนวนคิดต้นทุน: {fmtMoney(costCalcQty)} {isSqmBasis(item.costUnit) ? "ตร.ม." : "ชิ้น"}</span>
+              <span>จำนวนคิดขาย: {fmtMoney(priceCalcQty)} {isSqmBasis(item.priceUnit) ? "ตร.ม." : "ชิ้น"}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 14, fontSize: 13, fontWeight: 700 }}>
               {(item.supplierName || findProductForItem(products, item)?.supplierName) && (
