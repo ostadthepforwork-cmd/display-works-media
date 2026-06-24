@@ -4367,15 +4367,69 @@ function ReviewsManager({ showToast }: any) {
 // ============================================================
 // PORTFOLIO MANAGER
 // ============================================================
+const defaultPortfolioItems = [
+  {
+    id: "default-work-01",
+    title: "ป้ายไวนิลหน้าร้านอาหาร",
+    category: "ป้ายไวนิล",
+    meta: "ช่วยให้เมนูและโปรโมชันอ่านง่ายจากหน้าร้าน",
+    alt: "ป้ายไวนิลหน้าร้านอาหาร Display Works Media",
+    href: "/portfolio",
+    image: "/images/portfolio/work-01.webp",
+    img: "/images/portfolio/work-01.webp",
+  },
+  {
+    id: "default-work-02",
+    title: "บูธและสื่อแสดงสินค้า",
+    category: "Backdrop",
+    meta: "รวมสื่อหลายชิ้นให้แบรนด์ดูพร้อมในงานอีเวนต์",
+    alt: "บูธและสื่อแสดงสินค้า Display Works Media",
+    href: "/portfolio",
+    image: "/images/portfolio/work-02.webp",
+    img: "/images/portfolio/work-02.webp",
+  },
+  {
+    id: "default-work-03",
+    title: "ฉลากสินค้า",
+    category: "ฉลากสินค้า",
+    meta: "เพิ่มความน่าเชื่อถือให้แพ็กเกจสินค้า",
+    alt: "ฉลากสินค้า Display Works Media",
+    href: "/portfolio",
+    image: "/images/portfolio/work-06.webp",
+    img: "/images/portfolio/work-06.webp",
+  },
+  {
+    id: "default-work-04",
+    title: "Backdrop งานอีเวนต์",
+    category: "Backdrop",
+    meta: "สร้างจุดถ่ายภาพและพื้นที่แบรนด์ที่ชัดเจน",
+    alt: "Backdrop งานอีเวนต์ Display Works Media",
+    href: "/portfolio",
+    image: "/images/portfolio/work-03.webp",
+    img: "/images/portfolio/work-03.webp",
+  },
+  {
+    id: "default-work-05",
+    title: "งานพิมพ์แคมเปญ",
+    category: "สื่อโฆษณา",
+    meta: "สื่อโปรโมชันที่ช่วยให้ข้อเสนอเห็นชัดขึ้น",
+    alt: "งานพิมพ์แคมเปญ Display Works Media",
+    href: "/portfolio",
+    image: "/images/portfolio/work-05.webp",
+    img: "/images/portfolio/work-05.webp",
+  },
+];
+
 function PortfolioManager({ showToast }: any) {
-  const [items, setItems] = useState(() => loadLocal("portfolio", []));
+  const [items, setItems] = useState(() => loadLocal("portfolio", defaultPortfolioItems));
   const [editing, setEditing] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     let alive = true;
     loadCmsSetting("portfolio", items).then((value) => {
-      if (alive) setItems(value);
+      const nextItems = Array.isArray(value) && value.length > 0 ? value : defaultPortfolioItems;
+      if (alive) setItems(nextItems);
     });
     return () => { alive = false; };
   }, []);
@@ -4397,8 +4451,18 @@ function PortfolioManager({ showToast }: any) {
     setUploading(false);
   };
 
+  const normalizeItem = (item: any) => ({
+    ...item,
+    image: item.image || item.img || "",
+    img: item.img || item.image || "",
+    meta: item.meta || item.desc || item.category || "",
+    alt: item.alt || item.altText || item.title || "",
+    href: item.href || item.url || "",
+  });
+
   const save = async (item) => {
-    const ni = item.id ? items.map(x => x.id === item.id ? item : x) : [...items, { ...item, id: Date.now().toString() }];
+    const normalized = normalizeItem(item);
+    const ni = normalized.id ? items.map(x => x.id === normalized.id ? normalized : x) : [...items, { ...normalized, id: Date.now().toString() }];
     setItems(ni);
     try {
       await saveCmsSetting("portfolio", ni);
@@ -4424,19 +4488,20 @@ function PortfolioManager({ showToast }: any) {
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700 }}>จัดการผลงาน</h2>
-        <CBtn onClick={() => setEditing({ id: "", title: "", category: "", img: "" })} color="#FF6B00">+ เพิ่มผลงาน</CBtn>
+        <CBtn onClick={() => setEditing({ id: "", title: "", category: "", meta: "", alt: "", href: "", image: "", img: "" })} color="#FF6B00">+ เพิ่มผลงาน</CBtn>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
         {items.map(item => (
           <div key={item.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
             <div style={{ height: 140, background: "#1A2233", position: "relative" }}>
-              {item.img ? <img src={item.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: 36 }}>🖼</div>}
+              {(item.image || item.img) ? <img src={item.image || item.img} alt={item.alt || item.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: 36 }}>🖼</div>}
             </div>
             <div style={{ padding: "12px 14px" }}>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{item.title || "ไม่มีชื่อ"}</div>
-              <div style={{ fontSize: 11, color: "#555", marginBottom: 10 }}>{item.category}</div>
+              <div style={{ fontSize: 11, color: "#555", marginBottom: 6 }}>{item.category}</div>
+              <div style={{ fontSize: 11, color: "#7B8496", marginBottom: 10, lineHeight: 1.5 }}>{item.meta}</div>
               <div style={{ display: "flex", gap: 6 }}>
-                <CIconBtn onClick={() => setEditing({ ...item })} small>✏️</CIconBtn>
+                <CIconBtn onClick={() => setEditing(normalizeItem(item))} small>✏️</CIconBtn>
                 <CIconBtn onClick={() => del(item.id)} danger small>🗑️</CIconBtn>
               </div>
             </div>
@@ -4451,16 +4516,25 @@ function PortfolioManager({ showToast }: any) {
             <CField label="รูปภาพผลงาน">
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <div style={{ width: 120, height: 80, borderRadius: 8, overflow: "hidden", background: "#1A2233", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {editing.img ? <img src={editing.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 24, opacity: 0.4 }}>🖼</span>}
+                  {(editing.image || editing.img) ? <img src={editing.image || editing.img} alt={editing.alt || editing.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 24, opacity: 0.4 }}>🖼</span>}
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                  <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadImg(e.target.files?.[0], url => setEditing(p => ({ ...p, img: url })))} />
+                  <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadImg(e.target.files?.[0], url => setEditing(p => ({ ...p, image: url, img: url })))} />
                   <CBtn onClick={() => fileRef.current?.click()} color="#3B82F6" small disabled={uploading}>{uploading ? "⏳..." : "📁 เลือกรูป"}</CBtn>
-                  <input value={editing.img} onChange={e => setEditing(p => ({ ...p, img: e.target.value }))} placeholder="หรือวาง URL" />
+                  <input value={editing.image || editing.img} onChange={e => setEditing(p => ({ ...p, image: e.target.value, img: e.target.value }))} placeholder="หรือวาง URL" />
                 </div>
               </div>
             </CField>
             <CField label="ชื่อผลงาน"><input value={editing.title} onChange={e => setEditing(p => ({ ...p, title: e.target.value }))} /></CField>
+            <CField label="คำอธิบายผลงาน">
+              <textarea value={editing.meta || ""} onChange={e => setEditing(p => ({ ...p, meta: e.target.value }))} rows={3} placeholder="เช่น ป้ายไวนิลหน้าร้านอาหาร ขนาด 4 x 2 เมตร ช่วยให้โปรโมชันอ่านชัดจากระยะหน้าร้าน" />
+            </CField>
+            <CField label="Alt Text รูปภาพ">
+              <input value={editing.alt || ""} onChange={e => setEditing(p => ({ ...p, alt: e.target.value }))} placeholder="คำอธิบายรูปสำหรับ SEO และการเข้าถึง" />
+            </CField>
+            <CField label="ลิงก์เมื่อคลิก (ไม่บังคับ)">
+              <input value={editing.href || ""} onChange={e => setEditing(p => ({ ...p, href: e.target.value }))} placeholder="/portfolio หรือ /services/vinyl-banner" />
+            </CField>
             <CField label="หมวดหมู่">
               <input value={editing.category} onChange={e => setEditing(p => ({ ...p, category: e.target.value }))} list="cat-port" placeholder="เช่น ป้ายไวนิล" />
               <datalist id="cat-port">{["ป้ายไวนิล","สติ๊กเกอร์","Roll Up","Backdrop","PP Board","ฉลากสินค้า"].map(c => <option key={c} value={c} />)}</datalist>

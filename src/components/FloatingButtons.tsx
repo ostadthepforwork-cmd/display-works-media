@@ -89,28 +89,28 @@ export default function FloatingButtons() {
             backdropFilter: "blur(20px)",
           }}
         >
-          {/* LINE */}
+          {/* Quote */}
+          <a
+            href="#quote"
+            className="flex flex-col items-center justify-center gap-1 py-4 text-white transition-colors hover:bg-white/5"
+          >
+            <FileText size={20} style={{ color: "#FF6500" }} />
+            <span className="text-xs font-medium">ขอราคา</span>
+          </a>
+
+          {/* LINE — primary mobile action */}
           <a
             href="https://lin.ee/O0nPl03"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center gap-1 py-4 transition-colors hover:bg-white/5"
-          >
-            <MessageCircle size={20} style={{ color: "#06C755" }} />
-            <span className="text-xs text-white font-medium">LINE</span>
-          </a>
-
-          {/* ขอใบเสนอราคา — center primary CTA */}
-          <a
-            href="#quote"
             className="flex flex-col items-center justify-center gap-1 py-4 text-white font-bold text-sm transition-all duration-200 active:scale-95"
             style={{
-            background: "#FF6500",
-            boxShadow: "0 0 30px rgba(255,101,0,0.3)",
+            background: "#06C755",
+            boxShadow: "0 0 30px rgba(6,199,85,0.28)",
             }}
           >
-            <FileText size={20} />
-            <span className="text-xs font-semibold">ขอประเมินราคา</span>
+            <MessageCircle size={20} />
+            <span className="text-xs font-semibold">LINE</span>
           </a>
 
           {/* โทร */}

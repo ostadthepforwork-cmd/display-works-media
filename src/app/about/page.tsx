@@ -11,19 +11,19 @@ import SchemaOrg from "@/components/SchemaOrg";
 export const metadata: Metadata = {
   title: "เกี่ยวกับเรา | Display Works Media",
   description:
-    "Display Works Media ผู้เชี่ยวชาญด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขายครบวงจร ให้คำปรึกษา ออกแบบ ผลิต และจัดส่งทั่วประเทศไทย",
+    "Display Works Media ผู้ช่วยด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขายครบวงจร ให้คำปรึกษา ตรวจไฟล์ แนะนำวัสดุ ประสานการผลิต และจัดส่งทั่วประเทศไทย",
   alternates: { canonical: "https://displayworksmedia.com/about" },
   openGraph: {
     title: "เกี่ยวกับเรา | Display Works Media",
     description:
-      "ผู้เชี่ยวชาญด้านงานพิมพ์และสื่อโฆษณาครบวงจรสำหรับธุรกิจ ร้านค้า SME และองค์กร",
+      "Marketing Production Partner สำหรับงานป้าย งานพิมพ์ และสื่อโฆษณาของธุรกิจ",
     url: "https://displayworksmedia.com/about",
   },
 };
 
 const trustHighlights = [
   "ปรึกษาและประเมินราคาฟรี",
-  "ผลิตรวดเร็ว จัดส่งทั่วประเทศ",
+  "ประสานงานรวดเร็ว จัดส่งทั่วประเทศ",
   "ดูแลตั้งแต่ไอเดียจนถึงงานพร้อมใช้งาน",
 ];
 
@@ -31,12 +31,12 @@ const proofCards = [
   {
     icon: Images,
     title: "งานหลากหลายประเภท",
-    desc: "ดูแลทั้งป้ายไวนิล สติ๊กเกอร์ ฉลากสินค้า PP Board Roll Up Backdrop และสื่อสำหรับงานอีเวนต์",
+    desc: "ช่วยดูแลทั้งป้ายไวนิล สติ๊กเกอร์ ฉลากสินค้า PP Board Roll Up Backdrop และสื่อสำหรับงานอีเวนต์",
   },
   {
     icon: PackageCheck,
-    title: "ตรวจความพร้อมก่อนผลิต",
-    desc: "ช่วยเช็กไฟล์ ขนาด วัสดุ และรายละเอียดสำคัญ เพื่อให้งานออกมาตรงกับการใช้งานจริง",
+    title: "ตรวจความพร้อมก่อนส่งผลิต",
+    desc: "ช่วยเช็กไฟล์ ขนาด วัสดุ และรายละเอียดสำคัญ เพื่อลดความเสี่ยงงานผิดขนาด ผิดวัสดุ หรือไฟล์ไม่พร้อม",
   },
   {
     icon: Truck,
@@ -53,7 +53,7 @@ export default function AboutPage() {
     url: "https://displayworksmedia.com/about",
     name: "เกี่ยวกับเรา | Display Works Media",
     description:
-      "Display Works Media คือผู้ให้บริการด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขายครบวงจร สำหรับธุรกิจ ร้านค้า SME และองค์กร",
+      "Display Works Media คือ Marketing Production Partner ด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขาย สำหรับธุรกิจ ร้านค้า SME และองค์กร",
     isPartOf: { "@id": "https://displayworksmedia.com/#website" },
     about: { "@id": "https://displayworksmedia.com/#business" },
   };
@@ -74,26 +74,26 @@ export default function AboutPage() {
               <CmsText path="about.eyebrow" fallback="เกี่ยวกับเรา" as="div" className="section-label" />
               <CmsText
                 path="about.title"
-                fallback="ผู้เชี่ยวชาญด้านงานพิมพ์และสื่อโฆษณาครบวงจร"
+                fallback="ผู้ช่วยเปลี่ยนไอเดียธุรกิจให้เป็นสื่อโฆษณาที่พร้อมใช้งานจริง"
                 as="h1"
                 className="font-['Kanit'] text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl"
               />
               <CmsText
                 path="about.subtitle"
-                fallback="ให้คำปรึกษา ออกแบบ ผลิต และจัดส่งสื่อโฆษณาคุณภาพ เพื่อช่วยให้ธุรกิจของคุณโดดเด่นและน่าจดจำมากยิ่งขึ้น"
+                fallback="ให้คำปรึกษา ตรวจไฟล์ แนะนำวัสดุ ประสานการผลิต และจัดส่งสื่อโฆษณา เพื่อช่วยให้ธุรกิจของคุณโดดเด่นและน่าจดจำมากยิ่งขึ้น"
                 as="p"
                 className="mt-6 max-w-2xl text-base leading-8 text-[#A7B0C0] sm:text-lg"
               />
 
               <div className="mt-8 space-y-4 text-sm leading-7 text-[#A7B0C0] sm:text-base">
                 <p>
-                  Display Works Media คือผู้ให้บริการด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขายครบวงจร สำหรับธุรกิจ ร้านค้า SME และองค์กรที่ต้องการสื่อคุณภาพ พร้อมบริการที่สะดวก รวดเร็ว และดูแลโดยทีมงานมืออาชีพ
+                  Display Works Media คือผู้ช่วยด้านงานพิมพ์ ป้ายโฆษณา และสื่อส่งเสริมการขายครบวงจร สำหรับธุรกิจ ร้านค้า SME และองค์กรที่ต้องการสื่อคุณภาพ พร้อมบริการที่สะดวก รวดเร็ว และดูแลโดยทีมงานมืออาชีพ
                 </p>
                 <p>
                   เราเชื่อว่าสื่อโฆษณาที่ดีไม่ใช่เพียงแค่สวยงาม แต่ต้องช่วยให้ธุรกิจสื่อสารได้ชัดเจน สร้างความน่าเชื่อถือ และเข้าถึงลูกค้าได้อย่างมีประสิทธิภาพ
                 </p>
                 <p>
-                  ตั้งแต่งานป้ายไวนิล สติ๊กเกอร์ ฉลากสินค้า PP Board Roll Up ไปจนถึง Backdrop และสื่อสำหรับงานอีเวนต์ เราพร้อมช่วยดูแลตั้งแต่การให้คำปรึกษา การเตรียมไฟล์ การผลิต ไปจนถึงการจัดส่งทั่วประเทศ
+                  ตั้งแต่งานป้ายไวนิล สติ๊กเกอร์ ฉลากสินค้า PP Board Roll Up ไปจนถึง Backdrop และสื่อสำหรับงานอีเวนต์ เราพร้อมช่วยดูแลตั้งแต่การรับบรีฟ การเตรียมไฟล์ การแนะนำวัสดุ การประสานการผลิต ไปจนถึงการจัดส่งทั่วประเทศ
                 </p>
               </div>
 
@@ -114,7 +114,7 @@ export default function AboutPage() {
                   ติดต่อเรา <ArrowRight size={18} />
                 </Link>
                 <Link
-                  href="/#portfolio"
+                  href="/portfolio"
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-7 py-3.5 text-sm font-bold text-white transition hover:border-white/35 hover:bg-white/5"
                 >
                   ดูผลงาน

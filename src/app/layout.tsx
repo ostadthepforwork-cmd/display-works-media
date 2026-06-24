@@ -18,12 +18,12 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://displayworksmedia.com"),
   title: "Display Works Media | บริการสั่งป้ายและงานพิมพ์ออนไลน์",
   description:
-    "Display Works Media คือโซลูชันงานพิมพ์สำหรับธุรกิจยุคใหม่ บริการสั่งป้ายไวนิล สติ๊กเกอร์ Roll Up Backdrop และสื่อสิ่งพิมพ์ครบวงจร ส่งทั่วประเทศ",
+    "Display Works Media ช่วยธุรกิจไทยรับบรีฟ ตรวจไฟล์ แนะนำวัสดุ ประสานการผลิต และจัดส่งป้ายไวนิล สติ๊กเกอร์ Roll Up Backdrop และสื่อโฆษณาทั่วประเทศ",
   keywords: [
     "ป้ายไวนิล", "สั่งพิมพ์ออนไลน์", "Roll Up", "Roll Up Stand",
     "Backdrop", "แบ็คดรอปผ้า", "สติ๊กเกอร์", "PP Board", "งานพิมพ์",
-    "Display Works Media", "สั่งป้ายออนไลน์", "รับทำป้าย", "พิมพ์ป้ายราคาถูก",
-    "สั่งพิมพ์ไวนิลกรุงเทพ", "รับทำสติ๊กเกอร์", "ฉลากสินค้า", "Standee",
+    "Display Works Media", "สั่งป้ายออนไลน์", "รับทำป้าย", "สื่อโฆษณาหน้าร้าน",
+    "รับทำสติ๊กเกอร์", "ฉลากสินค้า", "Standee", "ป้ายร้านอาหาร", "ป้ายออกบูธ",
   ],
   alternates: {
     canonical: "https://displayworksmedia.com",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Display Works Media | บริการสั่งป้ายและงานพิมพ์ออนไลน์",
-    description: "บริการสั่งป้ายและงานพิมพ์ออนไลน์ครบวงจร ง่าย เร็ว มืออาชีพ ส่งทั่วประเทศ",
+    description: "บริการงานป้ายและสื่อโฆษณาออนไลน์ ช่วยแนะนำวัสดุ ตรวจไฟล์ ประสานการผลิต และจัดส่งทั่วประเทศ",
     url: "https://displayworksmedia.com",
     type: "website",
     locale: "th_TH",

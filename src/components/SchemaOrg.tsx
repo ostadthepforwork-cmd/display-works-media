@@ -8,15 +8,15 @@ interface SchemaOrgProps {
   extra?: Record<string, unknown>;
 }
 
-// ─── LocalBusiness Schema (รากฐาน GEO) ──────────────────────────────────────
-const localBusinessSchema = {
+// ─── Organization Schema ────────────────────────────────────────────────────
+const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
+  "@type": "Organization",
   "@id": "https://displayworksmedia.com/#business",
   name: "Display Works Media",
   alternateName: "DWM",
   description:
-    "บริการสั่งพิมพ์งานป้ายและสื่อสิ่งพิมพ์ออนไลน์ครบวงจร รับทำแบ็คดรอปผ้า ป้ายไวนิล Roll Up Stand สติ๊กเกอร์ PP Board และฉลากสินค้า ส่งทั่วประเทศ",
+    "Marketing production partner สำหรับธุรกิจไทย ช่วยรับบรีฟ ตรวจไฟล์ แนะนำวัสดุ ประสานการผลิต และจัดส่งงานป้าย สติ๊กเกอร์ ฉลากสินค้า PP Board Roll Up Backdrop และสื่อโฆษณาทั่วประเทศ",
   url: "https://displayworksmedia.com",
   sameAs: [
     "https://www.facebook.com/profile.php?id=61581015452518",
@@ -27,12 +27,6 @@ const localBusinessSchema = {
     url: "https://displayworksmedia.com/images/logo.png",
   },
   image: "https://displayworksmedia.com/images/hero-bg.jpg",
-  address: {
-    "@type": "PostalAddress",
-    addressCountry: "TH",
-    addressLocality: "กรุงเทพมหานคร",
-    addressRegion: "Bangkok",
-  },
   areaServed: {
     "@type": "Country",
     name: "Thailand",
@@ -127,7 +121,7 @@ const websiteSchema = {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function SchemaOrg({ extra }: SchemaOrgProps) {
-  const schemas: Record<string, unknown>[] = [localBusinessSchema, websiteSchema];
+  const schemas: Record<string, unknown>[] = [organizationSchema, websiteSchema];
   if (extra) schemas.push(extra);
 
   return (
@@ -166,7 +160,7 @@ export function ServiceSchema({
     url,
     ...(image && { image }),
     provider: {
-      "@type": "LocalBusiness",
+      "@type": "Organization",
       "@id": "https://displayworksmedia.com/#business",
       name: "Display Works Media",
     },

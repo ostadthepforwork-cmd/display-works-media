@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     "สั่งทำแบ็คดรอปผ้า แบ็คดรอป Pop-up แบ็คดรอปโครงทรัส คุณภาพสูง ส่งทั่วไทย ราคาเป็นธรรม พิมพ์ภาพคมชัด สีสด ไร้รอยต่อ เหมาะสำหรับงาน Event ถ่ายรูป บูธสินค้า",
   keywords: [
     "แบ็คดรอปผ้า", "Fabric Backdrop", "แบ็คดรอป Pop-up", "แบ็คดรอปโครงทรัส",
-    "ฉากหลังถ่ายรูป", "สั่งทำแบ็คดรอป", "backdrop ราคาถูก", "Display Works Media",
+    "ฉากหลังถ่ายรูป", "สั่งทำแบ็คดรอป", "backdrop งานอีเวนต์", "Display Works Media",
   ],
   alternates: { canonical: "https://displayworksmedia.com/services/backdrop" },
   openGraph: {

@@ -3,12 +3,12 @@ import { ServiceSchema } from "@/components/SchemaOrg";
 import VinylLandingPage from "./VinylClient";
 
 export const metadata: Metadata = {
-  title: "สั่งทำป้ายไวนิล ทุกชนิด ราคาถูก | Display Works Media",
+  title: "สั่งทำป้ายไวนิลสำหรับธุรกิจ | Display Works Media",
   description:
     "รับทำป้ายไวนิล Frontlit Backlit โปร่งแสง One-way Vision พิมพ์คมชัด สีสด กันน้ำ ทนแดด ส่งทั่วประเทศไทย ราคาเป็นธรรม ไม่มีขั้นต่ำ",
   keywords: [
     "ป้ายไวนิล", "สั่งพิมพ์ไวนิล", "ไวนิล Frontlit", "ไวนิล Backlit", "ไวนิลโปร่งแสง",
-    "ป้ายไวนิลราคาถูก", "สั่งป้ายออนไลน์", "Display Works Media",
+    "ป้ายไวนิลหน้าร้าน", "สั่งป้ายออนไลน์", "Display Works Media",
   ],
   alternates: { canonical: "https://displayworksmedia.com/services/vinyl" },
   openGraph: {

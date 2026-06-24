@@ -8,7 +8,7 @@ import { Menu, X, MessageCircle, Facebook, ArrowUpRight } from "lucide-react";
 const navLinks = [
   { label: "หน้าแรก", href: "/" },
   { label: "บริการของเรา", href: "/services" },
-  { label: "ผลงานของเรา", href: "/#portfolio" },
+  { label: "ผลงานของเรา", href: "/portfolio" },
   { label: "ขั้นตอนการทำงาน", href: "/#process" },
   { label: "บทความ", href: "/blog" },
   { label: "FAQ", href: "/faq" },
@@ -28,10 +28,11 @@ export default function Navbar() {
   }, []);
 
   return (
+    <>
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/15 bg-[#080b0a]/95 shadow-lg shadow-black/20 backdrop-blur-md">
       <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8 flex items-center justify-between h-[64px]">
         {/* Logo */}
-        <Link href="/" className="flex min-w-0 items-center gap-3">
+        <Link href="/" className="navbar-brand flex min-w-0 items-center gap-3">
           <div className="w-11 h-11 relative flex-shrink-0">
             <img
               src="/images/logo.png"
@@ -43,7 +44,7 @@ export default function Navbar() {
               }}
             />
           </div>
-          <div>
+          <div className="navbar-brand-text">
             <div className="font-kanit font-bold text-[13px] tracking-[0.12em] leading-none text-white">
               DISPLAY WORKS
             </div>
@@ -90,24 +91,50 @@ export default function Navbar() {
               <Facebook size={18} />
             </a>
           </div>
+          <a
+            href="https://lin.ee/O0nPl03"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-sm text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5"
+            style={{ backgroundColor: "#06C755", boxShadow: "0 4px 20px rgba(6,199,85,0.2)" }}
+          >
+            ปรึกษาทาง LINE <MessageCircle size={16} />
+          </a>
           <Link
             href="/#quote"
-            className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-sm text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5"
-            style={{ backgroundColor: "#FF6500", boxShadow: "0 4px 20px rgba(255,101,0,0.2)" }}
+            className="inline-flex items-center gap-2 text-white px-4 py-2.5 rounded-sm text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5"
+            style={{ backgroundColor: "#FF6500", boxShadow: "0 4px 20px rgba(255,101,0,0.18)" }}
           >
-            ปรึกษางานฟรี <ArrowUpRight size={16} />
+            ขอราคา <ArrowUpRight size={15} />
           </Link>
         </div>
 
         {/* Mobile Hamburger */}
         <button
-          className="ml-3 flex h-11 w-11 flex-shrink-0 items-center justify-center text-white xl:hidden"
-          style={{ position: "absolute", top: 10, right: 14, zIndex: 60, color: "#ffffff" }}
+          className="navbar-menu-button"
+          style={{
+            marginLeft: "auto",
+            minWidth: 74,
+            height: 38,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 7,
+            border: "1px solid rgba(255,255,255,0.18)",
+            borderRadius: 6,
+            background: "#FF6500",
+            color: "#fff",
+            fontSize: 12,
+            fontWeight: 800,
+            lineHeight: 1,
+            boxShadow: "0 10px 28px rgba(255,101,0,0.22)",
+          }}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
         >
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          <span>เมนู</span>
+          {mobileOpen ? <X size={17} /> : <Menu size={17} />}
         </button>
       </div>
 
@@ -124,16 +151,26 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <Link
-            href="/#quote"
+          <a
+            href="https://lin.ee/O0nPl03"
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-3 text-white text-center py-3.5 rounded-md font-semibold text-sm"
-            style={{ backgroundColor: "#FF6500" }}
+            style={{ backgroundColor: "#06C755" }}
             onClick={() => setMobileOpen(false)}
           >
-            ติดต่อสอบถามและปรึกษาฟรี
+            ปรึกษาทาง LINE ฟรี
+          </a>
+          <Link
+            href="/#quote"
+            className="text-white text-center py-3 rounded-md font-semibold text-sm border border-white/15"
+            onClick={() => setMobileOpen(false)}
+          >
+            ส่งข้อมูลขอราคา
           </Link>
         </div>
       )}
     </nav>
+    </>
   );
 }

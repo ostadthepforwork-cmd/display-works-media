@@ -90,7 +90,7 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
                           alt={coverAlt}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="blog-cover-img group-hover:scale-[1.02] transition-transform duration-500"
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>

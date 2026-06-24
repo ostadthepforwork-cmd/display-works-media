@@ -3,12 +3,12 @@ import { ServiceSchema } from "@/components/SchemaOrg";
 import PPBoardLandingPage from "@/components/PPBoardPage";
 
 export const metadata: Metadata = {
-  title: "PP Board / Standee ตัดรูปทรง ราคาถูก | Display Works Media",
+  title: "PP Board / Standee ตัดรูปทรงสำหรับธุรกิจ | Display Works Media",
   description:
     "รับทำ PP Board Standee Foam Board ตัดรูปทรงทุกแบบ กันน้ำ แข็งแรง เหมาะสำหรับป้ายตั้งพื้น บูธ งาน Event ส่งทั่วไทย สั่งขั้นต่ำ 1 ชิ้น",
   keywords: [
     "PP Board", "Standee", "โฟมบอร์ด", "ป้ายตั้งพื้น", "Standee ตัดรูปทรง",
-    "PP Board ราคาถูก", "สั่งทำ Standee", "Display Works Media",
+    "PP Board หน้าร้าน", "สั่งทำ Standee", "Display Works Media",
   ],
   alternates: { canonical: "https://displayworksmedia.com/services/ppboard" },
   openGraph: {

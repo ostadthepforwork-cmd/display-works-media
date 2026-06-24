@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { CheckCircle2, Paperclip, Send } from "lucide-react";
+import { CheckCircle2, MessageCircle, Paperclip, Send } from "lucide-react";
 
 const serviceOptions = [
   "ป้ายไวนิล",
@@ -48,6 +48,15 @@ export default function CompactQuoteForm() {
 
   return (
     <form className="home-compact-form" onSubmit={handleSubmit}>
+      <div className="home-form-line-help">
+        <div>
+          <b>ยังไม่พร้อมกรอกฟอร์ม?</b>
+          <span>ทัก LINE เพื่อให้ทีมช่วยดูขนาด วัสดุ และไฟล์งานก่อนได้</span>
+        </div>
+        <a href="https://lin.ee/O0nPl03" target="_blank" rel="noopener noreferrer">
+          <MessageCircle size={15} /> LINE
+        </a>
+      </div>
       <label aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
         <span>Website</span>
         <input name="website" tabIndex={-1} autoComplete="off" />
@@ -99,9 +108,9 @@ export default function CompactQuoteForm() {
           <input name="artwork" type="file" accept=".ai,.pdf,.psd,.jpg,.jpeg,.png" />
         </span>
       </label>
-      <button className="home-form-submit" type="submit" disabled={status === "loading"}>
+      <button className="home-form-submit fx-button" type="submit" disabled={status === "loading"}>
         <Send size={15} />
-        {status === "loading" ? "กำลังส่งข้อมูล..." : "ส่งข้อมูลขอใบเสนอราคา"}
+        {status === "loading" ? "กำลังส่งข้อมูล..." : "ส่งข้อมูลให้ทีมประเมิน"}
       </button>
       <div className="home-form-status" aria-live="polite">
         {status === "success" && <span className="text-[#35d07f]"><CheckCircle2 size={14} /> ส่งข้อมูลสำเร็จ ทีมงานจะติดต่อกลับโดยเร็ว</span>}

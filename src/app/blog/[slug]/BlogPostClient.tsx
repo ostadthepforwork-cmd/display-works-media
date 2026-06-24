@@ -159,7 +159,7 @@ export default function BlogPostPage({
       {postCover && (
         <div className="mx-auto mt-5 max-w-5xl px-5 sm:px-6">
           <div className="relative aspect-[16/9] max-h-[520px] w-full overflow-hidden rounded-lg border border-white/10 bg-[#101412]">
-            <Image src={postCover} alt={postCoverAlt} fill sizes="(max-width: 1024px) 100vw, 1024px" className="object-cover" priority />
+            <Image src={postCover} alt={postCoverAlt} fill sizes="(max-width: 1024px) 100vw, 1024px" className="blog-article-cover-img" priority />
             <div className="absolute inset-0 bg-gradient-to-t from-[#070A0F]/55 via-transparent to-transparent" />
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function BlogPostPage({
                 <Link key={r.id} href={`/blog/${r.slug}`}
                   className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300">
                   <div className="relative h-40 bg-[#141A24]">
-                    {cover ? <Image src={cover} alt={coverAlt} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {cover ? <Image src={cover} alt={coverAlt} fill sizes="(max-width: 768px) 100vw, 33vw" className="blog-cover-img group-hover:scale-[1.02] transition-transform duration-500" />
                       : <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>}
                   </div>
                   <div className="p-4">

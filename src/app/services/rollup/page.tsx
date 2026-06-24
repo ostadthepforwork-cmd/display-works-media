@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     "สั่งทำ Roll Up Stand X-Stand สำหรับบูธนิทรรศการ งาน Event ร้านค้า กางง่าย พกพาสะดวก มีกระเป๋า พิมพ์ภาพคมชัด สั่งได้ 1 ชุด ส่งทั่วไทย",
   keywords: [
     "Roll Up Stand", "X-Stand", "สั่งทำ Roll Up", "บูธนิทรรศการ",
-    "สแตนด์งาน Event", "Roll Up ราคาถูก", "Display Works Media",
+    "สแตนด์งาน Event", "Roll Up ออกบูธ", "Display Works Media",
   ],
   alternates: { canonical: "https://displayworksmedia.com/services/rollup" },
   openGraph: {

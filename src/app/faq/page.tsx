@@ -89,7 +89,7 @@ export default function FAQPage() {
       <Navbar />
       <section className="pt-[116px] pb-4 px-6 lg:px-8 bg-[#050806]">
         <div className="max-w-7xl mx-auto">
-          <CmsText path="faq.eyebrow" fallback="FAQ" as="div" className="text-[#FF7A00] text-xs font-bold tracking-[0.18em] uppercase mb-4" />
+          <CmsText path="faq.eyebrow" fallback="FAQ" as="div" className="section-label w-fit" />
           <CmsText
             path="faq.title"
             fallback="คำถามที่พบบ่อยก่อนสั่งผลิตงานป้าย"

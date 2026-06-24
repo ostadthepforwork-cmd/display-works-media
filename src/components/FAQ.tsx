@@ -37,8 +37,8 @@ export default function FAQ() {
   return (
     <section
       id="faq"
-      className="py-20 lg:py-24 px-6 lg:px-8"
-      style={{ background: "#141A24" }}
+      className="brand-section py-20 lg:py-24 px-6 lg:px-8"
+      style={{ background: "#070a08" }}
     >
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16 items-start">
@@ -96,9 +96,9 @@ export default function FAQ() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.06 }}
-                className="overflow-hidden rounded-2xl border transition-all duration-300"
+                className="marketing-proof-card overflow-hidden rounded-2xl border transition-all duration-300"
                 style={{
-                  background: open === i ? "#1A2233" : "#0B0F19",
+                  background: open === i ? "rgba(255,101,0,0.045)" : "#0E1310",
                   borderColor:
                     open === i
                       ? "rgba(255,107,0,0.3)"

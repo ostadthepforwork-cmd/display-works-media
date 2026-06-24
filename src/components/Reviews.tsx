@@ -1,5 +1,7 @@
 "use client";
 
+import { SharedSectionTitle } from "@/components/SharedMarketingSections";
+
 type ReviewItem = {
   id?: string;
   initials?: string;
@@ -106,11 +108,12 @@ export default function Reviews({ items }: { items?: ReviewItem[] }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchemaJson) }}
       />
       <div className="max-w-[1380px] mx-auto">
-        <div className="reveal-section flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
-          <div>
-            <div className="section-label">CUSTOMER VOICE</div>
-            <h2 className="section-title">รีวิวจากลูกค้า</h2>
-          </div>
+        <div className="reveal-section reviews-heading flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
+          <SharedSectionTitle
+            eyebrow="CUSTOMER VOICE"
+            title="รีวิวจากลูกค้า"
+            subtitle="เสียงจากลูกค้าที่ไว้วางใจให้เราช่วยดูแลงานป้าย งานพิมพ์ และสื่อโฆษณาสำหรับธุรกิจ"
+          />
           <div
             className="flex items-center gap-4 px-6 py-4 rounded-lg border flex-shrink-0"
             style={{
