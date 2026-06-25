@@ -127,21 +127,34 @@ export function SharedPortfolio({
   items,
   id = "portfolio",
   title = "ตัวอย่างงานจริง",
+  eyebrow = "OUR WORK",
+  subtitle = "ตัวอย่างผลงานจริงที่ช่วยให้เห็นการใช้งาน ขนาด วัสดุ และบริบทของธุรกิจได้ชัดขึ้น",
+  preferSharedCms = true,
+  maxItems = 5,
 }: {
   items: PortfolioItem[];
   id?: string;
   title?: string;
+  eyebrow?: string;
+  subtitle?: string;
+  preferSharedCms?: boolean;
+  maxItems?: number;
 }) {
   const cms = useCmsSettings();
+  const portfolioEyebrow = preferSharedCms ? cmsValue(cms, "shared.portfolioEyebrow", eyebrow) : eyebrow;
+  const portfolioTitle = preferSharedCms ? cmsValue(cms, "shared.portfolioTitle", title) : title;
+  const portfolioSubtitle = preferSharedCms ? cmsValue(cms, "shared.portfolioSubtitle", subtitle) : subtitle;
+  const visibleItems = items.slice(0, maxItems);
+
   return (
     <section id={id} className="home-section shared-marketing-section">
       <SharedSectionTitle
-        eyebrow={cmsValue(cms, "shared.portfolioEyebrow", "OUR WORK")}
-        title={cmsValue(cms, "shared.portfolioTitle", title)}
-        subtitle={cmsValue(cms, "shared.portfolioSubtitle", "ตัวอย่างผลงานจริงที่ช่วยให้เห็นการใช้งาน ขนาด วัสดุ และบริบทของธุรกิจได้ชัดขึ้น")}
+        eyebrow={portfolioEyebrow}
+        title={portfolioTitle}
+        subtitle={portfolioSubtitle}
       />
-      <div className={`home-portfolio-grid home-portfolio-count-${Math.min(items.length, 5)}`}>
-        {items.slice(0, 5).map((item, index) => {
+      <div className={`home-portfolio-grid home-portfolio-count-${Math.min(visibleItems.length, 5)}`}>
+        {visibleItems.map((item, index) => {
           const card = (
             <article key={`${item.title}-${index}`} className={index === 0 ? "home-portfolio-featured" : ""}>
               <Image src={item.image} alt={item.alt || item.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover home-portfolio-photo" />
@@ -193,14 +206,29 @@ export function SharedQuoteSection({ id = "quote" }: { id?: string }) {
 }
 
 export default function SharedServiceSections({ serviceKey }: { serviceKey: ServiceKey }) {
-  const items = servicePortfolio[serviceKey].map((item) => ({
+  const cms = useCmsSettings();
+  const serviceDetail = cms.page_content?.servicesDetail?.[serviceKey] || {};
+  const cmsItems = Array.isArray(serviceDetail.portfolioItems)
+    ? serviceDetail.portfolioItems.filter((item: PortfolioItem) => item?.image && item?.title)
+    : [];
+  const sourceItems = cmsItems.length > 0 ? cmsItems : servicePortfolio[serviceKey];
+  const sharedEyebrow = cmsValue(cms, "shared.portfolioEyebrow", "OUR WORK");
+  const sharedTitle = cmsValue(cms, "shared.portfolioTitle", "ตัวอย่างงานจริง");
+  const sharedSubtitle = cmsValue(cms, "shared.portfolioSubtitle", "ตัวอย่างผลงานจริงที่ช่วยให้เห็นการใช้งาน ขนาด วัสดุ และบริบทของธุรกิจได้ชัดขึ้น");
+  const items = sourceItems.map((item) => ({
     ...item,
     category: item.category || servicePortfolioLabels[serviceKey],
   }));
 
   return (
     <div className="shared-service-sections">
-      <SharedPortfolio items={items} />
+      <SharedPortfolio
+        items={items}
+        eyebrow={serviceDetail.portfolioEyebrow || sharedEyebrow}
+        title={serviceDetail.portfolioTitle || sharedTitle}
+        subtitle={serviceDetail.portfolioSubtitle || sharedSubtitle}
+        preferSharedCms={false}
+      />
       <SharedWorkflow />
       <SharedQuoteSection />
     </div>

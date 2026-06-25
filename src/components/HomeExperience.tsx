@@ -49,6 +49,15 @@ const fallbackPortfolio = [
   { title: "งานพิมพ์แคมเปญ", category: "สื่อโฆษณา", image: "/images/portfolio/work-05.webp", meta: "สื่อโปรโมชันที่ช่วยให้ข้อเสนอเห็นชัดขึ้น" },
 ];
 
+const servicePortfolioMeta: Record<string, { category: string; href: string }> = {
+  vinyl: { category: "ป้ายไวนิล", href: "/services/vinyl-banner" },
+  sticker: { category: "สติ๊กเกอร์", href: "/services/sticker" },
+  ppboard: { category: "PP Board", href: "/services/pp-board" },
+  rollup: { category: "Roll Up / X-Stand", href: "/services/roll-up" },
+  label: { category: "ฉลากสินค้า", href: "/services/label-sticker" },
+  backdrop: { category: "Backdrop", href: "/services/backdrop" },
+};
+
 const trustItems = [
   { icon: Printer, title: "ทีมงานมืออาชีพ", text: "ประสบการณ์มากกว่า 10 ปี" },
   { icon: FileCheck2, title: "ตรวจไฟล์ก่อนผลิต", text: "ลดความผิดพลาด" },
@@ -66,23 +75,53 @@ function normalizeServices(items?: Array<Record<string, any>>) {
   }));
 }
 
-function normalizePortfolio(items?: Array<Record<string, any>>) {
-  if (!items?.length) return fallbackPortfolio;
-  return items.slice(0, 5).map((item, index) => ({
+function normalizePortfolioItem(item: Record<string, any>, index: number, serviceKey?: string) {
+  const service = serviceKey ? servicePortfolioMeta[serviceKey] : null;
+  return {
     title: item.title || item.category || fallbackPortfolio[index]?.title || "ผลงานของเรา",
     image: item.image || item.img || fallbackPortfolio[index]?.image,
     meta: item.meta || item.desc || item.category || fallbackPortfolio[index]?.meta || "ผลงานจริงจากลูกค้า",
-    category: item.category || fallbackPortfolio[index]?.category || "งานจริง",
+    category: item.category || service?.category || fallbackPortfolio[index]?.category || "งานจริง",
     alt: item.alt || item.altText || item.title || fallbackPortfolio[index]?.title || "ผลงาน Display Works Media",
-    href: item.href || item.url || "",
-  }));
+    href: item.href || item.url || service?.href || "",
+  };
+}
+
+function collectServicePortfolio(content: CmsSettings) {
+  const details = content.page_content?.servicesDetail || {};
+  return Object.keys(servicePortfolioMeta).flatMap((serviceKey) => {
+    const items = details?.[serviceKey]?.portfolioItems;
+    if (!Array.isArray(items)) return [];
+    return items
+      .filter((item) => (item?.image || item?.img) && item?.title)
+      .map((item, index) => normalizePortfolioItem(item, index, serviceKey));
+  });
+}
+
+function mergePortfolio(content: CmsSettings) {
+  const cmsPortfolio = Array.isArray(content.portfolio)
+    ? content.portfolio
+        .filter((item) => item?.image || item?.img)
+        .map((item, index) => normalizePortfolioItem(item, index))
+    : [];
+  const servicePortfolio = collectServicePortfolio(content);
+  const fallback = fallbackPortfolio.map((item, index) => normalizePortfolioItem(item, index));
+  const seen = new Set<string>();
+
+  return [...cmsPortfolio, ...servicePortfolio, ...fallback].filter((item) => {
+    if (!item.image) return false;
+    const key = `${item.image}|${item.title}`.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export default function HomeExperience({ cms, posts }: { cms: CmsSettings; posts: BlogPost[] }) {
   const liveCms = useCmsSettings();
   const content = { ...cms, ...liveCms } as CmsSettings;
   const services = normalizeServices(content.services);
-  const portfolio = normalizePortfolio(content.portfolio);
+  const portfolio = mergePortfolio(content);
   const hero = content.hero || {};
   const lineUrl = hero.lineUrl || content.contact?.lineUrl || content.contact?.line || "https://lin.ee/O0nPl03";
   const liveTrustItems = trustItems.map((item, index) => ({
@@ -127,7 +166,7 @@ export default function HomeExperience({ cms, posts }: { cms: CmsSettings; posts
 
         <SharedWorkflow />
 
-        <SharedPortfolio items={portfolio} />
+        <SharedPortfolio items={portfolio} maxItems={8} />
 
         <section id="services" className="home-section">
           <SharedSectionTitle

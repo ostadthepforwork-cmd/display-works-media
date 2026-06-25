@@ -1156,6 +1156,18 @@ export default function AdminPage() {
         @media (max-width: 768px) {
           .hide-mobile { display: none !important; }
           .show-mobile { display: flex !important; }
+          body {
+            overflow-x: hidden !important;
+          }
+          .top-bar {
+            gap: 6px !important;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+          }
+          .top-bar > button,
+          .top-bar a {
+            flex-shrink: 0 !important;
+          }
           .mobile-drawer {
             flex-direction: column !important;
           }
@@ -1185,9 +1197,34 @@ export default function AdminPage() {
           }
           .main-content-area > div {
             max-width: none;
+            width: 100%;
+            min-width: 0;
           }
           .main-content-area h2 {
             font-size: 18px !important;
+          }
+          .main-content-area {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            min-width: 0 !important;
+            padding: 14px 12px calc(78px + env(safe-area-inset-bottom, 16px)) !important;
+            overflow-x: hidden !important;
+          }
+          .main-content-area > div[style*="grid"],
+          .main-content-area form,
+          .main-content-area section,
+          .main-content-area article {
+            max-width: 100%;
+            min-width: 0;
+          }
+          .main-content-area input,
+          .main-content-area select,
+          .main-content-area textarea {
+            min-width: 0 !important;
+            max-width: 100% !important;
+          }
+          .main-content-area button {
+            max-width: 100%;
           }
 
           /* Document table → card list on mobile */
@@ -1217,8 +1254,17 @@ export default function AdminPage() {
             top: auto !important;
             border-radius: 20px 20px 0 0 !important;
             max-width: 100% !important;
+            width: 100% !important;
             max-height: 92dvh !important;
             animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1) !important;
+          }
+          .modal-panel > div {
+            min-width: 0 !important;
+          }
+          .modal-panel input,
+          .modal-panel select,
+          .modal-panel textarea {
+            font-size: 16px !important;
           }
           .modal-backdrop {
             align-items: flex-end !important;
@@ -1226,10 +1272,6 @@ export default function AdminPage() {
           }
 
           /* Content padding accounts for nav + safe area */
-          .main-content-area {
-            padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px)) !important;
-          }
-
           /* KPI cards 2-col grid */
           .kpi-grid { grid-template-columns: 1fr 1fr !important; }
           .kpi-grid > div { padding: 14px 12px !important; }
@@ -1252,6 +1294,17 @@ export default function AdminPage() {
 
           /* Card padding smaller */
           .card-pad { padding: 16px !important; }
+          .service-portfolio-editor-grid,
+          .service-portfolio-fields {
+            grid-template-columns: 1fr !important;
+          }
+          .service-portfolio-editor-card {
+            padding: 10px !important;
+          }
+          .service-portfolio-editor-card input[type="file"] {
+            padding: 10px !important;
+            line-height: 1.3 !important;
+          }
         }
 
         /* ── iPhone 15 Pro specific (393px wide) ── */
@@ -4553,6 +4606,38 @@ function PortfolioManager({ showToast }: any) {
 // ============================================================
 // PAGE CONTENT MANAGER
 // ============================================================
+const defaultServicePortfolioItems = {
+  vinyl: [
+    { title: "ป้ายไวนิลหน้าร้าน", image: "/images/portfolio/1.png", meta: "ช่วยให้ร้านและโปรโมชันอ่านชัดจากระยะหน้าร้าน", category: "ป้ายไวนิล", alt: "ป้ายไวนิลหน้าร้าน Display Works Media" },
+    { title: "ป้ายโปรโมชั่น", image: "/images/portfolio/2.png", meta: "ใช้สื่อสารราคา เมนู หรือแคมเปญให้คนเห็นทันที", category: "ป้ายไวนิล", alt: "ป้ายโปรโมชั่น Display Works Media" },
+    { title: "ป้ายประชาสัมพันธ์", image: "/images/portfolio/3.png", meta: "ประสานขนาดและวัสดุให้เหมาะกับพื้นที่ติดตั้ง", category: "ป้ายไวนิล", alt: "ป้ายประชาสัมพันธ์ Display Works Media" },
+  ],
+  sticker: [
+    { title: "สติ๊กเกอร์ติดกระจก", image: "/images/portfolio/sticker-1.jpg", meta: "เหมาะกับหน้าร้าน กระจกออฟฟิศ และพื้นที่ Indoor / Outdoor", category: "สติ๊กเกอร์", alt: "สติ๊กเกอร์ติดกระจก Display Works Media" },
+    { title: "สติ๊กเกอร์ประชาสัมพันธ์", image: "/images/portfolio/sticker-2.jpg", meta: "ช่วยทำให้ข้อความแคมเปญดูชัดและติดตั้งเป็นระเบียบ", category: "สติ๊กเกอร์", alt: "สติ๊กเกอร์ประชาสัมพันธ์ Display Works Media" },
+    { title: "สติ๊กเกอร์ไดคัท", image: "/images/portfolio/sticker-4.jpg", meta: "ตัดตามรูปทรงโลโก้ ฉลาก หรือชิ้นงานเฉพาะแบรนด์", category: "สติ๊กเกอร์", alt: "สติ๊กเกอร์ไดคัท Display Works Media" },
+  ],
+  ppboard: [
+    { title: "PP Board โปรโมชั่น", image: "/images/portfolio/ppboard-1.png", meta: "น้ำหนักเบา เหมาะกับโปรโมชันหน้าร้านที่ต้องย้ายตำแหน่งได้", category: "PP Board", alt: "PP Board โปรโมชั่น Display Works Media" },
+    { title: "Standee หน้าร้าน", image: "/images/portfolio/ppboard-2.png", meta: "ช่วยให้สินค้า เมนู หรือบริการเด่นขึ้นในพื้นที่ขาย", category: "PP Board", alt: "Standee หน้าร้าน Display Works Media" },
+    { title: "ป้ายตั้งพื้น", image: "/images/portfolio/ppboard-3.png", meta: "ประเมินขนาดตามตำแหน่งวางและระยะมองเห็น", category: "PP Board", alt: "ป้ายตั้งพื้น PP Board Display Works Media" },
+  ],
+  rollup: [
+    { title: "Roll Up สำหรับหน้าร้าน", image: "/images/portfolio/rollup-1.png", meta: "ติดตั้งง่าย เหมาะกับพื้นที่จำกัดและใช้งานซ้ำได้", category: "Roll Up", alt: "Roll Up สำหรับหน้าร้าน Display Works Media" },
+    { title: "Roll Up สำหรับโปรโมชั่น", image: "/images/portfolio/rollup-2.png", meta: "ช่วยให้บูธ งานแสดงสินค้า และกิจกรรมดูพร้อมขึ้น", category: "Roll Up", alt: "Roll Up สำหรับโปรโมชั่น Display Works Media" },
+  ],
+  label: [
+    { title: "ฉลากสินค้าสำหรับบรรจุภัณฑ์", image: "/images/portfolio/sticker-1.png", meta: "ช่วยให้แพ็กเกจดูน่าเชื่อถือและสื่อสารแบรนด์ชัดขึ้น", category: "ฉลากสินค้า", alt: "ฉลากสินค้าสำหรับบรรจุภัณฑ์ Display Works Media" },
+    { title: "ฉลากสินค้ากันน้ำ", image: "/images/portfolio/sticker-2.png", meta: "เหมาะกับอาหาร เครื่องดื่ม และสินค้าที่ต้องเจอความชื้น", category: "ฉลากสินค้า", alt: "ฉลากสินค้ากันน้ำ Display Works Media" },
+    { title: "ฉลากไดคัท", image: "/images/portfolio/sticker-4.png", meta: "ตัดตามโลโก้หรือรูปทรงเฉพาะเพื่อเพิ่มมูลค่าสินค้า", category: "ฉลากสินค้า", alt: "ฉลากไดคัท Display Works Media" },
+  ],
+  backdrop: [
+    { title: "Backdrop งานอีเวนต์", image: "/images/portfolio/backdrop-1.png", meta: "สร้างฉากหลังที่ช่วยให้พื้นที่จัดงานดูเป็นแบรนด์เดียวกัน", category: "Backdrop", alt: "Backdrop งานอีเวนต์ Display Works Media" },
+    { title: "Backdrop เปิดตัวสินค้า", image: "/images/portfolio/backdrop-2.png", meta: "ช่วยให้จุดถ่ายภาพและเวทีสื่อสารสินค้าเด่นขึ้น", category: "Backdrop", alt: "Backdrop เปิดตัวสินค้า Display Works Media" },
+    { title: "Backdrop ถ่ายภาพ", image: "/images/portfolio/backdrop-3.png", meta: "แนะนำขนาดตามมุมกล้อง พื้นที่ และรูปแบบงาน", category: "Backdrop", alt: "Backdrop ถ่ายภาพ Display Works Media" },
+  ],
+};
+
 const defaultPageContent = {
   home: {
     servicesEyebrow: "OUR SERVICES",
@@ -4620,6 +4705,12 @@ const defaultPageContent = {
       highlight: "/ X-Stand",
       subtitle: "ป้ายตั้งพื้นเคลื่อนที่ ติดตั้งง่ายภายใน 1 นาที มาพร้อมกระเป๋าพกพาสะดวก เหมาะสำหรับงานออกบูธ นิทรรศการ และป้ายส่งเสริมการขายหน้าร้าน พิมพ์สีคมชัดโดดเด่น",
     },
+    ppboard: {
+      eyebrow: "บริการออกแบบและผลิต",
+      title: "PP Board",
+      highlight: "/ Standee",
+      subtitle: "ป้าย PP Board น้ำหนักเบา เหมาะกับป้ายตั้งพื้น ป้ายโปรโมชั่น และสื่อหน้าร้านที่ต้องการความคมชัด เคลื่อนย้ายง่าย และผลิตตามขนาดได้",
+    },
     label: {
       eyebrow: "บริการพิมพ์และไดคัทสติกเกอร์",
       title: "พิมพ์ฉลากสินค้า",
@@ -4632,6 +4723,7 @@ const defaultPageContent = {
 function PageContentManager({ showToast }: any) {
   const [content, setContent] = useState(() => loadLocal("page_content", defaultPageContent));
   const [section, setSection] = useState("home");
+  const [servicePortfolioUploading, setServicePortfolioUploading] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -4658,6 +4750,71 @@ function PageContentManager({ showToast }: any) {
         [section]: { ...current[section], [key]: value },
       };
     });
+  };
+
+  const updateServiceDetail = (serviceKey: string, updater: (current: any) => any) => {
+    setContent((current: any) => ({
+      ...current,
+      servicesDetail: {
+        ...current.servicesDetail,
+        [serviceKey]: updater(current.servicesDetail?.[serviceKey] || {}),
+      },
+    }));
+  };
+
+  const updateServicePortfolioItem = (serviceKey: string, index: number, key: string, value: string) => {
+    const fallbackItems = defaultServicePortfolioItems[serviceKey] || [];
+    const currentItems = Array.isArray(content.servicesDetail?.[serviceKey]?.portfolioItems)
+      ? content.servicesDetail[serviceKey].portfolioItems
+      : fallbackItems;
+    const nextItems = currentItems.map((item: any, itemIndex: number) =>
+      itemIndex === index ? { ...item, [key]: value } : item
+    );
+    updateServiceDetail(serviceKey, (current) => ({ ...current, portfolioItems: nextItems }));
+  };
+
+  const addServicePortfolioItem = (serviceKey: string) => {
+    const fallbackItems = defaultServicePortfolioItems[serviceKey] || [];
+    const currentItems = Array.isArray(content.servicesDetail?.[serviceKey]?.portfolioItems)
+      ? content.servicesDetail[serviceKey].portfolioItems
+      : fallbackItems;
+    updateServiceDetail(serviceKey, (current) => ({
+      ...current,
+      portfolioItems: [
+        ...currentItems,
+        { title: "", image: "", meta: "", category: "", alt: "", href: "" },
+      ],
+    }));
+  };
+
+  const deleteServicePortfolioItem = (serviceKey: string, index: number) => {
+    const fallbackItems = defaultServicePortfolioItems[serviceKey] || [];
+    const currentItems = Array.isArray(content.servicesDetail?.[serviceKey]?.portfolioItems)
+      ? content.servicesDetail[serviceKey].portfolioItems
+      : fallbackItems;
+    updateServiceDetail(serviceKey, (current) => ({
+      ...current,
+      portfolioItems: currentItems.filter((_: any, itemIndex: number) => itemIndex !== index),
+    }));
+  };
+
+  const uploadServicePortfolioImage = async (serviceKey: string, index: number, file?: File) => {
+    if (!file) return;
+    const uploadKey = `${serviceKey}-${index}`;
+    setServicePortfolioUploading(uploadKey);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `service-portfolio/${serviceKey}/${Date.now()}-${index}.${ext}`;
+      const { error } = await supabase.storage.from("cms-media").upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
+      updateServicePortfolioItem(serviceKey, index, "image", urlData.publicUrl);
+      showToast("อัปโหลดรูปผลงานแล้ว");
+    } catch (error: any) {
+      showToast("อัปโหลดรูปไม่ได้: " + error.message, "error");
+    } finally {
+      setServicePortfolioUploading("");
+    }
   };
 
   const save = async () => {
@@ -4716,30 +4873,54 @@ function PageContentManager({ showToast }: any) {
       { key: "title", label: "หัวข้อบรรทัดหลัก" },
       { key: "highlight", label: "ข้อความสีส้ม" },
       { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
+      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
+      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
     ],
     "servicesDetail.sticker": [
       { key: "eyebrow", label: "ป้ายกำกับ" },
       { key: "title", label: "หัวข้อบรรทัดหลัก" },
       { key: "highlight", label: "ข้อความสีส้ม" },
       { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
+      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
+      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
     ],
     "servicesDetail.backdrop": [
       { key: "eyebrow", label: "ป้ายกำกับ" },
       { key: "title", label: "หัวข้อบรรทัดหลัก" },
       { key: "highlight", label: "ข้อความสีส้ม" },
       { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
+      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
+      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
     ],
     "servicesDetail.rollup": [
       { key: "eyebrow", label: "ป้ายกำกับ" },
       { key: "title", label: "หัวข้อบรรทัดหลัก" },
       { key: "highlight", label: "ข้อความสีส้ม" },
       { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
+      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
+      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
+    ],
+    "servicesDetail.ppboard": [
+      { key: "eyebrow", label: "ป้ายกำกับ" },
+      { key: "title", label: "หัวข้อบรรทัดหลัก" },
+      { key: "highlight", label: "ข้อความสีส้ม" },
+      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
+      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
+      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
     ],
     "servicesDetail.label": [
       { key: "eyebrow", label: "ป้ายกำกับ" },
       { key: "title", label: "หัวข้อบรรทัดหลัก" },
       { key: "highlight", label: "ข้อความสีส้ม" },
       { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
+      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
+      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
     ],
   };
 
@@ -4755,12 +4936,19 @@ function PageContentManager({ showToast }: any) {
     ["servicesDetail.sticker", "บริการ: สติ๊กเกอร์"],
     ["servicesDetail.backdrop", "บริการ: Backdrop"],
     ["servicesDetail.rollup", "บริการ: Roll Up"],
+    ["servicesDetail.ppboard", "บริการ: PP Board"],
     ["servicesDetail.label", "บริการ: ฉลากสินค้า"],
   ];
 
-  const sectionValue = section.startsWith("servicesDetail.")
-    ? content.servicesDetail?.[section.split(".")[1]]
+  const activeServiceKey = section.startsWith("servicesDetail.") ? section.split(".")[1] : "";
+  const sectionValue = activeServiceKey
+    ? content.servicesDetail?.[activeServiceKey]
     : content[section];
+  const servicePortfolioItems = activeServiceKey
+    ? (Array.isArray(sectionValue?.portfolioItems)
+        ? sectionValue.portfolioItems
+        : (defaultServicePortfolioItems[activeServiceKey] || []))
+    : [];
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 760 }}>
@@ -4799,6 +4987,71 @@ function PageContentManager({ showToast }: any) {
               )}
             </CField>
           ))}
+          {activeServiceKey && (
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16, marginTop: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
+                <div>
+                  <SectionTitle>ผลงานของบริการนี้</SectionTitle>
+                  <p style={{ color: "#888", fontSize: 12, lineHeight: 1.6 }}>
+                    รูปเหล่านี้จะแสดงในส่วนผลงานของหน้าบริการที่เลือก หากไม่ใส่ ระบบจะใช้รูปตั้งต้นเดิม
+                  </p>
+                </div>
+                <CBtn onClick={() => addServicePortfolioItem(activeServiceKey)} small color="#3B82F6">+ เพิ่มรูป</CBtn>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {servicePortfolioItems.map((item: any, index: number) => (
+                  <div key={`${activeServiceKey}-portfolio-${index}`} className="service-portfolio-editor-card" style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 12 }}>
+                    <div className="service-portfolio-editor-grid" style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 12, alignItems: "start" }}>
+                      <div style={{ width: "100%", aspectRatio: "16 / 10", borderRadius: 8, overflow: "hidden", background: "#1A2233", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {item.image ? (
+                          <img src={item.image} alt={item.alt || item.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <span style={{ opacity: 0.45, fontSize: 24 }}>🖼</span>
+                        )}
+                      </div>
+                      <div className="service-portfolio-fields" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                        <CField label="ชื่อผลงาน">
+                          <input value={item.title || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "title", e.target.value)} />
+                        </CField>
+                        <CField label="หมวดหมู่">
+                          <input value={item.category || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "category", e.target.value)} />
+                        </CField>
+                        <CField label="URL รูปภาพ">
+                          <input value={item.image || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "image", e.target.value)} placeholder="/images/portfolio/example.jpg" />
+                        </CField>
+                        <CField label="อัปโหลดรูป">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => uploadServicePortfolioImage(activeServiceKey, index, e.target.files?.[0])}
+                          />
+                          {servicePortfolioUploading === `${activeServiceKey}-${index}` && (
+                            <div style={{ color: "#60A5FA", fontSize: 11, marginTop: 6 }}>กำลังอัปโหลด...</div>
+                          )}
+                        </CField>
+                        <CField label="Alt Text">
+                          <input value={item.alt || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "alt", e.target.value)} />
+                        </CField>
+                        <CField label="ลิงก์เมื่อคลิก">
+                          <input value={item.href || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "href", e.target.value)} placeholder="/portfolio หรือ /services/..." />
+                        </CField>
+                        <div style={{ gridColumn: "1 / -1" }}>
+                          <CField label="คำอธิบายใต้รูป">
+                            <textarea value={item.meta || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "meta", e.target.value)} rows={2} />
+                          </CField>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                      <CBtn onClick={() => deleteServicePortfolioItem(activeServiceKey, index)} small outline style={{ color: "#EF4444", borderColor: "rgba(239,68,68,0.35)" }}>
+                        ลบรูปนี้
+                      </CBtn>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <CBtn onClick={save} color="#FF6B00">💾 บันทึกข้อความ</CBtn>
         </div>
       </Card>

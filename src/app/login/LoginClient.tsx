@@ -32,14 +32,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{
+    <div className="admin-login-page" style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
       backgroundColor: "#0B0F19", fontFamily: "'Prompt', sans-serif",
     }}>
-      <div style={{
+      <div className="admin-login-card" style={{
         backgroundColor: "#141A24", border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "16px", boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
-        padding: "40px", width: "100%", maxWidth: "420px",
+        padding: "40px", width: "100%", maxWidth: "420px", boxSizing: "border-box",
       }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <div style={{ background: "#FF6B00", color: "#fff", fontWeight: 800, fontSize: 18, padding: "6px 14px", borderRadius: 8, display: "inline-block", marginBottom: 12 }}>DW</div>

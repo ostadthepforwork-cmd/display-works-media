@@ -5,6 +5,7 @@ import { ArrowRight, MessageCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingButtons from "@/components/FloatingButtons";
+import { getCmsSettings } from "@/lib/cms-settings";
 
 export const metadata: Metadata = {
   title: "ผลงานป้ายและสื่อโฆษณา | Display Works Media",
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
     "ตัวอย่างผลงานจริงของ Display Works Media ทั้งป้ายไวนิล สติ๊กเกอร์ PP Board Roll Up Backdrop ฉลากสินค้า และสื่อสำหรับธุรกิจ",
   alternates: { canonical: "https://displayworksmedia.com/portfolio" },
 };
+
+export const revalidate = 60;
 
 const portfolioItems = [
   {
@@ -58,7 +61,61 @@ const portfolioItems = [
   },
 ];
 
-export default function PortfolioPage() {
+const servicePortfolioMeta: Record<string, { category: string; href: string }> = {
+  vinyl: { category: "ป้ายไวนิล", href: "/services/vinyl-banner" },
+  sticker: { category: "สติ๊กเกอร์", href: "/services/sticker" },
+  ppboard: { category: "PP Board", href: "/services/pp-board" },
+  rollup: { category: "Roll Up / X-Stand", href: "/services/roll-up" },
+  label: { category: "ฉลากสินค้า", href: "/services/label-sticker" },
+  backdrop: { category: "Backdrop", href: "/services/backdrop" },
+};
+
+function normalizePortfolioItem(item: any, serviceKey?: string, index = 0) {
+  const service = serviceKey ? servicePortfolioMeta[serviceKey] : null;
+  const image = item?.image || item?.img || "";
+  return {
+    title: item?.title || item?.category || `ผลงาน ${index + 1}`,
+    category: item?.category || service?.category || "งานจริง",
+    image,
+    desc: item?.desc || item?.meta || "ตัวอย่างผลงานจริงที่ช่วยให้เห็นวัสดุ ขนาด และบริบทการใช้งานก่อนเริ่มสั่งผลิต",
+    href: item?.href || service?.href || "/portfolio",
+    alt: item?.alt || item?.title || service?.category || "ผลงาน Display Works Media",
+  };
+}
+
+function collectServicePortfolioItems(settings: any) {
+  const serviceDetails = settings?.page_content?.servicesDetail || {};
+  return Object.keys(servicePortfolioMeta).flatMap((serviceKey) => {
+    const items = serviceDetails?.[serviceKey]?.portfolioItems;
+    if (!Array.isArray(items)) return [];
+    return items
+      .filter((item) => (item?.image || item?.img) && item?.title)
+      .map((item, index) => normalizePortfolioItem(item, serviceKey, index));
+  });
+}
+
+function mergePortfolioItems(settings: any) {
+  const cmsPortfolio = Array.isArray(settings?.portfolio)
+    ? settings.portfolio.map((item: any, index: number) => normalizePortfolioItem(item, undefined, index))
+    : [];
+  const servicePortfolio = collectServicePortfolioItems(settings);
+  const staticPortfolio = portfolioItems.map((item, index) => normalizePortfolioItem(item, undefined, index));
+  const merged = [...cmsPortfolio, ...servicePortfolio, ...staticPortfolio];
+  const seen = new Set<string>();
+
+  return merged.filter((item) => {
+    if (!item.image) return false;
+    const key = `${item.image}|${item.title}`.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+export default async function PortfolioPage() {
+  const cmsSettings = await getCmsSettings();
+  const displayItems = mergePortfolioItems(cmsSettings);
+
   return (
     <main className="brand-interior min-h-screen bg-[#050806] text-white" style={{ fontFamily: "'Prompt','Sarabun',sans-serif" }}>
       <Navbar />
@@ -85,13 +142,13 @@ export default function PortfolioPage() {
 
       <section className="px-5 pb-24 sm:px-6 lg:px-8">
         <div className="portfolio-proof-grid mx-auto max-w-[1380px]">
-          {portfolioItems.map((item) => (
-            <article key={item.title} className="portfolio-proof-card group">
+          {displayItems.map((item) => (
+            <article key={`${item.image}-${item.title}`} className="portfolio-proof-card group">
               <Link href={item.href} className="portfolio-proof-link">
                 <div className="portfolio-proof-media">
                   <Image
                     src={item.image}
-                    alt={`${item.title} Display Works Media`}
+                    alt={item.alt}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="transition-transform duration-500 group-hover:scale-[1.03]"
