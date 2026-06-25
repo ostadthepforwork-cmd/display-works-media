@@ -40,8 +40,6 @@ export const serviceFallbackPortfolioItems: Record<string, ServicePortfolioItem[
   rollup: [
     { title: "Roll Up สำหรับหน้าร้าน", image: "/images/portfolio/rollup-1.png", meta: "ติดตั้งง่าย เหมาะกับพื้นที่จำกัดและใช้งานซ้ำได้" },
     { title: "Roll Up สำหรับโปรโมชั่น", image: "/images/portfolio/rollup-2.png", meta: "ช่วยให้บูธ งานแสดงสินค้า และกิจกรรมดูพร้อมขึ้น" },
-    { title: "Roll Up งานออกบูธ", image: "/images/portfolio/rollup-3.png", meta: "พกพาง่าย ใช้ซ้ำได้ และช่วยให้แบรนด์ดูพร้อมในพื้นที่จัดงาน" },
-    { title: "X-Stand สำหรับแคมเปญ", image: "/images/portfolio/rollup-4.png", meta: "ตัวเลือกประหยัดสำหรับงานโปรโมชั่นและสื่อหน้าร้าน" },
   ],
   label: [
     { title: "ฉลากสินค้าสำหรับบรรจุภัณฑ์", image: "/images/portfolio/sticker-1.png", meta: "ช่วยให้แพ็กเกจดูน่าเชื่อถือและสื่อสารแบรนด์ชัดขึ้น" },
@@ -62,11 +60,15 @@ export function getServicePortfolioEntries(settings: any = {}) {
     const cmsItems = Array.isArray(serviceDetails?.[serviceKey]?.portfolioItems)
       ? serviceDetails[serviceKey].portfolioItems
       : [];
+    const completeCmsItems = cmsItems.filter((item) =>
+      (item?.image || item?.img) && item?.title && (item?.meta || item?.desc)
+    );
     const fallbackItems = serviceFallbackPortfolioItems[serviceKey] || [];
+    const sourceItems = completeCmsItems.length > 0 ? completeCmsItems : fallbackItems;
     const meta = servicePortfolioMeta[serviceKey];
 
-    return [...cmsItems, ...fallbackItems]
-      .filter((item) => (item?.image || item?.img) && item?.title)
+    return sourceItems
+      .filter((item) => (item?.image || item?.img) && item?.title && (item?.meta || item?.desc))
       .map((item) => ({
         ...item,
         category: item.category || meta.category,

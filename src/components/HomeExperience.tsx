@@ -94,8 +94,11 @@ function mergePortfolio(content: CmsSettings) {
   const seen = new Set<string>();
 
   return [...cmsPortfolio, ...servicePortfolio, ...fallback].filter((item) => {
-    if (!item.image) return false;
-    const key = `${item.image}|${item.title}`.toLowerCase();
+    if (!item.image || !item.title || !item.meta) return false;
+    const key = item.image
+      .replace(/^https?:\/\/[^/]+/i, "")
+      .replace(/\?.*$/, "")
+      .toLowerCase();
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

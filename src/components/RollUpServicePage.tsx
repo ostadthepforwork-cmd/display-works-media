@@ -77,8 +77,6 @@ const displaySizes = [
 const portfolioImages = [
   "/images/portfolio/rollup-1.png",
   "/images/portfolio/rollup-2.png",
-  "/images/portfolio/rollup-3.png",
-  "/images/portfolio/rollup-4.png",
 ];
 
 const processSteps = [

@@ -69,7 +69,7 @@ function normalizePortfolioItem(item: any, serviceKey?: string, index = 0) {
     title: item?.title || item?.category || `ผลงาน ${index + 1}`,
     category: item?.category || service?.category || "งานจริง",
     image,
-    desc: item?.desc || item?.meta || "ตัวอย่างผลงานจริงที่ช่วยให้เห็นวัสดุ ขนาด และบริบทการใช้งานก่อนเริ่มสั่งผลิต",
+    desc: item?.desc || item?.meta || "",
     href: item?.href || service?.href || "/portfolio",
     alt: item?.alt || item?.title || service?.category || "ผลงาน Display Works Media",
   };
@@ -81,7 +81,9 @@ function collectServicePortfolioItems(settings: any) {
 
 function mergePortfolioItems(settings: any) {
   const cmsPortfolio = Array.isArray(settings?.portfolio)
-    ? settings.portfolio.map((item: any, index: number) => normalizePortfolioItem(item, undefined, index))
+    ? settings.portfolio
+        .filter((item: any) => (item?.image || item?.img) && item?.title && (item?.desc || item?.meta || item?.category))
+        .map((item: any, index: number) => normalizePortfolioItem(item, undefined, index))
     : [];
   const servicePortfolio = collectServicePortfolioItems(settings);
   const staticPortfolio = portfolioItems.map((item, index) => normalizePortfolioItem(item, undefined, index));
@@ -89,8 +91,11 @@ function mergePortfolioItems(settings: any) {
   const seen = new Set<string>();
 
   return merged.filter((item) => {
-    if (!item.image) return false;
-    const key = `${item.image}|${item.title}`.toLowerCase();
+    if (!item.image || !item.title || !item.desc) return false;
+    const key = item.image
+      .replace(/^https?:\/\/[^/]+/i, "")
+      .replace(/\?.*$/, "")
+      .toLowerCase();
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
