@@ -940,6 +940,16 @@ a {
   gap: 10px;
 }
 
+.shared-service-sections .home-portfolio-grid.home-portfolio-count-2 {
+  grid-template-columns: repeat(2, minmax(260px, 520px));
+  justify-content: center;
+}
+
+.shared-service-sections .home-portfolio-link {
+  display: block;
+  min-width: 0;
+}
+
 .shared-service-sections .home-portfolio-grid article,
 .shared-service-sections .home-portfolio-grid article:first-child,
 .shared-service-sections .home-portfolio-grid.home-portfolio-count-2 article:first-child,
@@ -947,7 +957,14 @@ a {
   grid-column: auto;
   grid-row: auto;
   aspect-ratio: 4 / 3;
+  height: 100%;
   min-height: 0;
+}
+
+.shared-service-sections .home-center-action {
+  position: relative;
+  z-index: 3;
+  margin-top: 22px;
 }
 
 .shared-service-sections .home-portfolio-grid article > img {
