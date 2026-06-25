@@ -875,6 +875,17 @@ a {
   grid-column: 2 / 4;
 }
 
+.home-portfolio-grid.home-portfolio-count-6 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 205px);
+}
+
+.home-portfolio-grid.home-portfolio-count-6 article,
+.home-portfolio-grid.home-portfolio-count-6 article:first-child {
+  grid-column: auto;
+  grid-row: auto;
+}
+
 .home-portfolio-grid article .home-portfolio-caption {
   position: absolute;
   right: 0;

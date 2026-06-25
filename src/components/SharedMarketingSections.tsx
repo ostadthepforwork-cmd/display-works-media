@@ -155,7 +155,7 @@ export function SharedPortfolio({
         title={portfolioTitle}
         subtitle={portfolioSubtitle}
       />
-      <div className={`home-portfolio-grid home-portfolio-count-${Math.min(visibleItems.length, 5)}${mobileCarousel ? " home-portfolio-carousel" : ""}`}>
+      <div className={`home-portfolio-grid home-portfolio-count-${Math.min(visibleItems.length, 6)}${mobileCarousel ? " home-portfolio-carousel" : ""}`}>
         {visibleItems.map((item, index) => {
           const card = (
             <article key={`${item.title}-${index}`} className={index === 0 ? "home-portfolio-featured" : ""}>
