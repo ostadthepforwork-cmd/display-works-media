@@ -166,7 +166,7 @@ export default function HomeExperience({ cms, posts }: { cms: CmsSettings; posts
 
         <SharedWorkflow />
 
-        <SharedPortfolio items={portfolio} maxItems={8} />
+        <SharedPortfolio items={portfolio} maxItems={8} mobileCarousel />
 
         <section id="services" className="home-section">
           <SharedSectionTitle

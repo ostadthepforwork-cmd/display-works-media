@@ -4252,19 +4252,112 @@ function ServicesManager({ showToast }: any) {
     { id: "6", name: "ฉลากสินค้า", icon: "🏷", desc: "พิมพ์ฉลากสินค้าคุณภาพสูง ทั้งแบบม้วนและแผ่น รองรับทุกขนาด", price: "100 ชิ้นละ 400฿", url: "/services/label-sticker" },
   ]));
   const [editing, setEditing] = useState<any>(null);
+  const [pageContent, setPageContent] = useState<any>(defaultPageContent);
+  const [servicePortfolioUploading, setServicePortfolioUploading] = useState("");
   useEffect(() => {
     let alive = true;
     loadCmsSetting("services", services).then((value) => {
       if (alive) setServices(value);
     });
+    loadCmsSetting("page_content", defaultPageContent).then((value) => {
+      if (alive) setPageContent(value || defaultPageContent);
+    });
     return () => { alive = false; };
   }, []);
+
+  const serviceKeyFromService = (service: any) => {
+    const id = String(service?.id || "");
+    const url = String(service?.url || "").toLowerCase();
+    const name = String(service?.name || "").toLowerCase();
+    if (id === "1" || url.includes("vinyl")) return "vinyl";
+    if (id === "3" || url.includes("pp-board") || url.includes("ppboard") || name.includes("pp")) return "ppboard";
+    if (id === "4" || url.includes("roll") || url.includes("x-stand")) return "rollup";
+    if (id === "5" || url.includes("backdrop")) return "backdrop";
+    if (id === "6" || name.includes("ฉลาก") || url.includes("label")) return "label";
+    if (id === "2" || url.includes("sticker") || name.includes("sticker") || name.includes("สติ๊ก")) return "sticker";
+    return "";
+  };
+
+  const servicePortfolioItems = (serviceKey: string) => {
+    if (!serviceKey) return [];
+    const items = pageContent?.servicesDetail?.[serviceKey]?.portfolioItems;
+    return Array.isArray(items) && items.length > 0 ? items : (defaultServicePortfolioItems[serviceKey] || []);
+  };
+
+  const updateServicePortfolioItem = (serviceKey: string, index: number, key: string, value: string) => {
+    const currentItems = servicePortfolioItems(serviceKey);
+    const nextItems = currentItems.map((item: any, itemIndex: number) =>
+      itemIndex === index ? { ...item, [key]: value } : item
+    );
+    setPageContent((current: any) => ({
+      ...current,
+      servicesDetail: {
+        ...current.servicesDetail,
+        [serviceKey]: {
+          ...(current.servicesDetail?.[serviceKey] || {}),
+          portfolioItems: nextItems,
+        },
+      },
+    }));
+  };
+
+  const addServicePortfolioItem = (serviceKey: string, service: any) => {
+    const category = service?.name || "ผลงานบริการ";
+    const currentItems = servicePortfolioItems(serviceKey);
+    setPageContent((current: any) => ({
+      ...current,
+      servicesDetail: {
+        ...current.servicesDetail,
+        [serviceKey]: {
+          ...(current.servicesDetail?.[serviceKey] || {}),
+          portfolioItems: [
+            ...currentItems,
+            { title: "ผลงานใหม่", category, image: "", alt: "", meta: "", href: service?.url || "" },
+          ],
+        },
+      },
+    }));
+  };
+
+  const deleteServicePortfolioItem = (serviceKey: string, index: number) => {
+    const currentItems = servicePortfolioItems(serviceKey);
+    setPageContent((current: any) => ({
+      ...current,
+      servicesDetail: {
+        ...current.servicesDetail,
+        [serviceKey]: {
+          ...(current.servicesDetail?.[serviceKey] || {}),
+          portfolioItems: currentItems.filter((_: any, itemIndex: number) => itemIndex !== index),
+        },
+      },
+    }));
+  };
+
+  const uploadServicePortfolioImage = async (serviceKey: string, index: number, file?: File) => {
+    if (!file || !serviceKey) return;
+    const uploadKey = `${serviceKey}-${index}`;
+    setServicePortfolioUploading(uploadKey);
+    try {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `service-portfolio/${serviceKey}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("cms-media").upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
+      updateServicePortfolioItem(serviceKey, index, "image", urlData.publicUrl);
+      showToast("อัปโหลดรูปผลงานสำเร็จ");
+    } catch (error: any) {
+      showToast("อัปโหลดรูปไม่ได้: " + (error?.message || "ตรวจสอบ Supabase Storage"), "error");
+    } finally {
+      setServicePortfolioUploading("");
+    }
+  };
 
   const save = async (s) => {
     const newSvc = s.id ? services.map(x => x.id === s.id ? s : x) : [...services, { ...s, id: Date.now().toString() }];
     setServices(newSvc);
     try {
       await saveCmsSetting("services", newSvc);
+      await saveCmsSetting("page_content", pageContent);
       showToast("บันทึกบริการแล้ว");
     } catch (error: any) {
       showToast("บันทึกไม่ได้: " + error.message, "error");
@@ -4306,7 +4399,7 @@ function ServicesManager({ showToast }: any) {
         ))}
       </div>
       {editing && (
-        <CModal title={editing.id ? "แก้ไขบริการ" : "เพิ่มบริการ"} onClose={() => setEditing(null)} width={480}>
+        <CModal title={editing.id ? "แก้ไขบริการ" : "เพิ่มบริการ"} onClose={() => setEditing(null)} width={760}>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 12 }}>
               <CField label="ไอคอน"><input value={editing.icon} onChange={e => setEditing(p => ({ ...p, icon: e.target.value }))} style={{ textAlign: "center", fontSize: 24 }} /></CField>
@@ -4315,6 +4408,67 @@ function ServicesManager({ showToast }: any) {
             <CField label="คำอธิบาย"><textarea value={editing.desc} onChange={e => setEditing(p => ({ ...p, desc: e.target.value }))} rows={3} /></CField>
             <CField label="ราคาเริ่มต้น"><input value={editing.price} onChange={e => setEditing(p => ({ ...p, price: e.target.value }))} placeholder="เช่น ตร.ม.ละ 200฿" /></CField>
             <CField label="URL หน้าบริการ"><input value={editing.url} onChange={e => setEditing(p => ({ ...p, url: e.target.value }))} placeholder="/services/vinyl-banner" /></CField>
+            {(() => {
+              const serviceKey = serviceKeyFromService(editing);
+              const items = servicePortfolioItems(serviceKey);
+              return (
+                <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 14, marginTop: 2 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 800 }}>รูปผลงานของบริการนี้</div>
+                      <div style={{ fontSize: 11, color: "#8A94A6", marginTop: 3 }}>
+                        รูปชุดนี้จะใช้ในหน้าบริการ หน้าแรก และหน้าผลงาน
+                      </div>
+                    </div>
+                    {serviceKey && <CBtn onClick={() => addServicePortfolioItem(serviceKey, editing)} small color="#3B82F6">+ เพิ่มรูป</CBtn>}
+                  </div>
+                  {!serviceKey ? (
+                    <div style={{ padding: 12, border: "1px dashed rgba(255,107,0,0.35)", borderRadius: 10, color: "#F59E0B", fontSize: 12, lineHeight: 1.7 }}>
+                      ยังไม่พบหน้าบริการที่เชื่อมกับรายการนี้ กรุณาใส่ URL ให้ตรงกับหน้าบริการ เช่น /services/vinyl-banner, /services/sticker, /services/pp-board, /services/roll-up, /services/backdrop หรือ /services/label-sticker
+                    </div>
+                  ) : (
+                    <div className="service-portfolio-editor-grid" style={{ display: "grid", gap: 12 }}>
+                      {items.map((item: any, index: number) => (
+                        <div key={`${serviceKey}-service-modal-portfolio-${index}`} className="service-portfolio-editor-card" style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 12 }}>
+                          <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 12 }}>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ position: "relative", aspectRatio: "4 / 3", borderRadius: 10, overflow: "hidden", background: "#050812", border: "1px solid rgba(255,255,255,0.08)" }}>
+                                {item.image ? (
+                                  <img src={item.image} alt={item.alt || item.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                ) : (
+                                  <div style={{ height: "100%", display: "grid", placeItems: "center", color: "#4B5563", fontSize: 11 }}>ยังไม่มีรูป</div>
+                                )}
+                              </div>
+                              <CBtn onClick={() => deleteServicePortfolioItem(serviceKey, index)} small outline style={{ width: "100%", marginTop: 8, color: "#EF4444", borderColor: "rgba(239,68,68,0.35)" }}>ลบรูป</CBtn>
+                            </div>
+                            <div className="service-portfolio-fields" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                              <CField label="ชื่อผลงาน"><input value={item.title || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "title", e.target.value)} /></CField>
+                              <CField label="หมวดหมู่"><input value={item.category || editing.name || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "category", e.target.value)} /></CField>
+                              <CField label="URL รูป"><input value={item.image || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "image", e.target.value)} placeholder="/images/portfolio/example.jpg" /></CField>
+                              <CField label="อัปโหลดรูป">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => uploadServicePortfolioImage(serviceKey, index, e.target.files?.[0])}
+                                />
+                                {servicePortfolioUploading === `${serviceKey}-${index}` && (
+                                  <div style={{ fontSize: 11, color: "#60A5FA", marginTop: 5 }}>กำลังอัปโหลด...</div>
+                                )}
+                              </CField>
+                              <CField label="Alt Text"><input value={item.alt || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "alt", e.target.value)} /></CField>
+                              <CField label="ลิงก์เมื่อกด"><input value={item.href || editing.url || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "href", e.target.value)} /></CField>
+                              <CField label="คำอธิบายสั้น" style={{ gridColumn: "1 / -1" }}>
+                                <textarea value={item.meta || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "meta", e.target.value)} rows={2} />
+                              </CField>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             <div style={{ display: "flex", gap: 10 }}>
               <CBtn onClick={() => save(editing)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</CBtn>
               <CBtn onClick={() => setEditing(null)} outline style={{ flex: 1 }}>ยกเลิก</CBtn>
@@ -5116,8 +5270,8 @@ function Card({ children }: any) {
 function SectionTitle({ children }: any) {
   return <div style={{ fontSize: 12, fontWeight: 600, color: "#FF6B00", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>{children}</div>;
 }
-function CField({ label, children }: any) {
-  return <div><label>{label}</label>{children}</div>;
+function CField({ label, children, style }: any) {
+  return <div style={style}><label>{label}</label>{children}</div>;
 }
 function CBtn({ onClick, children, color, outline, small, style, disabled }: any) {
   return (

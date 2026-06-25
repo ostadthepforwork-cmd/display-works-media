@@ -1708,6 +1708,49 @@ a {
     padding: 34px 12px 11px;
   }
 
+  .home-portfolio-grid.home-portfolio-carousel {
+    display: flex;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    gap: 10px;
+    margin-right: -18px;
+    margin-left: -18px;
+    padding: 0 18px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-padding-inline: 18px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .home-portfolio-grid.home-portfolio-carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-portfolio-grid.home-portfolio-carousel .home-portfolio-link {
+    display: block;
+    flex: 0 0 min(82vw, 330px);
+    scroll-snap-align: start;
+  }
+
+  .home-portfolio-grid.home-portfolio-carousel > article {
+    flex: 0 0 min(82vw, 330px);
+    scroll-snap-align: start;
+  }
+
+  .home-portfolio-grid.home-portfolio-carousel article,
+  .home-portfolio-grid.home-portfolio-carousel article:first-child,
+  .home-portfolio-grid.home-portfolio-carousel.home-portfolio-count-2 article:first-child,
+  .home-portfolio-grid.home-portfolio-carousel.home-portfolio-count-3 article:first-child,
+  .home-portfolio-grid.home-portfolio-carousel.home-portfolio-count-4 article:first-child,
+  .home-portfolio-grid.home-portfolio-carousel.home-portfolio-count-4 article:last-child {
+    grid-column: auto;
+    grid-row: auto;
+    width: 100%;
+    height: 248px;
+    min-height: 248px;
+  }
+
   .home-service-grid {
     grid-template-columns: 1fr;
     gap: 8px;

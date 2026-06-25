@@ -131,6 +131,7 @@ export function SharedPortfolio({
   subtitle = "ตัวอย่างผลงานจริงที่ช่วยให้เห็นการใช้งาน ขนาด วัสดุ และบริบทของธุรกิจได้ชัดขึ้น",
   preferSharedCms = true,
   maxItems = 5,
+  mobileCarousel = false,
 }: {
   items: PortfolioItem[];
   id?: string;
@@ -139,6 +140,7 @@ export function SharedPortfolio({
   subtitle?: string;
   preferSharedCms?: boolean;
   maxItems?: number;
+  mobileCarousel?: boolean;
 }) {
   const cms = useCmsSettings();
   const portfolioEyebrow = preferSharedCms ? cmsValue(cms, "shared.portfolioEyebrow", eyebrow) : eyebrow;
@@ -153,7 +155,7 @@ export function SharedPortfolio({
         title={portfolioTitle}
         subtitle={portfolioSubtitle}
       />
-      <div className={`home-portfolio-grid home-portfolio-count-${Math.min(visibleItems.length, 5)}`}>
+      <div className={`home-portfolio-grid home-portfolio-count-${Math.min(visibleItems.length, 5)}${mobileCarousel ? " home-portfolio-carousel" : ""}`}>
         {visibleItems.map((item, index) => {
           const card = (
             <article key={`${item.title}-${index}`} className={index === 0 ? "home-portfolio-featured" : ""}>
