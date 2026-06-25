@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingButtons from "@/components/FloatingButtons";
 import { getCmsSettings } from "@/lib/cms-settings";
+import { getServicePortfolioEntries, servicePortfolioMeta } from "@/lib/service-portfolio";
 
 export const metadata: Metadata = {
   title: "ผลงานป้ายและสื่อโฆษณา | Display Works Media",
@@ -61,15 +62,6 @@ const portfolioItems = [
   },
 ];
 
-const servicePortfolioMeta: Record<string, { category: string; href: string }> = {
-  vinyl: { category: "ป้ายไวนิล", href: "/services/vinyl-banner" },
-  sticker: { category: "สติ๊กเกอร์", href: "/services/sticker" },
-  ppboard: { category: "PP Board", href: "/services/pp-board" },
-  rollup: { category: "Roll Up / X-Stand", href: "/services/roll-up" },
-  label: { category: "ฉลากสินค้า", href: "/services/label-sticker" },
-  backdrop: { category: "Backdrop", href: "/services/backdrop" },
-};
-
 function normalizePortfolioItem(item: any, serviceKey?: string, index = 0) {
   const service = serviceKey ? servicePortfolioMeta[serviceKey] : null;
   const image = item?.image || item?.img || "";
@@ -84,14 +76,7 @@ function normalizePortfolioItem(item: any, serviceKey?: string, index = 0) {
 }
 
 function collectServicePortfolioItems(settings: any) {
-  const serviceDetails = settings?.page_content?.servicesDetail || {};
-  return Object.keys(servicePortfolioMeta).flatMap((serviceKey) => {
-    const items = serviceDetails?.[serviceKey]?.portfolioItems;
-    if (!Array.isArray(items)) return [];
-    return items
-      .filter((item) => (item?.image || item?.img) && item?.title)
-      .map((item, index) => normalizePortfolioItem(item, serviceKey, index));
-  });
+  return getServicePortfolioEntries(settings).map((item, index) => normalizePortfolioItem(item, item.serviceKey, index));
 }
 
 function mergePortfolioItems(settings: any) {

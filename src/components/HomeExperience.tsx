@@ -22,6 +22,7 @@ import {
 } from "@/components/SharedMarketingSections";
 import Reviews from "@/components/Reviews";
 import { cmsValue, useCmsSettings } from "@/components/CmsSettingsProvider";
+import { getServicePortfolioEntries, servicePortfolioMeta } from "@/lib/service-portfolio";
 
 type CmsSettings = {
   hero?: Record<string, any>;
@@ -48,15 +49,6 @@ const fallbackPortfolio = [
   { title: "Backdrop งานอีเวนต์", category: "Backdrop", image: "/images/portfolio/work-03.webp", meta: "สร้างจุดถ่ายภาพและพื้นที่แบรนด์ที่ชัดเจน" },
   { title: "งานพิมพ์แคมเปญ", category: "สื่อโฆษณา", image: "/images/portfolio/work-05.webp", meta: "สื่อโปรโมชันที่ช่วยให้ข้อเสนอเห็นชัดขึ้น" },
 ];
-
-const servicePortfolioMeta: Record<string, { category: string; href: string }> = {
-  vinyl: { category: "ป้ายไวนิล", href: "/services/vinyl-banner" },
-  sticker: { category: "สติ๊กเกอร์", href: "/services/sticker" },
-  ppboard: { category: "PP Board", href: "/services/pp-board" },
-  rollup: { category: "Roll Up / X-Stand", href: "/services/roll-up" },
-  label: { category: "ฉลากสินค้า", href: "/services/label-sticker" },
-  backdrop: { category: "Backdrop", href: "/services/backdrop" },
-};
 
 const trustItems = [
   { icon: Printer, title: "ทีมงานมืออาชีพ", text: "ประสบการณ์มากกว่า 10 ปี" },
@@ -88,14 +80,7 @@ function normalizePortfolioItem(item: Record<string, any>, index: number, servic
 }
 
 function collectServicePortfolio(content: CmsSettings) {
-  const details = content.page_content?.servicesDetail || {};
-  return Object.keys(servicePortfolioMeta).flatMap((serviceKey) => {
-    const items = details?.[serviceKey]?.portfolioItems;
-    if (!Array.isArray(items)) return [];
-    return items
-      .filter((item) => (item?.image || item?.img) && item?.title)
-      .map((item, index) => normalizePortfolioItem(item, index, serviceKey));
-  });
+  return getServicePortfolioEntries(content).map((item, index) => normalizePortfolioItem(item, index, item.serviceKey));
 }
 
 function mergePortfolio(content: CmsSettings) {
@@ -166,7 +151,7 @@ export default function HomeExperience({ cms, posts }: { cms: CmsSettings; posts
 
         <SharedWorkflow />
 
-        <SharedPortfolio items={portfolio} maxItems={8} mobileCarousel />
+        <SharedPortfolio items={portfolio} maxItems={portfolio.length} mobileCarousel />
 
         <section id="services" className="home-section">
           <SharedSectionTitle
