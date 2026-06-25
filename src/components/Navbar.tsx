@@ -136,6 +136,9 @@ export default function Navbar() {
           <span>เมนู</span>
           {mobileOpen ? <X size={17} /> : <Menu size={17} />}
         </button>
+        <Link href="/#quote" className="navbar-mobile-quote">
+          ขอราคา
+        </Link>
       </div>
 
       {/* Mobile Menu */}
