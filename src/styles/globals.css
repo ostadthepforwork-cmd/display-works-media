@@ -3255,7 +3255,112 @@ a {
   }
 
   .navbar-mobile-menu-panel {
-    max-height: calc(100svh - 58px) !important;
+    position: fixed;
+    top: 58px;
+    right: 10px;
+    left: 10px;
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 12px !important;
+    max-height: calc(100svh - 70px) !important;
+    padding: 12px !important;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-top-color: rgba(255, 101, 0, 0.28) !important;
+    border-radius: 0 0 16px 16px;
+    background:
+      linear-gradient(180deg, rgba(9, 13, 12, 0.98), rgba(5, 8, 7, 0.97)) !important;
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
+    z-index: 70;
+  }
+
+  .navbar-mobile-menu-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ff6500;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .navbar-mobile-menu-title::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #ff6500;
+  }
+
+  .navbar-mobile-menu-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .navbar-mobile-link {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.035);
+    color: #d8dedc;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.35;
+    text-decoration: none;
+  }
+
+  .navbar-mobile-link span {
+    min-width: 0;
+  }
+
+  .navbar-mobile-link svg {
+    flex: 0 0 auto;
+    color: #ff6500;
+  }
+
+  .navbar-mobile-link.is-active {
+    border-color: rgba(255, 101, 0, 0.55);
+    background: rgba(255, 101, 0, 0.12);
+    color: #ffffff;
+  }
+
+  .navbar-mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .navbar-mobile-action-line,
+  .navbar-mobile-action-quote {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .navbar-mobile-action-line {
+    background: #06c755;
+    box-shadow: 0 12px 30px rgba(6, 199, 85, 0.18);
+  }
+
+  .navbar-mobile-action-quote {
+    background: #ff6500;
+    box-shadow: 0 12px 30px rgba(255, 101, 0, 0.2);
   }
 
   .home-shell > nav + .home-hero {
@@ -3523,5 +3628,21 @@ a {
     min-width: 76px;
     max-width: 76px;
     font-size: 10px;
+  }
+
+  .navbar-mobile-menu-panel {
+    right: 8px;
+    left: 8px;
+    padding: 10px !important;
+  }
+
+  .navbar-mobile-link {
+    min-height: 46px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .navbar-mobile-actions {
+    grid-template-columns: 1fr;
   }
 }

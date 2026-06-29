@@ -143,34 +143,39 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="navbar-mobile-menu-panel xl:hidden bg-[#080b0a] border-t border-white/[0.12] px-5 py-4 flex flex-col gap-1 max-h-[calc(100vh-64px)] overflow-y-auto">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-[#A0A9B7] hover:text-white text-base py-3 border-b border-white/[0.05] transition-colors"
+        <div className="navbar-mobile-menu-panel xl:hidden">
+          <div className="navbar-mobile-menu-title">เมนูหลัก</div>
+          <div className="navbar-mobile-menu-list">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`navbar-mobile-link ${pathname === link.href ? "is-active" : ""}`}
+                onClick={() => setMobileOpen(false)}
+              >
+                <span>{link.label}</span>
+                <ArrowUpRight size={14} />
+              </Link>
+            ))}
+          </div>
+          <div className="navbar-mobile-actions">
+            <a
+              href="https://lin.ee/O0nPl03"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="navbar-mobile-action-line"
               onClick={() => setMobileOpen(false)}
             >
-              {link.label}
+              ปรึกษาทาง LINE ฟรี
+            </a>
+            <Link
+              href="/#quote"
+              className="navbar-mobile-action-quote"
+              onClick={() => setMobileOpen(false)}
+            >
+              ส่งข้อมูลขอราคา
             </Link>
-          ))}
-          <a
-            href="https://lin.ee/O0nPl03"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 text-white text-center py-3.5 rounded-md font-semibold text-sm"
-            style={{ backgroundColor: "#06C755" }}
-            onClick={() => setMobileOpen(false)}
-          >
-            ปรึกษาทาง LINE ฟรี
-          </a>
-          <Link
-            href="/#quote"
-            className="text-white text-center py-3 rounded-md font-semibold text-sm border border-white/15"
-            onClick={() => setMobileOpen(false)}
-          >
-            ส่งข้อมูลขอราคา
-          </Link>
+          </div>
         </div>
       )}
     </nav>
