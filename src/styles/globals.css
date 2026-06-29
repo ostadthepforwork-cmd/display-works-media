@@ -935,18 +935,25 @@ a {
 }
 
 .shared-service-sections .home-portfolio-grid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
   grid-template-rows: none;
-  gap: 10px;
+  max-width: 1120px;
+  margin-right: auto;
+  margin-left: auto;
+  justify-content: center;
+  align-items: stretch;
+  gap: 12px;
 }
 
 .shared-service-sections .home-portfolio-grid.home-portfolio-count-2 {
-  grid-template-columns: repeat(2, minmax(260px, 520px));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 1040px;
   justify-content: center;
 }
 
 .shared-service-sections .home-portfolio-link {
   display: block;
+  width: 100%;
   min-width: 0;
 }
 
@@ -958,6 +965,7 @@ a {
   grid-row: auto;
   aspect-ratio: 4 / 3;
   height: 100%;
+  width: 100%;
   min-height: 0;
 }
 
@@ -968,9 +976,9 @@ a {
 }
 
 .shared-service-sections .home-portfolio-grid article > img {
-  object-fit: contain;
-  padding: 10px;
-  background: radial-gradient(circle at 50% 30%, rgba(255, 101, 0, 0.08), transparent 42%), #070a08;
+  object-fit: cover;
+  padding: 0;
+  background: #070a08;
 }
 
 .shared-service-sections .home-portfolio-grid article .home-portfolio-caption {
@@ -2308,6 +2316,15 @@ a {
   text-wrap: pretty;
 }
 
+.brand-article .prose-blog p,
+.brand-article .prose-blog li,
+.brand-article .prose-blog blockquote {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
+}
+
 .blog-faq-block details {
   transition:
     border-color 180ms ease,
@@ -2643,7 +2660,7 @@ a {
 
   .brand-service-detail .shared-marketing-section.home-section,
   .brand-service-detail .shared-marketing-section.home-quote-section {
-    padding: 42px 18px !important;
+    padding: 34px 16px !important;
   }
 
   .brand-interior > .shared-marketing-section.home-section {
@@ -2846,8 +2863,7 @@ a {
   .home-portfolio-caption span,
   .portfolio-proof-copy p,
   .home-service-card p,
-  .service-choice-card p,
-  .brand-interior article p {
+  .service-choice-card p {
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
@@ -2960,7 +2976,7 @@ a {
   }
 
   .brand-service-detail #hero {
-    min-height: 520px;
+    min-height: 480px;
   }
 
   .brand-service-detail #hero h1 {
@@ -2977,16 +2993,42 @@ a {
   .shared-service-sections .home-portfolio-grid.home-portfolio-count-3,
   .shared-service-sections .home-portfolio-grid.home-portfolio-count-4 {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    max-width: none;
   }
 
   .shared-service-sections .home-portfolio-link,
   .shared-service-sections .home-portfolio-grid article,
   .shared-service-sections .home-portfolio-grid article:first-child {
     width: 100%;
-    height: 220px;
-    min-height: 220px;
+    height: 158px;
+    min-height: 158px;
+    aspect-ratio: auto;
+    border-radius: 8px;
+  }
+
+  .shared-service-sections .home-portfolio-grid article .home-portfolio-caption {
+    padding: 42px 9px 9px;
+  }
+
+  .shared-service-sections .home-portfolio-caption small {
+    padding: 3px 6px;
+    font-size: 7px;
+  }
+
+  .shared-service-sections .home-portfolio-caption b {
+    font-size: 10.5px;
+    line-height: 1.25;
+    -webkit-line-clamp: 2;
+  }
+
+  .shared-service-sections .home-portfolio-caption span {
+    display: none;
+  }
+
+  .shared-service-sections .home-center-action {
+    margin-top: 14px;
   }
 
   .home-quote-section {
