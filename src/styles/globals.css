@@ -963,8 +963,8 @@ a {
 .shared-service-sections .home-portfolio-grid.home-portfolio-count-4 article:last-child {
   grid-column: auto;
   grid-row: auto;
-  aspect-ratio: 4 / 3;
-  height: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
   width: 100%;
   min-height: 0;
 }
@@ -3002,9 +3002,9 @@ a {
   .shared-service-sections .home-portfolio-grid article,
   .shared-service-sections .home-portfolio-grid article:first-child {
     width: 100%;
-    height: 158px;
-    min-height: 158px;
-    aspect-ratio: auto;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
     border-radius: 8px;
   }
 
