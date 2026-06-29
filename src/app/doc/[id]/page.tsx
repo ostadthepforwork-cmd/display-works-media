@@ -124,8 +124,34 @@ function lineQty(item: any) {
   return Number(item.qty || 0);
 }
 
+function isSqmBasis(value?: string) {
+  return value === "sqm" || /sqm|square|meter/i.test(String(value || ""));
+}
+
+function itemBillingBasis(item: any) {
+  return isSqmBasis(item?.priceUnit)
+    || isSqmBasis(item?.costUnit)
+    || /(ตร\.?ม|ตารางเมตร|sqm|square\s*meter)/i.test(String(item?.unit || ""))
+    ? "sqm"
+    : "piece";
+}
+
+function hasAreaDimensions(item: any) {
+  return Number(item?.widthM || 0) > 0
+    || Number(item?.heightM || 0) > 0
+    || Number(item?.pieces || 0) > 0;
+}
+
+function lineQtyForBasis(item: any, basis?: string) {
+  if (isSqmBasis(basis)) return lineQty(item);
+  const pieces = Number(item?.pieces || 0);
+  return itemBillingBasis(item) === "sqm" && hasAreaDimensions(item)
+    ? (pieces > 0 ? pieces : 1)
+    : lineQty(item);
+}
+
 function lineAmount(item: any) {
-  return lineQty(item) * Number(item.price || 0);
+  return lineQtyForBasis(item, item?.priceUnit || "piece") * Number(item.price || 0);
 }
 
 function isSqmItem(item: any) {
@@ -163,16 +189,23 @@ function docVatRate(doc: any) {
 }
 
 function customerFacingLineItemWithMetadata(item: any) {
-  const isSqmByMeta = /sqm|square|meter/i.test(`${item?.priceUnit || ""}\n${item?.costUnit || ""}`);
-  if (!isSqmByMeta) return customerFacingLineItem(item);
+  if (itemBillingBasis(item) !== "sqm") return customerFacingLineItem(item);
 
   const amount = lineAmount(item);
-  const pieces = Number(item?.pieces || 0) || 1;
+  const detailText = String(item?.detail || "");
+  const parsedPieces = Number(
+    detailText.match(/(?:จำนวน|qty|pieces?)\D{0,12}(\d+(?:\.\d+)?)/i)?.[1]
+    || detailText.match(/[x×]\s*(\d+(?:\.\d+)?)\s*(?:ชิ้น|pcs?)/i)?.[1]
+    || 0
+  );
+  const pieces = Number(item?.pieces || 0) || parsedPieces || 1;
   return {
     ...customerFacingLineItem(item),
     qty: pieces,
     unit: "\u0e0a\u0e34\u0e49\u0e19",
     price: amount / pieces,
+    priceUnit: "piece",
+    costUnit: "piece",
   };
 }
 
@@ -223,6 +256,8 @@ function mapDocument(doc: any, items: any[]) {
       price: Number(item.price || 0),
       costUnit: item.cost_unit || "",
       priceUnit: item.price_unit || "",
+      widthM: Number(item.width_m || 0),
+      heightM: Number(item.height_m || 0),
       pieces: Number(item.pieces || 0),
     })),
   };
