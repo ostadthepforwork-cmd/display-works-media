@@ -1548,7 +1548,7 @@ a {
     max-width: 100vw;
   }
 
-  nav.fixed > div {
+  nav.fixed > .navbar-shell {
     width: 100%;
     min-width: 0;
   }
@@ -3168,7 +3168,7 @@ a {
     background: rgba(5, 7, 6, 0.96) !important;
   }
 
-  nav.fixed > div {
+  nav.fixed > .navbar-shell {
     display: grid !important;
     grid-template-columns: 42px minmax(0, 1fr) 86px;
     align-items: center;
@@ -3254,7 +3254,7 @@ a {
     box-shadow: 0 10px 28px rgba(255, 101, 0, 0.22);
   }
 
-  nav.fixed > div + div {
+  .navbar-mobile-menu-panel {
     max-height: calc(100svh - 58px) !important;
   }
 
@@ -3494,7 +3494,7 @@ a {
 }
 
 @media (max-width: 370px) {
-  nav.fixed > div {
+  nav.fixed > .navbar-shell {
     grid-template-columns: 40px minmax(0, 1fr) 76px;
     gap: 6px;
     padding: 0 8px !important;

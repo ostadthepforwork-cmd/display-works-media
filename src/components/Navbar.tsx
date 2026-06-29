@@ -30,7 +30,7 @@ export default function Navbar() {
   return (
     <>
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/15 bg-[#080b0a]/95 shadow-lg shadow-black/20 backdrop-blur-md">
-      <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8 flex items-center justify-between h-[64px]">
+      <div className="navbar-shell max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8 flex items-center justify-between h-[64px]">
         {/* Logo */}
         <Link href="/" className="navbar-brand flex min-w-0 items-center gap-3">
           <div className="w-11 h-11 relative flex-shrink-0">
@@ -143,7 +143,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="xl:hidden bg-[#080b0a] border-t border-white/[0.12] px-5 py-4 flex flex-col gap-1 max-h-[calc(100vh-64px)] overflow-y-auto">
+        <div className="navbar-mobile-menu-panel xl:hidden bg-[#080b0a] border-t border-white/[0.12] px-5 py-4 flex flex-col gap-1 max-h-[calc(100vh-64px)] overflow-y-auto">
           {navLinks.map((link) => (
             <Link
               key={link.href}
