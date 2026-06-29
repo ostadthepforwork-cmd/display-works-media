@@ -3170,25 +3170,29 @@ a {
 
   nav.fixed > div {
     display: grid !important;
-    grid-template-columns: 42px minmax(0, 1fr) 92px;
-    gap: 8px;
-    height: 64px !important;
-    padding: 0 12px !important;
+    grid-template-columns: 42px minmax(0, 1fr) 86px;
+    align-items: center;
+    gap: 7px;
+    height: 58px !important;
+    padding: 0 10px !important;
   }
 
   .navbar-brand {
     position: static;
     grid-column: 2;
     justify-self: center;
+    width: min(170px, 100%);
     max-width: 170px;
+    justify-content: center;
+    overflow: hidden;
     transform: none;
-    gap: 7px;
+    gap: 6px;
   }
 
   .navbar-brand .relative,
   .navbar-brand img {
-    width: 34px !important;
-    height: 34px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
   .navbar-brand-text {
@@ -3196,7 +3200,7 @@ a {
   }
 
   .navbar-brand-text > div:first-child {
-    font-size: 10px !important;
+    font-size: 9.5px !important;
     letter-spacing: 0.05em !important;
     white-space: nowrap;
   }
@@ -3210,9 +3214,9 @@ a {
   .navbar-menu-button {
     grid-column: 1;
     order: -1;
-    width: 42px !important;
-    min-width: 42px !important;
-    height: 42px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
     margin-left: 0 !important;
     padding: 0 !important;
     border-color: rgba(255, 255, 255, 0.16) !important;
@@ -3233,23 +3237,29 @@ a {
     position: static;
     grid-column: 3;
     display: inline-flex;
-    height: 40px;
-    width: 92px;
-    min-width: 92px;
-    max-width: 92px;
+    height: 38px;
+    width: 86px;
+    min-width: 86px;
+    max-width: 86px;
     align-items: center;
     justify-content: center;
     margin-left: 0;
     border-radius: 6px;
     background: #ff6500;
     color: white;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
     box-shadow: 0 10px 28px rgba(255, 101, 0, 0.22);
   }
 
+  nav.fixed > div + div {
+    max-height: calc(100svh - 58px) !important;
+  }
+
   .home-shell > nav + .home-hero {
-    margin-top: 64px;
+    margin-top: 58px;
   }
 
   .home-hero {
@@ -3480,5 +3490,38 @@ a {
 
   .home-quote-copy h2 {
     font-size: 26px !important;
+  }
+}
+
+@media (max-width: 370px) {
+  nav.fixed > div {
+    grid-template-columns: 40px minmax(0, 1fr) 76px;
+    gap: 6px;
+    padding: 0 8px !important;
+  }
+
+  .navbar-brand {
+    max-width: 132px;
+  }
+
+  .navbar-brand .relative,
+  .navbar-brand img {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .navbar-brand-text > div:first-child {
+    font-size: 8.5px !important;
+  }
+
+  .navbar-brand-text > div:last-child {
+    font-size: 7.5px !important;
+  }
+
+  .navbar-mobile-quote {
+    width: 76px;
+    min-width: 76px;
+    max-width: 76px;
+    font-size: 10px;
   }
 }
