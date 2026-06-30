@@ -199,12 +199,17 @@
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   font-family: 'Prompt', sans-serif;
   background-color: var(--bg);
   color: #FFFFFF;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
   letter-spacing: 0;
   line-height: 1.65;
@@ -1026,8 +1031,8 @@ a {
 }
 
 .portfolio-proof-media img {
-  object-fit: contain;
-  padding: 6px;
+  object-fit: cover;
+  padding: 0;
   background:
     radial-gradient(circle at 18% 18%, rgba(255, 101, 0, 0.08), transparent 35%),
     #070a08;
@@ -1101,6 +1106,9 @@ a {
 
 .service-choice-card {
   display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   color: inherit;
 }
 
@@ -1114,9 +1122,9 @@ a {
   inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  padding: 8px;
+  padding: 0;
   background:
     radial-gradient(circle at 22% 18%, rgba(255, 101, 0, 0.08), transparent 34%),
     #070a08;
@@ -2891,32 +2899,34 @@ a {
   }
 
   .service-choice-card {
-    display: grid !important;
-    grid-template-columns: 116px 1fr;
-    min-height: 134px;
+    display: block !important;
+    min-height: 0;
   }
 
   .service-choice-media {
-    height: 100% !important;
-    min-height: 134px;
-    aspect-ratio: auto;
+    height: auto !important;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
     max-height: none;
   }
 
   .service-choice-card > div:last-child {
-    display: grid;
-    align-content: center;
-    padding: 12px !important;
+    display: block;
+    padding: 14px !important;
   }
 
   .service-choice-card h2 {
+    min-width: 0;
     font-size: 1rem !important;
+    overflow-wrap: anywhere;
   }
 
   .service-choice-card p {
+    min-width: 0;
     margin-top: 7px !important;
     font-size: 12px !important;
     line-height: 1.55 !important;
+    overflow-wrap: anywhere;
   }
 
   .service-choice-card p[class*="border"] {
@@ -2932,14 +2942,13 @@ a {
   }
 
   .portfolio-proof-link {
-    display: grid;
-    grid-template-columns: 118px 1fr;
-    min-height: 138px;
+    display: block;
+    min-height: 0;
   }
 
   .portfolio-proof-media {
-    min-height: 138px;
-    aspect-ratio: auto;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
   }
 
   .portfolio-proof-media img {
@@ -2956,10 +2965,9 @@ a {
   }
 
   .portfolio-proof-copy {
-    display: grid;
-    align-content: center;
-    min-height: 138px;
-    padding: 12px;
+    display: block;
+    min-height: 0;
+    padding: 14px;
   }
 
   .brand-interior .portfolio-proof-copy h2,
@@ -3168,24 +3176,25 @@ a {
     background: rgba(5, 7, 6, 0.96) !important;
   }
 
-  nav.fixed > .navbar-shell {
-    display: grid !important;
-    grid-template-columns: 42px minmax(0, 1fr) 86px;
-    align-items: center;
-    gap: 7px;
+  body nav.fixed > .navbar-shell {
+    position: relative;
+    display: block !important;
     height: 58px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
     padding: 0 10px !important;
+    overflow: hidden;
   }
 
   .navbar-brand {
-    position: static;
-    grid-column: 2;
-    justify-self: center;
-    width: min(170px, 100%);
-    max-width: 170px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(156px, calc(100vw - 176px));
+    max-width: 156px;
     justify-content: center;
     overflow: hidden;
-    transform: none;
+    transform: translate(-50%, -50%);
     gap: 6px;
   }
 
@@ -3212,8 +3221,9 @@ a {
   }
 
   .navbar-menu-button {
-    grid-column: 1;
-    order: -1;
+    position: absolute;
+    top: 9px;
+    left: 10px;
     width: 40px !important;
     min-width: 40px !important;
     height: 40px !important;
@@ -3233,14 +3243,16 @@ a {
     height: 20px;
   }
 
-  .navbar-mobile-quote {
-    position: static;
-    grid-column: 3;
-    display: inline-flex;
+  nav.fixed .navbar-mobile-quote {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    display: inline-flex !important;
     height: 38px;
-    width: 86px;
-    min-width: 86px;
-    max-width: 86px;
+    width: 82px;
+    min-width: 82px;
+    max-width: 82px;
     align-items: center;
     justify-content: center;
     margin-left: 0;
@@ -3600,13 +3612,12 @@ a {
 
 @media (max-width: 370px) {
   nav.fixed > .navbar-shell {
-    grid-template-columns: 40px minmax(0, 1fr) 76px;
-    gap: 6px;
     padding: 0 8px !important;
   }
 
   .navbar-brand {
-    max-width: 132px;
+    width: min(124px, calc(100vw - 164px));
+    max-width: 124px;
   }
 
   .navbar-brand .relative,
@@ -3623,11 +3634,16 @@ a {
     font-size: 7.5px !important;
   }
 
-  .navbar-mobile-quote {
-    width: 76px;
-    min-width: 76px;
-    max-width: 76px;
+  nav.fixed .navbar-mobile-quote {
+    right: 8px;
+    width: 72px;
+    min-width: 72px;
+    max-width: 72px;
     font-size: 10px;
+  }
+
+  .navbar-menu-button {
+    left: 8px;
   }
 
   .navbar-mobile-menu-panel {
