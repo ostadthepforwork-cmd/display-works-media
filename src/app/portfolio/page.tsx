@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import FloatingButtons from "@/components/FloatingButtons";
 import { getCmsSettings } from "@/lib/cms-settings";
 import { getServicePortfolioEntries, servicePortfolioMeta } from "@/lib/service-portfolio";
 
@@ -157,7 +156,6 @@ export default async function PortfolioPage() {
       </section>
 
       <Footer />
-      <FloatingButtons />
     </main>
   );
 }

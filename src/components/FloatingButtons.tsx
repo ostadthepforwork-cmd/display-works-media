@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { MessageCircle, Facebook, Phone, FileText } from "lucide-react";
 
 const floatButtons = [
@@ -29,12 +30,16 @@ const floatButtons = [
 
 export default function FloatingButtons() {
   const [visible, setVisible] = useState(false);
+  const pathname = usePathname();
+  const hiddenOnThisPage = pathname?.startsWith("/admin") || pathname?.startsWith("/login") || pathname?.startsWith("/doc");
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 300);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  if (hiddenOnThisPage) return null;
 
   return (
     <>
@@ -76,9 +81,9 @@ export default function FloatingButtons() {
       <div
         className="fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-all duration-500"
         style={{
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(100%)",
-          pointerEvents: visible ? "auto" : "none",
+          opacity: 1,
+          transform: "translateY(0)",
+          pointerEvents: "auto",
         }}
       >
         <div
@@ -91,8 +96,8 @@ export default function FloatingButtons() {
         >
           {/* Quote */}
           <a
-            href="#quote"
-            className="flex flex-col items-center justify-center gap-1 py-4 text-white transition-colors hover:bg-white/5"
+            href="/#quote"
+            className="order-3 flex flex-col items-center justify-center gap-1 py-4 text-white transition-colors hover:bg-white/5"
           >
             <FileText size={20} style={{ color: "#FF6500" }} />
             <span className="text-xs font-medium">ขอราคา</span>
@@ -103,7 +108,7 @@ export default function FloatingButtons() {
             href="https://lin.ee/O0nPl03"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center gap-1 py-4 text-white font-bold text-sm transition-all duration-200 active:scale-95"
+            className="order-1 flex flex-col items-center justify-center gap-1 py-4 text-white font-bold text-sm transition-all duration-200 active:scale-95"
             style={{
             background: "#06C755",
             boxShadow: "0 0 30px rgba(6,199,85,0.28)",
@@ -116,7 +121,7 @@ export default function FloatingButtons() {
           {/* โทร */}
           <a
             href="tel:0659161539"
-            className="flex flex-col items-center justify-center gap-1 py-4 transition-colors hover:bg-white/5"
+            className="order-2 flex flex-col items-center justify-center gap-1 py-4 transition-colors hover:bg-white/5"
           >
             <Phone size={20} style={{ color: "#FF6500" }} />
             <span className="text-xs text-white font-medium">โทรเลย</span>

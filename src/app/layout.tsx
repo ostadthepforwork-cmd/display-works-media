@@ -5,6 +5,7 @@ import FacebookPixel from "@/components/FacebookPixel";
 import PDPAConsent from "@/components/PDPAConsent";
 import SchemaOrg from "@/components/SchemaOrg";
 import ScrollReveal from "@/components/ScrollReveal";
+import FloatingButtons from "@/components/FloatingButtons";
 import { CmsSettingsProvider } from "@/components/CmsSettingsProvider";
 import { getCmsSettings } from "@/lib/cms-settings";
 
@@ -88,6 +89,7 @@ export default async function RootLayout({
         */}
         <FacebookPixel />
         <PDPAConsent />
+        <FloatingButtons />
         {/* ScrollReveal: re-observe ทุกครั้งที่ navigate — แก้บัคหน้าดำเมื่อกลับมาหน้าแรก */}
         <ScrollReveal />
       </body>

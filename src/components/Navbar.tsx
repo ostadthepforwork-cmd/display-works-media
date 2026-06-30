@@ -143,8 +143,23 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="navbar-mobile-menu-panel xl:hidden">
+        <>
+        <button
+          type="button"
+          className="navbar-mobile-menu-backdrop xl:hidden"
+          aria-label="Close menu"
+          onClick={() => setMobileOpen(false)}
+        />
+        <aside className="navbar-mobile-menu-panel xl:hidden" aria-label="Mobile navigation">
           <div className="navbar-mobile-menu-title">เมนูหลัก</div>
+          <button
+            type="button"
+            className="navbar-mobile-menu-close"
+            aria-label="Close menu"
+            onClick={() => setMobileOpen(false)}
+          >
+            <X size={18} />
+          </button>
           <div className="navbar-mobile-menu-list">
             {navLinks.map((link) => (
               <Link
@@ -176,7 +191,8 @@ export default function Navbar() {
               ส่งข้อมูลขอราคา
             </Link>
           </div>
-        </div>
+        </aside>
+        </>
       )}
     </nav>
     </>

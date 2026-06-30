@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import FloatingButtons from "@/components/FloatingButtons";
 import { SharedWorkflow } from "@/components/SharedMarketingSections";
 import { CmsText } from "@/components/CmsSettingsProvider";
 import SchemaOrg from "@/components/SchemaOrg";
@@ -226,7 +225,6 @@ export default function ContactPage() {
         </section>
 
         <Footer />
-        <FloatingButtons />
       </main>
     </>
   );

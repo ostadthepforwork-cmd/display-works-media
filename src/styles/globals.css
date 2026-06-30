@@ -3172,6 +3172,7 @@ a {
 
 @media (max-width: 760px) {
   nav.fixed {
+    z-index: 1000 !important;
     border-bottom-color: rgba(255, 255, 255, 0.14) !important;
     background: rgba(5, 7, 6, 0.96) !important;
   }
@@ -3244,52 +3245,72 @@ a {
   }
 
   nav.fixed .navbar-mobile-quote {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 2;
-    display: inline-flex !important;
-    height: 38px;
-    width: 82px;
-    min-width: 82px;
-    max-width: 82px;
-    align-items: center;
-    justify-content: center;
-    margin-left: 0;
-    border-radius: 6px;
-    background: #ff6500;
-    color: white;
-    font-size: 11px;
-    font-weight: 800;
-    line-height: 1;
-    white-space: nowrap;
-    box-shadow: 0 10px 28px rgba(255, 101, 0, 0.22);
+    display: none !important;
+  }
+
+  .navbar-mobile-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: rgba(0, 0, 0, 0.58);
+    backdrop-filter: blur(3px);
+    z-index: 9998;
   }
 
   .navbar-mobile-menu-panel {
     position: fixed;
-    top: 58px;
-    right: 10px;
-    left: 10px;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(84vw, 330px);
     display: grid !important;
     grid-template-columns: 1fr;
+    align-content: start;
     gap: 12px !important;
-    max-height: calc(100svh - 70px) !important;
-    padding: 12px !important;
+    max-height: 100svh !important;
+    padding: calc(16px + env(safe-area-inset-top, 0px)) 14px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
     overflow-y: auto;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-top-color: rgba(255, 101, 0, 0.28) !important;
-    border-radius: 0 0 16px 16px;
+    border-left: 0 !important;
+    border-top: 0 !important;
+    border-bottom: 0 !important;
+    border-radius: 0 18px 18px 0;
     background:
       linear-gradient(180deg, rgba(9, 13, 12, 0.98), rgba(5, 8, 7, 0.97)) !important;
-    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
-    z-index: 70;
+    box-shadow: 22px 0 60px rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+  }
+
+  .navbar-mobile-menu-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .navbar-mobile-menu-close {
+    position: absolute;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    right: 14px;
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
   }
 
   .navbar-mobile-menu-title {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-height: 38px;
+    padding-right: 46px;
     color: #ff6500;
     font-size: 11px;
     font-weight: 900;
@@ -3635,11 +3656,7 @@ a {
   }
 
   nav.fixed .navbar-mobile-quote {
-    right: 8px;
-    width: 72px;
-    min-width: 72px;
-    max-width: 72px;
-    font-size: 10px;
+    display: none !important;
   }
 
   .navbar-menu-button {
@@ -3647,9 +3664,9 @@ a {
   }
 
   .navbar-mobile-menu-panel {
-    right: 8px;
-    left: 8px;
-    padding: 10px !important;
+    left: 0;
+    width: min(88vw, 318px);
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 12px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .navbar-mobile-link {
