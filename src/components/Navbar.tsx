@@ -141,6 +141,8 @@ export default function Navbar() {
         </Link>
       </div>
 
+    </nav>
+
       {/* Mobile Menu */}
       {mobileOpen && (
         <>
@@ -194,7 +196,6 @@ export default function Navbar() {
         </aside>
         </>
       )}
-    </nav>
     </>
   );
 }

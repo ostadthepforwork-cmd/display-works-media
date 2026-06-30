@@ -3251,6 +3251,9 @@ a {
   .navbar-mobile-menu-backdrop {
     position: fixed;
     inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     display: block;
     border: 0;
     background: rgba(0, 0, 0, 0.58);
@@ -3263,14 +3266,16 @@ a {
     top: 0;
     bottom: 0;
     left: 0;
+    height: 100vh;
+    height: 100dvh;
     width: min(84vw, 330px);
-    display: grid !important;
-    grid-template-columns: 1fr;
-    align-content: start;
+    display: flex !important;
+    flex-direction: column;
     gap: 12px !important;
-    max-height: 100svh !important;
+    max-height: none !important;
     padding: calc(16px + env(safe-area-inset-top, 0px)) 14px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
     overflow-y: auto;
+    overscroll-behavior: contain;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-left: 0 !important;
     border-top: 0 !important;
@@ -3330,6 +3335,7 @@ a {
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
+    padding-bottom: 6px;
   }
 
   .navbar-mobile-link {
