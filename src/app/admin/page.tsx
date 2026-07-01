@@ -1372,25 +1372,70 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
 // ============================================================
 function Dashboard({ documents, customers, products, totalRevenue, totalCost, totalProfit, docCounts, setPage }: any) {
   const [chartRange, setChartRange] = useState<"7d"|"30d"|"12m">("30d");
+  const localDateInput = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  const [dateFilterMode, setDateFilterMode] = useState<"quick"|"day"|"month"|"year">("quick");
+  const [dateFilter, setDateFilter] = useState(() => {
+    const initial = new Date();
+    const inputDate = localDateInput(initial);
+    return {
+      day: inputDate,
+      month: inputDate.slice(0, 7),
+      year: String(initial.getFullYear()),
+    };
+  });
 
   // ─── คำนวณข้อมูลหลัก ───────────────────────────────────────────
   const now = new Date();
-  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
-  const lastMonthEnd   = thisMonthStart - 1;
-
   const reportDocs = reportingDocuments(documents);
 
   const calcRev = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcDocTotal(d).total, 0);
   const itemCost = (item: any) => fallbackItemCost(products, item);
   const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
     s + d.items.reduce((ss: number, i: any) => ss + lineCost(i, itemCost(i)), 0), 0);
+  const dayStart = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const selectedRange = (() => {
+    const end = dayStart(now) + 24 * 60 * 60 * 1000;
+    if (dateFilterMode === "day") {
+      const selected = dateFilter.day ? new Date(`${dateFilter.day}T00:00:00`) : now;
+      const start = dayStart(selected);
+      return { start, end: start + 24 * 60 * 60 * 1000, prevStart: start - 24 * 60 * 60 * 1000, prevEnd: start };
+    }
+    if (dateFilterMode === "month") {
+      const [year, month] = (dateFilter.month || localDateInput(now).slice(0, 7)).split("-").map(Number);
+      const start = new Date(year, month - 1, 1).getTime();
+      const rangeEnd = new Date(year, month, 1).getTime();
+      return { start, end: rangeEnd, prevStart: new Date(year, month - 2, 1).getTime(), prevEnd: start };
+    }
+    if (dateFilterMode === "year") {
+      const year = Number(dateFilter.year || now.getFullYear());
+      const start = new Date(year, 0, 1).getTime();
+      const rangeEnd = new Date(year + 1, 0, 1).getTime();
+      return { start, end: rangeEnd, prevStart: new Date(year - 1, 0, 1).getTime(), prevEnd: start };
+    }
+    if (chartRange === "7d") {
+      const start = dayStart(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6));
+      return { start, end, prevStart: start - 7 * 24 * 60 * 60 * 1000, prevEnd: start };
+    }
+    if (chartRange === "12m") {
+      const start = new Date(now.getFullYear(), now.getMonth() - 11, 1).getTime();
+      return { start, end, prevStart: new Date(now.getFullYear(), now.getMonth() - 23, 1).getTime(), prevEnd: start };
+    }
+    const start = dayStart(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29));
+    return { start, end, prevStart: start - 30 * 24 * 60 * 60 * 1000, prevEnd: start };
+  })();
+  const docsInRange = (start: number, end: number) =>
+    reportDocs.filter((d: any) => {
+      const t = new Date(d.date).getTime();
+      return Number.isFinite(t) && t >= start && t < end;
+    });
 
-  const thisMonthDocs = reportDocs.filter((d: any) => new Date(d.date).getTime() >= thisMonthStart);
-  const lastMonthDocs = reportDocs.filter((d: any) => {
-    const t = new Date(d.date).getTime();
-    return t >= lastMonthStart && t <= lastMonthEnd;
-  });
+  const thisMonthDocs = docsInRange(selectedRange.start, selectedRange.end);
+  const lastMonthDocs = docsInRange(selectedRange.prevStart, selectedRange.prevEnd);
 
   const revThisMonth  = calcRev(thisMonthDocs);
   const revLastMonth  = calcRev(lastMonthDocs);
@@ -1425,17 +1470,40 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   // ─── Chart data ────────────────────────────────────────────────
   const chartData = (() => {
     const points: { label: string; rev: number; cost: number; profit: number }[] = [];
-    if (chartRange === "7d") {
+    if (dateFilterMode === "day") {
+      const selected = dateFilter.day ? new Date(`${dateFilter.day}T00:00:00`) : now;
+      const ds = localDateInput(selected);
+      const dayDocs = reportDocs.filter((x: any) => x.date === ds);
+      points.push({ label: selected.toLocaleDateString("th-TH",{day:"numeric",month:"short"}), rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
+    } else if (dateFilterMode === "month") {
+      const [year, month] = (dateFilter.month || localDateInput(now).slice(0, 7)).split("-").map(Number);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(year, month - 1, day);
+        const ds = localDateInput(d);
+        const dayDocs = reportDocs.filter((x: any) => x.date === ds);
+        points.push({ label: day % 5 === 1 || day === daysInMonth ? d.toLocaleDateString("th-TH",{day:"numeric"}) : "", rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
+      }
+    } else if (dateFilterMode === "year") {
+      const year = Number(dateFilter.year || now.getFullYear());
+      for (let month = 0; month < 12; month++) {
+        const d = new Date(year, month, 1);
+        const start = d.getTime();
+        const end = new Date(year, month + 1, 1).getTime();
+        const mDocs = reportDocs.filter((x: any) => { const t = new Date(x.date).getTime(); return t >= start && t < end; });
+        points.push({ label: d.toLocaleDateString("th-TH",{month:"short"}), rev: calcRev(mDocs), cost: calcCost(mDocs), profit: calcRev(mDocs)-calcCost(mDocs) });
+      }
+    } else if (chartRange === "7d") {
       for (let i = 6; i >= 0; i--) {
         const d = new Date(); d.setDate(d.getDate() - i);
-        const ds = d.toISOString().slice(0,10);
+        const ds = localDateInput(d);
         const dayDocs = reportDocs.filter((x: any) => x.date === ds);
         points.push({ label: d.toLocaleDateString("th-TH",{weekday:"short"}), rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
       }
     } else if (chartRange === "30d") {
       for (let i = 29; i >= 0; i--) {
         const d = new Date(); d.setDate(d.getDate() - i);
-        const ds = d.toISOString().slice(0,10);
+        const ds = localDateInput(d);
         const dayDocs = reportDocs.filter((x: any) => x.date === ds);
         points.push({ label: i % 5 === 0 ? d.toLocaleDateString("th-TH",{day:"numeric",month:"short"}) : "", rev: calcRev(dayDocs), cost: calcCost(dayDocs), profit: calcRev(dayDocs)-calcCost(dayDocs) });
       }
@@ -1464,6 +1532,19 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   // ─── Styles ───────────────────────────────────────────────────
   const card = (extra = {}) => ({ background: "rgba(20,26,36,0.8)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, ...extra });
   const fmtB = (n: number) => n >= 1000000 ? `${(n/1000000).toFixed(2)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : fmtMoney(n);
+  const filterInputStyle = {
+    width: 128,
+    minHeight: 34,
+    padding: "6px 10px",
+    borderRadius: 8,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(11,15,25,0.75)",
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: 600,
+    fontFamily: "inherit",
+    outline: "none",
+  };
 
   return (
     <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
@@ -1477,15 +1558,41 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             {now.toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
           {[{k:"7d",l:"7 วัน"},{k:"30d",l:"30 วัน"},{k:"12m",l:"12 เดือน"}].map(({k,l}) => (
-            <button key={k} onClick={() => setChartRange(k as any)} style={{
+            <button key={k} onClick={() => { setChartRange(k as any); setDateFilterMode("quick"); }} style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)",
-              background: chartRange === k ? "#FF6B00" : "transparent",
-              color: chartRange === k ? "#fff" : "#6B7280", fontSize: 12, fontWeight: 600,
+              background: dateFilterMode === "quick" && chartRange === k ? "#FF6B00" : "transparent",
+              color: dateFilterMode === "quick" && chartRange === k ? "#fff" : "#6B7280", fontSize: 12, fontWeight: 600,
               cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s",
             }}>{l}</button>
           ))}
+          <input
+            aria-label="เลือกวัน"
+            type="date"
+            value={dateFilter.day}
+            onFocus={() => setDateFilterMode("day")}
+            onChange={(e) => { setDateFilterMode("day"); setDateFilter((prev) => ({ ...prev, day: e.target.value })); }}
+            style={{ ...filterInputStyle, borderColor: dateFilterMode === "day" ? "#FF6B00" : "rgba(255,255,255,0.08)" }}
+          />
+          <input
+            aria-label="เลือกเดือน"
+            type="month"
+            value={dateFilter.month}
+            onFocus={() => setDateFilterMode("month")}
+            onChange={(e) => { setDateFilterMode("month"); setDateFilter((prev) => ({ ...prev, month: e.target.value })); }}
+            style={{ ...filterInputStyle, borderColor: dateFilterMode === "month" ? "#FF6B00" : "rgba(255,255,255,0.08)" }}
+          />
+          <input
+            aria-label="เลือกปี"
+            type="number"
+            min="2000"
+            max="2100"
+            value={dateFilter.year}
+            onFocus={() => setDateFilterMode("year")}
+            onChange={(e) => { setDateFilterMode("year"); setDateFilter((prev) => ({ ...prev, year: e.target.value })); }}
+            style={{ ...filterInputStyle, width: 88, borderColor: dateFilterMode === "year" ? "#FF6B00" : "rgba(255,255,255,0.08)" }}
+          />
         </div>
       </div>
 
