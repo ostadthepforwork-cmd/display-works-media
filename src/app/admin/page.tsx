@@ -659,7 +659,8 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
 export default function AdminPage() {
   const initialSection = () => {
     if (typeof window === "undefined") return "erp";
-    return new URLSearchParams(window.location.search).get("section") === "cms" ? "cms" : "erp";
+    const requestedSection = new URLSearchParams(window.location.search).get("section");
+    return ["erp", "cms", "marketing"].includes(requestedSection || "") ? requestedSection! : "erp";
   };
   const initialCmsTab = () => {
     if (typeof window === "undefined") return "blog";
@@ -861,17 +862,24 @@ export default function AdminPage() {
               {t === "erp" ? "⚙️ ERP" : "✏️ CMS"}
             </button>
           ))}
+          <button onClick={() => setMainTab("marketing")} style={{
+            padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
+            background: mainTab === "marketing" ? "#FF6B00" : "transparent",
+            color: mainTab === "marketing" ? "#fff" : "#A8B0C0", transition: "all 0.2s",
+          }}>
+            Marketing
+          </button>
         </div>
         {/* Mobile: title + ERP/CMS toggle */}
         <div className="show-mobile" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
             {mainTab === "erp"
               ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
-              : (cmsTabs.find(t => t.id === tab)?.label || "CMS")}
+              : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
           </span>
           {/* ERP / CMS switcher pill */}
           <div style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: 2, gap: 2, flexShrink: 0 }}>
-            {(["erp", "cms"] as const).map(t => (
+            {(["erp", "cms", "marketing"] as const).map(t => (
               <button key={t} onClick={() => { setMainTab(t); setShowMobileDrawer(false); }} style={{
                 padding: "4px 10px", borderRadius: 6, border: "none", cursor: "pointer",
                 fontSize: 11, fontWeight: 700, fontFamily: "inherit",
@@ -948,6 +956,14 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {mainTab === "marketing" && (
+          <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+            <div className="main-content-area" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
+              <MarketingPage documents={documents} showToast={showToast} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ─── MOBILE BOTTOM NAV ─── */}
@@ -990,6 +1006,26 @@ export default function AdminPage() {
             padding: "10px 2px 8px", border: "none", cursor: "pointer", fontFamily: "inherit",
             background: tab === item.id && !showMobileDrawer ? "rgba(255,107,0,0.12)" : "transparent",
             color: tab === item.id && !showMobileDrawer ? "#FF6B00" : "#6B7280",
+          }} className="nav-btn">
+            <span style={{ fontSize: 22, lineHeight: 1 }}>{item.icon}</span>
+            <span style={{ fontSize: 10, marginTop: 4, fontWeight: 600 }}>{item.label}</span>
+          </button>
+        ))}
+        {mainTab === "marketing" && ([
+          { id: "overview", icon: "📊", label: "ภาพรวม" },
+          { id: "campaigns", icon: "📣", label: "แคมเปญ" },
+          { id: "sources", icon: "🔗", label: "Source" },
+          { id: "tracking", icon: "🎯", label: "Tracking" },
+          { id: "__more__", icon: "☰", label: "เพิ่มเติม" },
+        ] as any[]).map(item => (
+          <button key={item.id} onClick={() => {
+            if (item.id === "__more__") setShowMobileDrawer(v => !v);
+            else setShowMobileDrawer(false);
+          }} style={{
+            flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
+            padding: "10px 2px 8px", border: "none", cursor: "pointer", fontFamily: "inherit",
+            background: item.id === "overview" && !showMobileDrawer ? "rgba(255,107,0,0.12)" : "transparent",
+            color: item.id === "overview" && !showMobileDrawer ? "#FF6B00" : "#6B7280",
           }} className="nav-btn">
             <span style={{ fontSize: 22, lineHeight: 1 }}>{item.icon}</span>
             <span style={{ fontSize: 10, marginTop: 4, fontWeight: 600 }}>{item.label}</span>
@@ -1312,6 +1348,348 @@ export default function AdminPage() {
           input, select, textarea { font-size: 16px !important; } /* prevent iOS auto-zoom */
         }
       `}</style>
+    </div>
+  );
+}
+
+// ─── MARKETING COMPONENTS ─────────────────────────────────────────────────────
+function MarketingPage({ documents, showToast }: any) {
+  const defaultCampaigns = [
+    { id: genId(), name: "Vinyl Banner Lead Gen", channel: "Facebook Ads", objective: "LINE Inquiry", budget: 1500, status: "planning", startDate: today(), endDate: addDays(today(), 14), landingPage: "/services/vinyl-banner", note: "โปรโมตงานป้ายไวนิลสำหรับร้านอาหารและหน้าร้าน" },
+    { id: genId(), name: "Sticker Product Label", channel: "Organic / Blog", objective: "Service Page Visit", budget: 0, status: "active", startDate: today(), endDate: addDays(today(), 30), landingPage: "/services/sticker", note: "ดันบทความและหน้าบริการสติ๊กเกอร์ฉลากสินค้า" },
+  ];
+  const [campaigns, setCampaigns] = useState(() => loadLocal("marketing_campaigns", defaultCampaigns));
+  const [form, setForm] = useState({
+    id: "",
+    name: "",
+    channel: "Facebook Ads",
+    objective: "LINE Inquiry",
+    budget: "",
+    status: "planning",
+    startDate: today(),
+    endDate: addDays(today(), 14),
+    landingPage: "/",
+    note: "",
+  });
+  const [utm, setUtm] = useState({
+    url: "https://displayworksmedia.com/",
+    source: "facebook",
+    medium: "paid_social",
+    campaign: "vinyl_banner",
+    content: "",
+  });
+
+  const reportDocs = reportingDocuments(documents || []);
+  const quoteCount = (documents || []).filter((doc: any) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length;
+  const revenue = reportDocs.reduce((sum: number, doc: any) => sum + calcDocTotal(doc).total, 0);
+  const activeCampaigns = campaigns.filter((campaign: any) => campaign.status === "active").length;
+  const plannedBudget = campaigns.reduce((sum: number, campaign: any) => sum + Number(campaign.budget || 0), 0);
+  const revenuePerCampaign = campaigns.length > 0 ? revenue / campaigns.length : 0;
+  const saveCampaigns = (next: any[]) => {
+    setCampaigns(next);
+    saveLocal("marketing_campaigns", next);
+  };
+  const resetForm = () => setForm({
+    id: "",
+    name: "",
+    channel: "Facebook Ads",
+    objective: "LINE Inquiry",
+    budget: "",
+    status: "planning",
+    startDate: today(),
+    endDate: addDays(today(), 14),
+    landingPage: "/",
+    note: "",
+  });
+  const saveCampaign = () => {
+    if (!String(form.name || "").trim()) return showToast("กรุณาใส่ชื่อแคมเปญ", "error");
+    const row = { ...form, id: form.id || genId(), budget: Number(form.budget || 0) };
+    const next = form.id ? campaigns.map((campaign: any) => campaign.id === form.id ? row : campaign) : [row, ...campaigns];
+    saveCampaigns(next);
+    resetForm();
+    showToast("บันทึกแคมเปญ Marketing แล้ว");
+  };
+  const editCampaign = (campaign: any) => setForm({ ...campaign, budget: String(campaign.budget || "") });
+  const removeCampaign = (id: string) => {
+    saveCampaigns(campaigns.filter((campaign: any) => campaign.id !== id));
+    showToast("ลบแคมเปญแล้ว");
+  };
+  const buildUtmUrl = () => {
+    try {
+      const url = new URL(utm.url.startsWith("http") ? utm.url : `https://displayworksmedia.com${utm.url.startsWith("/") ? utm.url : `/${utm.url}`}`);
+      url.searchParams.set("utm_source", utm.source || "direct");
+      url.searchParams.set("utm_medium", utm.medium || "marketing");
+      url.searchParams.set("utm_campaign", utm.campaign || "campaign");
+      if (utm.content) url.searchParams.set("utm_content", utm.content);
+      return url.toString();
+    } catch {
+      return "";
+    }
+  };
+  const utmUrl = buildUtmUrl();
+  const trackingItems = [
+    { label: "GA4 / Google Analytics", status: "manual", detail: "ใช้เช็ค traffic, page view และ conversion path" },
+    { label: "Facebook Pixel", status: "manual", detail: "ใช้เก็บ event จาก Ads เช่น PageView, Lead, Contact" },
+    { label: "LINE CTA Click", status: "recommended", detail: "ควร track ปุ่ม LINE ทุกจุดเพื่อดู lead source" },
+    { label: "UTM Campaign", status: campaigns.length > 0 ? "ready" : "recommended", detail: "ใช้แยกผลแคมเปญ Facebook, Blog, LINE และโพสต์ต่าง ๆ" },
+  ];
+  const sourceRows = [
+    { source: "LINE Official", intent: "สอบถามราคา / ส่งไฟล์", action: "ใช้เป็น CTA หลัก" },
+    { source: "Facebook Ads", intent: "ดึงลูกค้าใหม่", action: "ใส่ UTM ทุกแคมเปญ" },
+    { source: "Service Pages", intent: "ลูกค้าค้นหาบริการ", action: "เชื่อมปุ่ม LINE และฟอร์ม" },
+    { source: "Blog / Organic", intent: "ให้ความรู้ก่อนตัดสินใจ", action: "ลิงก์ไปหน้าบริการที่เกี่ยวข้อง" },
+  ];
+  const connectedSources = [
+    { name: "ERP Receipts", state: "พร้อมใช้", detail: "ใช้ยอดรายได้จากใบเสร็จจริง" },
+    { name: "Campaign Planner", state: "พร้อมใช้", detail: "บันทึกงบและช่วงเวลาแคมเปญ" },
+    { name: "GA4", state: "รอเชื่อมต่อ", detail: "สำหรับ Visitor, Session, Conversion" },
+    { name: "Facebook Pixel / Ads", state: "รอเชื่อมต่อ", detail: "สำหรับ Spend, CPL, ROAS" },
+    { name: "LINE OA", state: "รอเชื่อมต่อ", detail: "สำหรับจำนวนแชทและ source ของ lead" },
+  ];
+  const channelRows = [
+    { name: "Facebook Ads", leads: "รอ API", spend: "รอ API", priority: "ใช้ UTM ทุกแคมเปญ" },
+    { name: "LINE OA", leads: "รอเชื่อมต่อ", spend: "-", priority: "CTA หลักของเว็บ" },
+    { name: "Organic / SEO", leads: "รอฟอร์ม lead", spend: "0", priority: "ดันหน้าบริการและบทความ" },
+    { name: "Direct / Referral", leads: "รอ GA4", spend: "-", priority: "ตรวจ source จาก UTM" },
+  ];
+  const funnelRows = [
+    { step: "Visitor", value: "รอ GA4", rate: "100%" },
+    { step: "Service Page View", value: "รอ GA4", rate: "รอข้อมูล" },
+    { step: "LINE / Form Lead", value: "รอ tracking", rate: "รอข้อมูล" },
+    { step: "Quotation", value: quoteCount, rate: "จาก ERP" },
+    { step: "Receipt / Customer", value: reportDocs.length, rate: "จาก ERP" },
+  ];
+  const reportCards = [
+    { title: "Monthly Marketing Summary", detail: "สรุปแคมเปญ งบ และรายได้จากใบเสร็จ", status: "พร้อมใช้บางส่วน" },
+    { title: "Channel Performance", detail: "เปรียบเทียบ LINE, Ads, Organic, Blog", status: "รอ source tracking" },
+    { title: "Content Conversion", detail: "ดูบทความ/หน้าบริการที่พาไปสู่ lead", status: "รอ GA4 event" },
+  ];
+  const insightCards = [
+    "ควรใช้ LINE เป็น CTA หลัก เพราะเป็นช่องทางที่ลูกค้าส่งไฟล์และถามราคาได้เร็ว",
+    "ทุกแคมเปญ Ads ควรใช้ UTM เพื่อแยกผลระหว่าง Facebook, LINE และ Blog",
+    "หลังต่อ GA4/Pixel แล้วควรวัด Lead ไม่ใช่แค่วัด Traffic",
+    "หน้าบริการควรมี CTA เดียวที่ชัด: ปรึกษาทาง LINE หรือขอใบเสนอราคา",
+  ];
+  const card = (extra = {}) => ({ background: "rgba(20,26,36,0.82)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, ...extra });
+
+  return (
+    <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1180, margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, color: "#FF6B00", textTransform: "uppercase", marginBottom: 6 }}>MARKETING COMMAND CENTER</div>
+          <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>Marketing Dashboard</h1>
+          <p style={{ color: "#7A8599", margin: "6px 0 0", fontSize: 13 }}>วางแผนแคมเปญ สร้าง UTM และดูภาพรวม lead-ready สำหรับ LINE inquiry</p>
+        </div>
+        <a href="https://displayworksmedia.com" target="_blank" rel="noreferrer" style={{ color: "#FF6B00", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>เปิดหน้าเว็บ ↗</a>
+      </div>
+
+      <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
+        {[
+          { label: "Campaigns", value: campaigns.length, sub: `${activeCampaigns} active`, color: "#FF6B00" },
+          { label: "Planned Budget", value: `฿${fmtMoney(plannedBudget)}`, sub: "งบรวมที่วางไว้", color: "#F59E0B" },
+          { label: "Receipt Revenue", value: `฿${fmtMoney(revenue)}`, sub: "อ้างอิงใบเสร็จ", color: "#10B981" },
+          { label: "Revenue / Campaign", value: `฿${fmtMoney(revenuePerCampaign)}`, sub: "ตัวเลขประมาณการ", color: "#60A5FA" },
+        ].map((item) => (
+          <div key={item.label} style={{ ...card(), padding: 18, borderTop: `2px solid ${item.color}` }}>
+            <div style={{ fontSize: 11, color: item.color, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>{item.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: "#fff" }}>{item.value}</div>
+            <div style={{ color: "#64748b", fontSize: 12, marginTop: 6 }}>{item.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 14, marginBottom: 20 }}>
+        <section style={{ ...card(), padding: 20 }}>
+          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Campaign Planner</h2>
+          <div className="form-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Field label="ชื่อแคมเปญ"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="เช่น Vinyl July Lead" /></Field>
+            <Field label="ช่องทาง"><select value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })}><option>Facebook Ads</option><option>Google Search</option><option>LINE OA</option><option>Organic / Blog</option><option>Direct</option></select></Field>
+            <Field label="Objective"><select value={form.objective} onChange={(e) => setForm({ ...form, objective: e.target.value })}><option>LINE Inquiry</option><option>Quote Form</option><option>Service Page Visit</option><option>Portfolio View</option><option>Phone Call</option></select></Field>
+            <Field label="สถานะ"><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option value="planning">Planning</option><option value="active">Active</option><option value="paused">Paused</option><option value="done">Done</option></select></Field>
+            <Field label="งบประมาณ"><input type="number" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} placeholder="0" /></Field>
+            <Field label="Landing Page"><input value={form.landingPage} onChange={(e) => setForm({ ...form, landingPage: e.target.value })} placeholder="/services/vinyl-banner" /></Field>
+            <Field label="วันที่เริ่ม"><input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></Field>
+            <Field label="วันที่จบ"><input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></Field>
+          </div>
+          <Field label="หมายเหตุ"><textarea value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} rows={3} placeholder="กลุ่มเป้าหมาย, offer, creative angle" /></Field>
+          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+            <Btn onClick={saveCampaign} color="#FF6B00" style={{ flex: 1 }}>{form.id ? "อัปเดตแคมเปญ" : "เพิ่มแคมเปญ"}</Btn>
+            <Btn onClick={resetForm} outline style={{ flex: 1 }}>ล้างฟอร์ม</Btn>
+          </div>
+        </section>
+
+        <section style={{ ...card(), padding: 20 }}>
+          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>UTM Builder</h2>
+          <div className="form-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Field label="URL"><input value={utm.url} onChange={(e) => setUtm({ ...utm, url: e.target.value })} /></Field>
+            <Field label="Source"><input value={utm.source} onChange={(e) => setUtm({ ...utm, source: e.target.value })} /></Field>
+            <Field label="Medium"><input value={utm.medium} onChange={(e) => setUtm({ ...utm, medium: e.target.value })} /></Field>
+            <Field label="Campaign"><input value={utm.campaign} onChange={(e) => setUtm({ ...utm, campaign: e.target.value })} /></Field>
+          </div>
+          <Field label="Content"><input value={utm.content} onChange={(e) => setUtm({ ...utm, content: e.target.value })} placeholder="creative_a หรือ video_01" /></Field>
+          <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.75)", border: "1px solid rgba(255,255,255,0.08)", color: "#A8B0C0", fontSize: 12, wordBreak: "break-all" }}>
+            {utmUrl || "URL ไม่ถูกต้อง"}
+          </div>
+          <Btn onClick={() => { navigator.clipboard?.writeText(utmUrl); showToast("คัดลอก UTM แล้ว"); }} color="#10B981" style={{ marginTop: 12, width: "100%" }}>คัดลอก UTM</Btn>
+        </section>
+      </div>
+
+      <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <section style={{ ...card(), padding: 20 }}>
+          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Campaign List</h2>
+          <div style={{ display: "grid", gap: 10 }}>
+            {campaigns.map((campaign: any) => (
+              <div key={campaign.id} style={{ padding: 14, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+                  <div>
+                    <div style={{ fontWeight: 800, color: "#fff" }}>{campaign.name}</div>
+                    <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>{campaign.channel} • {campaign.objective} • ฿{fmtMoney(campaign.budget)}</div>
+                    <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>{fmtDate(campaign.startDate)} - {fmtDate(campaign.endDate)} • {campaign.landingPage}</div>
+                  </div>
+                  <span style={{ color: campaign.status === "active" ? "#10B981" : "#F59E0B", background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 99, fontSize: 11, fontWeight: 800 }}>{campaign.status}</span>
+                </div>
+                {campaign.note && <p style={{ margin: "10px 0 0", color: "#A8B0C0", fontSize: 12 }}>{campaign.note}</p>}
+                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                  <Btn onClick={() => editCampaign(campaign)} small outline>แก้ไข</Btn>
+                  <Btn onClick={() => removeCampaign(campaign.id)} small outline>ลบ</Btn>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section style={{ ...card(), padding: 20 }}>
+          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Lead Source & Tracking</h2>
+          <div style={{ display: "grid", gap: 10, marginBottom: 16 }}>
+            {sourceRows.map((row) => (
+              <div key={row.source} style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 10, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <strong style={{ color: "#fff", fontSize: 13 }}>{row.source}</strong>
+                <div style={{ color: "#A8B0C0", fontSize: 12 }}>{row.intent}<br /><span style={{ color: "#FF6B00" }}>{row.action}</span></div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {trackingItems.map((item) => (
+              <div key={item.label} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 10, background: "rgba(255,255,255,0.035)" }}>
+                <span style={{ color: item.status === "ready" ? "#10B981" : item.status === "manual" ? "#F59E0B" : "#60A5FA", fontWeight: 900 }}>●</span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 13 }}>{item.label}</div>
+                  <div style={{ color: "#7A8599", fontSize: 12 }}>{item.detail}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "0.85fr 1.15fr", gap: 14, marginTop: 20 }}>
+        <section style={{ ...card(), padding: 20 }}>
+          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Budget Monitoring</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+            <div style={{
+              width: 132, height: 132, borderRadius: "50%",
+              background: `conic-gradient(#FF6B00 ${plannedBudget > 0 ? 75 : 8}%, rgba(255,255,255,0.08) 0)`,
+              display: "grid", placeItems: "center",
+            }}>
+              <div style={{ width: 94, height: 94, borderRadius: "50%", background: "#141A24", display: "grid", placeItems: "center", textAlign: "center" }}>
+                <strong style={{ fontSize: 22 }}>{plannedBudget > 0 ? "75%" : "0%"}</strong>
+                <span style={{ color: "#7A8599", fontSize: 11 }}>planned</span>
+              </div>
+            </div>
+            <div style={{ flex: 1, minWidth: 180, display: "grid", gap: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#A8B0C0" }}><span>งบที่วางไว้</span><strong style={{ color: "#fff" }}>฿{fmtMoney(plannedBudget)}</strong></div>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#A8B0C0" }}><span>ใช้จ่ายจริง</span><strong style={{ color: "#F59E0B" }}>รอ Ads API</strong></div>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#A8B0C0" }}><span>งบคงเหลือ</span><strong style={{ color: "#10B981" }}>รอข้อมูล</strong></div>
+              <div style={{ padding: 10, borderRadius: 10, background: "rgba(245,158,11,0.1)", color: "#FBBF24", fontSize: 12 }}>ยังไม่ต่อ Ads API จึงยังไม่แสดง spend จริง</div>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ ...card(), padding: 20 }}>
+          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Lead & Sales Funnel</h2>
+          <div style={{ display: "grid", gap: 8 }}>
+            {funnelRows.map((row, index) => (
+              <div key={row.step} style={{
+                display: "grid", gridTemplateColumns: "160px 1fr 90px", gap: 10, alignItems: "center",
+                padding: "10px 12px", borderRadius: 10,
+                background: `rgba(${255 - index * 28},${107 + index * 24},${index * 35},0.12)`,
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}>
+                <strong>{row.step}</strong>
+                <span style={{ color: "#A8B0C0" }}>{row.value}</span>
+                <span style={{ textAlign: "right", color: "#FF6B00", fontWeight: 800 }}>{row.rate}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section style={{ ...card(), padding: 20, marginTop: 20 }}>
+        <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Channel Performance</h2>
+        <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+          {channelRows.map((row) => (
+            <div key={row.name} style={{ padding: 14, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ fontWeight: 900, color: "#fff", marginBottom: 10 }}>{row.name}</div>
+              <div style={{ display: "grid", gap: 6, color: "#A8B0C0", fontSize: 12 }}>
+                <span>Leads: <strong style={{ color: "#fff" }}>{row.leads}</strong></span>
+                <span>Spend: <strong style={{ color: "#fff" }}>{row.spend}</strong></span>
+                <span style={{ color: "#FF6B00" }}>{row.priority}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 20 }}>
+        <section style={{ ...card(), padding: 20 }}>
+          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Reports</h2>
+          <div style={{ display: "grid", gap: 10 }}>
+            {reportCards.map((report) => (
+              <div key={report.title} style={{ padding: 12, borderRadius: 12, background: "rgba(255,255,255,0.035)", display: "flex", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <strong>{report.title}</strong>
+                  <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>{report.detail}</div>
+                </div>
+                <span style={{ color: "#F59E0B", fontSize: 11, fontWeight: 800, whiteSpace: "nowrap" }}>{report.status}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section style={{ ...card(), padding: 20 }}>
+          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Data Sources</h2>
+          <div style={{ display: "grid", gap: 10 }}>
+            {connectedSources.map((source) => (
+              <div key={source.name} style={{ display: "grid", gridTemplateColumns: "1fr 92px", gap: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div>
+                  <strong>{source.name}</strong>
+                  <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>{source.detail}</div>
+                </div>
+                <span style={{ alignSelf: "center", textAlign: "center", color: source.state === "พร้อมใช้" ? "#10B981" : "#F59E0B", fontSize: 11, fontWeight: 900 }}>{source.state}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section style={{ ...card(), padding: 20, marginTop: 20 }}>
+        <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>AI Insight</h2>
+        <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+          {insightCards.map((text, index) => (
+            <div key={text} style={{ padding: 14, borderRadius: 12, background: index === 0 ? "rgba(255,107,0,0.12)" : "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ color: "#FF6B00", fontWeight: 900, marginBottom: 8 }}>Insight {index + 1}</div>
+              <p style={{ margin: 0, color: "#A8B0C0", fontSize: 12, lineHeight: 1.65 }}>{text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ ...card(), padding: 20, marginTop: 20, borderColor: "rgba(255,107,0,0.22)" }}>
+        <h2 style={{ fontSize: 18, margin: "0 0 8px" }}>Settings & Next Connection</h2>
+        <p style={{ margin: 0, color: "#A8B0C0", fontSize: 13, lineHeight: 1.8 }}>
+          ขั้นต่อไปที่ควรต่อคือ GA4 Event, Facebook Pixel Event, LINE click tracking และตาราง lead เพื่อให้ Dashboard แสดง CPL, Conversion Rate, ROAS และ CAC จากข้อมูลจริง
+        </p>
+      </section>
     </div>
   );
 }
