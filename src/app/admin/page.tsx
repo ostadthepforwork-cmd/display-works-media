@@ -1,5 +1,5 @@
-'use client';
 // @ts-nocheck
+'use client';
 // ─── IMPORTS ─────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
@@ -1341,11 +1341,124 @@ export default function AdminPage() {
             padding: 10px !important;
             line-height: 1.3 !important;
           }
+
+          /* Marketing KPI Dashboard mobile layout */
+          .marketing-dashboard-shell {
+            border-radius: 16px !important;
+            min-height: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+          }
+          .marketing-shell-grid {
+            grid-template-columns: 1fr !important;
+            min-width: 0 !important;
+          }
+          .marketing-sidebar {
+            padding: 12px !important;
+            border-right: 0 !important;
+            border-bottom: 1px solid rgba(255,107,0,0.16) !important;
+            gap: 10px !important;
+          }
+          .marketing-sidebar > div:first-child { gap: 8px !important; }
+          .marketing-sidebar > div:first-child > div:first-child {
+            width: 34px !important;
+            height: 34px !important;
+            border-radius: 10px !important;
+            font-size: 12px !important;
+          }
+          .marketing-sidebar > div:first-child > div:last-child > div:first-child { font-size: 13px !important; }
+          .marketing-sidebar > div:first-child > div:last-child > div:last-child { font-size: 9px !important; }
+          .marketing-sidebar > div:last-child { display: none !important; }
+          .marketing-sidebar-nav {
+            display: flex !important;
+            gap: 8px !important;
+            overflow-x: auto !important;
+            padding: 2px 0 6px !important;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+          }
+          .marketing-sidebar-nav::-webkit-scrollbar { display: none; }
+          .marketing-sidebar-nav a {
+            flex: 0 0 auto !important;
+            padding: 9px 12px !important;
+            border-radius: 999px !important;
+            font-size: 12px !important;
+            white-space: nowrap !important;
+          }
+          .marketing-sidebar-nav a span { font-size: 12px !important; }
+          .marketing-main {
+            padding: 14px !important;
+            min-width: 0 !important;
+            overflow-x: hidden !important;
+          }
+          .marketing-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+          .marketing-header h1 {
+            font-size: 20px !important;
+            line-height: 1.25 !important;
+          }
+          .marketing-header p {
+            font-size: 12px !important;
+            line-height: 1.55 !important;
+          }
+          .marketing-header > div:last-child {
+            width: 100% !important;
+            overflow-x: auto !important;
+            padding-bottom: 2px !important;
+          }
+          .marketing-header select,
+          .marketing-header button {
+            flex: 1 0 auto !important;
+            min-width: 130px !important;
+          }
+          .marketing-kpi-grid {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+          }
+          .marketing-kpi-grid > div { padding: 12px !important; }
+          .marketing-kpi-grid > div > div:last-child,
+          .marketing-kpi-grid > div > div:nth-last-child(2) {
+            overflow-wrap: anywhere !important;
+          }
+          .marketing-main section {
+            max-width: 100% !important;
+            min-width: 0 !important;
+          }
+          .marketing-main #marketing-lead-funnel,
+          .marketing-main #marketing-crm > div:nth-child(2),
+          .marketing-main #marketing-channels > div,
+          .marketing-main #marketing-ai-insight > div:last-child,
+          .marketing-main #marketing-data-sources > div {
+            grid-template-columns: 1fr !important;
+          }
+          .marketing-main #marketing-crm table {
+            min-width: 760px !important;
+          }
+          .marketing-main #marketing-crm > div:last-child {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          .marketing-main svg {
+            max-width: 100% !important;
+          }
         }
 
         /* ── iPhone 15 Pro specific (393px wide) ── */
         @media (max-width: 430px) {
           input, select, textarea { font-size: 16px !important; } /* prevent iOS auto-zoom */
+          .marketing-kpi-grid { grid-template-columns: 1fr !important; }
+          .marketing-header > div:last-child {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+          }
+          .marketing-header > div:last-child > div:last-child {
+            display: none !important;
+          }
         }
       `}</style>
     </div>
@@ -1393,6 +1506,35 @@ function MarketingPage({ documents, showToast }: any) {
     totals: { spend: 0, impressions: 0, reach: 0, clicks: 0, cpc: 0, cpm: 0, ctr: 0, leads: 0, cpl: 0 },
     campaigns: [] as any[],
   });
+  const leadStatuses = ["New Lead", "Contacted", "Waiting for Detail", "Detail Completed", "Quotation Sent", "Follow-up", "Waiting Payment", "Closed Won", "Closed Lost", "No Response", "Not Qualified"];
+  const behaviorTagOptions = [
+    "Asked price first", "Has size", "Does not know size", "Artwork ready", "Needs design help",
+    "Has deadline", "Urgent job", "Compare sizes", "Lowest-price seeker", "Silent after quote",
+    "Repeat customer", "Referral"
+  ];
+  const defaultLeads = [
+    { id: genId(), date: today(), customerName: "LINE lead - Vinyl banner", contact: "@line", source: "Facebook Ads", campaign: "Vinyl Banner Lead Gen", productInterest: "Vinyl Banner", customerType: "Restaurant", buyingSituation: "Promotion sign", tags: ["Asked price first", "Has size", "Has deadline"], status: "Quotation Sent", estimatedValue: 2500, nextFollowUpDate: addDays(today(), 1), owner: "Admin", note: "Sample CRM lead. Edit or delete after real data is added." },
+    { id: genId(), date: today(), customerName: "Facebook lead - Product label", contact: "Messenger", source: "Organic / Blog", campaign: "Sticker Product Label", productInterest: "Sticker Label", customerType: "SME Brand", buyingSituation: "New product launch", tags: ["Artwork ready", "Has size"], status: "Contacted", estimatedValue: 1800, nextFollowUpDate: addDays(today(), 2), owner: "Admin", note: "Sample lead for Phase 1 CRM." },
+  ];
+  const [leads, setLeads] = useState(() => loadLocal("marketing_leads_crm", defaultLeads));
+  const emptyLeadForm = {
+    id: "",
+    date: today(),
+    customerName: "",
+    contact: "",
+    source: "Facebook Ads",
+    campaign: "",
+    productInterest: "Vinyl Banner",
+    customerType: "SME",
+    buyingSituation: "",
+    tags: [] as string[],
+    status: "New Lead",
+    estimatedValue: "",
+    nextFollowUpDate: addDays(today(), 1),
+    owner: "Admin",
+    note: "",
+  };
+  const [leadForm, setLeadForm] = useState(emptyLeadForm);
 
   useEffect(() => {
     let cancelled = false;
@@ -1452,11 +1594,13 @@ function MarketingPage({ documents, showToast }: any) {
   }, []);
 
   const reportDocs = reportingDocuments(documents || []);
-  const quoteCount = (documents || []).filter((doc: any) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length;
+  const quoteDocs = (documents || []).filter((doc: any) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled");
+  const quoteCount = quoteDocs.length;
   const revenue = reportDocs.reduce((sum: number, doc: any) => sum + calcDocTotal(doc).total, 0);
+  const grossCost = reportDocs.reduce((sum: number, doc: any) => sum + (doc.items || []).reduce((itemSum: number, item: any) => itemSum + lineCost(item), 0), 0);
+  const grossProfit = revenue - grossCost;
   const activeCampaigns = campaigns.filter((campaign: any) => campaign.status === "active").length;
   const plannedBudget = campaigns.reduce((sum: number, campaign: any) => sum + Number(campaign.budget || 0), 0);
-  const revenuePerCampaign = campaigns.length > 0 ? revenue / campaigns.length : 0;
   const saveCampaigns = (next: any[]) => {
     setCampaigns(next);
     saveLocal("marketing_campaigns", next);
@@ -1486,7 +1630,48 @@ function MarketingPage({ documents, showToast }: any) {
     saveCampaigns(campaigns.filter((campaign: any) => campaign.id !== id));
     showToast("ลบแคมเปญแล้ว");
   };
-  const buildUtmUrl = () => {
+  const leadScore = (lead: any) => {
+    const tags = lead?.tags || [];
+    let score = 0;
+    if (tags.includes("Has deadline")) score += 30;
+    if (tags.includes("Has size")) score += 20;
+    if (tags.includes("Artwork ready")) score += 20;
+    if (Number(lead?.estimatedValue || 0) > 0) score += 15;
+    if (tags.includes("Needs design help")) score += 10;
+    if (tags.includes("Repeat customer")) score += 40;
+    if (tags.includes("Asked price first")) score -= 10;
+    if (tags.includes("Lowest-price seeker")) score -= 15;
+    if (tags.includes("Silent after quote")) score -= 20;
+    if (!lead?.customerName || !lead?.contact) score -= 20;
+    return Math.max(0, Math.min(100, score));
+  };
+  const leadTemperature = (score: number) => score >= 70 ? "Hot" : score >= 40 ? "Warm" : "Cold";
+  const saveLeads = (next: any[]) => {
+    setLeads(next);
+    saveLocal("marketing_leads_crm", next);
+  };
+  const resetLeadForm = () => setLeadForm(emptyLeadForm);
+  const toggleLeadTag = (tag: string) => {
+    setLeadForm((prev: any) => ({
+      ...prev,
+      tags: (prev.tags || []).includes(tag) ? prev.tags.filter((t: string) => t !== tag) : [...(prev.tags || []), tag],
+    }));
+  };
+  const saveLead = () => {
+    if (!String(leadForm.customerName || "").trim()) return showToast("Please add lead/customer name", "error");
+    const row = { ...leadForm, id: leadForm.id || genId(), estimatedValue: Number(leadForm.estimatedValue || 0) };
+    const next = leadForm.id ? leads.map((lead: any) => lead.id === leadForm.id ? row : lead) : [row, ...leads];
+    saveLeads(next);
+    resetLeadForm();
+    showToast("Lead / CRM saved");
+  };
+  const editLead = (lead: any) => setLeadForm({ ...lead, estimatedValue: String(lead.estimatedValue || "") });
+  const removeLead = (id: string) => {
+    saveLeads(leads.filter((lead: any) => lead.id !== id));
+    showToast("Lead deleted");
+  };
+
+  const buildUtmUrl = () => {  const buildUtmUrl = () => {
     try {
       const url = new URL(utm.url.startsWith("http") ? utm.url : `https://displayworksmedia.com${utm.url.startsWith("/") ? utm.url : `/${utm.url}`}`);
       url.searchParams.set("utm_source", utm.source || "direct");
@@ -1524,12 +1709,22 @@ function MarketingPage({ documents, showToast }: any) {
     { name: "Organic / SEO", leads: "รอฟอร์ม lead", spend: "0", priority: "ดันหน้าบริการและบทความ" },
     { name: "Direct / Referral", leads: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions` : "รอ GA4", spend: "-", priority: "ตรวจ source จาก UTM" },
   ];
-  const funnelRows = [
-    { step: "Visitor", value: ga4.connected ? ga4.totals.activeUsers.toLocaleString() : "รอ GA4", rate: "100%" },
-    { step: "Service Page View", value: ga4.connected ? ga4.totals.pageViews.toLocaleString() : "รอ GA4", rate: ga4.connected ? "Last 30 days" : "รอข้อมูล" },
-    { step: "LINE / Form Lead", value: "รอ tracking", rate: "รอข้อมูล" },
-    { step: "Quotation", value: quoteCount, rate: "จาก ERP" },
-    { step: "Receipt / Customer", value: reportDocs.length, rate: "จาก ERP" },
+  const marketingFunnelRows = [
+    { step: "Reach", value: metaAds.connected ? metaAds.totals.reach.toLocaleString() : "Wait Meta API", rate: "Ad visibility" },
+    { step: "Click", value: metaAds.connected ? metaAds.totals.clicks.toLocaleString() : "Wait Meta API", rate: metaAds.connected ? `CTR ${metaAds.totals.ctr.toFixed(2)}%` : "No data" },
+    { step: "Landing Page / Profile Visit", value: ga4.connected ? ga4.totals.pageViews.toLocaleString() : "Wait GA4", rate: "Website/Page view" },
+    { step: "Message / Lead", value: totalLeads.toLocaleString(), rate: "CRM + Ads" },
+    { step: "Qualified Lead", value: qualifiedLeadCount.toLocaleString(), rate: totalLeads ? `${((qualifiedLeadCount / totalLeads) * 100).toFixed(1)}%` : "0%" },
+  ];
+  const salesFunnelRows = [
+    { step: "Lead", value: totalLeads.toLocaleString(), rate: "CRM" },
+    { step: "Contacted", value: contactedCount.toLocaleString(), rate: totalLeads ? `${((contactedCount / totalLeads) * 100).toFixed(1)}%` : "0%" },
+    { step: "Detail Completed", value: detailCompletedCount.toLocaleString(), rate: totalLeads ? `${((detailCompletedCount / totalLeads) * 100).toFixed(1)}%` : "0%" },
+    { step: "Quotation Sent", value: quoteCount.toLocaleString(), rate: "ERP quote" },
+    { step: "Follow-up", value: followUpCount.toLocaleString(), rate: "CRM" },
+    { step: "Paid / Closed Job", value: closedJobs.toLocaleString(), rate: totalLeads ? `${conversionRate.toFixed(1)}%` : "0%" },
+    { step: "Delivered", value: deliveredJobs.toLocaleString(), rate: "Receipt" },
+    { step: "Repeat Customer", value: repeatCustomers.toLocaleString(), rate: "Unique customers" },
   ];
   const reportCards = [
     { title: "Monthly Marketing Summary", detail: "สรุปแคมเปญ งบ และรายได้จากใบเสร็จ", status: "พร้อมใช้บางส่วน" },
@@ -1544,13 +1739,23 @@ function MarketingPage({ documents, showToast }: any) {
   ];
   const card = (extra = {}) => ({ background: "rgba(20,26,36,0.82)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, ...extra });
   const lightCard = (extra = {}) => ({ background: "linear-gradient(180deg, rgba(20,26,36,0.96), rgba(12,17,26,0.96))", border: "1px solid rgba(255,107,0,0.16)", borderRadius: 18, boxShadow: "0 18px 50px rgba(0,0,0,0.22)", color: "#F8FAFC", ...extra });
-  const totalLeads = quoteCount + Number(metaAds.totals.leads || 0);
+  const manualLeadCount = leads.length;
+  const apiLeadCount = Number(metaAds.totals.leads || 0);
+  const totalLeads = Math.max(manualLeadCount, apiLeadCount, 0);
+  const qualifiedLeadCount = leads.filter((lead: any) => leadScore(lead) >= 40 && !["Not Qualified", "Closed Lost", "No Response"].includes(lead.status)).length;
+  const contactedCount = leads.filter((lead: any) => ["Contacted", "Waiting for Detail", "Detail Completed", "Quotation Sent", "Follow-up", "Waiting Payment", "Closed Won"].includes(lead.status)).length;
+  const detailCompletedCount = leads.filter((lead: any) => ["Detail Completed", "Quotation Sent", "Follow-up", "Waiting Payment", "Closed Won"].includes(lead.status)).length;
+  const followUpCount = leads.filter((lead: any) => lead.status === "Follow-up").length;
+  const closedJobs = reportDocs.length;
+  const deliveredJobs = reportDocs.filter((doc: any) => ["paid", "approved", "completed"].includes(doc.status || "")).length || closedJobs;
+  const repeatCustomers = new Set(reportDocs.map((doc: any) => doc.customerName).filter(Boolean)).size;
   const marketingSpend = Number(metaAds.totals.spend || 0);
-  const conversionRate = ga4.totals.activeUsers > 0 ? (totalLeads / ga4.totals.activeUsers) * 100 : 0;
+  const conversionRate = totalLeads > 0 ? (closedJobs / totalLeads) * 100 : 0;
   const roas = marketingSpend > 0 ? revenue / marketingSpend : 0;
   const cpl = totalLeads > 0 ? marketingSpend / totalLeads : 0;
-  const cac = reportDocs.length > 0 ? marketingSpend / reportDocs.length : 0;
-  const roi = marketingSpend > 0 ? ((revenue - marketingSpend) / marketingSpend) * 100 : 0;
+  const cpql = qualifiedLeadCount > 0 ? marketingSpend / qualifiedLeadCount : 0;
+  const cac = closedJobs > 0 ? marketingSpend / closedJobs : 0;
+  const roi = marketingSpend > 0 ? ((grossProfit - marketingSpend) / marketingSpend) * 100 : 0;
   const channelMix = [
     { name: "Facebook Ads", value: marketingSpend || 1, color: "#1877F2" },
     { name: "LINE OA", value: totalLeads || 1, color: "#06C755" },
@@ -1583,9 +1788,9 @@ function MarketingPage({ documents, showToast }: any) {
   const pill = (bg: string, color: string) => ({ display: "inline-flex", alignItems: "center", borderRadius: 999, background: bg, color, padding: "5px 10px", fontSize: 11, fontWeight: 800 });
 
   return (
-    <div style={{ background: "radial-gradient(circle at top right, rgba(255,107,0,0.16), transparent 34%), linear-gradient(180deg,#0B0F19 0%,#070A0D 100%)", color: "#F8FAFC", borderRadius: 24, overflow: "hidden", minHeight: "calc(100vh - 120px)", boxShadow: "0 18px 60px rgba(0,0,0,0.28)", border: "1px solid rgba(255,107,0,0.12)" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "250px minmax(0,1fr)" }}>
-        <aside style={{ background: "rgba(7,10,13,0.92)", borderRight: "1px solid rgba(255,107,0,0.16)", padding: 22, display: "flex", flexDirection: "column", gap: 18 }}>
+    <div className="marketing-dashboard-shell" style={{ background: "radial-gradient(circle at top right, rgba(255,107,0,0.16), transparent 34%), linear-gradient(180deg,#0B0F19 0%,#070A0D 100%)", color: "#F8FAFC", borderRadius: 24, overflow: "hidden", minHeight: "calc(100vh - 120px)", boxShadow: "0 18px 60px rgba(0,0,0,0.28)", border: "1px solid rgba(255,107,0,0.12)" }}>
+      <div className="marketing-shell-grid" style={{ display: "grid", gridTemplateColumns: "250px minmax(0,1fr)" }}>
+        <aside className="marketing-sidebar" style={{ background: "rgba(7,10,13,0.92)", borderRight: "1px solid rgba(255,107,0,0.16)", padding: 22, display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ width: 42, height: 42, borderRadius: 14, display: "grid", placeItems: "center", color: "#FF6B00", background: "rgba(255,107,0,0.12)", border: "1px solid rgba(255,107,0,0.35)", fontWeight: 950 }}>DW</div>
             <div>
@@ -1593,10 +1798,12 @@ function MarketingPage({ documents, showToast }: any) {
               <div style={{ fontSize: 10, color: "#FF6B00", letterSpacing: 1.3, textTransform: "uppercase" }}>Marketing KPI Dashboard</div>
             </div>
           </div>
-          <nav style={{ display: "grid", gap: 8 }}>
+          <nav className="marketing-sidebar-nav" style={{ display: "grid", gap: 8 }}>
             {[
-              ["Dashboard", "⌂"], ["Campaigns", "✈"], ["Budget", "◔"], ["Lead Funnel", "▽"],
-              ["Channels", "⌘"], ["AI Insight", "✦"], ["Reports", "▤"], ["Data Sources", "◉"], ["Settings", "⚙"],
+              ["Dashboard", "D"], ["Campaigns", "C"], ["Facebook Ads", "F"], ["Leads / CRM", "L"],
+              ["Customers", "U"], ["Quotations", "Q"], ["Orders / Jobs", "O"], ["Products", "P"],
+              ["Budget", "B"], ["Lead Funnel", "V"], ["Channels", "N"], ["AI Insight", "A"],
+              ["Reports", "R"], ["Data Sources", "S"], ["Settings", "G"],
             ].map(([label, icon], index) => (
               <a key={label} href={`#marketing-${String(label).toLowerCase().replace(/\s+/g, "-")}`} style={{
                 display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14,
@@ -1616,8 +1823,8 @@ function MarketingPage({ documents, showToast }: any) {
           </div>
         </aside>
 
-        <main style={{ padding: 26 }}>
-          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 22 }}>
+        <main className="marketing-main" style={{ padding: 26 }}>
+          <header className="marketing-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 22 }}>
             <div>
               <div style={{ fontSize: 11, color: "#FF6B00", fontWeight: 900, letterSpacing: 2.4, textTransform: "uppercase", marginBottom: 6 }}>MARKETING COMMAND CENTER</div>
               <h1 style={{ margin: 0, fontSize: 26, fontWeight: 950, color: "#F8FAFC" }}>Display Works Media Marketing KPI Dashboard</h1>
@@ -1632,18 +1839,18 @@ function MarketingPage({ documents, showToast }: any) {
             </div>
           </header>
 
-          <section id="marketing-dashboard" style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 14, marginBottom: 18 }}>
+          <section id="marketing-dashboard" className="marketing-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 14, marginBottom: 18 }}>
             {[
-              { label: "รายได้จากแคมเปญ", value: `฿${fmtMoney(revenue)}`, sub: "จากใบเสร็จ", icon: "฿", color: "#10B981" },
-              { label: "จำนวน Lead", value: totalLeads.toLocaleString(), sub: "Quote + Meta leads", icon: "●", color: "#FF6B00" },
-              { label: "Conversion Rate", value: `${conversionRate.toFixed(2)}%`, sub: "Lead / Visitors", icon: "◎", color: "#8B5CF6" },
-              { label: "ROAS", value: roas ? roas.toFixed(2) : "-", sub: "Revenue / Spend", icon: "↗", color: "#F97316" },
-              { label: "Marketing Spend", value: `฿${fmtMoney(marketingSpend)}`, sub: metaAds.connected ? "Meta Ads" : "รอ Meta API", icon: "◼", color: "#EC4899" },
-              { label: "Cost per Lead", value: cpl ? `฿${fmtMoney(cpl)}` : "-", sub: "CPL", icon: "C", color: "#EAB308" },
-              { label: "CAC", value: cac ? `฿${fmtMoney(cac)}` : "-", sub: "Spend / Customer", icon: "☎", color: "#14B8A6" },
-              { label: "ROI Marketing", value: marketingSpend ? `${roi.toFixed(0)}%` : "-", sub: "Profit from spend", icon: "✓", color: "#22C55E" },
+              { label: "Campaign Revenue", value: `฿${fmtMoney(revenue)}`, sub: "From receipts only", formula: "Revenue = receipt totals", icon: "฿", color: "#10B981" },
+              { label: "Total Leads", value: totalLeads.toLocaleString(), sub: "Manual CRM / Ads", formula: "Total Leads = max(CRM leads, API leads)", icon: "L", color: "#FF6B00" },
+              { label: "Lead to Customer Conversion Rate", value: `${conversionRate.toFixed(2)}%`, sub: "Closed Jobs / Total Leads", formula: "Close Rate = Closed Jobs / Total Leads x 100", icon: "%", color: "#8B5CF6" },
+              { label: "Closed Jobs", value: closedJobs.toLocaleString(), sub: "Receipts in ERP", formula: "Closed Jobs = valid receipts", icon: "J", color: "#22C55E" },
+              { label: "Marketing Spend", value: `฿${fmtMoney(marketingSpend)}`, sub: metaAds.connected ? "Meta Ads" : "Waiting Meta API", formula: "Spend from connected ad source", icon: "S", color: "#EC4899" },
+              { label: "Cost per Lead", value: cpl ? `฿${fmtMoney(cpl)}` : "-", sub: "CPL", formula: "CPL = Spend / Leads", icon: "C", color: "#EAB308" },
+              { label: "Gross Profit", value: `฿${fmtMoney(grossProfit)}`, sub: "Revenue - Cost", formula: "Gross Profit = Revenue - item cost", icon: "P", color: "#14B8A6" },
+              { label: "ROAS", value: roas ? roas.toFixed(2) : "-", sub: "Revenue / Spend", formula: "ROAS = Revenue / Spend", icon: "R", color: "#F97316" },
             ].map((item) => (
-              <div key={item.label} style={{ ...lightCard(), padding: 18 }}>
+              <div key={item.label} title={item.formula || item.sub} style={{ ...lightCard(), padding: 18 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                   <div style={{ width: 44, height: 44, borderRadius: 16, display: "grid", placeItems: "center", color: "#fff", fontWeight: 900, background: item.color }}>{item.icon}</div>
                   <svg width="54" height="28" viewBox="0 0 54 28" aria-hidden="true"><polyline points="2,22 12,17 22,19 32,10 42,14 52,5" fill="none" stroke={item.color} strokeWidth="2.5" strokeLinecap="round" /></svg>
@@ -1710,32 +1917,92 @@ function MarketingPage({ documents, showToast }: any) {
             </div>
           </section>
 
-          <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 18 }}>
-            <div id="marketing-budget" style={{ ...lightCard(), padding: 20 }}>
-              <h2 style={{ margin: "0 0 16px", color: "#F8FAFC", fontSize: 17 }}>Budget Monitoring</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", gap: 20, alignItems: "center" }}>
-                <div style={{ width: 140, height: 140, borderRadius: "50%", background: `conic-gradient(#FF6B00 ${plannedBudget ? Math.min(100, (marketingSpend / plannedBudget) * 100) : 0}%, rgba(255,255,255,0.08) 0)`, display: "grid", placeItems: "center" }}>
-                  <div style={{ width: 96, height: 96, borderRadius: "50%", background: "#101722", display: "grid", placeItems: "center", textAlign: "center" }}><strong style={{ fontSize: 24, color: "#F8FAFC" }}>{plannedBudget ? Math.round((marketingSpend / plannedBudget) * 100) : 0}%</strong><span style={{ color: "#7A8599", fontSize: 11 }}>used</span></div>
-                </div>
-                <div style={{ display: "grid", gap: 10, color: "#CBD5E1" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>งบประมาณที่ตั้งไว้</span><strong>฿{fmtMoney(plannedBudget)}</strong></div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>ใช้ไปแล้ว</span><strong>฿{fmtMoney(marketingSpend)}</strong></div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>งบคงเหลือ</span><strong>฿{fmtMoney(Math.max(0, plannedBudget - marketingSpend))}</strong></div>
-                </div>
+          <section id="marketing-lead-funnel" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 18 }}>
+            <div style={{ ...lightCard(), padding: 20 }}>
+              <h2 style={{ margin: "0 0 6px", color: "#F8FAFC", fontSize: 17 }}>Marketing Funnel</h2>
+              <p style={{ margin: "0 0 14px", color: "#7A8599", fontSize: 12 }}>Reach &rarr; Click &rarr; Visit &rarr; Lead &rarr; Qualified Lead</p>
+              <div style={{ display: "grid", gap: 8 }}>
+                {marketingFunnelRows.map((row, index) => (
+                  <div key={row.step} style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px", gap: 10, alignItems: "center", padding: "10px 12px", borderRadius: 10, background: `rgba(255,107,0,${0.14 - index * 0.015})`, border: "1px solid rgba(255,107,0,0.12)" }}>
+                    <strong>{row.step}</strong>
+                    <span style={{ color: "#F8FAFC", textAlign: "right", fontWeight: 900 }}>{row.value}</span>
+                    <span style={{ color: "#FF6B00", textAlign: "right", fontSize: 12, fontWeight: 800 }}>{row.rate}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div id="marketing-lead-funnel" style={{ ...lightCard(), padding: 20 }}>
-              <h2 style={{ margin: "0 0 16px", color: "#F8FAFC", fontSize: 17 }}>Lead & Sales Funnel</h2>
-              {[
-                ["Visitor", ga4.totals.activeUsers || 0, "#38BDF8"],
-                ["Lead", totalLeads, "#22C55E"],
-                ["Quotation", quoteCount, "#EAB308"],
-                ["Customer", reportDocs.length, "#F97316"],
-              ].map(([label, value, color], index) => (
-                <div key={String(label)} style={{ width: `${100 - index * 14}%`, margin: "0 auto 8px", borderRadius: 10, padding: "10px 14px", background: String(color), color: "#fff", display: "flex", justifyContent: "space-between", fontWeight: 900 }}>
-                  <span>{label}</span><span>{Number(value).toLocaleString()}</span>
+            <div style={{ ...lightCard(), padding: 20 }}>
+              <h2 style={{ margin: "0 0 6px", color: "#F8FAFC", fontSize: 17 }}>Sales Funnel</h2>
+              <p style={{ margin: "0 0 14px", color: "#7A8599", fontSize: 12 }}>Lead &rarr; Quote &rarr; Paid / Closed Job &rarr; Delivered</p>
+              <div style={{ display: "grid", gap: 8 }}>
+                {salesFunnelRows.map((row, index) => (
+                  <div key={row.step} style={{ display: "grid", gridTemplateColumns: "1fr 90px 90px", gap: 10, alignItems: "center", padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <strong>{row.step}</strong>
+                    <span style={{ color: "#F8FAFC", textAlign: "right", fontWeight: 900 }}>{row.value}</span>
+                    <span style={{ color: index >= 5 ? "#22C55E" : "#FF6B00", textAlign: "right", fontSize: 12, fontWeight: 800 }}>{row.rate}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section id="marketing-crm" style={{ ...lightCard(), padding: 20, marginBottom: 18 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
+              <div>
+                <h2 style={{ margin: 0, color: "#F8FAFC", fontSize: 17 }}>Leads / CRM</h2>
+                <p style={{ margin: "4px 0 0", color: "#7A8599", fontSize: 12 }}>Manual lead capture for chat, LINE, Facebook, and organic inquiries.</p>
+              </div>
+              <span style={pill("rgba(255,107,0,0.14)", "#FF6B00")}>{leads.length} leads</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: 16 }}>
+              <div style={{ display: "grid", gap: 10 }}>
+                <div className="form-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <Field label="Date"><input type="date" value={leadForm.date} onChange={(e) => setLeadForm({ ...leadForm, date: e.target.value })} /></Field>
+                  <Field label="Lead / Customer"><input value={leadForm.customerName} onChange={(e) => setLeadForm({ ...leadForm, customerName: e.target.value })} placeholder="Customer name" /></Field>
+                  <Field label="Contact"><input value={leadForm.contact} onChange={(e) => setLeadForm({ ...leadForm, contact: e.target.value })} placeholder="Phone / LINE / Facebook" /></Field>
+                  <Field label="Source"><select value={leadForm.source} onChange={(e) => setLeadForm({ ...leadForm, source: e.target.value })}><option>Facebook Ads</option><option>LINE OA</option><option>Organic / Blog</option><option>Referral</option><option>Direct</option></select></Field>
+                  <Field label="Product"><input value={leadForm.productInterest} onChange={(e) => setLeadForm({ ...leadForm, productInterest: e.target.value })} placeholder="Vinyl / Sticker / Backdrop" /></Field>
+                  <Field label="Customer Type"><input value={leadForm.customerType} onChange={(e) => setLeadForm({ ...leadForm, customerType: e.target.value })} placeholder="Restaurant / SME / Event" /></Field>
+                  <Field label="Buying Situation"><input value={leadForm.buyingSituation} onChange={(e) => setLeadForm({ ...leadForm, buyingSituation: e.target.value })} placeholder="Urgent, has design, new store..." /></Field>
+                  <Field label="Lead Status"><select value={leadForm.status} onChange={(e) => setLeadForm({ ...leadForm, status: e.target.value })}>{leadStatuses.map((status) => <option key={status}>{status}</option>)}</select></Field>
+                  <Field label="Estimated Value"><input type="number" value={leadForm.estimatedValue} onChange={(e) => setLeadForm({ ...leadForm, estimatedValue: e.target.value })} placeholder="0" /></Field>
+                  <Field label="Follow-up"><input type="date" value={leadForm.nextFollowUpDate} onChange={(e) => setLeadForm({ ...leadForm, nextFollowUpDate: e.target.value })} /></Field>
                 </div>
-              ))}
+                <Field label="Behavior Tags">
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                    {behaviorTagOptions.map((tag) => {
+                      const active = (leadForm.tags || []).includes(tag);
+                      return <button key={tag} type="button" onClick={() => toggleLeadTag(tag)} style={{ border: `1px solid ${active ? "#FF6B00" : "rgba(255,255,255,0.1)"}`, background: active ? "rgba(255,107,0,0.16)" : "rgba(255,255,255,0.035)", color: active ? "#FF6B00" : "#A8B0C0", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>{tag}</button>;
+                    })}
+                  </div>
+                </Field>
+                <Field label="Note"><textarea rows={2} value={leadForm.note} onChange={(e) => setLeadForm({ ...leadForm, note: e.target.value })} placeholder="Job details, risk, next action" /></Field>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <Btn onClick={saveLead} color="#FF6B00" style={{ flex: 1 }}>{leadForm.id ? "Update Lead" : "Add Lead"}</Btn>
+                  <Btn onClick={resetLeadForm} outline style={{ flex: 1 }}>Clear</Btn>
+                </div>
+              </div>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead><tr style={{ color: "#A8B0C0", textAlign: "left" }}>{["Lead","Source","Product","Status","Score","Temp","Follow-up","Action"].map((h) => <th key={h} style={{ padding: "10px 8px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{h}</th>)}</tr></thead>
+                  <tbody>{leads.map((lead: any) => {
+                    const score = leadScore(lead);
+                    const temp = leadTemperature(score);
+                    return (
+                      <tr key={lead.id} style={{ color: "#CBD5E1" }}>
+                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)", fontWeight: 900, color: "#F8FAFC" }}>{lead.customerName}<div style={{ color: "#7A8599", fontSize: 11, fontWeight: 500 }}>{lead.contact}</div></td>
+                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{lead.source}</td>
+                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{lead.productInterest}</td>
+                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{lead.status}</td>
+                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)", color: score >= 70 ? "#22C55E" : score >= 40 ? "#F59E0B" : "#EF4444", fontWeight: 950 }}>{score}</td>
+                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}><span style={pill(temp === "Hot" ? "rgba(34,197,94,0.14)" : temp === "Warm" ? "rgba(245,158,11,0.14)" : "rgba(239,68,68,0.14)", temp === "Hot" ? "#22C55E" : temp === "Warm" ? "#F59E0B" : "#EF4444")}>{temp}</span></td>
+                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{fmtDate(lead.nextFollowUpDate)}</td>
+                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}><button onClick={() => editLead(lead)} style={{ marginRight: 6, color: "#FF6B00", background: "transparent", border: 0, cursor: "pointer", fontWeight: 900 }}>Edit</button><button onClick={() => removeLead(lead.id)} style={{ color: "#EF4444", background: "transparent", border: 0, cursor: "pointer", fontWeight: 900 }}>Delete</button></td>
+                      </tr>
+                    );
+                  })}</tbody>
+                </table>
+              </div>
             </div>
           </section>
 
@@ -1784,299 +2051,8 @@ function MarketingPage({ documents, showToast }: any) {
     </div>
   );
 
-  return (
-    <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1180, margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, color: "#FF6B00", textTransform: "uppercase", marginBottom: 6 }}>MARKETING COMMAND CENTER</div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>Marketing Dashboard</h1>
-          <p style={{ color: "#7A8599", margin: "6px 0 0", fontSize: 13 }}>วางแผนแคมเปญ สร้าง UTM และดูภาพรวม lead-ready สำหรับ LINE inquiry</p>
-        </div>
-        <a href="https://displayworksmedia.com" target="_blank" rel="noreferrer" style={{ color: "#FF6B00", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>เปิดหน้าเว็บ ↗</a>
-      </div>
 
-      <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
-        {[
-          { label: "Campaigns", value: campaigns.length, sub: `${activeCampaigns} active`, color: "#FF6B00" },
-          { label: "Planned Budget", value: `฿${fmtMoney(plannedBudget)}`, sub: "งบรวมที่วางไว้", color: "#F59E0B" },
-          { label: "Receipt Revenue", value: `฿${fmtMoney(revenue)}`, sub: "อ้างอิงใบเสร็จ", color: "#10B981" },
-          { label: "GA4 Sessions", value: ga4.loading ? "..." : ga4.connected ? ga4.totals.sessions.toLocaleString() : "Setup", sub: ga4.connected ? "Last 30 days" : (ga4.error || "waiting for env"), color: "#60A5FA" },
-        ].map((item) => (
-          <div key={item.label} style={{ ...card(), padding: 18, borderTop: `2px solid ${item.color}` }}>
-            <div style={{ fontSize: 11, color: item.color, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>{item.label}</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: "#fff" }}>{item.value}</div>
-            <div style={{ color: "#64748b", fontSize: 12, marginTop: 6 }}>{item.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {ga4.connected && (
-        <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
-          <section style={{ ...card(), padding: 20 }}>
-            <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>GA4 Top Traffic</h2>
-            <div style={{ display: "grid", gap: 10 }}>
-              {ga4.traffic.slice(0, 5).map((row: any) => (
-                <div key={`${row.channel}-${row.sourceMedium}`} style={{ display: "grid", gridTemplateColumns: "1fr 92px", gap: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                  <div>
-                    <strong>{row.channel || "Unassigned"}</strong>
-                    <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>{row.sourceMedium || "-"}</div>
-                  </div>
-                  <span style={{ alignSelf: "center", textAlign: "right", color: "#60A5FA", fontWeight: 900 }}>{Number(row.sessions || 0).toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-          <section style={{ ...card(), padding: 20 }}>
-            <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>GA4 Top Pages</h2>
-            <div style={{ display: "grid", gap: 10 }}>
-              {ga4.topPages.slice(0, 5).map((row: any) => (
-                <div key={`${row.path}-${row.title}`} style={{ display: "grid", gridTemplateColumns: "1fr 92px", gap: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                  <div style={{ minWidth: 0 }}>
-                    <strong style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.path || "/"}</strong>
-                    <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.title || "-"}</div>
-                  </div>
-                  <span style={{ alignSelf: "center", textAlign: "right", color: "#8B5CF6", fontWeight: 900 }}>{Number(row.pageViews || 0).toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-      )}
-
-      {metaAds.connected && (
-        <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "0.8fr 1.2fr", gap: 14, marginBottom: 20 }}>
-          <section style={{ ...card(), padding: 20 }}>
-            <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Meta Ads Summary</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {[
-                { label: "Spend", value: `฿${fmtMoney(metaAds.totals.spend)}` },
-                { label: "Clicks", value: metaAds.totals.clicks.toLocaleString() },
-                { label: "Leads", value: metaAds.totals.leads.toLocaleString() },
-                { label: "CPL", value: metaAds.totals.cpl ? `฿${fmtMoney(metaAds.totals.cpl)}` : "-" },
-              ].map((item) => (
-                <div key={item.label} style={{ padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                  <div style={{ color: "#7A8599", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>{item.label}</div>
-                  <div style={{ color: "#fff", fontSize: 20, fontWeight: 900, marginTop: 6 }}>{item.value}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 12, color: "#A8B0C0", fontSize: 12 }}>
-              Reach {metaAds.totals.reach.toLocaleString()} / Impressions {metaAds.totals.impressions.toLocaleString()} / CTR {metaAds.totals.ctr.toFixed(2)}%
-            </div>
-          </section>
-          <section style={{ ...card(), padding: 20 }}>
-            <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Meta Campaigns</h2>
-            <div style={{ display: "grid", gap: 10 }}>
-              {metaAds.campaigns.slice(0, 5).map((campaign: any) => (
-                <div key={campaign.id || campaign.name} style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                  <div style={{ minWidth: 0 }}>
-                    <strong style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{campaign.name || "Campaign"}</strong>
-                    <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>
-                      {Number(campaign.clicks || 0).toLocaleString()} clicks / {Number(campaign.leads || 0).toLocaleString()} leads / CTR {Number(campaign.ctr || 0).toFixed(2)}%
-                    </div>
-                  </div>
-                  <span style={{ alignSelf: "center", textAlign: "right", color: "#1877F2", fontWeight: 900 }}>฿{fmtMoney(campaign.spend || 0)}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-      )}
-
-      <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 14, marginBottom: 20 }}>
-        <section style={{ ...card(), padding: 20 }}>
-          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Campaign Planner</h2>
-          <div className="form-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <Field label="ชื่อแคมเปญ"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="เช่น Vinyl July Lead" /></Field>
-            <Field label="ช่องทาง"><select value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })}><option>Facebook Ads</option><option>Google Search</option><option>LINE OA</option><option>Organic / Blog</option><option>Direct</option></select></Field>
-            <Field label="Objective"><select value={form.objective} onChange={(e) => setForm({ ...form, objective: e.target.value })}><option>LINE Inquiry</option><option>Quote Form</option><option>Service Page Visit</option><option>Portfolio View</option><option>Phone Call</option></select></Field>
-            <Field label="สถานะ"><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option value="planning">Planning</option><option value="active">Active</option><option value="paused">Paused</option><option value="done">Done</option></select></Field>
-            <Field label="งบประมาณ"><input type="number" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} placeholder="0" /></Field>
-            <Field label="Landing Page"><input value={form.landingPage} onChange={(e) => setForm({ ...form, landingPage: e.target.value })} placeholder="/services/vinyl-banner" /></Field>
-            <Field label="วันที่เริ่ม"><input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></Field>
-            <Field label="วันที่จบ"><input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></Field>
-          </div>
-          <Field label="หมายเหตุ"><textarea value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} rows={3} placeholder="กลุ่มเป้าหมาย, offer, creative angle" /></Field>
-          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-            <Btn onClick={saveCampaign} color="#FF6B00" style={{ flex: 1 }}>{form.id ? "อัปเดตแคมเปญ" : "เพิ่มแคมเปญ"}</Btn>
-            <Btn onClick={resetForm} outline style={{ flex: 1 }}>ล้างฟอร์ม</Btn>
-          </div>
-        </section>
-
-        <section style={{ ...card(), padding: 20 }}>
-          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>UTM Builder</h2>
-          <div className="form-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <Field label="URL"><input value={utm.url} onChange={(e) => setUtm({ ...utm, url: e.target.value })} /></Field>
-            <Field label="Source"><input value={utm.source} onChange={(e) => setUtm({ ...utm, source: e.target.value })} /></Field>
-            <Field label="Medium"><input value={utm.medium} onChange={(e) => setUtm({ ...utm, medium: e.target.value })} /></Field>
-            <Field label="Campaign"><input value={utm.campaign} onChange={(e) => setUtm({ ...utm, campaign: e.target.value })} /></Field>
-          </div>
-          <Field label="Content"><input value={utm.content} onChange={(e) => setUtm({ ...utm, content: e.target.value })} placeholder="creative_a หรือ video_01" /></Field>
-          <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.75)", border: "1px solid rgba(255,255,255,0.08)", color: "#A8B0C0", fontSize: 12, wordBreak: "break-all" }}>
-            {utmUrl || "URL ไม่ถูกต้อง"}
-          </div>
-          <Btn onClick={() => { navigator.clipboard?.writeText(utmUrl); showToast("คัดลอก UTM แล้ว"); }} color="#10B981" style={{ marginTop: 12, width: "100%" }}>คัดลอก UTM</Btn>
-        </section>
-      </div>
-
-      <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <section style={{ ...card(), padding: 20 }}>
-          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Campaign List</h2>
-          <div style={{ display: "grid", gap: 10 }}>
-            {campaigns.map((campaign: any) => (
-              <div key={campaign.id} style={{ padding: 14, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
-                  <div>
-                    <div style={{ fontWeight: 800, color: "#fff" }}>{campaign.name}</div>
-                    <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>{campaign.channel} • {campaign.objective} • ฿{fmtMoney(campaign.budget)}</div>
-                    <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>{fmtDate(campaign.startDate)} - {fmtDate(campaign.endDate)} • {campaign.landingPage}</div>
-                  </div>
-                  <span style={{ color: campaign.status === "active" ? "#10B981" : "#F59E0B", background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 99, fontSize: 11, fontWeight: 800 }}>{campaign.status}</span>
-                </div>
-                {campaign.note && <p style={{ margin: "10px 0 0", color: "#A8B0C0", fontSize: 12 }}>{campaign.note}</p>}
-                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                  <Btn onClick={() => editCampaign(campaign)} small outline>แก้ไข</Btn>
-                  <Btn onClick={() => removeCampaign(campaign.id)} small outline>ลบ</Btn>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section style={{ ...card(), padding: 20 }}>
-          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Lead Source & Tracking</h2>
-          <div style={{ display: "grid", gap: 10, marginBottom: 16 }}>
-            {sourceRows.map((row) => (
-              <div key={row.source} style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 10, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <strong style={{ color: "#fff", fontSize: 13 }}>{row.source}</strong>
-                <div style={{ color: "#A8B0C0", fontSize: 12 }}>{row.intent}<br /><span style={{ color: "#FF6B00" }}>{row.action}</span></div>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {trackingItems.map((item) => (
-              <div key={item.label} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 10, background: "rgba(255,255,255,0.035)" }}>
-                <span style={{ color: item.status === "ready" ? "#10B981" : item.status === "manual" ? "#F59E0B" : "#60A5FA", fontWeight: 900 }}>●</span>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: 13 }}>{item.label}</div>
-                  <div style={{ color: "#7A8599", fontSize: 12 }}>{item.detail}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "0.85fr 1.15fr", gap: 14, marginTop: 20 }}>
-        <section style={{ ...card(), padding: 20 }}>
-          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Budget Monitoring</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
-            <div style={{
-              width: 132, height: 132, borderRadius: "50%",
-              background: `conic-gradient(#FF6B00 ${plannedBudget > 0 ? 75 : 8}%, rgba(255,255,255,0.08) 0)`,
-              display: "grid", placeItems: "center",
-            }}>
-              <div style={{ width: 94, height: 94, borderRadius: "50%", background: "#141A24", display: "grid", placeItems: "center", textAlign: "center" }}>
-                <strong style={{ fontSize: 22 }}>{plannedBudget > 0 ? "75%" : "0%"}</strong>
-                <span style={{ color: "#7A8599", fontSize: 11 }}>planned</span>
-              </div>
-            </div>
-            <div style={{ flex: 1, minWidth: 180, display: "grid", gap: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#A8B0C0" }}><span>งบที่วางไว้</span><strong style={{ color: "#fff" }}>฿{fmtMoney(plannedBudget)}</strong></div>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#A8B0C0" }}><span>ใช้จ่ายจริง</span><strong style={{ color: "#F59E0B" }}>รอ Ads API</strong></div>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#A8B0C0" }}><span>งบคงเหลือ</span><strong style={{ color: "#10B981" }}>รอข้อมูล</strong></div>
-              <div style={{ padding: 10, borderRadius: 10, background: "rgba(245,158,11,0.1)", color: "#FBBF24", fontSize: 12 }}>ยังไม่ต่อ Ads API จึงยังไม่แสดง spend จริง</div>
-            </div>
-          </div>
-        </section>
-
-        <section style={{ ...card(), padding: 20 }}>
-          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Lead & Sales Funnel</h2>
-          <div style={{ display: "grid", gap: 8 }}>
-            {funnelRows.map((row, index) => (
-              <div key={row.step} style={{
-                display: "grid", gridTemplateColumns: "160px 1fr 90px", gap: 10, alignItems: "center",
-                padding: "10px 12px", borderRadius: 10,
-                background: `rgba(${255 - index * 28},${107 + index * 24},${index * 35},0.12)`,
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}>
-                <strong>{row.step}</strong>
-                <span style={{ color: "#A8B0C0" }}>{row.value}</span>
-                <span style={{ textAlign: "right", color: "#FF6B00", fontWeight: 800 }}>{row.rate}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <section style={{ ...card(), padding: 20, marginTop: 20 }}>
-        <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Channel Performance</h2>
-        <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
-          {channelRows.map((row) => (
-            <div key={row.name} style={{ padding: 14, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div style={{ fontWeight: 900, color: "#fff", marginBottom: 10 }}>{row.name}</div>
-              <div style={{ display: "grid", gap: 6, color: "#A8B0C0", fontSize: 12 }}>
-                <span>Leads: <strong style={{ color: "#fff" }}>{row.leads}</strong></span>
-                <span>Spend: <strong style={{ color: "#fff" }}>{row.spend}</strong></span>
-                <span style={{ color: "#FF6B00" }}>{row.priority}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 20 }}>
-        <section style={{ ...card(), padding: 20 }}>
-          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Reports</h2>
-          <div style={{ display: "grid", gap: 10 }}>
-            {reportCards.map((report) => (
-              <div key={report.title} style={{ padding: 12, borderRadius: 12, background: "rgba(255,255,255,0.035)", display: "flex", justifyContent: "space-between", gap: 12 }}>
-                <div>
-                  <strong>{report.title}</strong>
-                  <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>{report.detail}</div>
-                </div>
-                <span style={{ color: "#F59E0B", fontSize: 11, fontWeight: 800, whiteSpace: "nowrap" }}>{report.status}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section style={{ ...card(), padding: 20 }}>
-          <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Data Sources</h2>
-          <div style={{ display: "grid", gap: 10 }}>
-            {connectedSources.map((source) => (
-              <div key={source.name} style={{ display: "grid", gridTemplateColumns: "1fr 92px", gap: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div>
-                  <strong>{source.name}</strong>
-                  <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>{source.detail}</div>
-                </div>
-                <span style={{ alignSelf: "center", textAlign: "center", color: source.state === "พร้อมใช้" ? "#10B981" : "#F59E0B", fontSize: 11, fontWeight: 900 }}>{source.state}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <section style={{ ...card(), padding: 20, marginTop: 20 }}>
-        <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>AI Insight</h2>
-        <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
-          {insightCards.map((text, index) => (
-            <div key={text} style={{ padding: 14, borderRadius: 12, background: index === 0 ? "rgba(255,107,0,0.12)" : "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div style={{ color: "#FF6B00", fontWeight: 900, marginBottom: 8 }}>Insight {index + 1}</div>
-              <p style={{ margin: 0, color: "#A8B0C0", fontSize: 12, lineHeight: 1.65 }}>{text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section style={{ ...card(), padding: 20, marginTop: 20, borderColor: "rgba(255,107,0,0.22)" }}>
-        <h2 style={{ fontSize: 18, margin: "0 0 8px" }}>Settings & Next Connection</h2>
-        <p style={{ margin: 0, color: "#A8B0C0", fontSize: 13, lineHeight: 1.8 }}>
-          ขั้นต่อไปที่ควรต่อคือ GA4 Event, Facebook Pixel Event, LINE click tracking และตาราง lead เพื่อให้ Dashboard แสดง CPL, Conversion Rate, ROAS และ CAC จากข้อมูลจริง
-        </p>
-      </section>
-    </div>
-  );
+}
 }
 
 // ─── ERP COMPONENTS ───────────────────────────────────────────────────────────
