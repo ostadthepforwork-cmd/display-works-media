@@ -1,0 +1,138 @@
+import { NextResponse } from "next/server";
+
+const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v20.0";
+
+function getAdAccountId() {
+  const raw = (process.env.META_AD_ACCOUNT_ID || "").trim();
+  if (!raw) return "";
+  return raw.startsWith("act_") ? raw : `act_${raw}`;
+}
+
+async function graphGet(path: string, params: Record<string, string>) {
+  const token = process.env.META_ACCESS_TOKEN;
+  if (!token) throw new Error("ยังไม่ได้ตั้งค่า META_ACCESS_TOKEN");
+
+  const url = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${path}`);
+  Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+  url.searchParams.set("access_token", token);
+
+  const response = await fetch(url.toString(), { cache: "no-store" });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error?.message || `Meta API failed with ${response.status}`);
+  }
+
+  return data;
+}
+
+const numberValue = (value: unknown) => Number(value || 0);
+
+function actionCount(actions: any[] | undefined, names: string[]) {
+  if (!Array.isArray(actions)) return 0;
+  return actions
+    .filter((item) => names.includes(item.action_type))
+    .reduce((sum, item) => sum + numberValue(item.value), 0);
+}
+
+export async function GET() {
+  const adAccountId = getAdAccountId();
+  if (!adAccountId || !process.env.META_ACCESS_TOKEN) {
+    return NextResponse.json(
+      {
+        success: false,
+        connected: false,
+        error: "ยังไม่ได้ตั้งค่า META_AD_ACCOUNT_ID หรือ META_ACCESS_TOKEN",
+      },
+      { headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
+  try {
+    const accountFields = [
+      "spend",
+      "impressions",
+      "reach",
+      "clicks",
+      "cpc",
+      "cpm",
+      "ctr",
+      "actions",
+    ].join(",");
+
+    const campaignFields = [
+      "campaign_id",
+      "campaign_name",
+      "spend",
+      "impressions",
+      "clicks",
+      "cpc",
+      "ctr",
+      "actions",
+    ].join(",");
+
+    const [accountInsights, campaignInsights] = await Promise.all([
+      graphGet(`${adAccountId}/insights`, {
+        date_preset: "last_30d",
+        level: "account",
+        fields: accountFields,
+      }),
+      graphGet(`${adAccountId}/insights`, {
+        date_preset: "last_30d",
+        level: "campaign",
+        fields: campaignFields,
+        limit: "10",
+        sort: "spend_descending",
+      }),
+    ]);
+
+    const account = accountInsights.data?.[0] || {};
+    const leads = actionCount(account.actions, ["lead", "onsite_conversion.lead_grouped"]);
+    const spend = numberValue(account.spend);
+
+    return NextResponse.json(
+      {
+        success: true,
+        connected: true,
+        range: "last_30_days",
+        totals: {
+          spend,
+          impressions: numberValue(account.impressions),
+          reach: numberValue(account.reach),
+          clicks: numberValue(account.clicks),
+          cpc: numberValue(account.cpc),
+          cpm: numberValue(account.cpm),
+          ctr: numberValue(account.ctr),
+          leads,
+          cpl: leads > 0 ? spend / leads : 0,
+        },
+        campaigns: (campaignInsights.data || []).map((row: any) => {
+          const rowLeads = actionCount(row.actions, ["lead", "onsite_conversion.lead_grouped"]);
+          const rowSpend = numberValue(row.spend);
+          return {
+            id: row.campaign_id,
+            name: row.campaign_name,
+            spend: rowSpend,
+            impressions: numberValue(row.impressions),
+            clicks: numberValue(row.clicks),
+            cpc: numberValue(row.cpc),
+            ctr: numberValue(row.ctr),
+            leads: rowLeads,
+            cpl: rowLeads > 0 ? rowSpend / rowLeads : 0,
+          };
+        }),
+      },
+      { headers: { "Cache-Control": "no-store" } }
+    );
+  } catch (error) {
+    console.error("Meta Marketing API failed", error);
+    return NextResponse.json(
+      {
+        success: false,
+        connected: false,
+        error: error instanceof Error ? error.message : "ไม่สามารถดึงข้อมูล Meta Ads ได้",
+      },
+      { status: 502, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+}

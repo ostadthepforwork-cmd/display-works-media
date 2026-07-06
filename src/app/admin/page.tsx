@@ -1386,6 +1386,13 @@ function MarketingPage({ documents, showToast }: any) {
     traffic: [] as any[],
     topPages: [] as any[],
   });
+  const [metaAds, setMetaAds] = useState({
+    loading: true,
+    connected: false,
+    error: "",
+    totals: { spend: 0, impressions: 0, reach: 0, clicks: 0, cpc: 0, cpm: 0, ctr: 0, leads: 0, cpl: 0 },
+    campaigns: [] as any[],
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -1413,6 +1420,34 @@ function MarketingPage({ documents, showToast }: any) {
       }
     }
     loadGa4();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadMetaAds() {
+      try {
+        const response = await fetch("/api/marketing/meta", { cache: "no-store" });
+        const data = await response.json();
+        if (cancelled) return;
+        setMetaAds({
+          loading: false,
+          connected: !!data.connected,
+          error: data.error || "",
+          totals: data.totals || { spend: 0, impressions: 0, reach: 0, clicks: 0, cpc: 0, cpm: 0, ctr: 0, leads: 0, cpl: 0 },
+          campaigns: data.campaigns || [],
+        });
+      } catch (error) {
+        if (cancelled) return;
+        setMetaAds((prev) => ({
+          ...prev,
+          loading: false,
+          connected: false,
+          error: error instanceof Error ? error.message : "Meta Ads load failed",
+        }));
+      }
+    }
+    loadMetaAds();
     return () => { cancelled = true; };
   }, []);
 
@@ -1480,11 +1515,11 @@ function MarketingPage({ documents, showToast }: any) {
     { name: "ERP Receipts", state: "พร้อมใช้", detail: "ใช้ยอดรายได้จากใบเสร็จจริง" },
     { name: "Campaign Planner", state: "พร้อมใช้", detail: "บันทึกงบและช่วงเวลาแคมเปญ" },
     { name: "GA4", state: ga4.loading ? "Loading" : ga4.connected ? "Connected" : "Error", detail: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions / 30 days` : (ga4.error || "สำหรับ Visitor, Session, Conversion") },
-    { name: "Facebook Pixel / Ads", state: "รอเชื่อมต่อ", detail: "สำหรับ Spend, CPL, ROAS" },
+    { name: "Facebook Pixel / Ads", state: metaAds.loading ? "Loading" : metaAds.connected ? "Connected" : "Error", detail: metaAds.connected ? `฿${fmtMoney(metaAds.totals.spend)} spend / ${metaAds.totals.clicks.toLocaleString()} clicks` : (metaAds.error || "สำหรับ Spend, CPL, ROAS") },
     { name: "LINE OA", state: "รอเชื่อมต่อ", detail: "สำหรับจำนวนแชทและ source ของ lead" },
   ];
   const channelRows = [
-    { name: "Facebook Ads", leads: "รอ API", spend: "รอ API", priority: "ใช้ UTM ทุกแคมเปญ" },
+    { name: "Facebook Ads", leads: metaAds.connected ? metaAds.totals.leads.toLocaleString() : "รอ API", spend: metaAds.connected ? `฿${fmtMoney(metaAds.totals.spend)}` : "รอ API", priority: metaAds.connected ? `CPC ฿${fmtMoney(metaAds.totals.cpc)} / CTR ${metaAds.totals.ctr.toFixed(2)}%` : "ใช้ UTM ทุกแคมเปญ" },
     { name: "LINE OA", leads: "รอเชื่อมต่อ", spend: "-", priority: "CTA หลักของเว็บ" },
     { name: "Organic / SEO", leads: "รอฟอร์ม lead", spend: "0", priority: "ดันหน้าบริการและบทความ" },
     { name: "Direct / Referral", leads: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions` : "รอ GA4", spend: "-", priority: "ตรวจ source จาก UTM" },
@@ -1561,6 +1596,46 @@ function MarketingPage({ documents, showToast }: any) {
                     <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.title || "-"}</div>
                   </div>
                   <span style={{ alignSelf: "center", textAlign: "right", color: "#8B5CF6", fontWeight: 900 }}>{Number(row.pageViews || 0).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {metaAds.connected && (
+        <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "0.8fr 1.2fr", gap: 14, marginBottom: 20 }}>
+          <section style={{ ...card(), padding: 20 }}>
+            <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Meta Ads Summary</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {[
+                { label: "Spend", value: `฿${fmtMoney(metaAds.totals.spend)}` },
+                { label: "Clicks", value: metaAds.totals.clicks.toLocaleString() },
+                { label: "Leads", value: metaAds.totals.leads.toLocaleString() },
+                { label: "CPL", value: metaAds.totals.cpl ? `฿${fmtMoney(metaAds.totals.cpl)}` : "-" },
+              ].map((item) => (
+                <div key={item.label} style={{ padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div style={{ color: "#7A8599", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>{item.label}</div>
+                  <div style={{ color: "#fff", fontSize: 20, fontWeight: 900, marginTop: 6 }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 12, color: "#A8B0C0", fontSize: 12 }}>
+              Reach {metaAds.totals.reach.toLocaleString()} / Impressions {metaAds.totals.impressions.toLocaleString()} / CTR {metaAds.totals.ctr.toFixed(2)}%
+            </div>
+          </section>
+          <section style={{ ...card(), padding: 20 }}>
+            <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>Meta Campaigns</h2>
+            <div style={{ display: "grid", gap: 10 }}>
+              {metaAds.campaigns.slice(0, 5).map((campaign: any) => (
+                <div key={campaign.id || campaign.name} style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <strong style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{campaign.name || "Campaign"}</strong>
+                    <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>
+                      {Number(campaign.clicks || 0).toLocaleString()} clicks / {Number(campaign.leads || 0).toLocaleString()} leads / CTR {Number(campaign.ctr || 0).toFixed(2)}%
+                    </div>
+                  </div>
+                  <span style={{ alignSelf: "center", textAlign: "right", color: "#1877F2", fontWeight: 900 }}>฿{fmtMoney(campaign.spend || 0)}</span>
                 </div>
               ))}
             </div>
