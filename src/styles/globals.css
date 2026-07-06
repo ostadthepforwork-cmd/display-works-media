@@ -282,7 +282,7 @@ a {
   }
 
   .admin-login-card {
-    max-width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 64px) !important;
     padding: 28px 20px !important;
     border-radius: 14px !important;
   }
