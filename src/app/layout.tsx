@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "../styles/globals.css";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import FacebookPixel from "@/components/FacebookPixel";
 import PDPAConsent from "@/components/PDPAConsent";
@@ -78,6 +79,7 @@ export default async function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Prompt:wght@400&display=swap"
           rel="stylesheet"
         />
+        <GoogleAnalytics />
         <GoogleTagManager />
         <SchemaOrg />
       </head>
