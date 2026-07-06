@@ -1543,7 +1543,7 @@ function MarketingPage({ documents, showToast }: any) {
     "หน้าบริการควรมี CTA เดียวที่ชัด: ปรึกษาทาง LINE หรือขอใบเสนอราคา",
   ];
   const card = (extra = {}) => ({ background: "rgba(20,26,36,0.82)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, ...extra });
-  const lightCard = (extra = {}) => ({ background: "#fff", border: "1px solid #edf1f7", borderRadius: 18, boxShadow: "0 12px 32px rgba(15,23,42,0.06)", ...extra });
+  const lightCard = (extra = {}) => ({ background: "linear-gradient(180deg, rgba(20,26,36,0.96), rgba(12,17,26,0.96))", border: "1px solid rgba(255,107,0,0.16)", borderRadius: 18, boxShadow: "0 18px 50px rgba(0,0,0,0.22)", color: "#F8FAFC", ...extra });
   const totalLeads = quoteCount + Number(metaAds.totals.leads || 0);
   const marketingSpend = Number(metaAds.totals.spend || 0);
   const conversionRate = ga4.totals.activeUsers > 0 ? (totalLeads / ga4.totals.activeUsers) * 100 : 0;
@@ -1583,14 +1583,14 @@ function MarketingPage({ documents, showToast }: any) {
   const pill = (bg: string, color: string) => ({ display: "inline-flex", alignItems: "center", borderRadius: 999, background: bg, color, padding: "5px 10px", fontSize: 11, fontWeight: 800 });
 
   return (
-    <div style={{ background: "#F6F8FC", color: "#101828", borderRadius: 24, overflow: "hidden", minHeight: "calc(100vh - 120px)", boxShadow: "0 18px 60px rgba(15,23,42,0.08)" }}>
+    <div style={{ background: "radial-gradient(circle at top right, rgba(255,107,0,0.16), transparent 34%), linear-gradient(180deg,#0B0F19 0%,#070A0D 100%)", color: "#F8FAFC", borderRadius: 24, overflow: "hidden", minHeight: "calc(100vh - 120px)", boxShadow: "0 18px 60px rgba(0,0,0,0.28)", border: "1px solid rgba(255,107,0,0.12)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "250px minmax(0,1fr)" }}>
-        <aside style={{ background: "#fff", borderRight: "1px solid #E8EDF5", padding: 22, display: "flex", flexDirection: "column", gap: 18 }}>
+        <aside style={{ background: "rgba(7,10,13,0.92)", borderRight: "1px solid rgba(255,107,0,0.16)", padding: 22, display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 14, display: "grid", placeItems: "center", color: "#fff", background: "linear-gradient(135deg,#2563EB,#8B5CF6)" }}>⌁</div>
+            <div style={{ width: 42, height: 42, borderRadius: 14, display: "grid", placeItems: "center", color: "#FF6B00", background: "rgba(255,107,0,0.12)", border: "1px solid rgba(255,107,0,0.35)", fontWeight: 950 }}>DW</div>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 900, color: "#172554" }}>MarketPulse</div>
-              <div style={{ fontSize: 10, color: "#8A96A8", letterSpacing: 1.3, textTransform: "uppercase" }}>Marketing KPI Dashboard</div>
+              <div style={{ fontSize: 16, fontWeight: 950, color: "#F8FAFC", lineHeight: 1.15 }}>Display Works Media</div>
+              <div style={{ fontSize: 10, color: "#FF6B00", letterSpacing: 1.3, textTransform: "uppercase" }}>Marketing KPI Dashboard</div>
             </div>
           </div>
           <nav style={{ display: "grid", gap: 8 }}>
@@ -1600,40 +1600,42 @@ function MarketingPage({ documents, showToast }: any) {
             ].map(([label, icon], index) => (
               <a key={label} href={`#marketing-${String(label).toLowerCase().replace(/\s+/g, "-")}`} style={{
                 display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14,
-                color: index === 0 ? "#fff" : "#475467", textDecoration: "none", fontWeight: 800, fontSize: 13,
-                background: index === 0 ? "linear-gradient(135deg,#2563EB,#9333EA)" : "transparent",
+                color: index === 0 ? "#fff" : "#A8B0C0", textDecoration: "none", fontWeight: 800, fontSize: 13,
+                background: index === 0 ? "linear-gradient(135deg,#FF6B00,#C2410C)" : "transparent",
+                border: index === 0 ? "1px solid rgba(255,107,0,0.48)" : "1px solid transparent",
               }}>
                 <span style={{ fontSize: 16 }}>{icon}</span>{label}
               </a>
             ))}
           </nav>
-          <div style={{ marginTop: "auto", borderRadius: 18, padding: 18, background: "linear-gradient(180deg,#F2F7FF,#F9FAFB)", border: "1px solid #E6EEF9" }}>
-            <div style={{ fontSize: 38, marginBottom: 8 }}>🚀</div>
-            <div style={{ fontWeight: 900, color: "#172554" }}>Boost Your Growth</div>
-            <p style={{ margin: "8px 0 14px", color: "#667085", fontSize: 12, lineHeight: 1.6 }}>ติดตามผลแคมเปญและแหล่งที่มาของ lead ได้จากจุดเดียว</p>
-            <button onClick={() => showToast("Marketing dashboard พร้อมใช้งาน")} style={{ width: "100%", border: 0, borderRadius: 12, padding: "10px 12px", color: "#fff", fontWeight: 900, background: "linear-gradient(135deg,#2563EB,#9333EA)" }}>Check Setup</button>
+          <div style={{ marginTop: "auto", borderRadius: 18, padding: 18, background: "linear-gradient(180deg,rgba(255,107,0,0.14),rgba(255,107,0,0.04))", border: "1px solid rgba(255,107,0,0.28)" }}>
+            <div style={{ fontSize: 26, marginBottom: 8, color: "#FF6B00", fontWeight: 950 }}>KPI</div>
+            <div style={{ fontWeight: 900, color: "#F8FAFC" }}>DWM Growth Control</div>
+            <p style={{ margin: "8px 0 14px", color: "#A8B0C0", fontSize: 12, lineHeight: 1.6 }}>ติดตามผลแคมเปญ แหล่งที่มาของ lead และยอดจากเอกสารจริงในจุดเดียว</p>
+            <button onClick={() => showToast("Marketing dashboard พร้อมใช้งาน")} style={{ width: "100%", border: 0, borderRadius: 12, padding: "10px 12px", color: "#fff", fontWeight: 900, background: "linear-gradient(135deg,#FF6B00,#EA580C)" }}>Check Setup</button>
           </div>
         </aside>
 
         <main style={{ padding: 26 }}>
           <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 22 }}>
             <div>
-              <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "#172554" }}>Overview Dashboard</h1>
-              <p style={{ margin: "5px 0 0", color: "#667085", fontSize: 13 }}>ภาพรวมประสิทธิภาพการตลาดของ Display Works Media</p>
+              <div style={{ fontSize: 11, color: "#FF6B00", fontWeight: 900, letterSpacing: 2.4, textTransform: "uppercase", marginBottom: 6 }}>MARKETING COMMAND CENTER</div>
+              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 950, color: "#F8FAFC" }}>Display Works Media Marketing KPI Dashboard</h1>
+              <p style={{ margin: "5px 0 0", color: "#A8B0C0", fontSize: 13 }}>ภาพรวมประสิทธิภาพการตลาดของ Display Works Media</p>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <select style={{ height: 42, borderRadius: 12, border: "1px solid #E3E8F2", background: "#fff", color: "#344054", padding: "0 14px", fontWeight: 700 }}>
+              <select style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 14px", fontWeight: 700 }}>
                 <option>Last 30 days</option><option>This month</option><option>Last 7 days</option>
               </select>
-              <button onClick={() => showToast("Export report ยังเป็นขั้นถัดไป")} style={{ height: 42, borderRadius: 12, border: "1px solid #E3E8F2", background: "#fff", color: "#344054", padding: "0 14px", fontWeight: 800 }}>Export</button>
-              <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#EEF4FF", display: "grid", placeItems: "center", color: "#2563EB", fontWeight: 900 }}>A</div>
+              <button onClick={() => showToast("Export report ยังเป็นขั้นถัดไป")} style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 14px", fontWeight: 800 }}>Export</button>
+              <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#EEF4FF", display: "grid", placeItems: "center", color: "#FF6B00", fontWeight: 900 }}>A</div>
             </div>
           </header>
 
           <section id="marketing-dashboard" style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 14, marginBottom: 18 }}>
             {[
               { label: "รายได้จากแคมเปญ", value: `฿${fmtMoney(revenue)}`, sub: "จากใบเสร็จ", icon: "฿", color: "#10B981" },
-              { label: "จำนวน Lead", value: totalLeads.toLocaleString(), sub: "Quote + Meta leads", icon: "●", color: "#2563EB" },
+              { label: "จำนวน Lead", value: totalLeads.toLocaleString(), sub: "Quote + Meta leads", icon: "●", color: "#FF6B00" },
               { label: "Conversion Rate", value: `${conversionRate.toFixed(2)}%`, sub: "Lead / Visitors", icon: "◎", color: "#8B5CF6" },
               { label: "ROAS", value: roas ? roas.toFixed(2) : "-", sub: "Revenue / Spend", icon: "↗", color: "#F97316" },
               { label: "Marketing Spend", value: `฿${fmtMoney(marketingSpend)}`, sub: metaAds.connected ? "Meta Ads" : "รอ Meta API", icon: "◼", color: "#EC4899" },
@@ -1646,35 +1648,35 @@ function MarketingPage({ documents, showToast }: any) {
                   <div style={{ width: 44, height: 44, borderRadius: 16, display: "grid", placeItems: "center", color: "#fff", fontWeight: 900, background: item.color }}>{item.icon}</div>
                   <svg width="54" height="28" viewBox="0 0 54 28" aria-hidden="true"><polyline points="2,22 12,17 22,19 32,10 42,14 52,5" fill="none" stroke={item.color} strokeWidth="2.5" strokeLinecap="round" /></svg>
                 </div>
-                <div style={{ marginTop: 12, color: "#667085", fontSize: 12, fontWeight: 800 }}>{item.label}</div>
-                <div style={{ marginTop: 5, color: "#172554", fontSize: 24, fontWeight: 950 }}>{item.value}</div>
-                <div style={{ marginTop: 6, color: "#98A2B3", fontSize: 11 }}>{item.sub}</div>
+                <div style={{ marginTop: 12, color: "#A8B0C0", fontSize: 12, fontWeight: 800 }}>{item.label}</div>
+                <div style={{ marginTop: 5, color: "#F8FAFC", fontSize: 24, fontWeight: 950 }}>{item.value}</div>
+                <div style={{ marginTop: 6, color: "#7A8599", fontSize: 11 }}>{item.sub}</div>
               </div>
             ))}
           </section>
 
           <section style={{ display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: 16, marginBottom: 18 }}>
             <div style={{ ...lightCard(), padding: 20 }}>
-              <h2 style={{ margin: 0, color: "#172554", fontSize: 17 }}>Revenue & Spend Trend</h2>
-              <p style={{ margin: "4px 0 0", color: "#98A2B3", fontSize: 12 }}>Daily overview</p>
+              <h2 style={{ margin: 0, color: "#F8FAFC", fontSize: 17 }}>Revenue & Spend Trend</h2>
+              <p style={{ margin: "4px 0 0", color: "#7A8599", fontSize: 12 }}>Daily overview</p>
               <svg viewBox="0 0 640 250" style={{ width: "100%", height: 250 }}>
-                {[40,90,140,190,240].map((y) => <line key={y} x1="0" y1={y} x2="640" y2={y} stroke="#EEF2F7" />)}
-                <polyline points="0,210 70,180 140,105 210,150 280,80 350,175 420,120 490,155 560,70 640,112" fill="none" stroke="#2563EB" strokeWidth="4" strokeLinecap="round" />
+                {[40,90,140,190,240].map((y) => <line key={y} x1="0" y1={y} x2="640" y2={y} stroke="rgba(255,255,255,0.08)" />)}
+                <polyline points="0,210 70,180 140,105 210,150 280,80 350,175 420,120 490,155 560,70 640,112" fill="none" stroke="#FF6B00" strokeWidth="4" strokeLinecap="round" />
                 <polyline points="0,225 70,210 140,195 210,170 280,180 350,145 420,160 490,125 560,135 640,100" fill="none" stroke="#8B5CF6" strokeWidth="4" strokeLinecap="round" />
               </svg>
             </div>
             <div style={{ ...lightCard(), padding: 20 }}>
-              <h2 style={{ margin: 0, color: "#172554", fontSize: 17 }}>Performance Overview</h2>
-              <p style={{ margin: "4px 0 16px", color: "#98A2B3", fontSize: 12 }}>Channel mix</p>
+              <h2 style={{ margin: 0, color: "#F8FAFC", fontSize: 17 }}>Performance Overview</h2>
+              <p style={{ margin: "4px 0 16px", color: "#7A8599", fontSize: 12 }}>Channel mix</p>
               <div style={{ display: "grid", gridTemplateColumns: "190px 1fr", gap: 22, alignItems: "center" }}>
                 <div style={{ width: 184, height: 184, borderRadius: "50%", background: "conic-gradient(#1877F2 0 42%, #06C755 42% 58%, #F59E0B 58% 82%, #8B5CF6 82% 100%)", display: "grid", placeItems: "center" }}>
-                  <div style={{ width: 108, height: 108, borderRadius: "50%", background: "#fff", display: "grid", placeItems: "center", textAlign: "center" }}>
-                    <strong style={{ color: "#172554", fontSize: 19 }}>฿{fmtMoney(revenue)}</strong><span style={{ color: "#98A2B3", fontSize: 11 }}>Revenue</span>
+                  <div style={{ width: 108, height: 108, borderRadius: "50%", background: "#101722", display: "grid", placeItems: "center", textAlign: "center" }}>
+                    <strong style={{ color: "#F8FAFC", fontSize: 19 }}>฿{fmtMoney(revenue)}</strong><span style={{ color: "#7A8599", fontSize: 11 }}>Revenue</span>
                   </div>
                 </div>
                 <div style={{ display: "grid", gap: 10 }}>
                   {channelMix.map((row) => (
-                    <div key={row.name} style={{ display: "flex", justifyContent: "space-between", gap: 12, color: "#475467", fontSize: 13 }}>
+                    <div key={row.name} style={{ display: "flex", justifyContent: "space-between", gap: 12, color: "#CBD5E1", fontSize: 13 }}>
                       <span><i style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: row.color, marginRight: 8 }} />{row.name}</span>
                       <strong>{Math.round((Number(row.value || 0) / mixTotal) * 100)}%</strong>
                     </div>
@@ -1686,22 +1688,22 @@ function MarketingPage({ documents, showToast }: any) {
 
           <section id="marketing-campaigns" style={{ ...lightCard(), padding: 20, marginBottom: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
-              <h2 style={{ margin: 0, color: "#172554", fontSize: 17 }}>Campaign Performance</h2>
+              <h2 style={{ margin: 0, color: "#F8FAFC", fontSize: 17 }}>Campaign Performance</h2>
               <span style={pill("#ECFDF3", "#039855")}>{campaignTable.length} campaigns</span>
             </div>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead><tr style={{ color: "#667085", textAlign: "left" }}>{["Campaign","Channel","Status","Spend","Leads","CPL","Revenue","ROAS"].map((h) => <th key={h} style={{ padding: "12px 10px", borderBottom: "1px solid #EEF2F7" }}>{h}</th>)}</tr></thead>
+                <thead><tr style={{ color: "#A8B0C0", textAlign: "left" }}>{["Campaign","Channel","Status","Spend","Leads","CPL","Revenue","ROAS"].map((h) => <th key={h} style={{ padding: "12px 10px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{h}</th>)}</tr></thead>
                 <tbody>{campaignTable.map((row: any, index: number) => (
-                  <tr key={`${row.name}-${index}`} style={{ color: "#344054" }}>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid #F2F4F7", fontWeight: 800, color: "#172554" }}>{row.name}</td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid #F2F4F7" }}>{row.channel}</td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid #F2F4F7" }}><span style={pill(row.status === "Active" || row.status === "active" ? "#ECFDF3" : "#FFF7ED", row.status === "Active" || row.status === "active" ? "#039855" : "#F97316")}>{row.status}</span></td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid #F2F4F7" }}>฿{fmtMoney(row.spend)}</td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid #F2F4F7" }}>{Number(row.leads || 0).toLocaleString()}</td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid #F2F4F7" }}>{row.cpl ? `฿${fmtMoney(row.cpl)}` : "-"}</td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid #F2F4F7" }}>฿{fmtMoney(row.revenue)}</td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid #F2F4F7", color: row.roas >= 1 ? "#039855" : "#D92D20", fontWeight: 900 }}>{row.roas ? row.roas.toFixed(2) : "-"}</td>
+                  <tr key={`${row.name}-${index}`} style={{ color: "#CBD5E1" }}>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)", fontWeight: 800, color: "#F8FAFC" }}>{row.name}</td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{row.channel}</td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}><span style={pill(row.status === "Active" || row.status === "active" ? "#ECFDF3" : "#FFF7ED", row.status === "Active" || row.status === "active" ? "#039855" : "#F97316")}>{row.status}</span></td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>฿{fmtMoney(row.spend)}</td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{Number(row.leads || 0).toLocaleString()}</td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{row.cpl ? `฿${fmtMoney(row.cpl)}` : "-"}</td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>฿{fmtMoney(row.revenue)}</td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)", color: row.roas >= 1 ? "#039855" : "#D92D20", fontWeight: 900 }}>{row.roas ? row.roas.toFixed(2) : "-"}</td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -1710,12 +1712,12 @@ function MarketingPage({ documents, showToast }: any) {
 
           <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 18 }}>
             <div id="marketing-budget" style={{ ...lightCard(), padding: 20 }}>
-              <h2 style={{ margin: "0 0 16px", color: "#172554", fontSize: 17 }}>Budget Monitoring</h2>
+              <h2 style={{ margin: "0 0 16px", color: "#F8FAFC", fontSize: 17 }}>Budget Monitoring</h2>
               <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", gap: 20, alignItems: "center" }}>
-                <div style={{ width: 140, height: 140, borderRadius: "50%", background: `conic-gradient(#2563EB ${plannedBudget ? Math.min(100, (marketingSpend / plannedBudget) * 100) : 0}%, #EEF2F7 0)`, display: "grid", placeItems: "center" }}>
-                  <div style={{ width: 96, height: 96, borderRadius: "50%", background: "#fff", display: "grid", placeItems: "center", textAlign: "center" }}><strong style={{ fontSize: 24, color: "#172554" }}>{plannedBudget ? Math.round((marketingSpend / plannedBudget) * 100) : 0}%</strong><span style={{ color: "#98A2B3", fontSize: 11 }}>used</span></div>
+                <div style={{ width: 140, height: 140, borderRadius: "50%", background: `conic-gradient(#FF6B00 ${plannedBudget ? Math.min(100, (marketingSpend / plannedBudget) * 100) : 0}%, rgba(255,255,255,0.08) 0)`, display: "grid", placeItems: "center" }}>
+                  <div style={{ width: 96, height: 96, borderRadius: "50%", background: "#101722", display: "grid", placeItems: "center", textAlign: "center" }}><strong style={{ fontSize: 24, color: "#F8FAFC" }}>{plannedBudget ? Math.round((marketingSpend / plannedBudget) * 100) : 0}%</strong><span style={{ color: "#7A8599", fontSize: 11 }}>used</span></div>
                 </div>
-                <div style={{ display: "grid", gap: 10, color: "#475467" }}>
+                <div style={{ display: "grid", gap: 10, color: "#CBD5E1" }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}><span>งบประมาณที่ตั้งไว้</span><strong>฿{fmtMoney(plannedBudget)}</strong></div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}><span>ใช้ไปแล้ว</span><strong>฿{fmtMoney(marketingSpend)}</strong></div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}><span>งบคงเหลือ</span><strong>฿{fmtMoney(Math.max(0, plannedBudget - marketingSpend))}</strong></div>
@@ -1723,7 +1725,7 @@ function MarketingPage({ documents, showToast }: any) {
               </div>
             </div>
             <div id="marketing-lead-funnel" style={{ ...lightCard(), padding: 20 }}>
-              <h2 style={{ margin: "0 0 16px", color: "#172554", fontSize: 17 }}>Lead & Sales Funnel</h2>
+              <h2 style={{ margin: "0 0 16px", color: "#F8FAFC", fontSize: 17 }}>Lead & Sales Funnel</h2>
               {[
                 ["Visitor", ga4.totals.activeUsers || 0, "#38BDF8"],
                 ["Lead", totalLeads, "#22C55E"],
@@ -1738,22 +1740,22 @@ function MarketingPage({ documents, showToast }: any) {
           </section>
 
           <section id="marketing-channels" style={{ ...lightCard(), padding: 20, marginBottom: 18 }}>
-            <h2 style={{ margin: "0 0 16px", color: "#172554", fontSize: 17 }}>Channel Performance Comparison</h2>
+            <h2 style={{ margin: "0 0 16px", color: "#F8FAFC", fontSize: 17 }}>Channel Performance Comparison</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 12 }}>
               {channelRows.map((row: any) => (
-                <div key={row.name} style={{ border: "1px solid #EEF2F7", borderRadius: 16, padding: 15 }}>
-                  <div style={{ fontWeight: 950, color: "#172554", marginBottom: 10 }}>{row.name}</div>
-                  <div style={{ color: "#667085", fontSize: 12, lineHeight: 1.8 }}>Leads <strong style={{ color: "#172554" }}>{row.leads}</strong><br />Spend <strong style={{ color: "#172554" }}>{row.spend}</strong><br /><span style={{ color: "#2563EB" }}>{row.priority}</span></div>
-                  <svg width="100%" height="32" viewBox="0 0 110 32" aria-hidden="true"><polyline points="0,26 16,18 32,22 48,10 64,14 80,8 110,16" fill="none" stroke="#2563EB" strokeWidth="2.5" strokeLinecap="round" /></svg>
+                <div key={row.name} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 15 }}>
+                  <div style={{ fontWeight: 950, color: "#F8FAFC", marginBottom: 10 }}>{row.name}</div>
+                  <div style={{ color: "#A8B0C0", fontSize: 12, lineHeight: 1.8 }}>Leads <strong style={{ color: "#F8FAFC" }}>{row.leads}</strong><br />Spend <strong style={{ color: "#F8FAFC" }}>{row.spend}</strong><br /><span style={{ color: "#FF6B00" }}>{row.priority}</span></div>
+                  <svg width="100%" height="32" viewBox="0 0 110 32" aria-hidden="true"><polyline points="0,26 16,18 32,22 48,10 64,14 80,8 110,16" fill="none" stroke="#FF6B00" strokeWidth="2.5" strokeLinecap="round" /></svg>
                 </div>
               ))}
             </div>
           </section>
 
-          <section id="marketing-ai-insight" style={{ ...lightCard({ background: "linear-gradient(90deg,#EFF6FF,#FFFFFF)" }), padding: 20, marginBottom: 18 }}>
+          <section id="marketing-ai-insight" style={{ ...lightCard({ background: "linear-gradient(90deg,rgba(255,107,0,0.12),rgba(20,26,36,0.96))" }), padding: 20, marginBottom: 18 }}>
             <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 12 }}>
-              <div style={{ width: 64, height: 64, borderRadius: 24, display: "grid", placeItems: "center", background: "#DBEAFE", color: "#2563EB", fontSize: 32 }}>AI</div>
-              <div><h2 style={{ margin: 0, color: "#172554", fontSize: 19 }}>Insight</h2><p style={{ margin: "4px 0 0", color: "#667085" }}>สรุปการวิเคราะห์และข้อแนะนำจากข้อมูลที่เชื่อมต่อ</p></div>
+              <div style={{ width: 64, height: 64, borderRadius: 24, display: "grid", placeItems: "center", background: "rgba(255,107,0,0.12)", color: "#FF6B00", fontSize: 32 }}>AI</div>
+              <div><h2 style={{ margin: 0, color: "#F8FAFC", fontSize: 19 }}>Insight</h2><p style={{ margin: "4px 0 0", color: "#A8B0C0" }}>สรุปการวิเคราะห์และข้อแนะนำจากข้อมูลที่เชื่อมต่อ</p></div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 12 }}>
               {[
@@ -1761,17 +1763,17 @@ function MarketingPage({ documents, showToast }: any) {
                 metaAds.connected ? "Meta Ads พร้อมอ่าน Spend/CPC/CTR แล้ว" : "Meta Ads ยังรอ Token ใน Vercel",
                 ga4.connected ? "GA4 พร้อมอ่าน Visitor และ Top Pages แล้ว" : "GA4 ยังรอ Env หรือ Redeploy",
                 "ควรเก็บ UTM ทุกแคมเปญเพื่อแยกแหล่งที่มาของ Lead",
-              ].map((text) => <div key={text} style={{ borderRadius: 16, padding: 14, background: "#fff", border: "1px solid #EAF0F8", color: "#475467", fontSize: 12, lineHeight: 1.65 }}>{text}</div>)}
+              ].map((text) => <div key={text} style={{ borderRadius: 16, padding: 14, background: "#101722", border: "1px solid rgba(255,255,255,0.08)", color: "#CBD5E1", fontSize: 12, lineHeight: 1.65 }}>{text}</div>)}
             </div>
           </section>
 
           <section id="marketing-data-sources" style={{ ...lightCard(), padding: 20 }}>
-            <h2 style={{ margin: "0 0 16px", color: "#172554", fontSize: 17 }}>Data Sources</h2>
+            <h2 style={{ margin: "0 0 16px", color: "#F8FAFC", fontSize: 17 }}>Data Sources</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 12 }}>
               {connectedSources.map((source: any) => (
-                <div key={source.name} style={{ border: "1px solid #EEF2F7", borderRadius: 16, padding: 15 }}>
-                  <strong style={{ color: "#172554" }}>{source.name}</strong>
-                  <div style={{ marginTop: 8, color: "#667085", fontSize: 12, lineHeight: 1.6 }}>{source.detail}</div>
+                <div key={source.name} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 15 }}>
+                  <strong style={{ color: "#F8FAFC" }}>{source.name}</strong>
+                  <div style={{ marginTop: 8, color: "#A8B0C0", fontSize: 12, lineHeight: 1.6 }}>{source.detail}</div>
                   <div style={{ marginTop: 12 }}><span style={pill(source.state === "Connected" || source.state === "พร้อมใช้" ? "#ECFDF3" : source.state === "Error" ? "#FEF3F2" : "#FFF7ED", source.state === "Connected" || source.state === "พร้อมใช้" ? "#039855" : source.state === "Error" ? "#D92D20" : "#F97316")}>{source.state}</span></div>
                 </div>
               ))}
