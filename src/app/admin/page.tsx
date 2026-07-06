@@ -1709,7 +1709,7 @@ function MarketingPage({ documents, showToast }: any) {
     showToast("Lead deleted");
   };
 
-  const buildUtmUrl = () => {  const buildUtmUrl = () => {
+  const buildUtmUrl = () => {
     try {
       const url = new URL(utm.url.startsWith("http") ? utm.url : `https://displayworksmedia.com${utm.url.startsWith("/") ? utm.url : `/${utm.url}`}`);
       url.searchParams.set("utm_source", utm.source || "direct");
@@ -2088,9 +2088,6 @@ function MarketingPage({ documents, showToast }: any) {
       </div>
     </div>
   );
-
-
-}
 }
 
 // ─── ERP COMPONENTS ───────────────────────────────────────────────────────────
