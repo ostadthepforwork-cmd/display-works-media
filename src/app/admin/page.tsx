@@ -1378,6 +1378,43 @@ function MarketingPage({ documents, showToast }: any) {
     campaign: "vinyl_banner",
     content: "",
   });
+  const [ga4, setGa4] = useState({
+    loading: true,
+    connected: false,
+    error: "",
+    totals: { activeUsers: 0, sessions: 0, pageViews: 0, events: 0 },
+    traffic: [] as any[],
+    topPages: [] as any[],
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadGa4() {
+      try {
+        const response = await fetch("/api/marketing/ga4", { cache: "no-store" });
+        const data = await response.json();
+        if (cancelled) return;
+        setGa4({
+          loading: false,
+          connected: !!data.connected,
+          error: data.error || "",
+          totals: data.totals || { activeUsers: 0, sessions: 0, pageViews: 0, events: 0 },
+          traffic: data.traffic || [],
+          topPages: data.topPages || [],
+        });
+      } catch (error) {
+        if (cancelled) return;
+        setGa4((prev) => ({
+          ...prev,
+          loading: false,
+          connected: false,
+          error: error instanceof Error ? error.message : "GA4 load failed",
+        }));
+      }
+    }
+    loadGa4();
+    return () => { cancelled = true; };
+  }, []);
 
   const reportDocs = reportingDocuments(documents || []);
   const quoteCount = (documents || []).filter((doc: any) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length;
@@ -1442,7 +1479,7 @@ function MarketingPage({ documents, showToast }: any) {
   const connectedSources = [
     { name: "ERP Receipts", state: "พร้อมใช้", detail: "ใช้ยอดรายได้จากใบเสร็จจริง" },
     { name: "Campaign Planner", state: "พร้อมใช้", detail: "บันทึกงบและช่วงเวลาแคมเปญ" },
-    { name: "GA4", state: "รอเชื่อมต่อ", detail: "สำหรับ Visitor, Session, Conversion" },
+    { name: "GA4", state: ga4.loading ? "Loading" : ga4.connected ? "Connected" : "Error", detail: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions / 30 days` : (ga4.error || "สำหรับ Visitor, Session, Conversion") },
     { name: "Facebook Pixel / Ads", state: "รอเชื่อมต่อ", detail: "สำหรับ Spend, CPL, ROAS" },
     { name: "LINE OA", state: "รอเชื่อมต่อ", detail: "สำหรับจำนวนแชทและ source ของ lead" },
   ];
@@ -1450,11 +1487,11 @@ function MarketingPage({ documents, showToast }: any) {
     { name: "Facebook Ads", leads: "รอ API", spend: "รอ API", priority: "ใช้ UTM ทุกแคมเปญ" },
     { name: "LINE OA", leads: "รอเชื่อมต่อ", spend: "-", priority: "CTA หลักของเว็บ" },
     { name: "Organic / SEO", leads: "รอฟอร์ม lead", spend: "0", priority: "ดันหน้าบริการและบทความ" },
-    { name: "Direct / Referral", leads: "รอ GA4", spend: "-", priority: "ตรวจ source จาก UTM" },
+    { name: "Direct / Referral", leads: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions` : "รอ GA4", spend: "-", priority: "ตรวจ source จาก UTM" },
   ];
   const funnelRows = [
-    { step: "Visitor", value: "รอ GA4", rate: "100%" },
-    { step: "Service Page View", value: "รอ GA4", rate: "รอข้อมูล" },
+    { step: "Visitor", value: ga4.connected ? ga4.totals.activeUsers.toLocaleString() : "รอ GA4", rate: "100%" },
+    { step: "Service Page View", value: ga4.connected ? ga4.totals.pageViews.toLocaleString() : "รอ GA4", rate: ga4.connected ? "Last 30 days" : "รอข้อมูล" },
     { step: "LINE / Form Lead", value: "รอ tracking", rate: "รอข้อมูล" },
     { step: "Quotation", value: quoteCount, rate: "จาก ERP" },
     { step: "Receipt / Customer", value: reportDocs.length, rate: "จาก ERP" },
@@ -1488,7 +1525,7 @@ function MarketingPage({ documents, showToast }: any) {
           { label: "Campaigns", value: campaigns.length, sub: `${activeCampaigns} active`, color: "#FF6B00" },
           { label: "Planned Budget", value: `฿${fmtMoney(plannedBudget)}`, sub: "งบรวมที่วางไว้", color: "#F59E0B" },
           { label: "Receipt Revenue", value: `฿${fmtMoney(revenue)}`, sub: "อ้างอิงใบเสร็จ", color: "#10B981" },
-          { label: "Revenue / Campaign", value: `฿${fmtMoney(revenuePerCampaign)}`, sub: "ตัวเลขประมาณการ", color: "#60A5FA" },
+          { label: "GA4 Sessions", value: ga4.loading ? "..." : ga4.connected ? ga4.totals.sessions.toLocaleString() : "Setup", sub: ga4.connected ? "Last 30 days" : (ga4.error || "waiting for env"), color: "#60A5FA" },
         ].map((item) => (
           <div key={item.label} style={{ ...card(), padding: 18, borderTop: `2px solid ${item.color}` }}>
             <div style={{ fontSize: 11, color: item.color, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>{item.label}</div>
@@ -1497,6 +1534,39 @@ function MarketingPage({ documents, showToast }: any) {
           </div>
         ))}
       </div>
+
+      {ga4.connected && (
+        <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
+          <section style={{ ...card(), padding: 20 }}>
+            <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>GA4 Top Traffic</h2>
+            <div style={{ display: "grid", gap: 10 }}>
+              {ga4.traffic.slice(0, 5).map((row: any) => (
+                <div key={`${row.channel}-${row.sourceMedium}`} style={{ display: "grid", gridTemplateColumns: "1fr 92px", gap: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div>
+                    <strong>{row.channel || "Unassigned"}</strong>
+                    <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4 }}>{row.sourceMedium || "-"}</div>
+                  </div>
+                  <span style={{ alignSelf: "center", textAlign: "right", color: "#60A5FA", fontWeight: 900 }}>{Number(row.sessions || 0).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+          <section style={{ ...card(), padding: 20 }}>
+            <h2 style={{ fontSize: 18, margin: "0 0 14px" }}>GA4 Top Pages</h2>
+            <div style={{ display: "grid", gap: 10 }}>
+              {ga4.topPages.slice(0, 5).map((row: any) => (
+                <div key={`${row.path}-${row.title}`} style={{ display: "grid", gridTemplateColumns: "1fr 92px", gap: 12, padding: 12, borderRadius: 12, background: "rgba(11,15,25,0.72)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <strong style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.path || "/"}</strong>
+                    <div style={{ color: "#7A8599", fontSize: 12, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.title || "-"}</div>
+                  </div>
+                  <span style={{ alignSelf: "center", textAlign: "right", color: "#8B5CF6", fontWeight: 900 }}>{Number(row.pageViews || 0).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
 
       <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 14, marginBottom: 20 }}>
         <section style={{ ...card(), padding: 20 }}>
