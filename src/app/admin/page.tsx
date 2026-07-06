@@ -670,6 +670,14 @@ export default function AdminPage() {
   const [mainTab, setMainTab] = useState(initialSection);
   const [tab, setTab] = useState(initialCmsTab);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
+  const [marketingMobileSection, setMarketingMobileSection] = useState("overview");
+  const scrollToMarketingSection = (anchorId: string, navKey: string) => {
+    setMarketingMobileSection(navKey);
+    // ให้ DOM render/ปิด drawer เสร็จก่อนค่อย scroll กันปัญหาตำแหน่งเพี้ยนตอนปิด drawer
+    setTimeout(() => {
+      document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
   const [toast, setToast] = useState<{ msg: string; type: string } | null>(null);
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -1012,20 +1020,20 @@ export default function AdminPage() {
           </button>
         ))}
         {mainTab === "marketing" && ([
-          { id: "overview", icon: "📊", label: "ภาพรวม" },
-          { id: "campaigns", icon: "📣", label: "แคมเปญ" },
-          { id: "sources", icon: "🔗", label: "Source" },
-          { id: "tracking", icon: "🎯", label: "Tracking" },
+          { id: "overview", icon: "📊", label: "ภาพรวม", anchor: "marketing-dashboard" },
+          { id: "campaigns", icon: "📣", label: "แคมเปญ", anchor: "marketing-campaigns" },
+          { id: "sources", icon: "🔗", label: "Source", anchor: "marketing-data-sources" },
+          { id: "tracking", icon: "🎯", label: "Tracking", anchor: "marketing-crm" },
           { id: "__more__", icon: "☰", label: "เพิ่มเติม" },
         ] as any[]).map(item => (
           <button key={item.id} onClick={() => {
             if (item.id === "__more__") setShowMobileDrawer(v => !v);
-            else setShowMobileDrawer(false);
+            else { scrollToMarketingSection(item.anchor, item.id); setShowMobileDrawer(false); }
           }} style={{
             flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
             padding: "10px 2px 8px", border: "none", cursor: "pointer", fontFamily: "inherit",
-            background: item.id === "overview" && !showMobileDrawer ? "rgba(255,107,0,0.12)" : "transparent",
-            color: item.id === "overview" && !showMobileDrawer ? "#FF6B00" : "#6B7280",
+            background: item.id === marketingMobileSection && !showMobileDrawer ? "rgba(255,107,0,0.12)" : "transparent",
+            color: item.id === marketingMobileSection && !showMobileDrawer ? "#FF6B00" : "#6B7280",
           }} className="nav-btn">
             <span style={{ fontSize: 22, lineHeight: 1 }}>{item.icon}</span>
             <span style={{ fontSize: 10, marginTop: 4, fontWeight: 600 }}>{item.label}</span>
@@ -1054,7 +1062,7 @@ export default function AdminPage() {
 
             {/* ─ ชื่อหัวข้อ drawer ─ */}
             <div style={{ fontSize: 11, fontWeight: 700, color: "#FF6B00", letterSpacing: 2, textTransform: "uppercase", padding: "0 24px 8px" }}>
-              {mainTab === "erp" ? "เมนูทั้งหมด" : "จัดการเนื้อหา"}
+              {mainTab === "erp" ? "เมนูทั้งหมด" : mainTab === "marketing" ? "Marketing" : "จัดการเนื้อหา"}
             </div>
 
             {/* ─ ERP: แสดงทุกเมนู ─ */}
@@ -1121,6 +1129,36 @@ export default function AdminPage() {
                   )}
                   {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>● กำลังใช้</span>}
                   {item.id === "__erp__" && <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>สลับ</span>}
+                </button>
+              );
+            })}
+
+            {/* ─ Marketing: แสดงทุก section ─ */}
+            {mainTab === "marketing" && ([
+              { id: "overview", icon: "📊", label: "Dashboard", anchor: "marketing-dashboard" },
+              { id: "campaigns", icon: "📣", label: "Campaigns", anchor: "marketing-campaigns" },
+              { id: "funnel", icon: "🌐", label: "Lead Funnel", anchor: "marketing-lead-funnel" },
+              { id: "tracking", icon: "🎯", label: "Leads / CRM", anchor: "marketing-crm" },
+              { id: "channels", icon: "📡", label: "Channels", anchor: "marketing-channels" },
+              { id: "insight", icon: "🤖", label: "AI Insight", anchor: "marketing-ai-insight" },
+              { id: "sources", icon: "🔗", label: "Data Sources", anchor: "marketing-data-sources" },
+            ] as any[]).map(item => {
+              const isActive = marketingMobileSection === item.id;
+              return (
+                <button key={item.id} onClick={() => {
+                  scrollToMarketingSection(item.anchor, item.id);
+                  setShowMobileDrawer(false);
+                }} style={{
+                  display: "flex", alignItems: "center", gap: 14, width: "100%",
+                  padding: "13px 24px", border: "none", cursor: "pointer", fontFamily: "inherit",
+                  background: isActive ? "rgba(255,107,0,0.1)" : "transparent",
+                  color: isActive ? "#FF6B00" : "#e2e8f0", fontSize: 15,
+                  borderLeft: isActive ? "3px solid #FF6B00" : "3px solid transparent",
+                  minHeight: 52,
+                }}>
+                  <span style={{ fontSize: 20, width: 28, textAlign: "center" as const }}>{item.icon}</span>
+                  <span style={{ flex: 1, fontWeight: isActive ? 700 : 400 }}>{item.label}</span>
+                  {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>● กำลังใช้</span>}
                 </button>
               );
             })}
