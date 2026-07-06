@@ -35,11 +35,13 @@ export default function LoginPage() {
     <div className="admin-login-page" style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
       backgroundColor: "#0B0F19", fontFamily: "'Prompt', sans-serif",
+      padding: "20px", boxSizing: "border-box", overflowX: "hidden",
     }}>
       <div className="admin-login-card" style={{
         backgroundColor: "#141A24", border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "16px", boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
-        padding: "40px", width: "100%", maxWidth: "420px", boxSizing: "border-box",
+        padding: "clamp(24px, 7vw, 40px)", width: "calc(100vw - 64px)", maxWidth: "420px",
+        boxSizing: "border-box", margin: "0 auto",
       }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <div style={{ background: "#FF6B00", color: "#fff", fontWeight: 800, fontSize: 18, padding: "6px 14px", borderRadius: 8, display: "inline-block", marginBottom: 12 }}>DW</div>
