@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
 import { blogCategories } from '@/lib/seo-content';
+import MarketingKpiDashboard from './MarketingKpiDashboard';
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -968,7 +969,15 @@ export default function AdminPage() {
         {mainTab === "marketing" && (
           <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
             <div className="main-content-area" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
-              <MarketingPage documents={documents} showToast={showToast} />
+              <MarketingKpiDashboard
+                documents={documents}
+                customers={customers}
+                products={catalogProducts}
+                totalRevenue={totalRevenue}
+                totalCost={totalCost}
+                totalProfit={totalProfit}
+                showToast={showToast}
+              />
             </div>
           </div>
         )}
