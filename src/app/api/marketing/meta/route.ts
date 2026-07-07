@@ -49,11 +49,30 @@ async function graphGetAll(path: string, params: Record<string, string>, maxPage
 
 const numberValue = (value: unknown) => Number(value || 0);
 
+const leadActionTypes = [
+  "lead",
+  "onsite_conversion.lead_grouped",
+  "onsite_conversion.messaging_conversation_started_7d",
+  "omni_messaging_conversation_started_7d",
+  "onsite_conversion.messaging_first_reply",
+  "onsite_conversion.messaging_user_subscribed",
+  "onsite_conversion.post_save",
+];
+
 function actionCount(actions: any[] | undefined, names: string[]) {
   if (!Array.isArray(actions)) return 0;
   return actions
     .filter((item) => names.includes(item.action_type))
     .reduce((sum, item) => sum + numberValue(item.value), 0);
+}
+
+function outboundClicks(row: any) {
+  if (!Array.isArray(row?.outbound_clicks)) return 0;
+  return row.outbound_clicks.reduce((sum: number, item: any) => sum + numberValue(item.value), 0);
+}
+
+function clickCount(row: any) {
+  return numberValue(row.clicks) || numberValue(row.inline_link_clicks) || outboundClicks(row);
 }
 
 function insightDateParams(request: Request): Record<string, string> {
@@ -88,6 +107,8 @@ export async function GET(request: Request) {
       "impressions",
       "reach",
       "clicks",
+      "inline_link_clicks",
+      "outbound_clicks",
       "cpc",
       "cpm",
       "ctr",
@@ -99,7 +120,10 @@ export async function GET(request: Request) {
       "campaign_name",
       "spend",
       "impressions",
+      "reach",
       "clicks",
+      "inline_link_clicks",
+      "outbound_clicks",
       "cpc",
       "ctr",
       "actions",
@@ -114,6 +138,8 @@ export async function GET(request: Request) {
       "impressions",
       "reach",
       "clicks",
+      "inline_link_clicks",
+      "outbound_clicks",
       "cpc",
       "ctr",
       "actions",
@@ -128,7 +154,10 @@ export async function GET(request: Request) {
       "ad_name",
       "spend",
       "impressions",
+      "reach",
       "clicks",
+      "inline_link_clicks",
+      "outbound_clicks",
       "cpc",
       "ctr",
       "actions",
@@ -164,7 +193,7 @@ export async function GET(request: Request) {
     ]);
 
     const account = accountInsights.data?.[0] || {};
-    const leads = actionCount(account.actions, ["lead", "onsite_conversion.lead_grouped"]);
+    const leads = actionCount(account.actions, leadActionTypes);
     const spend = numberValue(account.spend);
 
     return NextResponse.json(
@@ -176,7 +205,7 @@ export async function GET(request: Request) {
           spend,
           impressions: numberValue(account.impressions),
           reach: numberValue(account.reach),
-          clicks: numberValue(account.clicks),
+          clicks: clickCount(account),
           cpc: numberValue(account.cpc),
           cpm: numberValue(account.cpm),
           ctr: numberValue(account.ctr),
@@ -184,14 +213,15 @@ export async function GET(request: Request) {
           cpl: leads > 0 ? spend / leads : 0,
         },
         campaigns: campaignInsights.map((row: any) => {
-          const rowLeads = actionCount(row.actions, ["lead", "onsite_conversion.lead_grouped"]);
+          const rowLeads = actionCount(row.actions, leadActionTypes);
           const rowSpend = numberValue(row.spend);
           return {
             id: row.campaign_id,
             name: row.campaign_name,
             spend: rowSpend,
             impressions: numberValue(row.impressions),
-            clicks: numberValue(row.clicks),
+            reach: numberValue(row.reach),
+            clicks: clickCount(row),
             cpc: numberValue(row.cpc),
             ctr: numberValue(row.ctr),
             leads: rowLeads,
@@ -199,7 +229,7 @@ export async function GET(request: Request) {
           };
         }),
         adSets: adSetInsights.map((row: any) => {
-          const rowLeads = actionCount(row.actions, ["lead", "onsite_conversion.lead_grouped"]);
+          const rowLeads = actionCount(row.actions, leadActionTypes);
           const rowSpend = numberValue(row.spend);
           return {
             id: row.adset_id,
@@ -209,7 +239,7 @@ export async function GET(request: Request) {
             spend: rowSpend,
             impressions: numberValue(row.impressions),
             reach: numberValue(row.reach),
-            clicks: numberValue(row.clicks),
+            clicks: clickCount(row),
             cpc: numberValue(row.cpc),
             ctr: numberValue(row.ctr),
             leads: rowLeads,
@@ -217,7 +247,7 @@ export async function GET(request: Request) {
           };
         }),
         ads: adInsights.map((row: any) => {
-          const rowLeads = actionCount(row.actions, ["lead", "onsite_conversion.lead_grouped"]);
+          const rowLeads = actionCount(row.actions, leadActionTypes);
           const rowSpend = numberValue(row.spend);
           return {
             id: row.ad_id,
@@ -228,7 +258,8 @@ export async function GET(request: Request) {
             campaignName: row.campaign_name,
             spend: rowSpend,
             impressions: numberValue(row.impressions),
-            clicks: numberValue(row.clicks),
+            reach: numberValue(row.reach),
+            clicks: clickCount(row),
             cpc: numberValue(row.cpc),
             ctr: numberValue(row.ctr),
             leads: rowLeads,
