@@ -26,6 +26,27 @@ async function graphGet(path: string, params: Record<string, string>) {
   return data;
 }
 
+async function graphGetAll(path: string, params: Record<string, string>, maxPages = 8) {
+  const rows: any[] = [];
+  let nextUrl = "";
+
+  for (let page = 0; page < maxPages; page += 1) {
+    const data = nextUrl
+      ? await fetch(nextUrl, { cache: "no-store" }).then(async (response) => {
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.error?.message || `Meta API failed with ${response.status}`);
+          return payload;
+        })
+      : await graphGet(path, params);
+
+    rows.push(...(Array.isArray(data.data) ? data.data : []));
+    nextUrl = data.paging?.next || "";
+    if (!nextUrl) break;
+  }
+
+  return rows;
+}
+
 const numberValue = (value: unknown) => Number(value || 0);
 
 function actionCount(actions: any[] | undefined, names: string[]) {
@@ -35,7 +56,19 @@ function actionCount(actions: any[] | undefined, names: string[]) {
     .reduce((sum, item) => sum + numberValue(item.value), 0);
 }
 
-export async function GET() {
+function insightDateParams(request: Request): Record<string, string> {
+  const url = new URL(request.url);
+  const startDate = url.searchParams.get("startDate");
+  const endDate = url.searchParams.get("endDate");
+  if (startDate && endDate) {
+    return {
+      time_range: JSON.stringify({ since: startDate, until: endDate }),
+    };
+  }
+  return { date_preset: "last_30d" };
+}
+
+export async function GET(request: Request) {
   const adAccountId = getAdAccountId();
   if (!adAccountId || !process.env.META_ACCESS_TOKEN) {
     return NextResponse.json(
@@ -49,6 +82,7 @@ export async function GET() {
   }
 
   try {
+    const dateParams = insightDateParams(request);
     const accountFields = [
       "spend",
       "impressions",
@@ -71,17 +105,60 @@ export async function GET() {
       "actions",
     ].join(",");
 
-    const [accountInsights, campaignInsights] = await Promise.all([
+    const adSetFields = [
+      "campaign_id",
+      "campaign_name",
+      "adset_id",
+      "adset_name",
+      "spend",
+      "impressions",
+      "reach",
+      "clicks",
+      "cpc",
+      "ctr",
+      "actions",
+    ].join(",");
+
+    const adFields = [
+      "campaign_id",
+      "campaign_name",
+      "adset_id",
+      "adset_name",
+      "ad_id",
+      "ad_name",
+      "spend",
+      "impressions",
+      "clicks",
+      "cpc",
+      "ctr",
+      "actions",
+    ].join(",");
+
+    const [accountInsights, campaignInsights, adSetInsights, adInsights] = await Promise.all([
       graphGet(`${adAccountId}/insights`, {
-        date_preset: "last_30d",
+        ...dateParams,
         level: "account",
         fields: accountFields,
       }),
-      graphGet(`${adAccountId}/insights`, {
-        date_preset: "last_30d",
+      graphGetAll(`${adAccountId}/insights`, {
+        ...dateParams,
         level: "campaign",
         fields: campaignFields,
-        limit: "10",
+        limit: "100",
+        sort: "spend_descending",
+      }),
+      graphGetAll(`${adAccountId}/insights`, {
+        ...dateParams,
+        level: "adset",
+        fields: adSetFields,
+        limit: "100",
+        sort: "spend_descending",
+      }),
+      graphGetAll(`${adAccountId}/insights`, {
+        ...dateParams,
+        level: "ad",
+        fields: adFields,
+        limit: "100",
         sort: "spend_descending",
       }),
     ]);
@@ -94,7 +171,7 @@ export async function GET() {
       {
         success: true,
         connected: true,
-        range: "last_30_days",
+        range: dateParams,
         totals: {
           spend,
           impressions: numberValue(account.impressions),
@@ -106,12 +183,49 @@ export async function GET() {
           leads,
           cpl: leads > 0 ? spend / leads : 0,
         },
-        campaigns: (campaignInsights.data || []).map((row: any) => {
+        campaigns: campaignInsights.map((row: any) => {
           const rowLeads = actionCount(row.actions, ["lead", "onsite_conversion.lead_grouped"]);
           const rowSpend = numberValue(row.spend);
           return {
             id: row.campaign_id,
             name: row.campaign_name,
+            spend: rowSpend,
+            impressions: numberValue(row.impressions),
+            clicks: numberValue(row.clicks),
+            cpc: numberValue(row.cpc),
+            ctr: numberValue(row.ctr),
+            leads: rowLeads,
+            cpl: rowLeads > 0 ? rowSpend / rowLeads : 0,
+          };
+        }),
+        adSets: adSetInsights.map((row: any) => {
+          const rowLeads = actionCount(row.actions, ["lead", "onsite_conversion.lead_grouped"]);
+          const rowSpend = numberValue(row.spend);
+          return {
+            id: row.adset_id,
+            name: row.adset_name,
+            campaignId: row.campaign_id,
+            campaignName: row.campaign_name,
+            spend: rowSpend,
+            impressions: numberValue(row.impressions),
+            reach: numberValue(row.reach),
+            clicks: numberValue(row.clicks),
+            cpc: numberValue(row.cpc),
+            ctr: numberValue(row.ctr),
+            leads: rowLeads,
+            cpl: rowLeads > 0 ? rowSpend / rowLeads : 0,
+          };
+        }),
+        ads: adInsights.map((row: any) => {
+          const rowLeads = actionCount(row.actions, ["lead", "onsite_conversion.lead_grouped"]);
+          const rowSpend = numberValue(row.spend);
+          return {
+            id: row.ad_id,
+            name: row.ad_name,
+            adSetId: row.adset_id,
+            adSetName: row.adset_name,
+            campaignId: row.campaign_id,
+            campaignName: row.campaign_name,
             spend: rowSpend,
             impressions: numberValue(row.impressions),
             clicks: numberValue(row.clicks),

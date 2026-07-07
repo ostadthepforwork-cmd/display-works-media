@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type MarketingKpiDashboardProps = {
   documents?: any[];
@@ -61,9 +61,17 @@ type MarketingSection =
   | "sources"
   | "settings";
 
+type DateRangeMode = "7d" | "30d" | "month" | "all" | "custom";
+
+type ApiExpiryConfig = {
+  expiresAt: string;
+  note: string;
+};
+
 const storageKeys = {
   campaigns: "dwm_marketing_campaigns_v3",
   leads: "dwm_marketing_leads_v3",
+  apiExpiries: "dwm_marketing_api_expiries_v1",
 };
 
 const defaultCampaigns: Campaign[] = [
@@ -156,6 +164,89 @@ const money = (value: number) =>
 const percent = (value: number) =>
   `${new Intl.NumberFormat("th-TH", { maximumFractionDigits: 1 }).format(Number.isFinite(value) ? value : 0)}%`;
 
+const dateInputValue = (date: Date) => date.toISOString().slice(0, 10);
+
+const todayInput = () => dateInputValue(new Date());
+
+const addDaysInput = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return dateInputValue(date);
+};
+
+const monthStartInput = () => {
+  const date = new Date();
+  return dateInputValue(new Date(date.getFullYear(), date.getMonth(), 1));
+};
+
+const safeDateValue = (value: unknown) => {
+  if (!value) return "";
+  const text = String(value);
+  return text.includes("T") ? text.slice(0, 10) : text.slice(0, 10);
+};
+
+const isInRange = (value: unknown, startDate: string, endDate: string, mode: DateRangeMode) => {
+  if (mode === "all") return true;
+  const date = safeDateValue(value);
+  if (!date) return false;
+  return (!startDate || date >= startDate) && (!endDate || date <= endDate);
+};
+
+const defaultApiExpiries = (): Record<string, ApiExpiryConfig> => ({
+  ga4: {
+    expiresAt: addDaysInput(90),
+    note: "Service Account Key ควร rotate ทุก 90 วัน แม้คีย์จะไม่หมดอายุอัตโนมัติ",
+  },
+  meta: {
+    expiresAt: addDaysInput(55),
+    note: "Meta long-lived access token มักมีอายุประมาณ 60 วัน ควรต่ออายุก่อนหมด",
+  },
+  line: {
+    expiresAt: addDaysInput(30),
+    note: "ตั้งวันตรวจสอบ LINE token หรือ Channel access token ตามรอบที่ใช้งานจริง",
+  },
+});
+
+function daysUntil(dateValue: string) {
+  if (!dateValue) return null;
+  const today = new Date(todayInput());
+  const target = new Date(dateValue);
+  if (Number.isNaN(target.getTime())) return null;
+  return Math.ceil((target.getTime() - today.getTime()) / 86400000);
+}
+
+function apiExpiryStatus(dateValue: string) {
+  const days = daysUntil(dateValue);
+  if (days === null) return { tone: "unknown", label: "ยังไม่ได้ตั้งวันหมดอายุ", days };
+  if (days < 0) return { tone: "danger", label: `หมดอายุแล้ว ${Math.abs(days)} วัน`, days };
+  if (days <= 7) return { tone: "danger", label: `จะหมดอายุใน ${days} วัน`, days };
+  if (days <= 30) return { tone: "warning", label: `จะหมดอายุใน ${days} วัน`, days };
+  return { tone: "ready", label: `เหลือ ${days} วัน`, days };
+}
+
+const docVatRateForMarketing = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
+const isSqmBasisForMarketing = (value?: string) => value === "sqm";
+const marketingItemBillingBasis = (item: any) =>
+  isSqmBasisForMarketing(item?.priceUnit)
+  || isSqmBasisForMarketing(item?.costUnit)
+  || String(item?.unit || "").includes("ตร.ม")
+    ? "sqm"
+    : "piece";
+const marketingLineQty = (item: any) => Number(item?.qty || item?.quantity || 0);
+const marketingHasAreaDimensions = (item: any) =>
+  Number(item?.widthM || 0) > 0 || Number(item?.heightM || 0) > 0 || Number(item?.pieces || 0) > 0;
+const marketingLineQtyForBasis = (item: any, basis?: string) => {
+  if (isSqmBasisForMarketing(basis)) return marketingLineQty(item);
+  const pieces = Number(item?.pieces || 0);
+  return marketingItemBillingBasis(item) === "sqm" && marketingHasAreaDimensions(item)
+    ? (pieces > 0 ? pieces : 1)
+    : marketingLineQty(item);
+};
+const marketingLineAmount = (item: any) =>
+  marketingLineQtyForBasis(item, item?.priceUnit || "piece") * Number(item?.price || item?.unitPrice || 0);
+const marketingLineCost = (item: any) =>
+  marketingLineQtyForBasis(item, item?.costUnit || "piece") * Number(item?.costSnapshot ?? item?.cost ?? item?.unitCost ?? 0);
+
 function loadLocal<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
   try {
@@ -177,11 +268,11 @@ function documentTotal(doc: any) {
   if (typeof doc?.total === "number") return doc.total;
   if (typeof doc?.grandTotal === "number") return doc.grandTotal;
   const items = Array.isArray(doc?.items) ? doc.items : [];
-  return items.reduce((sum: number, item: any) => {
-    const savedAmount = Number(item?.amount ?? item?.total ?? 0);
-    if (savedAmount > 0) return sum + savedAmount;
-    return sum + Number(item?.qty ?? item?.quantity ?? 0) * Number(item?.price ?? item?.unitPrice ?? 0);
-  }, 0);
+  const subtotal = items.reduce((sum: number, item: any) => sum + marketingLineAmount(item), 0);
+  const discountAmt = subtotal * (Number(doc?.discount || 0) / 100);
+  const afterDisc = subtotal - discountAmt;
+  const vatAmt = doc?.vat ? afterDisc * (docVatRateForMarketing(doc) / 100) : 0;
+  return afterDisc + vatAmt;
 }
 
 function documentCost(doc: any) {
@@ -191,9 +282,7 @@ function documentCost(doc: any) {
   const lineCost = items.reduce((sum: number, item: any) => {
     const savedCost = Number(item?.costAmount ?? item?.lineCost ?? item?.costTotal ?? 0);
     if (savedCost > 0) return sum + savedCost;
-    const qty = Number(item?.costQty ?? item?.area ?? item?.qty ?? item?.quantity ?? 0);
-    const cost = Number(item?.costSnapshot ?? item?.cost ?? item?.unitCost ?? 0);
-    return sum + qty * cost;
+    return sum + marketingLineCost(item);
   }, 0);
   return lineCost + Number(doc?.shippingCost ?? doc?.deliveryCost ?? 0);
 }
@@ -243,8 +332,16 @@ export default function MarketingKpiDashboard({
   showToast,
 }: MarketingKpiDashboardProps) {
   const [activeSection, setActiveSection] = useState<MarketingSection>("dashboard");
+  const [dateRangeMode, setDateRangeMode] = useState<DateRangeMode>("30d");
+  const [startDate, setStartDate] = useState(addDaysInput(-29));
+  const [endDate, setEndDate] = useState(todayInput());
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => loadLocal(storageKeys.campaigns, defaultCampaigns));
   const [leads, setLeads] = useState<Lead[]>(() => loadLocal(storageKeys.leads, defaultLeads));
+  const [apiExpiries, setApiExpiries] = useState<Record<string, ApiExpiryConfig>>(() =>
+    loadLocal(storageKeys.apiExpiries, defaultApiExpiries()),
+  );
+  const [sourceLogs, setSourceLogs] = useState<string[]>([]);
+  const [activeSourceLog, setActiveSourceLog] = useState<string>("ทั้งหมด");
   const [leadForm, setLeadForm] = useState({
     name: "",
     contact: "",
@@ -265,54 +362,115 @@ export default function MarketingKpiDashboard({
 
   useEffect(() => saveLocal(storageKeys.campaigns, campaigns), [campaigns]);
   useEffect(() => saveLocal(storageKeys.leads, leads), [leads]);
+  useEffect(() => saveLocal(storageKeys.apiExpiries, apiExpiries), [apiExpiries]);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadSources() {
-      const load = async (url: string) => {
-        const response = await fetch(url, { cache: "no-store" });
-        return response.json();
-      };
-      try {
-        const [ga4Data, metaData] = await Promise.allSettled([load("/api/marketing/ga4"), load("/api/marketing/meta")]);
-        if (cancelled) return;
-        setGa4(ga4Data.status === "fulfilled" ? { loading: false, ...ga4Data.value } : { loading: false, connected: false, error: "เชื่อมต่อ GA4 ไม่สำเร็จ", totals: {} });
-        setMeta(metaData.status === "fulfilled" ? { loading: false, ...metaData.value } : { loading: false, connected: false, error: "เชื่อมต่อ Meta ไม่สำเร็จ", totals: {}, campaigns: [] });
-      } catch {
-        if (cancelled) return;
-        setGa4({ loading: false, connected: false, error: "รอเชื่อมต่อ", totals: {} });
-        setMeta({ loading: false, connected: false, error: "รอเชื่อมต่อ", totals: {}, campaigns: [] });
-      }
+  const setPresetRange = (mode: DateRangeMode) => {
+    setDateRangeMode(mode);
+    if (mode === "7d") {
+      setStartDate(addDaysInput(-6));
+      setEndDate(todayInput());
     }
-    loadSources();
-    return () => { cancelled = true; };
+    if (mode === "30d") {
+      setStartDate(addDaysInput(-29));
+      setEndDate(todayInput());
+    }
+    if (mode === "month") {
+      setStartDate(monthStartInput());
+      setEndDate(todayInput());
+    }
+    if (mode === "all") {
+      setStartDate("");
+      setEndDate("");
+    }
+  };
+
+  const sourceUrl = useCallback((baseUrl: string) => {
+    if (dateRangeMode === "all" || !startDate || !endDate) return baseUrl;
+    const params = new URLSearchParams({ startDate, endDate });
+    return `${baseUrl}?${params.toString()}`;
+  }, [dateRangeMode, endDate, startDate]);
+
+  const addSourceLog = useCallback((message: string) => {
+    const timestamp = new Date().toLocaleString("th-TH", { hour12: false });
+    setSourceLogs((prev) => [`${timestamp} - ${message}`, ...prev].slice(0, 30));
   }, []);
 
+  const loadMarketingSources = useCallback(async (trigger = "auto") => {
+    const load = async (name: string, url: string) => {
+      const response = await fetch(url, { cache: "no-store" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.error || `${name} API failed with ${response.status}`);
+      }
+      return data;
+    };
+
+    setGa4((prev: any) => ({ ...prev, loading: true }));
+    setMeta((prev: any) => ({ ...prev, loading: true }));
+
+    const [ga4Data, metaData] = await Promise.allSettled([
+      load("GA4", sourceUrl("/api/marketing/ga4")),
+      load("Meta", sourceUrl("/api/marketing/meta")),
+    ]);
+
+    if (ga4Data.status === "fulfilled") {
+      setGa4({ loading: false, ...ga4Data.value });
+      addSourceLog(ga4Data.value?.connected
+        ? `GA4 sync สำเร็จ (${trigger})`
+        : `GA4 เรียก API ได้ แต่ยังไม่พร้อมใช้งาน: ${ga4Data.value?.error || "ยังไม่มีข้อมูล"}`);
+    } else {
+      setGa4({ loading: false, connected: false, error: ga4Data.reason?.message || "เชื่อมต่อ GA4 ไม่สำเร็จ", totals: {} });
+      addSourceLog(`GA4 sync ไม่สำเร็จ: ${ga4Data.reason?.message || "Unknown error"}`);
+    }
+
+    if (metaData.status === "fulfilled") {
+      setMeta({ loading: false, ...metaData.value });
+      addSourceLog(metaData.value?.connected
+        ? `Meta Ads sync สำเร็จ (${trigger})`
+        : `Meta Ads เรียก API ได้ แต่ยังไม่พร้อมใช้งาน: ${metaData.value?.error || "ยังไม่มีข้อมูล"}`);
+    } else {
+      setMeta({ loading: false, connected: false, error: metaData.reason?.message || "เชื่อมต่อ Meta ไม่สำเร็จ", totals: {}, campaigns: [], adSets: [], ads: [] });
+      addSourceLog(`Meta Ads sync ไม่สำเร็จ: ${metaData.reason?.message || "Unknown error"}`);
+    }
+  }, [addSourceLog, sourceUrl]);
+
+  useEffect(() => {
+    loadMarketingSources("date range");
+  }, [loadMarketingSources]);
+
+  const filteredDocuments = useMemo(
+    () => documents.filter((doc) => isInRange(doc?.date || doc?.createdAt || doc?.created_at, startDate, endDate, dateRangeMode)),
+    [documents, startDate, endDate, dateRangeMode],
+  );
+
   const receipts = useMemo(
-    () => documents.filter((doc) => doc?.type === "receipt" && !doc?.deleted && doc?.status !== "cancelled"),
-    [documents],
+    () => filteredDocuments.filter((doc) => doc?.type === "receipt" && !doc?.deleted && doc?.status !== "cancelled"),
+    [filteredDocuments],
+  );
+
+  const filteredLeads = useMemo(
+    () => leads.filter((lead) => isInRange(lead.date, startDate, endDate, dateRangeMode)),
+    [leads, startDate, endDate, dateRangeMode],
   );
 
   const receiptRevenue = useMemo(() => {
-    if (totalRevenue > 0) return totalRevenue;
     return receipts.reduce((sum, doc) => sum + documentTotal(doc), 0);
-  }, [receipts, totalRevenue]);
+  }, [receipts]);
   const receiptCost = useMemo(() => {
-    if (totalCost > 0) return totalCost;
     return receipts.reduce((sum, doc) => sum + documentCost(doc), 0);
-  }, [receipts, totalCost]);
+  }, [receipts]);
   const metaSpend = Number(meta?.totals?.spend ?? 0);
   const manualSpend = campaigns.reduce((sum, campaign) => sum + Number(campaign.spend || 0), 0);
   const marketingSpend = meta.connected ? metaSpend : manualSpend;
-  const crmLeads = leads.length;
+  const crmLeads = filteredLeads.length;
   const metaLeads = Number(meta?.totals?.leads ?? 0);
   const campaignLeads = campaigns.reduce((sum, campaign) => sum + Number(campaign.leads || 0), 0);
   const totalLeads = crmLeads + metaLeads + campaignLeads;
-  const qualifiedLeads = leads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
-  const quotationSent = documents.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length
-    + leads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
+  const qualifiedLeads = filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
+  const quotationSent = filteredDocuments.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length
+    + filteredLeads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const closedJobs = receipts.length;
-  const grossProfit = totalProfit || (receiptRevenue - receiptCost);
+  const grossProfit = receiptRevenue - receiptCost;
   const cpl = totalLeads > 0 ? marketingSpend / totalLeads : 0;
   const cpql = qualifiedLeads > 0 ? marketingSpend / qualifiedLeads : 0;
   const costPerClosedJob = closedJobs > 0 ? marketingSpend / closedJobs : 0;
@@ -345,9 +503,9 @@ export default function MarketingKpiDashboard({
   const facebookRows = campaignRows
     .filter((row: Campaign) => /facebook|meta/i.test(row.channel))
     .map((row: Campaign) => {
-      const qualifiedFromCampaign = leads.filter((lead) => lead.campaign === row.name && ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
-      const quotationFromCampaign = leads.filter((lead) => lead.campaign === row.name && ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
-      const closedFromCampaign = leads.filter((lead) => lead.campaign === row.name && lead.status === "closed_won").length;
+      const qualifiedFromCampaign = filteredLeads.filter((lead) => lead.campaign === row.name && ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
+      const quotationFromCampaign = filteredLeads.filter((lead) => lead.campaign === row.name && ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
+      const closedFromCampaign = filteredLeads.filter((lead) => lead.campaign === row.name && lead.status === "closed_won").length;
       const rowProfit = Math.max(0, row.revenue - row.spend);
       return {
         ...row,
@@ -364,35 +522,67 @@ export default function MarketingKpiDashboard({
       };
     });
 
-  const adSetRows = facebookRows.map((row) => ({
-    campaign: row.name,
-    adSetName: `${row.name} - Core Audience`,
-    audience: "SME / ร้านอาหาร / เจ้าของธุรกิจ",
-    budget: row.spend,
-    spend: row.spend,
-    leads: row.leads,
-    cpl: row.leads ? row.spend / row.leads : 0,
-    qualifiedLeads: row.qualifiedLeads,
-    closedJobs: row.closedJobs,
-    closeRate: row.leads ? (row.closedJobs / row.leads) * 100 : 0,
-    revenue: row.revenue,
-  }));
+  const metaAdSetRows = Array.isArray(meta?.adSets) ? meta.adSets : [];
+  const adSetRows = metaAdSetRows.length
+    ? metaAdSetRows.map((row: any) => ({
+        campaign: row.campaignName || "-",
+        adSetName: row.name || "Meta Ad Set",
+        audience: row.name || "Meta audience",
+        budget: row.spend,
+        spend: Number(row.spend || 0),
+        leads: Number(row.leads || 0),
+        cpl: Number(row.cpl || 0),
+        qualifiedLeads: filteredLeads.filter((lead) => lead.adSet === row.name && ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length,
+        closedJobs: filteredLeads.filter((lead) => lead.adSet === row.name && lead.status === "closed_won").length,
+        closeRate: row.leads ? (Number(row.leads || 0) / Math.max(Number(row.clicks || 0), 1)) * 100 : 0,
+        revenue: 0,
+      }))
+    : facebookRows.map((row) => ({
+        campaign: row.name,
+        adSetName: `${row.name} - Core Audience`,
+        audience: "SME / ร้านอาหาร / เจ้าของธุรกิจ",
+        budget: row.spend,
+        spend: row.spend,
+        leads: row.leads,
+        cpl: row.leads ? row.spend / row.leads : 0,
+        qualifiedLeads: row.qualifiedLeads,
+        closedJobs: row.closedJobs,
+        closeRate: row.leads ? (row.closedJobs / row.leads) * 100 : 0,
+        revenue: row.revenue,
+      }));
 
-  const creativeRows = facebookRows.map((row) => ({
-    creativeName: `${row.name} Creative`,
-    creativeType: "Real Work Photo",
-    hook: "ส่งรูปงานจริง + CTA ทัก LINE",
-    product: row.name.includes("Sticker") ? "Sticker" : "Vinyl Banner",
-    campaign: row.name,
-    spend: row.spend,
-    leads: row.leads,
-    qualifiedLeads: row.qualifiedLeads,
-    quotations: row.quotations,
-    closedJobs: row.closedJobs,
-    revenue: row.revenue,
-    cpl: row.leads ? row.spend / row.leads : 0,
-    note: "รอเชื่อม creative id จาก Meta API",
-  }));
+  const metaAdRows = Array.isArray(meta?.ads) ? meta.ads : [];
+  const creativeRows = metaAdRows.length
+    ? metaAdRows.map((row: any) => ({
+        creativeName: row.name || "Meta Creative",
+        creativeType: "Meta Ad",
+        hook: row.name || "รอดูชื่อ Creative จาก Meta",
+        product: row.campaignName || "-",
+        campaign: row.campaignName || "-",
+        spend: Number(row.spend || 0),
+        leads: Number(row.leads || 0),
+        qualifiedLeads: filteredLeads.filter((lead) => lead.creative === row.name && ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length,
+        quotations: 0,
+        closedJobs: 0,
+        revenue: 0,
+        cpl: Number(row.cpl || 0),
+        note: `CTR ${money(Number(row.ctr || 0))}% / CPC ฿${money(Number(row.cpc || 0))}`,
+      }))
+    : facebookRows.map((row) => ({
+        creativeName: `${row.name} Creative`,
+        creativeType: "Real Work Photo",
+        hook: "ส่งรูปงานจริง + CTA ทัก LINE",
+        product: row.name.includes("Sticker") ? "Sticker" : "Vinyl Banner",
+        campaign: row.name,
+        spend: row.spend,
+        leads: row.leads,
+        qualifiedLeads: row.qualifiedLeads,
+        quotations: row.quotations,
+        closedJobs: row.closedJobs,
+        revenue: row.revenue,
+        cpl: row.leads ? row.spend / row.leads : 0,
+        note: "รอเชื่อม creative id จาก Meta API",
+      }));
 
   const addLead = () => {
     const nextLead: Lead = {
@@ -426,6 +616,37 @@ export default function MarketingKpiDashboard({
     }));
   };
 
+  const updateApiExpiry = (id: string, updates: Partial<ApiExpiryConfig>) => {
+    setApiExpiries((prev) => ({
+      ...prev,
+      [id]: {
+        ...(prev[id] || { expiresAt: "", note: "" }),
+        ...updates,
+      },
+    }));
+  };
+
+  const exportMarketingCsv = () => {
+    const rows = [
+      ["Metric", "Value", "Note"],
+      ...cards.map((card) => [card.label, card.value, card.sub]),
+      [],
+      ["Campaign", "Channel", "Spend", "Leads", "Revenue", "Recommendation"],
+      ...campaignRows.map((row: Campaign) => [row.name, row.channel, row.spend, row.leads, row.revenue, row.note]),
+    ];
+    const csv = rows
+      .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `dwm-marketing-dashboard-${todayInput()}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast?.("Export CSV สำเร็จ", "success");
+  };
+
   const cards = [
     { label: "Revenue", value: `฿${money(receiptRevenue)}`, sub: "ตรงกับ ERP: ใบเสร็จเท่านั้น", tone: "green" },
     { label: "Gross Profit", value: `฿${money(grossProfit)}`, sub: `Margin ${percent(grossMargin)}`, tone: "teal" },
@@ -444,19 +665,77 @@ export default function MarketingKpiDashboard({
   ];
 
   const sources = [
-    { name: "GA4", account: "G-GHBQ0VT4NE", detail: ga4.connected ? `${money(Number(ga4?.totals?.sessions ?? 0))} sessions` : ga4.error || "รอเชื่อมต่อ", ready: !!ga4.connected, error: ga4.error || "" },
-    { name: "Facebook Pixel / Ads", account: "Meta App / Ad Account", detail: meta.connected ? `Spend ฿${money(metaSpend)} / Leads ${money(Number(meta?.totals?.leads ?? 0))}` : meta.error || "รอเชื่อมต่อ", ready: !!meta.connected, error: meta.error || "" },
-    { name: "LINE OA", account: "@displayworks", detail: "ใช้บันทึก Lead และ Source ใน CRM", ready: false, error: "ยังไม่ได้เชื่อม LINE Messaging API" },
-    { name: "ERP Receipts", account: "Supabase ERP", detail: `${receipts.length} ใบเสร็จ ใช้คำนวณ Revenue / Cost / Profit`, ready: true, error: "" },
+    {
+      id: "ga4",
+      name: "GA4",
+      account: "G-GHBQ0VT4NE",
+      detail: ga4.connected ? `${money(Number(ga4?.totals?.sessions ?? 0))} sessions` : ga4.error || "รอเชื่อมต่อ",
+      ready: !!ga4.connected,
+      error: ga4.error || "",
+      tokenType: "Service account key",
+      expiry: apiExpiries.ga4 || defaultApiExpiries().ga4,
+      envKeys: "GA4_PROPERTY_ID, GA4_CLIENT_EMAIL, GA4_PRIVATE_KEY",
+    },
+    {
+      id: "meta",
+      name: "Facebook Pixel / Ads",
+      account: "Meta App / Ad Account",
+      detail: meta.connected ? `Spend ฿${money(metaSpend)} / Leads ${money(Number(meta?.totals?.leads ?? 0))}` : meta.error || "รอเชื่อมต่อ",
+      ready: !!meta.connected,
+      error: meta.error || "",
+      tokenType: "Meta access token",
+      expiry: apiExpiries.meta || defaultApiExpiries().meta,
+      envKeys: "META_AD_ACCOUNT_ID, META_ACCESS_TOKEN",
+    },
+    {
+      id: "line",
+      name: "LINE OA",
+      account: "@displayworks",
+      detail: "ใช้บันทึก Lead และ Source ใน CRM",
+      ready: false,
+      error: "ยังไม่ได้เชื่อม LINE Messaging API",
+      tokenType: "LINE channel token",
+      expiry: apiExpiries.line || defaultApiExpiries().line,
+      envKeys: "LINE_CHANNEL_ACCESS_TOKEN (ยังไม่ได้ทำ endpoint)",
+    },
+    {
+      id: "erp",
+      name: "ERP Receipts",
+      account: "Supabase ERP",
+      detail: `${receipts.length} ใบเสร็จ ใช้คำนวณ Revenue / Cost / Profit`,
+      ready: true,
+      error: "",
+      tokenType: "Internal database",
+      expiry: null,
+      envKeys: "NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    },
   ];
+
+  const apiExpiryAlerts = sources
+    .filter((source) => source.expiry)
+    .map((source) => {
+      const status = apiExpiryStatus(source.expiry?.expiresAt || "");
+      return { source, status };
+    })
+    .filter(({ status }) => status.tone === "warning" || status.tone === "danger" || status.tone === "unknown")
+    .map(({ source, status }) => `${source.name}: ${status.label}`);
 
   const alerts = [
     !meta.connected ? "Facebook Ads ยังไม่ได้เชื่อมต่อ หรือ API ยังไม่มีข้อมูลล่าสุด" : "",
     !ga4.connected ? "GA4 ยังไม่ได้เชื่อมต่อกับ Dashboard data API" : "",
     conversionRate === null ? "Conversion Rate คำนวณไม่ได้ เพราะ Closed Jobs มากกว่า Leads หรือยังไม่มี Mapping" : "",
-    leads.some((lead) => leadScore(lead) >= 70 && !lead.nextFollowUp) ? "มี Hot Lead ที่ยังไม่มีวัน Follow-up" : "",
+    filteredLeads.some((lead) => leadScore(lead) >= 70 && !lead.nextFollowUp) ? "มี Hot Lead ที่ยังไม่มีวัน Follow-up" : "",
     quotationSent > 0 && quoteToCloseRate === null ? "Quote to Close Rate ยังไม่ควรคำนวณ เพราะข้อมูลใบเสนอราคาและใบเสร็จยังไม่ได้ Mapping" : "",
+    ...apiExpiryAlerts,
   ].filter(Boolean);
+
+  const rangeLabel = dateRangeMode === "all"
+    ? "ข้อมูลทั้งหมด"
+    : `${startDate || "-"} ถึง ${endDate || "-"}`;
+
+  const visibleSourceLogs = activeSourceLog === "ทั้งหมด"
+    ? sourceLogs
+    : sourceLogs.filter((log) => log.includes(activeSourceLog));
 
   const marketingFunnel = [
     { label: "Visitor", value: Number(ga4?.totals?.activeUsers ?? ga4?.totals?.sessions ?? 0), color: "#2563eb" },
@@ -465,8 +744,8 @@ export default function MarketingKpiDashboard({
   ];
   const salesFunnel = [
     { label: "Lead", value: crmLeads, color: "#2563eb" },
-    { label: "Contacted", value: leads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, color: "#06b6d4" },
-    { label: "Detail Completed", value: leads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, color: "#22c55e" },
+    { label: "Contacted", value: filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, color: "#06b6d4" },
+    { label: "Detail Completed", value: filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, color: "#22c55e" },
     { label: "Quotation Sent", value: quotationSent, color: "#f59e0b" },
     { label: "Closed Won", value: closedJobs, color: "#ff6b00" },
   ];
@@ -507,9 +786,11 @@ export default function MarketingKpiDashboard({
         .mk-eyebrow{color:#ff6b00;font-size:12px;letter-spacing:.24em;font-weight:900;text-transform:uppercase}
         .mk-title{font-size:clamp(26px,3vw,38px);line-height:1.1;margin:12px 0 10px;font-weight:900}
         .mk-sub{color:#a8b0c0;max-width:760px;line-height:1.75}
-        .mk-actions{display:flex;gap:10px;flex-wrap:wrap}
+        .mk-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
         .mk-btn{border:1px solid rgba(255,255,255,.12);background:#101827;color:#fff;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer}
+        .mk-btn.active{background:#ff6b00;border-color:#ff6b00;color:#fff}
         .mk-btn.orange{background:#ff6b00;border-color:#ff6b00}
+        .mk-date-controls{display:grid;gap:10px;justify-items:end}.mk-date-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields input{background:#101827;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:11px 12px;font:inherit}
         .mk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
         .mk-card,.mk-panel{background:#111923;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
         .mk-card{min-height:150px;display:flex;flex-direction:column;justify-content:space-between}
@@ -519,6 +800,7 @@ export default function MarketingKpiDashboard({
         .mk-dot.green{background:#10b981}.mk-dot.blue{background:#2563eb}.mk-dot.purple{background:#8b5cf6}.mk-dot.orange{background:#ff6b00}.mk-dot.pink{background:#ec4899}.mk-dot.yellow{background:#eab308}.mk-dot.teal{background:#14b8a6}
         .mk-row{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:16px}
         .mk-panel h3{margin:0 0 6px;font-size:20px}.mk-panel p{margin:0;color:#8b95a7;line-height:1.7}
+        .mk-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}.mk-section-head h3{margin:0 0 6px}.mk-section-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-empty{border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.035);border-radius:16px;padding:18px;color:#94a3b8;line-height:1.7}
         .mk-line-chart{height:270px;border-bottom:1px solid rgba(255,255,255,.1);background:linear-gradient(to top,rgba(255,255,255,.05) 1px,transparent 1px);background-size:100% 48px;position:relative;margin-top:18px;overflow:hidden;border-radius:12px}
         .mk-line{position:absolute;left:5%;right:5%;height:4px;border-radius:999px;background:linear-gradient(90deg,#ff6b00,#8b5cf6);top:50%;transform:skewY(-13deg)}
         .mk-donut{width:210px;height:210px;border-radius:50%;background:conic-gradient(#ff6b00 0 34%,#22c55e 34% 56%,#2563eb 56% 76%,#8b5cf6 76% 100%);display:grid;place-items:center;margin:10px auto}
@@ -528,11 +810,13 @@ export default function MarketingKpiDashboard({
         .mk-budget{height:18px;background:#1f2937;border-radius:999px;overflow:hidden;margin:18px 0}.mk-budget span{display:block;height:100%;background:linear-gradient(90deg,#ff6b00,#22c55e)}
         .mk-funnel{display:grid;gap:10px;margin-top:16px}.mk-funnel div{border-radius:12px;padding:12px 16px;color:#fff;font-weight:900;display:flex;justify-content:space-between}
         .mk-channel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mk-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px}
-        .mk-source{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;background:rgba(0,0,0,.18)}
+        .mk-source{display:flex;justify-content:space-between;gap:16px;align-items:center;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;background:rgba(0,0,0,.18)}
         .mk-status{font-weight:900;color:#f59e0b}.mk-status.ready{color:#22c55e}
+        .mk-expiry{display:inline-flex;align-items:center;width:max-content;border-radius:999px;padding:6px 10px;margin-top:8px;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.12);color:#cbd5e1}.mk-expiry.ready{border-color:rgba(34,197,94,.35);color:#86efac;background:rgba(34,197,94,.08)}.mk-expiry.warning{border-color:rgba(245,158,11,.45);color:#fcd34d;background:rgba(245,158,11,.1)}.mk-expiry.danger{border-color:rgba(239,68,68,.45);color:#fca5a5;background:rgba(239,68,68,.1)}.mk-expiry.unknown{border-color:rgba(148,163,184,.35);color:#cbd5e1;background:rgba(148,163,184,.08)}.mk-source-tools{display:grid;gap:8px;justify-items:end}.mk-expiry-editor{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.mk-expiry-editor input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:10px 12px;font:inherit;min-width:190px}
+        .mk-log-list{display:grid;gap:8px;max-height:260px;overflow:auto}.mk-log-item{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;background:rgba(0,0,0,.18);color:#cbd5e1;font-size:13px;line-height:1.55}
         .mk-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mk-input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:12px 14px;font:inherit;min-width:0}.mk-textarea{grid-column:1/-1;min-height:86px;resize:vertical}.mk-tag-row{display:flex;flex-wrap:wrap;gap:8px}.mk-tag{border:1px solid rgba(255,107,0,.35);background:transparent;color:#f8fafc;border-radius:999px;padding:8px 10px;font-weight:800;cursor:pointer}.mk-tag.active{background:#ff6b00;border-color:#ff6b00;color:#fff}.mk-alert{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#fde68a;border-radius:14px;padding:12px 14px;font-weight:800}
         @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:640px){.mk-dashboard{border-radius:0;border-left:0;border-right:0}.mk-main{padding:18px 14px 96px}.mk-top{display:block}.mk-actions{margin-top:16px}.mk-grid,.mk-channel-grid,.mk-form-grid{grid-template-columns:1fr}.mk-card{min-height:128px}.mk-card strong{font-size:24px}.mk-donut{width:180px;height:180px}.mk-donut-inner{width:102px;height:102px}.mk-panel{padding:16px}.mk-table{min-width:680px}}
+        @media(max-width:640px){.mk-dashboard{border-radius:0;border-left:0;border-right:0}.mk-main{padding:18px 14px 96px}.mk-top{display:block}.mk-actions,.mk-date-controls,.mk-date-presets,.mk-date-fields{justify-content:flex-start;justify-items:start}.mk-actions{margin-top:16px}.mk-grid,.mk-channel-grid,.mk-form-grid{grid-template-columns:1fr}.mk-card{min-height:128px}.mk-card strong{font-size:24px}.mk-donut{width:180px;height:180px}.mk-donut-inner{width:102px;height:102px}.mk-panel{padding:16px}.mk-source{display:grid;align-items:start}.mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start}.mk-table{min-width:680px}}
       `}</style>
 
       <div className="mk-shell">
@@ -567,9 +851,53 @@ export default function MarketingKpiDashboard({
                 ภาพรวมประสิทธิภาพการตลาดสำหรับงานป้าย งานพิมพ์ และสื่อโฆษณาออนไลน์ โดยผูกยอดรายได้จากใบเสร็จจริงใน ERP และเตรียมรองรับข้อมูล GA4, Meta Ads และ LINE OA
               </p>
             </div>
-            <div className="mk-actions">
-              <button className="mk-btn">Last 30 days</button>
-              <button className="mk-btn orange">Export</button>
+            <div className="mk-date-controls">
+              <div className="mk-date-presets">
+                {[
+                  ["7d", "7 วัน"],
+                  ["30d", "30 วัน"],
+                  ["month", "เดือนนี้"],
+                  ["all", "ทั้งหมด"],
+                ].map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    className={`mk-btn ${dateRangeMode === mode ? "active" : ""}`}
+                    onClick={() => setPresetRange(mode as DateRangeMode)}
+                  >
+                    {label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className={`mk-btn ${dateRangeMode === "custom" ? "active" : ""}`}
+                  onClick={() => setDateRangeMode("custom")}
+                >
+                  กำหนดเอง
+                </button>
+              </div>
+              <div className="mk-date-fields">
+                <input
+                  type="date"
+                  value={startDate}
+                  disabled={dateRangeMode === "all"}
+                  onChange={(event) => {
+                    setDateRangeMode("custom");
+                    setStartDate(event.target.value);
+                  }}
+                />
+                <input
+                  type="date"
+                  value={endDate}
+                  disabled={dateRangeMode === "all"}
+                  onChange={(event) => {
+                    setDateRangeMode("custom");
+                    setEndDate(event.target.value);
+                  }}
+                />
+              </div>
+              <div style={{ color: "#94a3b8", fontSize: 12 }}>ช่วงข้อมูล: {rangeLabel}</div>
+              <button className="mk-btn orange" type="button" onClick={exportMarketingCsv}>Export CSV</button>
             </div>
           </header>
 
@@ -821,7 +1149,7 @@ export default function MarketingKpiDashboard({
                 <button className="mk-btn orange" onClick={addLead}>+ Add Lead</button>
               </div>
               <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
-                {leads.slice(0, activeSection === "leads" ? leads.length : 4).map((lead) => {
+                {filteredLeads.slice(0, activeSection === "leads" ? filteredLeads.length : 4).map((lead) => {
                   const score = leadScore(lead);
                   const temperature = leadTemperature(score);
                   return (
@@ -867,8 +1195,18 @@ export default function MarketingKpiDashboard({
           )}
 
           {(showDashboard || activeSection === "sources" || activeSection === "settings") && <section className="mk-panel" style={{ marginTop: 16 }}>
-            <h3>Data Sources</h3>
-            <p>สถานะการเชื่อมต่อข้อมูลสำหรับ Dashboard</p>
+            <div className="mk-section-head">
+              <div>
+                <h3>Data Sources</h3>
+                <p>สถานะการเชื่อมต่อข้อมูลสำหรับ Dashboard และรอบต่ออายุ API</p>
+              </div>
+              {activeSection !== "dashboard" && (
+                <div className="mk-section-actions">
+                  <button className="mk-btn" type="button" onClick={() => loadMarketingSources("manual sync")}>Sync All</button>
+                  <button className="mk-btn" type="button" onClick={() => setSourceLogs([])}>Clear Logs</button>
+                </div>
+              )}
+            </div>
             <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
               {sources.map((source) => (
                 <div className="mk-source" key={source.name}>
@@ -877,20 +1215,81 @@ export default function MarketingKpiDashboard({
                     <div style={{ color: "#cbd5e1", marginTop: 4 }}>{source.account}</div>
                     <div style={{ color: "#8b95a7", marginTop: 4 }}>{source.detail}</div>
                     {source.error && <div style={{ color: "#fca5a5", marginTop: 4 }}>{source.error}</div>}
+                    {source.expiry && (() => {
+                      const status = apiExpiryStatus(source.expiry.expiresAt);
+                      return (
+                        <>
+                          <div className={`mk-expiry ${status.tone}`}>{source.tokenType}: {status.label}</div>
+                          <div style={{ color: "#8b95a7", marginTop: 6 }}>{source.expiry.note}</div>
+                        </>
+                      );
+                    })()}
                   </div>
-                  <div style={{ display: "grid", gap: 8, justifyItems: "end" }}>
+                  <div className="mk-source-tools">
                     <span className={`mk-status ${source.ready ? "ready" : ""}`}>{source.ready ? "พร้อมใช้" : "รอเชื่อมต่อ"}</span>
+                    {source.expiry && activeSection !== "dashboard" && (
+                      <div className="mk-expiry-editor">
+                        <input
+                          type="date"
+                          aria-label={`${source.name} expiry date`}
+                          value={source.expiry.expiresAt}
+                          onChange={(event) => updateApiExpiry(source.id, { expiresAt: event.target.value })}
+                        />
+                        <input
+                          aria-label={`${source.name} expiry note`}
+                          value={source.expiry.note}
+                          onChange={(event) => updateApiExpiry(source.id, { note: event.target.value })}
+                          placeholder="หมายเหตุการต่ออายุ / ผู้รับผิดชอบ"
+                        />
+                      </div>
+                    )}
                     {activeSection !== "dashboard" && (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
-                        <button className="mk-btn" type="button" onClick={() => showToast?.(`Sync ${source.name}: รอทำ background sync`, "info")}>Sync Now</button>
-                        <button className="mk-btn" type="button" onClick={() => showToast?.(`Reconnect ${source.name}: ต้องทำ OAuth flow`, "info")}>{source.ready ? "Reconnect" : "Connect"}</button>
-                        <button className="mk-btn" type="button" onClick={() => showToast?.(`View logs ${source.name}: รอทำ sync log table`, "info")}>View Logs</button>
+                        <button className="mk-btn" type="button" onClick={() => loadMarketingSources(`sync ${source.name}`)}>Sync Now</button>
+                        <button className="mk-btn" type="button" onClick={() => {
+                          addSourceLog(`${source.name} connect checklist: ${source.envKeys}`);
+                          setActiveSourceLog(source.name.includes("Facebook") ? "Meta" : source.name);
+                          showToast?.(`${source.name}: ตรวจ env ${source.envKeys}`, "info");
+                        }}>{source.ready ? "Reconnect" : "Connect"}</button>
+                        <button className="mk-btn" type="button" onClick={() => {
+                          setActiveSourceLog(source.name.includes("Facebook") ? "Meta" : source.name);
+                          addSourceLog(`${source.name} logs opened`);
+                        }}>View Logs</button>
                       </div>
                     )}
                   </div>
                 </div>
               ))}
             </div>
+            {activeSection !== "dashboard" && (
+              <div style={{ marginTop: 18 }}>
+                <div className="mk-section-head">
+                  <div>
+                    <h3>Sync Logs</h3>
+                    <p>ใช้ดูว่ากดปุ่มแล้วระบบเรียก API สำเร็จหรือ error ตรงไหน</p>
+                  </div>
+                  <div className="mk-section-actions">
+                    {["ทั้งหมด", "GA4", "Meta", "LINE", "ERP"].map((name) => (
+                      <button
+                        className={`mk-btn ${activeSourceLog === name ? "active" : ""}`}
+                        key={name}
+                        type="button"
+                        onClick={() => setActiveSourceLog(name)}
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {visibleSourceLogs.length ? (
+                  <div className="mk-log-list">
+                    {visibleSourceLogs.map((log) => <div className="mk-log-item" key={log}>{log}</div>)}
+                  </div>
+                ) : (
+                  <div className="mk-empty">ยังไม่มี log สำหรับแหล่งข้อมูลนี้ กด Sync Now หรือ Connect เพื่อเริ่มตรวจสอบ</div>
+                )}
+              </div>
+            )}
           </section>}
         </main>
       </div>

@@ -85,7 +85,15 @@ async function runReport(accessToken: string, propertyId: string, body: unknown)
 const metricValue = (row: any, index: number) => Number(row?.metricValues?.[index]?.value || 0);
 const dimensionValue = (row: any, index: number) => String(row?.dimensionValues?.[index]?.value || "");
 
-export async function GET() {
+function dateRangesFromRequest(request: Request) {
+  const url = new URL(request.url);
+  const startDate = url.searchParams.get("startDate");
+  const endDate = url.searchParams.get("endDate");
+  if (startDate && endDate) return [{ startDate, endDate }];
+  return [{ startDate: "30daysAgo", endDate: "today" }];
+}
+
+export async function GET(request: Request) {
   const propertyId = process.env.GA4_PROPERTY_ID;
   const clientEmail = process.env.GA4_CLIENT_EMAIL;
   const privateKey = getPrivateKey();
@@ -103,7 +111,7 @@ export async function GET() {
 
   try {
     const accessToken = await getAccessToken(clientEmail, privateKey);
-    const dateRanges = [{ startDate: "30daysAgo", endDate: "today" }];
+    const dateRanges = dateRangesFromRequest(request);
 
     const [overview, traffic, topPages] = await Promise.all([
       runReport(accessToken, propertyId, {
@@ -137,7 +145,7 @@ export async function GET() {
       {
         success: true,
         connected: true,
-        range: "last_30_days",
+        range: dateRanges[0],
         totals: {
           activeUsers: metricValue(overviewRow, 0),
           sessions: metricValue(overviewRow, 1),
