@@ -291,6 +291,39 @@ function leadTemperature(score: number) {
   return { label: "Cold", color: "#60a5fa" };
 }
 
+function normalizeMatch(value?: string) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isRevenueLead(lead: Lead) {
+  return lead.status === "closed_won" && Number(lead.value || 0) > 0;
+}
+
+function mappedLeadRevenue(leads: Lead[], field: "campaign" | "adSet" | "creative", value?: string) {
+  const target = normalizeMatch(value);
+  if (!target) return 0;
+  return leads
+    .filter((lead) => isRevenueLead(lead) && normalizeMatch(lead[field]) === target)
+    .reduce((sum, lead) => sum + Number(lead.value || 0), 0);
+}
+
+function mappedLeadCount(leads: Lead[], field: "campaign" | "adSet" | "creative", value?: string, statuses?: Lead["status"][]) {
+  const target = normalizeMatch(value);
+  if (!target) return 0;
+  return leads.filter((lead) => {
+    if (normalizeMatch(lead[field]) !== target) return false;
+    return statuses ? statuses.includes(lead.status) : true;
+  }).length;
+}
+
+function creativeRepeatAdvice(row: { spend: number; leads: number; cpl: number; revenue: number; clicks?: number; ctr?: number }) {
+  if (row.revenue > 0) return "ควรทำซ้ำ: มีรายได้ที่ map แล้ว";
+  if (row.leads >= 20 && row.cpl > 0) return "ควรทำซ้ำ/แตก Hook เพิ่ม: Lead ดี";
+  if (row.leads > 0 && row.spend > 0) return "รอดูต่อ: มี Lead แล้ว";
+  if (row.spend > 0 && row.leads === 0) return "ควรเปลี่ยน Hook หรือ Artwork";
+  return "รอข้อมูลจาก Meta";
+}
+
 export default function MarketingKpiDashboard({
   documents = [],
   customers = [],
@@ -429,16 +462,22 @@ export default function MarketingKpiDashboard({
     return receipts.reduce((sum, doc) => sum + documentCost(doc), 0);
   }, [receipts]);
   const metaSpend = Number(meta?.totals?.spend ?? 0);
+  const metaMessageLeads = Number(meta?.totals?.messageLeads ?? 0);
+  const metaFormLeads = Number(meta?.totals?.formLeads ?? 0);
+  const metaLeadBreakdown = Array.isArray(meta?.totals?.leadBreakdown) ? meta.totals.leadBreakdown : [];
   const manualSpend = campaigns.reduce((sum, campaign) => sum + Number(campaign.spend || 0), 0);
   const marketingSpend = meta.connected ? metaSpend : manualSpend;
   const crmLeads = filteredLeads.length;
   const metaLeads = Number(meta?.totals?.leads ?? 0);
   const campaignLeads = campaigns.reduce((sum, campaign) => sum + Number(campaign.leads || 0), 0);
   const totalLeads = crmLeads + metaLeads + campaignLeads;
+  const contactedLeads = filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const qualifiedLeads = filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const quotationSent = filteredDocuments.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length
     + filteredLeads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const closedJobs = receipts.length;
+  const closedLeadCount = filteredLeads.filter((lead) => lead.status === "closed_won").length;
+  const closedLeadRevenue = filteredLeads.filter(isRevenueLead).reduce((sum, lead) => sum + Number(lead.value || 0), 0);
   const grossProfit = receiptRevenue - receiptCost;
   const cpl = totalLeads > 0 ? marketingSpend / totalLeads : 0;
   const cpql = qualifiedLeads > 0 ? marketingSpend / qualifiedLeads : 0;
@@ -464,7 +503,7 @@ export default function MarketingKpiDashboard({
         spend: Number(row.spend || 0),
         leads: Number(row.leads || 0),
         conversions: Number(row.conversions || 0),
-        revenue: Number(row.revenue || 0),
+        revenue: mappedLeadRevenue(filteredLeads, "campaign", row.name) || Number(row.revenue || 0),
         note: "ข้อมูลจาก Meta API",
       }))
     : campaigns;
@@ -475,9 +514,11 @@ export default function MarketingKpiDashboard({
       const qualifiedFromCampaign = filteredLeads.filter((lead) => lead.campaign === row.name && ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
       const quotationFromCampaign = filteredLeads.filter((lead) => lead.campaign === row.name && ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
       const closedFromCampaign = filteredLeads.filter((lead) => lead.campaign === row.name && lead.status === "closed_won").length;
-      const rowProfit = Math.max(0, row.revenue - row.spend);
+      const mappedRevenue = mappedLeadRevenue(filteredLeads, "campaign", row.name) || Number(row.revenue || 0);
+      const rowProfit = Math.max(0, mappedRevenue - row.spend);
       return {
         ...row,
+        revenue: mappedRevenue,
         objective: row.note || "LINE Inquiry",
         reach: Number((row as any).reach || 0),
         impressions: Number((row as any).impressions || 0),
@@ -490,6 +531,8 @@ export default function MarketingKpiDashboard({
         recommendation: row.spend > 0 && row.leads === 0 ? "หยุด/ตรวจ Creative" : row.leads > 0 ? "รอดูต่อ" : "รอข้อมูล",
       };
     });
+  const facebookMappedRevenue = facebookRows.reduce((sum, row) => sum + Number(row.revenue || 0), 0);
+  const facebookMappedRoas = metaSpend > 0 && facebookMappedRevenue > 0 ? facebookMappedRevenue / metaSpend : 0;
 
   const metaAdSetRows = Array.isArray(meta?.adSets) ? meta.adSets : [];
   const adSetRows = metaAdSetRows.length
@@ -501,10 +544,10 @@ export default function MarketingKpiDashboard({
         spend: Number(row.spend || 0),
         leads: Number(row.leads || 0),
         cpl: Number(row.cpl || 0),
-        qualifiedLeads: filteredLeads.filter((lead) => lead.adSet === row.name && ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length,
-        closedJobs: filteredLeads.filter((lead) => lead.adSet === row.name && lead.status === "closed_won").length,
+        qualifiedLeads: mappedLeadCount(filteredLeads, "adSet", row.name, ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"]),
+        closedJobs: mappedLeadCount(filteredLeads, "adSet", row.name, ["closed_won"]),
         closeRate: row.leads ? (Number(row.leads || 0) / Math.max(Number(row.clicks || 0), 1)) * 100 : 0,
-        revenue: 0,
+        revenue: mappedLeadRevenue(filteredLeads, "adSet", row.name),
       }))
     : facebookRows.map((row) => ({
         campaign: row.name,
@@ -530,10 +573,18 @@ export default function MarketingKpiDashboard({
         campaign: row.campaignName || "-",
         spend: Number(row.spend || 0),
         leads: Number(row.leads || 0),
-        qualifiedLeads: filteredLeads.filter((lead) => lead.creative === row.name && ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length,
-        quotations: 0,
-        closedJobs: 0,
-        revenue: 0,
+        advice: creativeRepeatAdvice({
+          spend: Number(row.spend || 0),
+          leads: Number(row.leads || 0),
+          cpl: Number(row.cpl || 0),
+          revenue: mappedLeadRevenue(filteredLeads, "creative", row.name),
+          clicks: Number(row.clicks || 0),
+          ctr: Number(row.ctr || 0),
+        }),
+        qualifiedLeads: mappedLeadCount(filteredLeads, "creative", row.name, ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"]),
+        quotations: mappedLeadCount(filteredLeads, "creative", row.name, ["quotation_sent", "follow_up", "waiting_payment", "closed_won"]),
+        closedJobs: mappedLeadCount(filteredLeads, "creative", row.name, ["closed_won"]),
+        revenue: mappedLeadRevenue(filteredLeads, "creative", row.name),
         cpl: Number(row.cpl || 0),
         note: `CTR ${money(Number(row.ctr || 0))}% / CPC ฿${money(Number(row.cpc || 0))}`,
       }))
@@ -545,6 +596,12 @@ export default function MarketingKpiDashboard({
         campaign: row.name,
         spend: row.spend,
         leads: row.leads,
+        advice: creativeRepeatAdvice({
+          spend: row.spend,
+          leads: row.leads,
+          cpl: row.leads ? row.spend / row.leads : 0,
+          revenue: row.revenue,
+        }),
         qualifiedLeads: row.qualifiedLeads,
         quotations: row.quotations,
         closedJobs: row.closedJobs,
@@ -574,6 +631,16 @@ export default function MarketingKpiDashboard({
     setLeads((prev) => [nextLead, ...prev]);
     setLeadForm((prev) => ({ ...prev, name: "", contact: "", campaign: "", buyingSituation: "", value: "", note: "" }));
     showToast?.("เพิ่ม Lead แล้ว", "success");
+  };
+
+  const deleteLead = (leadId: string) => {
+    const target = leads.find((lead) => lead.id === leadId);
+    const confirmed = typeof window === "undefined"
+      ? true
+      : window.confirm(`ลบ Lead "${target?.name || leadId}" ใช่ไหม?`);
+    if (!confirmed) return;
+    setLeads((prev) => prev.filter((lead) => lead.id !== leadId));
+    showToast?.("ลบ Lead แล้ว", "success");
   };
 
   const toggleLeadTag = (tag: string) => {
@@ -749,7 +816,7 @@ export default function MarketingKpiDashboard({
     },
   ];
   const totalChannelMix = channelRows.reduce((sum, row) => sum + Number(row.mixValue || 0), 0);
-  const hasSalesMapping = crmLeads > 0 && closedJobs <= crmLeads;
+  const hasSalesMapping = crmLeads > 0;
   const budgetTarget = plannedBudget || marketingSpend;
 
   const marketingFunnel = [
@@ -759,10 +826,10 @@ export default function MarketingKpiDashboard({
   ];
   const salesFunnel = hasSalesMapping ? [
     { label: "Lead", value: crmLeads, color: "#2563eb" },
-    { label: "Contacted", value: filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, color: "#06b6d4" },
+    { label: "Contacted", value: contactedLeads, color: "#06b6d4" },
     { label: "Detail Completed", value: filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, color: "#22c55e" },
     { label: "Quotation Sent", value: quotationSent, color: "#f59e0b" },
-    { label: "Closed Won", value: filteredLeads.filter((lead) => lead.status === "closed_won").length, color: "#ff6b00" },
+    { label: "Closed Won", value: closedLeadCount, color: "#ff6b00" },
   ] : [];
 
   const navItems: { id: MarketingSection; label: string }[] = [
@@ -932,6 +999,32 @@ export default function MarketingKpiDashboard({
             ))}
           </section>}
 
+          {showDashboard && (
+            <section className="mk-panel" style={{ marginTop: 16 }}>
+              <div className="mk-section-head">
+                <div>
+                  <h3>Lead Source Summary</h3>
+                  <p>Lead รวมมาจาก Meta action และ CRM ที่กรอกเอง แยกไว้เพื่อไม่ให้สับสนกับยอดปิดการขายใน ERP</p>
+                </div>
+              </div>
+              <div className="mk-channel-grid" style={{ marginTop: 14 }}>
+                <div className="mk-mini"><strong>{money(metaLeads)}</strong><div>Meta total lead actions</div></div>
+                <div className="mk-mini"><strong>{money(metaMessageLeads)}</strong><div>ลูกค้าทัก / message actions</div></div>
+                <div className="mk-mini"><strong>{money(metaFormLeads)}</strong><div>Lead form actions</div></div>
+                <div className="mk-mini"><strong>{money(crmLeads)}</strong><div>CRM leads ที่บันทึกเอง</div></div>
+                <div className="mk-mini"><strong>{money(contactedLeads)}</strong><div>ติดต่อแล้วใน CRM</div></div>
+                <div className="mk-mini"><strong>{money(closedLeadCount)}</strong><div>ปิดการขายใน CRM</div></div>
+                <div className="mk-mini"><strong>{money(closedJobs)}</strong><div>ใบเสร็จ ERP</div></div>
+                <div className="mk-mini"><strong>฿{money(closedLeadRevenue)}</strong><div>รายได้ที่ map กับ Lead แล้ว</div></div>
+              </div>
+              {metaLeadBreakdown.length > 0 && (
+                <div className="mk-empty" style={{ marginTop: 14 }}>
+                  ที่มาของ Meta lead: {metaLeadBreakdown.map((item: any) => `${item.type} ${money(Number(item.value || 0))}`).join(" / ")}
+                </div>
+              )}
+            </section>
+          )}
+
           {showDashboard && alerts.length > 0 && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
               <h3>Marketing Alerts</h3>
@@ -995,6 +1088,19 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
+          {activeSection === "facebook" && (
+            <section className="mk-panel" style={{ marginTop: 16 }}>
+              <h3>Facebook Revenue Mapping</h3>
+              <p>รายได้จากโฆษณาจะโชว์เมื่อ Lead ใน CRM ใส่ Campaign/Creative ให้ตรงกับ Meta และตั้งสถานะเป็น Closed Won พร้อม Estimated Value</p>
+              <div className="mk-channel-grid" style={{ marginTop: 14 }}>
+                <div className="mk-mini"><strong>฿{money(facebookMappedRevenue)}</strong><div>รายได้ที่ map กับ Facebook Campaign</div></div>
+                <div className="mk-mini"><strong>{facebookMappedRoas ? facebookMappedRoas.toFixed(2) : "-"}</strong><div>Facebook ROAS จากยอดที่ map แล้ว</div></div>
+                <div className="mk-mini"><strong>{money(metaMessageLeads)}</strong><div>ลูกค้าทักจาก Meta message actions</div></div>
+                <div className="mk-mini"><strong>{money(closedLeadCount)}</strong><div>ปิดการขายใน CRM</div></div>
+              </div>
+            </section>
+          )}
+
           {(showDashboard || activeSection === "facebook" || activeSection === "campaigns") && <section className="mk-panel" style={{ marginTop: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
               <div>
@@ -1050,9 +1156,9 @@ export default function MarketingKpiDashboard({
                 <p>ดูว่า Artwork / Hook แบบไหนควรทำซ้ำ</p>
                 <div className="mk-table-wrap" style={{ marginTop: 12 }}>
                   <table className="mk-table">
-                    <thead><tr><th>Creative</th><th>Type</th><th>Hook</th><th>Product</th><th>Spend</th><th>Leads</th><th>Revenue</th><th>Note</th></tr></thead>
+                    <thead><tr><th>Creative</th><th>Type</th><th>Hook</th><th>Product</th><th>Spend</th><th>Leads</th><th>Revenue</th><th>ควรทำอะไรต่อ</th></tr></thead>
                     <tbody>{creativeRows.map((row) => (
-                      <tr key={row.creativeName}><td>{row.creativeName}</td><td>{row.creativeType}</td><td>{row.hook}</td><td>{row.product}</td><td>฿{money(row.spend)}</td><td>{money(row.leads)}</td><td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td><td>{row.note}</td></tr>
+                      <tr key={row.creativeName}><td>{row.creativeName}</td><td>{row.creativeType}</td><td>{row.hook}</td><td>{row.product}</td><td>฿{money(row.spend)}</td><td>{money(row.leads)}</td><td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td><td>{row.advice || row.note}</td></tr>
                     ))}</tbody>
                   </table>
                 </div>

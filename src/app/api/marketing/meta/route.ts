@@ -59,11 +59,34 @@ const leadActionTypes = [
   "onsite_conversion.post_save",
 ];
 
+const messageLeadActionTypes = [
+  "onsite_conversion.messaging_conversation_started_7d",
+  "omni_messaging_conversation_started_7d",
+  "onsite_conversion.messaging_first_reply",
+  "onsite_conversion.messaging_user_subscribed",
+];
+
 function actionCount(actions: any[] | undefined, names: string[]) {
   if (!Array.isArray(actions)) return 0;
   return actions
     .filter((item) => names.includes(item.action_type))
     .reduce((sum, item) => sum + numberValue(item.value), 0);
+}
+
+function actionBreakdown(actions: any[] | undefined) {
+  const source = Array.isArray(actions) ? actions : [];
+  const breakdown = leadActionTypes.map((type) => ({
+    type,
+    value: source
+      .filter((item) => item.action_type === type)
+      .reduce((sum, item) => sum + numberValue(item.value), 0),
+  })).filter((item) => item.value > 0);
+
+  return {
+    breakdown,
+    messageLeads: actionCount(source, messageLeadActionTypes),
+    formLeads: actionCount(source, ["lead", "onsite_conversion.lead_grouped"]),
+  };
 }
 
 function outboundClicks(row: any) {
@@ -194,6 +217,7 @@ export async function GET(request: Request) {
 
     const account = accountInsights.data?.[0] || {};
     const leads = actionCount(account.actions, leadActionTypes);
+    const accountLeadBreakdown = actionBreakdown(account.actions);
     const spend = numberValue(account.spend);
 
     return NextResponse.json(
@@ -210,10 +234,14 @@ export async function GET(request: Request) {
           cpm: numberValue(account.cpm),
           ctr: numberValue(account.ctr),
           leads,
+          messageLeads: accountLeadBreakdown.messageLeads,
+          formLeads: accountLeadBreakdown.formLeads,
+          leadBreakdown: accountLeadBreakdown.breakdown,
           cpl: leads > 0 ? spend / leads : 0,
         },
         campaigns: campaignInsights.map((row: any) => {
           const rowLeads = actionCount(row.actions, leadActionTypes);
+          const rowLeadBreakdown = actionBreakdown(row.actions);
           const rowSpend = numberValue(row.spend);
           return {
             id: row.campaign_id,
@@ -225,11 +253,15 @@ export async function GET(request: Request) {
             cpc: numberValue(row.cpc),
             ctr: numberValue(row.ctr),
             leads: rowLeads,
+            messageLeads: rowLeadBreakdown.messageLeads,
+            formLeads: rowLeadBreakdown.formLeads,
+            leadBreakdown: rowLeadBreakdown.breakdown,
             cpl: rowLeads > 0 ? rowSpend / rowLeads : 0,
           };
         }),
         adSets: adSetInsights.map((row: any) => {
           const rowLeads = actionCount(row.actions, leadActionTypes);
+          const rowLeadBreakdown = actionBreakdown(row.actions);
           const rowSpend = numberValue(row.spend);
           return {
             id: row.adset_id,
@@ -243,11 +275,15 @@ export async function GET(request: Request) {
             cpc: numberValue(row.cpc),
             ctr: numberValue(row.ctr),
             leads: rowLeads,
+            messageLeads: rowLeadBreakdown.messageLeads,
+            formLeads: rowLeadBreakdown.formLeads,
+            leadBreakdown: rowLeadBreakdown.breakdown,
             cpl: rowLeads > 0 ? rowSpend / rowLeads : 0,
           };
         }),
         ads: adInsights.map((row: any) => {
           const rowLeads = actionCount(row.actions, leadActionTypes);
+          const rowLeadBreakdown = actionBreakdown(row.actions);
           const rowSpend = numberValue(row.spend);
           return {
             id: row.ad_id,
@@ -263,6 +299,9 @@ export async function GET(request: Request) {
             cpc: numberValue(row.cpc),
             ctr: numberValue(row.ctr),
             leads: rowLeads,
+            messageLeads: rowLeadBreakdown.messageLeads,
+            formLeads: rowLeadBreakdown.formLeads,
+            leadBreakdown: rowLeadBreakdown.breakdown,
             cpl: rowLeads > 0 ? rowSpend / rowLeads : 0,
           };
         }),
