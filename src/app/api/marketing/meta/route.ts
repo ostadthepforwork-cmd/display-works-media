@@ -66,11 +66,42 @@ const messageLeadActionTypes = [
   "onsite_conversion.messaging_user_subscribed",
 ];
 
+const purchaseActionTypes = [
+  "purchase",
+  "omni_purchase",
+  "offsite_conversion.purchase",
+  "offsite_conversion.fb_pixel_purchase",
+  "onsite_conversion.purchase",
+  "onsite_conversion.purchase_grouped",
+  "offline_conversion.purchase",
+];
+
 function actionCount(actions: any[] | undefined, names: string[]) {
   if (!Array.isArray(actions)) return 0;
   return actions
     .filter((item) => names.includes(item.action_type))
     .reduce((sum, item) => sum + numberValue(item.value), 0);
+}
+
+function actionValue(actions: any[] | undefined, names: string[]) {
+  return actionCount(actions, names);
+}
+
+function roasValue(purchaseRoas: any[] | undefined) {
+  if (!Array.isArray(purchaseRoas)) return 0;
+  const exact = purchaseRoas.find((item) => purchaseActionTypes.includes(item.action_type));
+  const fallback = purchaseRoas.find((item) => Number(item.value || 0) > 0);
+  return numberValue((exact || fallback)?.value);
+}
+
+function valueBreakdown(values: any[] | undefined) {
+  const source = Array.isArray(values) ? values : [];
+  return source
+    .map((item) => ({
+      type: item.action_type,
+      value: numberValue(item.value),
+    }))
+    .filter((item) => item.value > 0);
 }
 
 function actionBreakdown(actions: any[] | undefined) {
@@ -136,6 +167,8 @@ export async function GET(request: Request) {
       "cpm",
       "ctr",
       "actions",
+      "action_values",
+      "purchase_roas",
     ].join(",");
 
     const campaignFields = [
@@ -150,6 +183,8 @@ export async function GET(request: Request) {
       "cpc",
       "ctr",
       "actions",
+      "action_values",
+      "purchase_roas",
     ].join(",");
 
     const adSetFields = [
@@ -166,6 +201,8 @@ export async function GET(request: Request) {
       "cpc",
       "ctr",
       "actions",
+      "action_values",
+      "purchase_roas",
     ].join(",");
 
     const adFields = [
@@ -184,6 +221,8 @@ export async function GET(request: Request) {
       "cpc",
       "ctr",
       "actions",
+      "action_values",
+      "purchase_roas",
     ].join(",");
 
     const [accountInsights, campaignInsights, adSetInsights, adInsights] = await Promise.all([
@@ -218,6 +257,8 @@ export async function GET(request: Request) {
     const account = accountInsights.data?.[0] || {};
     const leads = actionCount(account.actions, leadActionTypes);
     const accountLeadBreakdown = actionBreakdown(account.actions);
+    const accountReportedRevenue = actionValue(account.action_values, purchaseActionTypes);
+    const accountReportedRoas = roasValue(account.purchase_roas);
     const spend = numberValue(account.spend);
 
     return NextResponse.json(
@@ -237,12 +278,18 @@ export async function GET(request: Request) {
           messageLeads: accountLeadBreakdown.messageLeads,
           formLeads: accountLeadBreakdown.formLeads,
           leadBreakdown: accountLeadBreakdown.breakdown,
+          metaReportedRevenue: accountReportedRevenue,
+          metaReportedRoas: accountReportedRoas || (spend > 0 && accountReportedRevenue > 0 ? accountReportedRevenue / spend : 0),
+          actionValues: valueBreakdown(account.action_values),
+          purchaseRoas: valueBreakdown(account.purchase_roas),
           cpl: leads > 0 ? spend / leads : 0,
         },
         campaigns: campaignInsights.map((row: any) => {
           const rowLeads = actionCount(row.actions, leadActionTypes);
           const rowLeadBreakdown = actionBreakdown(row.actions);
           const rowSpend = numberValue(row.spend);
+          const rowReportedRevenue = actionValue(row.action_values, purchaseActionTypes);
+          const rowReportedRoas = roasValue(row.purchase_roas);
           return {
             id: row.campaign_id,
             name: row.campaign_name,
@@ -256,6 +303,10 @@ export async function GET(request: Request) {
             messageLeads: rowLeadBreakdown.messageLeads,
             formLeads: rowLeadBreakdown.formLeads,
             leadBreakdown: rowLeadBreakdown.breakdown,
+            metaReportedRevenue: rowReportedRevenue,
+            metaReportedRoas: rowReportedRoas || (rowSpend > 0 && rowReportedRevenue > 0 ? rowReportedRevenue / rowSpend : 0),
+            actionValues: valueBreakdown(row.action_values),
+            purchaseRoas: valueBreakdown(row.purchase_roas),
             cpl: rowLeads > 0 ? rowSpend / rowLeads : 0,
           };
         }),
@@ -263,6 +314,8 @@ export async function GET(request: Request) {
           const rowLeads = actionCount(row.actions, leadActionTypes);
           const rowLeadBreakdown = actionBreakdown(row.actions);
           const rowSpend = numberValue(row.spend);
+          const rowReportedRevenue = actionValue(row.action_values, purchaseActionTypes);
+          const rowReportedRoas = roasValue(row.purchase_roas);
           return {
             id: row.adset_id,
             name: row.adset_name,
@@ -278,6 +331,10 @@ export async function GET(request: Request) {
             messageLeads: rowLeadBreakdown.messageLeads,
             formLeads: rowLeadBreakdown.formLeads,
             leadBreakdown: rowLeadBreakdown.breakdown,
+            metaReportedRevenue: rowReportedRevenue,
+            metaReportedRoas: rowReportedRoas || (rowSpend > 0 && rowReportedRevenue > 0 ? rowReportedRevenue / rowSpend : 0),
+            actionValues: valueBreakdown(row.action_values),
+            purchaseRoas: valueBreakdown(row.purchase_roas),
             cpl: rowLeads > 0 ? rowSpend / rowLeads : 0,
           };
         }),
@@ -285,6 +342,8 @@ export async function GET(request: Request) {
           const rowLeads = actionCount(row.actions, leadActionTypes);
           const rowLeadBreakdown = actionBreakdown(row.actions);
           const rowSpend = numberValue(row.spend);
+          const rowReportedRevenue = actionValue(row.action_values, purchaseActionTypes);
+          const rowReportedRoas = roasValue(row.purchase_roas);
           return {
             id: row.ad_id,
             name: row.ad_name,
@@ -302,6 +361,10 @@ export async function GET(request: Request) {
             messageLeads: rowLeadBreakdown.messageLeads,
             formLeads: rowLeadBreakdown.formLeads,
             leadBreakdown: rowLeadBreakdown.breakdown,
+            metaReportedRevenue: rowReportedRevenue,
+            metaReportedRoas: rowReportedRoas || (rowSpend > 0 && rowReportedRevenue > 0 ? rowReportedRevenue / rowSpend : 0),
+            actionValues: valueBreakdown(row.action_values),
+            purchaseRoas: valueBreakdown(row.purchase_roas),
             cpl: rowLeads > 0 ? rowSpend / rowLeads : 0,
           };
         }),

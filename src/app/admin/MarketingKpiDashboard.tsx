@@ -462,6 +462,8 @@ export default function MarketingKpiDashboard({
     return receipts.reduce((sum, doc) => sum + documentCost(doc), 0);
   }, [receipts]);
   const metaSpend = Number(meta?.totals?.spend ?? 0);
+  const metaReportedRevenue = Number(meta?.totals?.metaReportedRevenue ?? 0);
+  const metaReportedRoas = Number(meta?.totals?.metaReportedRoas ?? 0) || (metaSpend > 0 && metaReportedRevenue > 0 ? metaReportedRevenue / metaSpend : 0);
   const metaMessageLeads = Number(meta?.totals?.messageLeads ?? 0);
   const metaFormLeads = Number(meta?.totals?.formLeads ?? 0);
   const metaLeadBreakdown = Array.isArray(meta?.totals?.leadBreakdown) ? meta.totals.leadBreakdown : [];
@@ -504,6 +506,9 @@ export default function MarketingKpiDashboard({
         leads: Number(row.leads || 0),
         conversions: Number(row.conversions || 0),
         revenue: mappedLeadRevenue(filteredLeads, "campaign", row.name) || Number(row.revenue || 0),
+        metaReportedRevenue: Number(row.metaReportedRevenue || 0),
+        metaReportedRoas: Number(row.metaReportedRoas || 0),
+        actionValues: Array.isArray(row.actionValues) ? row.actionValues : [],
         note: "ข้อมูลจาก Meta API",
       }))
     : campaigns;
@@ -523,6 +528,9 @@ export default function MarketingKpiDashboard({
         reach: Number((row as any).reach || 0),
         impressions: Number((row as any).impressions || 0),
         clicks: Number((row as any).clicks || 0),
+        metaReportedRevenue: Number((row as any).metaReportedRevenue || 0),
+        metaReportedRoas: Number((row as any).metaReportedRoas || 0),
+        actionValues: Array.isArray((row as any).actionValues) ? (row as any).actionValues : [],
         qualifiedLeads: qualifiedFromCampaign,
         quotations: quotationFromCampaign,
         closedJobs: closedFromCampaign,
@@ -532,7 +540,12 @@ export default function MarketingKpiDashboard({
       };
     });
   const facebookMappedRevenue = facebookRows.reduce((sum, row) => sum + Number(row.revenue || 0), 0);
+  const facebookErpRevenue = receipts
+    .filter((doc) => /facebook|meta/i.test(`${doc?.leadSource || doc?.lead_source || ""} ${doc?.marketingCampaign || doc?.marketing_campaign || ""}`))
+    .reduce((sum, doc) => sum + documentTotal(doc), 0);
+  const facebookAttributedRevenue = facebookErpRevenue || facebookMappedRevenue;
   const facebookMappedRoas = metaSpend > 0 && facebookMappedRevenue > 0 ? facebookMappedRevenue / metaSpend : 0;
+  const facebookErpRoas = metaSpend > 0 && facebookAttributedRevenue > 0 ? facebookAttributedRevenue / metaSpend : 0;
 
   const metaAdSetRows = Array.isArray(meta?.adSets) ? meta.adSets : [];
   const adSetRows = metaAdSetRows.length
@@ -548,6 +561,8 @@ export default function MarketingKpiDashboard({
         closedJobs: mappedLeadCount(filteredLeads, "adSet", row.name, ["closed_won"]),
         closeRate: row.leads ? (Number(row.leads || 0) / Math.max(Number(row.clicks || 0), 1)) * 100 : 0,
         revenue: mappedLeadRevenue(filteredLeads, "adSet", row.name),
+        metaReportedRevenue: Number(row.metaReportedRevenue || 0),
+        metaReportedRoas: Number(row.metaReportedRoas || 0),
       }))
     : facebookRows.map((row) => ({
         campaign: row.name,
@@ -561,6 +576,8 @@ export default function MarketingKpiDashboard({
         closedJobs: row.closedJobs,
         closeRate: row.leads ? (row.closedJobs / row.leads) * 100 : 0,
         revenue: row.revenue,
+        metaReportedRevenue: Number((row as any).metaReportedRevenue || 0),
+        metaReportedRoas: Number((row as any).metaReportedRoas || 0),
       }));
 
   const metaAdRows = Array.isArray(meta?.ads) ? meta.ads : [];
@@ -586,6 +603,8 @@ export default function MarketingKpiDashboard({
         closedJobs: mappedLeadCount(filteredLeads, "creative", row.name, ["closed_won"]),
         revenue: mappedLeadRevenue(filteredLeads, "creative", row.name),
         cpl: Number(row.cpl || 0),
+        metaReportedRevenue: Number(row.metaReportedRevenue || 0),
+        metaReportedRoas: Number(row.metaReportedRoas || 0),
         note: `CTR ${money(Number(row.ctr || 0))}% / CPC ฿${money(Number(row.cpc || 0))}`,
       }))
     : facebookRows.map((row) => ({
@@ -607,6 +626,8 @@ export default function MarketingKpiDashboard({
         closedJobs: row.closedJobs,
         revenue: row.revenue,
         cpl: row.leads ? row.spend / row.leads : 0,
+        metaReportedRevenue: Number((row as any).metaReportedRevenue || 0),
+        metaReportedRoas: Number((row as any).metaReportedRoas || 0),
         note: "รอเชื่อม creative id จาก Meta API",
       }));
 
@@ -684,6 +705,8 @@ export default function MarketingKpiDashboard({
   };
 
   const cards = [
+    { label: "Meta Reported Revenue", value: metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", sub: "action_values / purchase", tone: "orange" },
+    { label: "Meta Reported ROAS", value: metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", sub: "purchase_roas from Meta", tone: "purple" },
     { label: "Revenue", value: `฿${money(receiptRevenue)}`, sub: "ตรงกับ ERP: ใบเสร็จเท่านั้น", tone: "green" },
     { label: "Gross Profit", value: `฿${money(grossProfit)}`, sub: `Margin ${percent(grossMargin)}`, tone: "teal" },
     { label: "Marketing Spend", value: `฿${money(marketingSpend)}`, sub: meta.connected ? "จาก Meta Ads" : "รอเชื่อมต่อ Meta API", tone: "pink" },
@@ -1072,12 +1095,14 @@ export default function MarketingKpiDashboard({
             <section className="mk-grid" style={{ marginTop: 16 }}>
               {[
                 ["Facebook Spend", `฿${money(marketingSpend)}`, "Meta Ads spend"],
+                ["Meta Reported Revenue", metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", "From Meta action_values"],
+                ["Meta Reported ROAS", metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", "From Meta purchase_roas"],
                 ["Facebook Leads", money(metaLeads), "Messages / Leads"],
                 ["Facebook CPL", metaLeads ? `฿${money(marketingSpend / metaLeads)}` : "-", "Spend / Leads"],
                 ["Facebook ROAS", roas ? roas.toFixed(2) : "รอ Mapping", "ต้อง map รายได้กับ campaign ก่อน"],
                 ["Qualified Leads", money(qualifiedLeads), "CRM mapped"],
                 ["Closed Jobs", money(closedJobs), "ERP receipts"],
-                ["Facebook Revenue", "รอ Mapping", "ไม่เอา ERP revenue มาเหมารวมเป็น Facebook"],
+                ["Mapped ERP Revenue", facebookAttributedRevenue ? `THB ${money(facebookAttributedRevenue)}` : "-", "ERP receipt source or closed-won CRM leads"],
                 ["Profit ROAS", profitRoas ? profitRoas.toFixed(2) : "-", "Gross Profit / Spend"],
               ].map(([label, value, sub]) => (
                 <article className="mk-card" key={label}>
@@ -1091,6 +1116,10 @@ export default function MarketingKpiDashboard({
           {activeSection === "facebook" && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
               <h3>Facebook Revenue Mapping</h3>
+              <div className="mk-channel-grid" style={{ marginTop: 14, marginBottom: 14 }}>
+                <div className="mk-mini"><strong>THB {money(metaReportedRevenue)}</strong><div>Meta Reported Revenue</div></div>
+                <div className="mk-mini"><strong>{metaReportedRoas ? metaReportedRoas.toFixed(2) : "-"}</strong><div>Meta Reported ROAS</div></div>
+              </div>
               <p>รายได้จากโฆษณาจะโชว์เมื่อ Lead ใน CRM ใส่ Campaign/Creative ให้ตรงกับ Meta และตั้งสถานะเป็น Closed Won พร้อม Estimated Value</p>
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
                 <div className="mk-mini"><strong>฿{money(facebookMappedRevenue)}</strong><div>รายได้ที่ map กับ Facebook Campaign</div></div>
@@ -1112,7 +1141,7 @@ export default function MarketingKpiDashboard({
             <div className="mk-table-wrap">
               <table className="mk-table">
                 <thead>
-                  <tr><th>Campaign</th><th>Status</th><th>Spend</th><th>Reach</th><th>Clicks</th><th>Leads</th><th>CPL</th><th>Revenue</th><th>Action</th></tr>
+                  <tr><th>Campaign</th><th>Status</th><th>Spend</th><th>Reach</th><th>Clicks</th><th>Leads</th><th>Meta Revenue</th><th>CPL</th><th>ERP Mapped Revenue</th><th>Action</th></tr>
                 </thead>
                 <tbody>
                   {campaignRows.map((row: Campaign) => {
@@ -1126,6 +1155,7 @@ export default function MarketingKpiDashboard({
                         <td>{money(richRow?.reach || 0)}</td>
                         <td>{money(richRow?.clicks || 0)}</td>
                         <td>{money(row.leads)}</td>
+                        <td>{Number((row as any).metaReportedRevenue || 0) > 0 ? `THB ${money(Number((row as any).metaReportedRevenue || 0))}` : "-"}</td>
                         <td>{rowCpl ? `฿${money(rowCpl)}` : "-"}</td>
                         <td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td>
                         <td>{richRow?.recommendation || (row.revenue > 0 ? "รอดูต่อ" : "ต้อง map Order/Receipt")}</td>

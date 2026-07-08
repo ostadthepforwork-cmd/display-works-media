@@ -777,6 +777,10 @@ export default function AdminPage() {
             customerId: d.customer_id, customerName: d.customer_name,
             projectName: d.project_name, orderId: d.order_id,
             reference: d.reference, salesPerson: d.sales_person,
+            leadSource: d.lead_source || "",
+            marketingCampaign: d.marketing_campaign || "",
+            marketingAdSet: d.marketing_adset || "",
+            marketingAd: d.marketing_ad || "",
             date: d.date, dueDate: d.due_date,
             discount: d.discount, vat: d.vat, vatRate: d.vat_rate ?? 7, wht: d.wht, whtRate: d.wht_rate,
             notes: d.notes, overrideAddress: d.override_address,
@@ -3331,7 +3335,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
   const nextDocNo = () => nextDocNoForType(type);
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", items: [], discount: 0, vat: true, vatRate: 7, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
+    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", items: [], discount: 0, vat: true, vatRate: 7, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
   const save = async (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
@@ -3355,6 +3359,10 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       customer_id: doc.customerId, customer_name: doc.customerName,
       project_name: doc.projectName, order_id: doc.orderId || null,
       reference: doc.reference, sales_person: doc.salesPerson,
+      lead_source: doc.leadSource || "",
+      marketing_campaign: doc.marketingCampaign || "",
+      marketing_adset: doc.marketingAdSet || "",
+      marketing_ad: doc.marketingAd || "",
       date: doc.date, due_date: doc.dueDate,
       discount: doc.discount, vat: doc.vat, vat_rate: docVatRate(doc), wht: doc.wht, wht_rate: doc.whtRate,
       notes: doc.notes, override_address: doc.overrideAddress,
@@ -3362,9 +3370,9 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       bank_account: doc.bankAccount, bank_type: doc.bankType, qr_image: doc.qrImage,
       deleted: false,
     };
-    const { vat_rate, ...legacyDocRow } = docRow;
+    const { vat_rate, lead_source, marketing_campaign, marketing_adset, marketing_ad, ...legacyDocRow } = docRow;
     const isLegacyVatColumnError = (error: any) =>
-      error?.code === "42703" || /vat_rate|column/i.test(error?.message || "");
+      error?.code === "42703" || /vat_rate|lead_source|marketing_campaign|marketing_adset|marketing_ad|column/i.test(error?.message || "");
     try {
       let docId = doc.id;
       if (doc.id) {
@@ -4016,6 +4024,34 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Field label="พนักงานขาย"><input value={f.salesPerson || ""} onChange={set("salesPerson")} placeholder="ชื่อพนักงาน" /></Field>
           <Field label="โครงการ / ชื่องาน"><input value={f.projectName || ""} onChange={set("projectName")} placeholder="ระบุชื่อโครงการ" /></Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="Lead Source (internal only)">
+            <select value={f.leadSource || ""} onChange={set("leadSource")}>
+              <option value="">-- Select source --</option>
+              <option value="Facebook Ads">Facebook Ads</option>
+              <option value="LINE OA">LINE OA</option>
+              <option value="Website Form">Website Form</option>
+              <option value="Google / Organic">Google / Organic</option>
+              <option value="Direct">Direct</option>
+              <option value="Referral">Referral</option>
+              <option value="Phone">Phone</option>
+            </select>
+          </Field>
+          <Field label="Campaign (internal only)">
+            <input value={f.marketingCampaign || ""} onChange={set("marketingCampaign")} placeholder="เช่น EN_MSN_Vinyl" />
+          </Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="Ad Set (internal only)">
+            <input value={f.marketingAdSet || ""} onChange={set("marketingAdSet")} placeholder="Ad set / audience" />
+          </Field>
+          <Field label="Ad / Creative (internal only)">
+            <input value={f.marketingAd || ""} onChange={set("marketingAd")} placeholder="Artwork / Hook / Ad name" />
+          </Field>
+        </div>
+        <div style={{ color: "#8B95A7", fontSize: 12, lineHeight: 1.6 }}>
+          Internal marketing fields are used for KPI attribution only and will not appear in shared or printed PDF documents.
         </div>
         {/* Order Reference Linking */}
         <Field label="🔗 อ้างอิงเอกสาร (Order เดียวกัน)">
