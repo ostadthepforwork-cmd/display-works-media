@@ -202,7 +202,8 @@ const documentCompanyName = (name?: string) => {
   return cleanName || DEFAULT_DOCUMENT_COMPANY_NAME;
 };
 
-const publicDocumentUrl = (id: string) => `${PUBLIC_SITE_URL}/doc/${id}`;
+const publicDocumentUrl = (id: string, version?: string | number) =>
+  `${PUBLIC_SITE_URL}/doc/${id}${version ? `?v=${encodeURIComponent(String(version))}` : ""}`;
 
 const escapeHtml = (value: unknown): unknown => {
   if (typeof value !== "string") return value;
@@ -3478,12 +3479,19 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     const { vat_rate, lead_source, marketing_campaign, marketing_adset, marketing_ad, deposit_paid, deposit_date, deposit_note, ...legacyDocRow } = docRow;
     const isLegacyVatColumnError = (error: any) =>
       error?.code === "42703" || /vat_rate|lead_source|marketing_campaign|marketing_adset|marketing_ad|deposit_paid|deposit_date|deposit_note|column/i.test(error?.message || "");
+    const requiresPersistentDocColumns =
+      docVatRate(doc) !== 7
+      || Boolean(doc.leadSource || doc.marketingCampaign || doc.marketingAdSet || doc.marketingAd)
+      || Number(doc.depositPaid || 0) > 0
+      || Boolean(doc.depositDate || doc.depositNote);
+    const persistentFieldError = "ฐานข้อมูลยังไม่มีคอลัมน์สำหรับ VAT/Marketing/มัดจำ กรุณารัน supabase/erp-persistent-document-fields.sql ใน Supabase Production แล้วบันทึกเอกสารอีกครั้ง";
     try {
       let docId = doc.id;
       if (doc.id) {
         const { error } = await supabase.from("erp_documents").update(docRow).eq("id", doc.id);
         if (error) {
           if (!isLegacyVatColumnError(error)) throw error;
+          if (requiresPersistentDocColumns) throw new Error(persistentFieldError);
           const { error: legacyError } = await supabase.from("erp_documents").update(legacyDocRow).eq("id", doc.id);
           if (legacyError) throw legacyError;
         }
@@ -3492,6 +3500,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
         const { data, error } = await supabase.from("erp_documents").insert(docRow).select().single();
         if (error) {
           if (!isLegacyVatColumnError(error)) throw error;
+          if (requiresPersistentDocColumns) throw new Error(persistentFieldError);
           const { data: legacyData, error: legacyError } = await supabase.from("erp_documents").insert(legacyDocRow).select().single();
           if (legacyError) throw legacyError;
           docId = legacyData.id;
@@ -3515,11 +3524,20 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
         const legacyItemRows = itemRows.map(({ cost_unit, price_unit, supplier_name, width_m, height_m, pieces, ...row }) => row);
         const isLegacyItemColumnError = (error: any) =>
           error?.code === "42703" || /cost_unit|price_unit|supplier_name|width_m|height_m|pieces|column/i.test(error?.message || "");
+        const requiresPersistentItemColumns = itemsWithCost.some((item) =>
+          Boolean(item.supplierName)
+          || isSqmBasis(item.costUnit)
+          || isSqmBasis(item.priceUnit)
+          || Number(item.widthM || 0) > 0
+          || Number(item.heightM || 0) > 0
+          || Number(item.pieces || 0) > 0
+        );
         let { data: insertedItems, error: itemErr } = await supabase
           .from("erp_document_items")
           .insert(itemRows)
           .select("id");
         if (itemErr && isLegacyItemColumnError(itemErr)) {
+          if (requiresPersistentItemColumns) throw new Error(persistentFieldError);
           ({ data: insertedItems, error: itemErr } = await supabase
             .from("erp_document_items")
             .insert(legacyItemRows)
@@ -3591,7 +3609,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       return;
     }
     const title = `${DOC_TYPES[doc.type]?.label || "เอกสาร"} ${doc.docNo}`;
-    const url = publicDocumentUrl(doc.id);
+    const url = publicDocumentUrl(doc.id, doc.updatedAt || Date.now());
     try {
       if (navigator.share) {
         await navigator.share({ title, text: title, url });
