@@ -209,7 +209,33 @@ function customerFacingLineItemWithMetadata(item: any) {
   };
 }
 
-function calcDocTotal(doc: any) {
+function docDepositInfo(doc: any) {
+  return {
+    depositPaid: Math.max(0, Number(doc?.depositPaid ?? doc?.deposit_paid ?? 0) || 0),
+    depositDate: doc?.depositDate || doc?.deposit_date || "",
+    depositNote: doc?.depositNote || doc?.deposit_note || "",
+  };
+}
+
+function resolveDepositInfo(doc: any, documents: any[] = []) {
+  const docsById = new Map((documents || []).filter(Boolean).map((d: any) => [String(d.id), d]));
+  const seen = new Set<string>();
+  let current = doc;
+
+  while (current) {
+    const deposit = docDepositInfo(current);
+    if (deposit.depositPaid > 0) return deposit;
+
+    const nextId = current.orderId || current.order_id;
+    if (!nextId || seen.has(String(nextId))) break;
+    seen.add(String(nextId));
+    current = docsById.get(String(nextId));
+  }
+
+  return { depositPaid: 0, depositDate: "", depositNote: "" };
+}
+
+function calcDocTotal(doc: any, documents: any[] = []) {
   const subtotal = (doc.items || []).reduce((sum: number, item: any) => sum + lineAmount(item), 0);
   const discountAmt = subtotal * (Number(doc.discount || 0) / 100);
   const afterDisc = subtotal - discountAmt;
@@ -217,9 +243,9 @@ function calcDocTotal(doc: any) {
   const total = afterDisc + vatAmt;
   const whtAmt = doc.wht ? afterDisc * (Number(doc.whtRate || 0) / 100) : 0;
   const netPay = total - whtAmt;
-  const depositPaid = Math.max(0, Number(doc.depositPaid ?? doc.deposit_paid ?? 0) || 0);
+  const { depositPaid, depositDate, depositNote } = resolveDepositInfo(doc, documents);
   const balanceDue = Math.max(0, netPay - depositPaid);
-  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue };
+  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, depositDate, depositNote, balanceDue };
 }
 
 function mapDocument(doc: any, items: any[]) {
@@ -268,6 +294,28 @@ function mapDocument(doc: any, items: any[]) {
   };
 }
 
+async function loadDocumentChain(supabase: any, orderId: string | null | undefined) {
+  const chain: any[] = [];
+  const seen = new Set<string>();
+  let currentId = orderId;
+
+  while (currentId && !seen.has(String(currentId)) && chain.length < 8) {
+    seen.add(String(currentId));
+    const { data } = await supabase
+      .from("erp_documents")
+      .select("*")
+      .eq("id", currentId)
+      .eq("deleted", false)
+      .maybeSingle();
+
+    if (!data) break;
+    chain.push(data);
+    currentId = data.order_id;
+  }
+
+  return chain;
+}
+
 export default async function PublicDocumentPage({ params, searchParams }: PageProps) {
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
@@ -293,15 +341,15 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
     ? await supabase.from("erp_customers").select("*").eq("id", rawDoc.customer_id).maybeSingle()
     : { data: null };
 
-  const { data: sourceOrder } = rawDoc.order_id
-    ? await supabase.from("erp_documents").select("doc_no").eq("id", rawDoc.order_id).maybeSingle()
-    : { data: null };
+  const sourceChain = await loadDocumentChain(supabase, rawDoc.order_id);
+  const sourceOrder = sourceChain[0] || null;
 
   const doc = mapDocument(rawDoc, safeItems);
+  const linkedDocuments = sourceChain.map((sourceDoc) => mapDocument(sourceDoc, []));
   const label = DOC_LABELS[doc.type] || DOC_LABELS.quote;
   const companyName = documentCompanyName(company?.name);
   const customerAddress = doc.overrideAddress || customer?.address || "";
-  const totals = calcDocTotal(doc);
+  const totals = calcDocTotal(doc, linkedDocuments);
   const orderReference = sourceOrder?.doc_no || doc.reference || "";
   const title = `${label.th} ${doc.docNo}`;
   const notes = doc.notes
@@ -415,11 +463,11 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
               {doc.wht && <div className="doc-summary-row"><strong>หัก ณ ที่จ่าย {doc.whtRate}%</strong><span>- {fmtMoney(totals.whtAmt)}</span></div>}
               {totals.depositPaid > 0 && (
                 <div className="doc-summary-row paid">
-                  <strong>DEPOSIT PAID{doc.depositDate ? ` (${fmtDate(doc.depositDate)})` : ""}</strong>
+                  <strong>DEPOSIT PAID{totals.depositDate ? ` (${fmtDate(totals.depositDate)})` : ""}</strong>
                   <span>- {fmtMoney(totals.depositPaid)}</span>
                 </div>
               )}
-              {totals.depositPaid > 0 && doc.depositNote && <div className="doc-summary-note">{doc.depositNote}</div>}
+              {totals.depositPaid > 0 && totals.depositNote && <div className="doc-summary-note">{totals.depositNote}</div>}
               <div className="doc-summary-total">
                 <div>
                   <div>{totals.depositPaid > 0 ? "BALANCE DUE" : "TOTAL"}</div>

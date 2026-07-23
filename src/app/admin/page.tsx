@@ -223,7 +223,31 @@ const sanitizeForPrint = (value: any): any => {
 };
 
 // ── Shared calculation utility — ใช้ร่วมกันทุกจุด ──────────
-const calcDocTotal = (doc: any) => {
+const docDepositInfo = (doc: any) => ({
+  depositPaid: Math.max(0, Number(doc?.depositPaid ?? doc?.deposit_paid ?? 0) || 0),
+  depositDate: doc?.depositDate || doc?.deposit_date || "",
+  depositNote: doc?.depositNote || doc?.deposit_note || "",
+});
+
+const resolveDepositInfo = (doc: any, documents: any[] = []) => {
+  const docsById = new Map((documents || []).filter(Boolean).map((d: any) => [String(d.id), d]));
+  const seen = new Set<string>();
+  let current = doc;
+
+  while (current) {
+    const deposit = docDepositInfo(current);
+    if (deposit.depositPaid > 0) return deposit;
+
+    const nextId = current.orderId || current.order_id;
+    if (!nextId || seen.has(String(nextId))) break;
+    seen.add(String(nextId));
+    current = docsById.get(String(nextId));
+  }
+
+  return { depositPaid: 0, depositDate: "", depositNote: "" };
+};
+
+const calcDocTotal = (doc: any, documents: any[] = []) => {
   const subtotal    = (doc.items || []).reduce((s, i) => s + lineAmount(i), 0);
   const discountAmt = subtotal * ((doc.discount || 0) / 100);
   const afterDisc   = subtotal - discountAmt;
@@ -231,9 +255,9 @@ const calcDocTotal = (doc: any) => {
   const total       = afterDisc + vatAmt;
   const whtAmt      = doc.wht  ? afterDisc * ((doc.whtRate || 0) / 100)  : 0;
   const netPay      = total - whtAmt;
-  const depositPaid = Math.max(0, Number(doc.depositPaid ?? doc.deposit_paid ?? 0) || 0);
+  const { depositPaid, depositDate, depositNote } = resolveDepositInfo(doc, documents);
   const balanceDue  = Math.max(0, netPay - depositPaid);
-  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue };
+  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, depositDate, depositNote, balanceDue };
 };
 
 const DOC_TYPES = {
@@ -277,6 +301,69 @@ function saveStore(key: string, val: unknown) {
   try { localStorage.setItem("dw_" + key, JSON.stringify(val)); } catch {}
 }
 
+const ERP_DOCUMENT_SHADOW_KEY = "erp_document_field_shadow";
+
+function loadErpDocumentShadow() {
+  return loadStore(ERP_DOCUMENT_SHADOW_KEY, {}) as Record<string, any>;
+}
+
+function saveErpDocumentShadow(docId: string, doc: any) {
+  if (!docId) return;
+  const current = loadErpDocumentShadow();
+  current[docId] = {
+    updatedAt: Date.now(),
+    leadSource: doc.leadSource || "",
+    marketingCampaign: doc.marketingCampaign || "",
+    marketingAdSet: doc.marketingAdSet || "",
+    marketingAd: doc.marketingAd || "",
+    depositPaid: doc.depositPaid ?? 0,
+    depositDate: doc.depositDate || "",
+    depositNote: doc.depositNote || "",
+    vatRate: docVatRate(doc),
+    items: (doc.items || []).map((item: any, index: number) => ({
+      index,
+      costUnit: item.costUnit || "piece",
+      priceUnit: item.priceUnit || "piece",
+      supplierName: item.supplierName || "",
+      widthM: item.widthM ?? undefined,
+      heightM: item.heightM ?? undefined,
+      pieces: item.pieces ?? undefined,
+    })),
+  };
+  saveStore(ERP_DOCUMENT_SHADOW_KEY, current);
+}
+
+function applyErpDocumentShadow(doc: any) {
+  const shadow = loadErpDocumentShadow()[doc.id];
+  if (!shadow) return doc;
+  const shadowItems = Array.isArray(shadow.items) ? shadow.items : [];
+
+  return {
+    ...doc,
+    leadSource: doc.leadSource || shadow.leadSource || "",
+    marketingCampaign: doc.marketingCampaign || shadow.marketingCampaign || "",
+    marketingAdSet: doc.marketingAdSet || shadow.marketingAdSet || "",
+    marketingAd: doc.marketingAd || shadow.marketingAd || "",
+    depositPaid: Number(doc.depositPaid || 0) > 0 ? doc.depositPaid : (shadow.depositPaid ?? doc.depositPaid ?? 0),
+    depositDate: doc.depositDate || shadow.depositDate || "",
+    depositNote: doc.depositNote || shadow.depositNote || "",
+    vatRate: doc.vatRate ?? shadow.vatRate ?? 7,
+    items: (doc.items || []).map((item: any, index: number) => {
+      const meta = shadowItems.find((candidate: any) => candidate.index === index);
+      if (!meta) return item;
+      return {
+        ...item,
+        costUnit: item.costUnit || meta.costUnit || "piece",
+        priceUnit: item.priceUnit || meta.priceUnit || "piece",
+        supplierName: item.supplierName || meta.supplierName || "",
+        widthM: item.widthM ?? meta.widthM,
+        heightM: item.heightM ?? meta.heightM,
+        pieces: item.pieces ?? meta.pieces,
+      };
+    }),
+  };
+}
+
 // ============================================================
 // PRINT / PDF helper — Premium A4 Design (Display Works Media)
 // ============================================================
@@ -285,6 +372,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   doc = sanitizeForPrint(doc);
   customers = sanitizeForPrint(customers);
   company = sanitizeForPrint(company);
+  const linkedDocuments = sanitizeForPrint(options.allDocuments || []);
   const printCompanyName = documentCompanyName(company.name);
 
   const cust = customers.find((c) => c.id === doc.customerId) || {};
@@ -292,7 +380,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   const dt = DOC_TYPES[doc.type];
 
   // ── Calculations (shared utility) ─────────────────────────
-  const { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue } = calcDocTotal(doc);
+  const { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, depositDate, depositNote, balanceDue } = calcDocTotal(doc, linkedDocuments);
 
   // ── Label mapping per document type ───────────────────────
   const DOC_LABELS = {
@@ -350,12 +438,12 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     </tr>` : ""}
     ${depositPaid > 0 ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:7px 12px;color:#10b981;font-size:10px;font-weight:700;">DEPOSIT PAID${doc.depositDate ? ` (${fmtDate(doc.depositDate)})` : ""}</td>
+      <td style="padding:7px 12px;color:#10b981;font-size:10px;font-weight:700;">DEPOSIT PAID${depositDate ? ` (${fmtDate(depositDate)})` : ""}</td>
       <td style="padding:7px 12px;text-align:right;font-size:11px;color:#10b981;font-weight:700;">- ${fmtMoney(depositPaid)}</td>
     </tr>
-    ${doc.depositNote ? `
+    ${depositNote ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td colspan="2" style="padding:7px 12px;color:#64748b;font-size:9px;line-height:1.5;">${doc.depositNote}</td>
+      <td colspan="2" style="padding:7px 12px;color:#64748b;font-size:9px;line-height:1.5;">${depositNote}</td>
     </tr>` : ""}` : ""}
     <tr style="background:#FF5500;">
       <td style="padding:9px 12px;font-weight:800;font-size:12px;color:#fff;text-align:left;">
@@ -783,7 +871,7 @@ export default function AdminPage() {
         // map documents + inject items
         if (docRes.data) {
           const items = itemRes.data || [];
-          setDocuments(docRes.data.map(d => ({
+          setDocuments(docRes.data.map(d => applyErpDocumentShadow({
             id: d.id, type: d.type, docNo: d.doc_no, status: d.status,
             customerId: d.customer_id, customerName: d.customer_name,
             projectName: d.project_name, orderId: d.order_id,
@@ -3448,6 +3536,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
         }
       }
       const saved = { ...doc, id: docId, items: itemsWithCost };
+      saveErpDocumentShadow(docId, saved);
       if (doc.id) setDocuments(prev => prev.map(d => d.id === doc.id ? saved : d));
       else setDocuments(prev => [...prev, saved]);
       showToast(doc.id ? "บันทึกเอกสารแล้ว" : "สร้างเอกสารใหม่แล้ว");
@@ -3517,7 +3606,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
 
   const previewDocumentPdf = (doc) => {
-    printDocument(doc, customers, company, { autoPrint: false });
+    printDocument(doc, customers, company, { autoPrint: false, allDocuments });
   };
 
   const [emailModal, setEmailModal] = useState<any>(null);
@@ -3539,6 +3628,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
 
   const createFrom = (srcDoc, targetType, split = false) => {
     const newDocNo = nextDocNoForType(targetType);
+    const inheritedDeposit = resolveDepositInfo(srcDoc, allDocuments);
     const newDoc = {
       ...srcDoc,
       id: "",
@@ -3548,6 +3638,9 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       dueDate: addDays(today(), 30),
       status: "draft",
       orderId: srcDoc.id,
+      depositPaid: inheritedDeposit.depositPaid,
+      depositDate: inheritedDeposit.depositDate,
+      depositNote: inheritedDeposit.depositNote,
       notes: split ? (srcDoc.notes ? srcDoc.notes + "\n(แบ่งจ่าย)" : "(แบ่งจ่าย)") : srcDoc.notes,
       createdAt: undefined,
       updatedAt: undefined,
@@ -3679,11 +3772,11 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
                             {/* พิมพ์ */}
                             <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
-                            <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
+                            <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); }} />
                             {/* แชร์ลิงค์ */}
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
                             {/* ดาวน์โหลด */}
-                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
+                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
                             {/* อีเมล */}
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => {
                               const cust = customers.find(c => c.id === doc.customerId);
@@ -3767,7 +3860,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       )}
                       <button onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }}
                         style={{ background: doc.status === "approved" ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#444" : "#ccc", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit" }}>แก้ไข</button>
-                      <button onClick={() => printDocument(doc, customers, company)}
+                      <button onClick={() => printDocument(doc, customers, company, { allDocuments })}
                         style={{ background: "rgba(255,107,0,0.15)", border: "1px solid rgba(255,107,0,0.3)", color: "#FF6B00", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>🖨️</button>
                       <div style={{ position: "relative" }}>
                         <button onClick={(e) => {
@@ -3780,9 +3873,9 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
                             <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
-                            <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company); closeAll(); }} />
+                            <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); }} />
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
-                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
+                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` }); closeAll(); }} />
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" }); closeAll(); }} />
                             {(DOC_NEXT[doc.type] || []).length > 0 && <>
@@ -4011,7 +4104,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   };
 
   // ── คำนวณ ────────────────────────────────────────────────
-  const { subtotal, discountAmt: discAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue } = calcDocTotal(f);
+  const { subtotal, discountAmt: discAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue } = calcDocTotal(f, allDocuments);
 
   // ── เอกสารอ้างอิง (Order linking) ─────────────────────────
   const relatedOrders = (allDocuments || []).filter(d => d.id !== doc.id && d.customerId === f.customerId);
