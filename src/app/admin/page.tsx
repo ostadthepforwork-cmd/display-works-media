@@ -231,7 +231,9 @@ const calcDocTotal = (doc: any) => {
   const total       = afterDisc + vatAmt;
   const whtAmt      = doc.wht  ? afterDisc * ((doc.whtRate || 0) / 100)  : 0;
   const netPay      = total - whtAmt;
-  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay };
+  const depositPaid = Math.max(0, Number(doc.depositPaid ?? doc.deposit_paid ?? 0) || 0);
+  const balanceDue  = Math.max(0, netPay - depositPaid);
+  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue };
 };
 
 const DOC_TYPES = {
@@ -290,7 +292,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   const dt = DOC_TYPES[doc.type];
 
   // ── Calculations (shared utility) ─────────────────────────
-  const { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay } = calcDocTotal(doc);
+  const { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue } = calcDocTotal(doc);
 
   // ── Label mapping per document type ───────────────────────
   const DOC_LABELS = {
@@ -346,12 +348,21 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">หัก ณ ที่จ่าย ${doc.whtRate}%</td>
       <td style="padding:7px 12px;text-align:right;font-size:11px;color:#64748b;">- ${fmtMoney(whtAmt)}</td>
     </tr>` : ""}
+    ${depositPaid > 0 ? `
+    <tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:7px 12px;color:#10b981;font-size:10px;font-weight:700;">DEPOSIT PAID${doc.depositDate ? ` (${fmtDate(doc.depositDate)})` : ""}</td>
+      <td style="padding:7px 12px;text-align:right;font-size:11px;color:#10b981;font-weight:700;">- ${fmtMoney(depositPaid)}</td>
+    </tr>
+    ${doc.depositNote ? `
+    <tr style="border-bottom:1px solid #f1f5f9;">
+      <td colspan="2" style="padding:7px 12px;color:#64748b;font-size:9px;line-height:1.5;">${doc.depositNote}</td>
+    </tr>` : ""}` : ""}
     <tr style="background:#FF5500;">
       <td style="padding:9px 12px;font-weight:800;font-size:12px;color:#fff;text-align:left;">
-        GRAND TOTAL<br/><span style="font-size:8px;font-weight:400;opacity:.85;">${lbl.sub}</span>
+        ${depositPaid > 0 ? "BALANCE DUE" : "GRAND TOTAL"}<br/><span style="font-size:8px;font-weight:400;opacity:.85;">${lbl.sub}</span>
       </td>
       <td style="padding:9px 12px;text-align:right;font-weight:800;font-size:15px;color:#fff;">
-        ${fmtMoney(netPay)} <span style="font-size:9px;font-weight:400;">THB</span>
+        ${fmtMoney(depositPaid > 0 ? balanceDue : netPay)} <span style="font-size:9px;font-weight:400;">THB</span>
       </td>
     </tr>`;
 
@@ -783,6 +794,9 @@ export default function AdminPage() {
             marketingAd: d.marketing_ad || "",
             date: d.date, dueDate: d.due_date,
             discount: d.discount, vat: d.vat, vatRate: d.vat_rate ?? 7, wht: d.wht, whtRate: d.wht_rate,
+            depositPaid: d.deposit_paid ?? 0,
+            depositDate: d.deposit_date || "",
+            depositNote: d.deposit_note || "",
             notes: d.notes, overrideAddress: d.override_address,
             bankName: d.bank_name, bankBranch: d.bank_branch,
             bankAccount: d.bank_account, bankType: d.bank_type, qrImage: d.qr_image,
@@ -3335,7 +3349,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
   const nextDocNo = () => nextDocNoForType(type);
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", items: [], discount: 0, vat: true, vatRate: 7, wht: false, whtRate: 3, status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
+    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", items: [], discount: 0, vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
   const save = async (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
@@ -3365,14 +3379,17 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       marketing_ad: doc.marketingAd || "",
       date: doc.date, due_date: doc.dueDate,
       discount: doc.discount, vat: doc.vat, vat_rate: docVatRate(doc), wht: doc.wht, wht_rate: doc.whtRate,
+      deposit_paid: Math.max(0, Number(doc.depositPaid || 0) || 0),
+      deposit_date: doc.depositDate || null,
+      deposit_note: doc.depositNote || "",
       notes: doc.notes, override_address: doc.overrideAddress,
       bank_name: doc.bankName, bank_branch: doc.bankBranch,
       bank_account: doc.bankAccount, bank_type: doc.bankType, qr_image: doc.qrImage,
       deleted: false,
     };
-    const { vat_rate, lead_source, marketing_campaign, marketing_adset, marketing_ad, ...legacyDocRow } = docRow;
+    const { vat_rate, lead_source, marketing_campaign, marketing_adset, marketing_ad, deposit_paid, deposit_date, deposit_note, ...legacyDocRow } = docRow;
     const isLegacyVatColumnError = (error: any) =>
-      error?.code === "42703" || /vat_rate|lead_source|marketing_campaign|marketing_adset|marketing_ad|column/i.test(error?.message || "");
+      error?.code === "42703" || /vat_rate|lead_source|marketing_campaign|marketing_adset|marketing_ad|deposit_paid|deposit_date|deposit_note|column/i.test(error?.message || "");
     try {
       let docId = doc.id;
       if (doc.id) {
@@ -3994,7 +4011,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   };
 
   // ── คำนวณ ────────────────────────────────────────────────
-  const { subtotal, discountAmt: discAmt, afterDisc, vatAmt, total, whtAmt, netPay } = calcDocTotal(f);
+  const { subtotal, discountAmt: discAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue } = calcDocTotal(f);
 
   // ── เอกสารอ้างอิง (Order linking) ─────────────────────────
   const relatedOrders = (allDocuments || []).filter(d => d.id !== doc.id && d.customerId === f.customerId);
@@ -4296,6 +4313,21 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
           )}
         </div>
 
+        {/* เงินมัดจำ */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="เงินมัดจำที่ลูกค้าชำระแล้ว">
+            <input type="number" value={f.depositPaid || 0} onChange={setN("depositPaid")} min="0" step="0.01" placeholder="0.00" />
+          </Field>
+          <Field label="วันที่รับมัดจำ">
+            <input type="date" value={f.depositDate || ""} onChange={set("depositDate")} />
+          </Field>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <Field label="หมายเหตุมัดจำ">
+              <input value={f.depositNote || ""} onChange={set("depositNote")} placeholder="เช่น รับมัดจำ 50% ก่อนเริ่มผลิต / โอนผ่านธนาคาร" />
+            </Field>
+          </div>
+        </div>
+
         {/* หมายเหตุ */}
         <Field label="หมายเหตุ / เงื่อนไข (ใส่ข้อละ 1 บรรทัด)">
           <textarea value={f.notes} onChange={set("notes")} rows={4} style={{ resize: "vertical", fontFamily: "inherit" }}
@@ -4314,6 +4346,8 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         </div>
         {f.wht && <SumRow label={`หัก ณ ที่จ่าย ${f.whtRate}%`} value={-whtAmt} />}
         {f.wht && <SumRow label="ยอดที่ต้องชำระ" value={netPay} bold color="#10b981" />}
+        {depositPaid > 0 && <SumRow label="มัดจำที่ชำระแล้ว" value={-depositPaid} bold color="#10b981" />}
+        {depositPaid > 0 && <SumRow label="ยอดคงเหลือที่ต้องชำระ" value={balanceDue} bold color="#FF6B00" big />}
       </div>
 
       {/* ── Actions ── */}

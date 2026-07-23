@@ -217,7 +217,9 @@ function calcDocTotal(doc: any) {
   const total = afterDisc + vatAmt;
   const whtAmt = doc.wht ? afterDisc * (Number(doc.whtRate || 0) / 100) : 0;
   const netPay = total - whtAmt;
-  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay };
+  const depositPaid = Math.max(0, Number(doc.depositPaid ?? doc.deposit_paid ?? 0) || 0);
+  const balanceDue = Math.max(0, netPay - depositPaid);
+  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue };
 }
 
 function mapDocument(doc: any, items: any[]) {
@@ -239,6 +241,9 @@ function mapDocument(doc: any, items: any[]) {
     vatRate: Number(doc.vat_rate ?? 7),
     wht: Boolean(doc.wht),
     whtRate: Number(doc.wht_rate || 0),
+    depositPaid: Number(doc.deposit_paid || 0),
+    depositDate: doc.deposit_date || "",
+    depositNote: doc.deposit_note || "",
     notes: doc.notes || "",
     overrideAddress: doc.override_address || "",
     bankName: doc.bank_name || "",
@@ -408,12 +413,19 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
               {doc.discount > 0 && <div className="doc-summary-row"><strong>DISCOUNT {doc.discount}%</strong><span>- {fmtMoney(totals.discountAmt)}</span></div>}
               {doc.vat && <div className="doc-summary-row"><strong>VAT {fmtMoney(docVatRate(doc))}%</strong><span>{fmtMoney(totals.vatAmt)}</span></div>}
               {doc.wht && <div className="doc-summary-row"><strong>หัก ณ ที่จ่าย {doc.whtRate}%</strong><span>- {fmtMoney(totals.whtAmt)}</span></div>}
+              {totals.depositPaid > 0 && (
+                <div className="doc-summary-row paid">
+                  <strong>DEPOSIT PAID{doc.depositDate ? ` (${fmtDate(doc.depositDate)})` : ""}</strong>
+                  <span>- {fmtMoney(totals.depositPaid)}</span>
+                </div>
+              )}
+              {totals.depositPaid > 0 && doc.depositNote && <div className="doc-summary-note">{doc.depositNote}</div>}
               <div className="doc-summary-total">
                 <div>
-                  <div>TOTAL</div>
-                  <div className="doc-summary-bahttext">{bahtText(totals.netPay)}</div>
+                  <div>{totals.depositPaid > 0 ? "BALANCE DUE" : "TOTAL"}</div>
+                  <div className="doc-summary-bahttext">{bahtText(totals.depositPaid > 0 ? totals.balanceDue : totals.netPay)}</div>
                 </div>
-                <span>{fmtMoney(totals.netPay)} THB</span>
+                <span>{fmtMoney(totals.depositPaid > 0 ? totals.balanceDue : totals.netPay)} THB</span>
               </div>
             </div>
           </section>
