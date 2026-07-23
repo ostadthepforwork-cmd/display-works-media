@@ -230,6 +230,31 @@ const docDepositInfo = (doc: any) => ({
   depositNote: doc?.depositNote || doc?.deposit_note || "",
 });
 
+const parseDepositFromText = (doc: any, netPay: number) => {
+  const text = [doc?.depositNote, doc?.deposit_note, doc?.notes]
+    .filter(Boolean)
+    .join("\n");
+  if (!/(มัดจำ|deposit)/i.test(text)) return { depositPaid: 0, depositDate: "", depositNote: "" };
+
+  const percent =
+    text.match(/(?:มัดจำ|deposit)[^\d]{0,24}(\d+(?:\.\d+)?)\s*%/i)?.[1]
+    || text.match(/(\d+(?:\.\d+)?)\s*%[^\n]{0,24}(?:มัดจำ|deposit)/i)?.[1];
+  if (percent) {
+    const paid = netPay * (Math.min(100, Math.max(0, Number(percent))) / 100);
+    return { depositPaid: paid, depositDate: "", depositNote: `ชำระมัดจำ ${fmtMoney(Number(percent))}%` };
+  }
+
+  const amount =
+    text.match(/(?:มัดจำ|deposit)[^\d]{0,24}(\d[\d,]*(?:\.\d+)?)/i)?.[1]
+    || text.match(/(\d[\d,]*(?:\.\d+)?)[^\n]{0,16}(?:บาท|THB)[^\n]{0,24}(?:มัดจำ|deposit)/i)?.[1];
+  if (amount) {
+    const paid = Math.min(netPay, Math.max(0, Number(String(amount).replace(/,/g, "")) || 0));
+    return { depositPaid: paid, depositDate: "", depositNote: "ชำระมัดจำตามหมายเหตุ" };
+  }
+
+  return { depositPaid: 0, depositDate: "", depositNote: "" };
+};
+
 const resolveDepositInfo = (doc: any, documents: any[] = []) => {
   const docsById = new Map((documents || []).filter(Boolean).map((d: any) => [String(d.id), d]));
   const seen = new Set<string>();
@@ -256,7 +281,10 @@ const calcDocTotal = (doc: any, documents: any[] = []) => {
   const total       = afterDisc + vatAmt;
   const whtAmt      = doc.wht  ? afterDisc * ((doc.whtRate || 0) / 100)  : 0;
   const netPay      = total - whtAmt;
-  const { depositPaid, depositDate, depositNote } = resolveDepositInfo(doc, documents);
+  let { depositPaid, depositDate, depositNote } = resolveDepositInfo(doc, documents);
+  if (depositPaid <= 0) {
+    ({ depositPaid, depositDate, depositNote } = parseDepositFromText(doc, netPay));
+  }
   const balanceDue  = Math.max(0, netPay - depositPaid);
   return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, depositDate, depositNote, balanceDue };
 };
