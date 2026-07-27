@@ -774,7 +774,7 @@ export default function MarketingKpiDashboard({
     {
       id: "ai-crawlers",
       name: "AI Search Crawlers",
-      account: "GPTBot / ChatGPT / Claude / Perplexity / Googlebot",
+      account: "OpenAI / Claude / Perplexity / Google / Meta / Apple / Common Crawl",
       detail: aiCrawlers.connected
         ? `${money(Number(aiCrawlers?.totals?.visits ?? 0))} visits จาก ${money(Number(aiCrawlers?.totals?.bots ?? 0))} bots`
         : aiCrawlers.error || "รอสร้างตาราง ai_crawler_visits ใน Supabase",
