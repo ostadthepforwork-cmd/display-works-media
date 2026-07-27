@@ -42,6 +42,12 @@ function countBy<T extends string>(rows: CrawlerVisit[], keyFn: (row: CrawlerVis
     .sort((a, b) => b.count - a.count);
 }
 
+function countPaths(rows: CrawlerVisit[]) {
+  return countBy(rows, (row) => row.path)
+    .map((row) => ({ path: row.name, count: row.count }))
+    .slice(0, 10);
+}
+
 export async function GET(request: Request) {
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -103,7 +109,7 @@ export async function GET(request: Request) {
         pages: new Set(rows.map((row) => row.path)).size,
       },
       byBot: countBy(rows, (row) => row.bot_name),
-      byPath: countBy(rows, (row) => row.path).slice(0, 10),
+      byPath: countPaths(rows),
       recent: rows.slice(0, 20),
     },
     { headers: { "Cache-Control": "no-store" } },

@@ -1410,8 +1410,8 @@ export default function MarketingKpiDashboard({
                   <h3>Top Pages</h3>
                   <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
                     {(aiCrawlers.byPath || []).length ? aiCrawlers.byPath.map((page: any) => (
-                      <div className="mk-source" key={page.path}>
-                        <strong>{page.path}</strong>
+                      <div className="mk-source" key={page.path || page.name || "Unknown"}>
+                        <strong>{page.path || page.name || "Unknown"}</strong>
                         <span className="mk-badge">{money(Number(page.count || 0))} ครั้ง</span>
                       </div>
                     )) : <div className="mk-empty">ยังไม่มีหน้า public ที่ถูก AI/Search bot อ่าน</div>}
