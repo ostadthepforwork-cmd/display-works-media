@@ -18,6 +18,8 @@ type Post = {
   id: string; title: string; excerpt: string; category: string;
   date: string; slug: string; cover: string; cover_alt?: string; published: boolean; body: string;
   faqs?: Array<{ q?: string; a?: string }>;
+  ai_summary?: string;
+  key_takeaways?: string;
 };
 
 function fmtDateTH(dateStr: string) {
@@ -123,6 +125,12 @@ export default function BlogPostPage({
   const postCover = safeImageSrc(post.cover);
   const postCoverAlt = post.cover_alt?.trim() || post.title;
   const faqs = cleanFaqs(post.faqs);
+  const quickAnswer = String(post.ai_summary || post.excerpt || "").trim();
+  const keyTakeaways = String(post.key_takeaways || "")
+    .split(/\n|,/)
+    .map((item) => item.replace(/^[-•\s]+/, "").trim())
+    .filter(Boolean)
+    .slice(0, 5);
 
   return (
     <div className="brand-interior brand-article min-h-screen font-['Prompt',sans-serif] text-white bg-[#070A0F]">
@@ -181,6 +189,20 @@ export default function BlogPostPage({
             <p className="brand-article-excerpt text-lg text-[#A7B0C0] leading-relaxed mb-12">{post.excerpt}</p>
           )}
         </div>
+
+        {quickAnswer && (
+          <section className="blog-quick-answer reveal-section" aria-label="คำตอบสั้น">
+            <span>คำตอบสั้น</span>
+            <p>{quickAnswer}</p>
+            {keyTakeaways.length > 0 && (
+              <ul>
+                {keyTakeaways.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
 
         <div className="prose-blog" dangerouslySetInnerHTML={{ __html: bodyToHtml(post.body) }} />
 

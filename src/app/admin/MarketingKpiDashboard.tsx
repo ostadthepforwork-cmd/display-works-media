@@ -361,6 +361,7 @@ export default function MarketingKpiDashboard({
   });
   const [ga4, setGa4] = useState<any>({ loading: true, connected: false, error: "", totals: {} });
   const [meta, setMeta] = useState<any>({ loading: true, connected: false, error: "", totals: {}, campaigns: [] });
+  const [aiCrawlers, setAiCrawlers] = useState<any>({ loading: true, connected: false, error: "", totals: {}, byBot: [], byPath: [], recent: [] });
 
   useEffect(() => saveLocal(storageKeys.campaigns, campaigns), [campaigns]);
   useEffect(() => saveLocal(storageKeys.leads, leads), [leads]);
@@ -409,10 +410,12 @@ export default function MarketingKpiDashboard({
 
     setGa4((prev: any) => ({ ...prev, loading: true }));
     setMeta((prev: any) => ({ ...prev, loading: true }));
+    setAiCrawlers((prev: any) => ({ ...prev, loading: true }));
 
-    const [ga4Data, metaData] = await Promise.allSettled([
+    const [ga4Data, metaData, aiCrawlerData] = await Promise.allSettled([
       load("GA4", sourceUrl("/api/marketing/ga4")),
       load("Meta", sourceUrl("/api/marketing/meta")),
+      load("AI Crawlers", sourceUrl("/api/marketing/ai-crawlers")),
     ]);
 
     if (ga4Data.status === "fulfilled") {
@@ -433,6 +436,16 @@ export default function MarketingKpiDashboard({
     } else {
       setMeta({ loading: false, connected: false, error: metaData.reason?.message || "เชื่อมต่อ Meta ไม่สำเร็จ", totals: {}, campaigns: [], adSets: [], ads: [] });
       addSourceLog(`Meta Ads sync ไม่สำเร็จ: ${metaData.reason?.message || "Unknown error"}`);
+    }
+
+    if (aiCrawlerData.status === "fulfilled") {
+      setAiCrawlers({ loading: false, ...aiCrawlerData.value });
+      addSourceLog(aiCrawlerData.value?.connected
+        ? `AI crawler sync สำเร็จ (${trigger})`
+        : `AI crawler API เรียกได้ แต่ยังไม่พร้อมใช้งาน: ${aiCrawlerData.value?.error || "ยังไม่มีข้อมูล"}`);
+    } else {
+      setAiCrawlers({ loading: false, connected: false, error: aiCrawlerData.reason?.message || "เชื่อมต่อ AI crawler log ไม่สำเร็จ", totals: {}, byBot: [], byPath: [], recent: [] });
+      addSourceLog(`AI crawler sync ไม่สำเร็จ: ${aiCrawlerData.reason?.message || "Unknown error"}`);
     }
   }, [addSourceLog, sourceUrl]);
 
@@ -705,6 +718,7 @@ export default function MarketingKpiDashboard({
   };
 
   const cards = [
+    { label: "AI Search Visits", value: money(Number(aiCrawlers?.totals?.visits ?? 0)), sub: aiCrawlers.connected ? `${money(Number(aiCrawlers?.totals?.bots ?? 0))} bots / ${money(Number(aiCrawlers?.totals?.pages ?? 0))} pages` : "รอข้อมูล AI crawler", tone: "teal" },
     { label: "Meta Reported Revenue", value: metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", sub: "action_values / purchase", tone: "orange" },
     { label: "Meta Reported ROAS", value: metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", sub: "purchase_roas from Meta", tone: "purple" },
     { label: "Revenue", value: `฿${money(receiptRevenue)}`, sub: "ตรงกับ ERP: ใบเสร็จเท่านั้น", tone: "green" },
@@ -756,6 +770,19 @@ export default function MarketingKpiDashboard({
       tokenType: "LINE channel token",
       expiry: apiExpiries.line || defaultApiExpiries().line,
       envKeys: "LINE_CHANNEL_ACCESS_TOKEN (ยังไม่ได้ทำ endpoint)",
+    },
+    {
+      id: "ai-crawlers",
+      name: "AI Search Crawlers",
+      account: "GPTBot / ChatGPT / Claude / Perplexity / Googlebot",
+      detail: aiCrawlers.connected
+        ? `${money(Number(aiCrawlers?.totals?.visits ?? 0))} visits จาก ${money(Number(aiCrawlers?.totals?.bots ?? 0))} bots`
+        : aiCrawlers.error || "รอสร้างตาราง ai_crawler_visits ใน Supabase",
+      ready: !!aiCrawlers.connected,
+      error: aiCrawlers.error || "",
+      tokenType: "Public crawler log",
+      expiry: null,
+      envKeys: "supabase/ai-crawler-visits.sql",
     },
     {
       id: "erp",
@@ -1347,6 +1374,74 @@ export default function MarketingKpiDashboard({
                 <div className="mk-mini"><strong>฿{money(grossProfit)}</strong><div>Gross Profit</div></div>
                 <div className="mk-mini"><strong>{quoteToCloseRate === null ? "-" : percent(quoteToCloseRate)}</strong><div>Quote to Close Rate</div></div>
               </div>
+            </section>
+          )}
+
+          {(showDashboard || activeSection === "insight" || activeSection === "sources") && (
+            <section className="mk-panel" style={{ marginTop: 16 }}>
+              <div className="mk-section-head">
+                <div>
+                  <h3>AI Search Crawler Monitor</h3>
+                  <p>นับการเข้าเว็บจาก AI/Search bot บนหน้า public เท่านั้น ไม่รวม admin, API, doc link และไฟล์ภายในระบบ</p>
+                </div>
+                <span className={`mk-status ${aiCrawlers.connected ? "ready" : ""}`}>
+                  {aiCrawlers.connected ? "พร้อมใช้งาน" : "รอข้อมูล"}
+                </span>
+              </div>
+              <div className="mk-channel-grid" style={{ marginTop: 14 }}>
+                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.visits ?? 0))}</strong><div>AI/Search visits</div></div>
+                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.bots ?? 0))}</strong><div>Bot types</div></div>
+                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.pages ?? 0))}</strong><div>Public pages crawled</div></div>
+                <div className="mk-mini"><strong>{aiCrawlers.loading ? "Syncing" : (aiCrawlers.connected ? "Live" : "-")}</strong><div>{aiCrawlers.error || "เริ่มนับหลังติดตั้ง SQL และ deploy"}</div></div>
+              </div>
+              <div className="mk-row" style={{ marginTop: 16 }}>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>Top AI Bots</h3>
+                  <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+                    {(aiCrawlers.byBot || []).length ? aiCrawlers.byBot.map((bot: any) => (
+                      <div className="mk-source" key={bot.name}>
+                        <strong>{bot.name}</strong>
+                        <span className="mk-badge">{money(Number(bot.count || 0))} ครั้ง</span>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มี AI/Search bot เข้าในช่วงวันที่นี้</div>}
+                  </div>
+                </div>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>Top Pages</h3>
+                  <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+                    {(aiCrawlers.byPath || []).length ? aiCrawlers.byPath.map((page: any) => (
+                      <div className="mk-source" key={page.path}>
+                        <strong>{page.path}</strong>
+                        <span className="mk-badge">{money(Number(page.count || 0))} ครั้ง</span>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มีหน้า public ที่ถูก AI/Search bot อ่าน</div>}
+                  </div>
+                </div>
+              </div>
+              {activeSection !== "dashboard" && (
+                <div className="mk-table-wrap" style={{ marginTop: 16 }}>
+                  <table className="mk-table">
+                    <thead>
+                      <tr>
+                        <th>Bot</th>
+                        <th>Page</th>
+                        <th>Country</th>
+                        <th>Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(aiCrawlers.recent || []).map((visit: any) => (
+                        <tr key={visit.id}>
+                          <td>{visit.bot_name}</td>
+                          <td>{visit.path}</td>
+                          <td>{visit.country || "-"}</td>
+                          <td>{visit.created_at ? new Date(visit.created_at).toLocaleString("th-TH") : "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </section>
           )}
 

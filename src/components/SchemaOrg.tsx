@@ -138,6 +138,91 @@ export default function SchemaOrg({ extra }: SchemaOrgProps) {
   );
 }
 
+// ─── Helper: Breadcrumb Schema ──────────────────────────────────────────────
+export function BreadcrumbSchema({
+  items,
+}: {
+  items: Array<{ name: string; url: string }>;
+}) {
+  if (!items.length) return null;
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+    />
+  );
+}
+
+// ─── Helper: Blog Article Schema ────────────────────────────────────────────
+export function ArticleSchema({
+  headline,
+  description,
+  url,
+  image,
+  datePublished,
+  dateModified,
+  keywords,
+  authorName = "Display Works Media",
+}: {
+  headline: string;
+  description?: string;
+  url: string;
+  image?: string;
+  datePublished?: string;
+  dateModified?: string;
+  keywords?: string[];
+  authorName?: string;
+}) {
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    headline,
+    ...(description && { description }),
+    ...(image && { image }),
+    ...(datePublished && { datePublished }),
+    ...(dateModified && { dateModified }),
+    inLanguage: "th",
+    author: {
+      "@type": "Organization",
+      name: authorName,
+      url: "https://displayworksmedia.com",
+    },
+    publisher: {
+      "@type": "Organization",
+      "@id": "https://displayworksmedia.com/#business",
+      name: "Display Works Media",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://displayworksmedia.com/images/logo.png",
+      },
+    },
+    ...(keywords?.length && { keywords: keywords.join(", ") }),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+    />
+  );
+}
+
 // ─── Helper: Service Page Schema ─────────────────────────────────────────────
 export function ServiceSchema({
   name,
@@ -167,6 +252,31 @@ export function ServiceSchema({
     areaServed: { "@type": "Country", name: "Thailand" },
   };
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "หน้าแรก",
+        item: "https://displayworksmedia.com",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "บริการของเรา",
+        item: "https://displayworksmedia.com/services",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name,
+        item: url,
+      },
+    ],
+  };
+
   const pageFaqSchema = faqs
     ? {
         "@context": "https://schema.org",
@@ -184,6 +294,10 @@ export function ServiceSchema({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       {pageFaqSchema && (
         <script
