@@ -210,10 +210,13 @@ function customerFacingLineItemWithMetadata(item: any) {
 }
 
 function docDepositInfo(doc: any) {
+  const paymentAmount = Math.max(0, Number(doc?.paymentAmount ?? doc?.payment_amount ?? 0) || 0);
+  const depositAmount = Math.max(0, Number(doc?.depositPaid ?? doc?.deposit_paid ?? 0) || 0);
   return {
-    depositPaid: Math.max(0, Number(doc?.depositPaid ?? doc?.deposit_paid ?? 0) || 0),
-    depositDate: doc?.depositDate || doc?.deposit_date || "",
-    depositNote: doc?.depositNote || doc?.deposit_note || "",
+    depositPaid: paymentAmount > 0 ? paymentAmount : depositAmount,
+    depositDate: doc?.paymentDate || doc?.payment_date || doc?.depositDate || doc?.deposit_date || "",
+    depositNote: doc?.paymentNote || doc?.payment_note || doc?.depositNote || doc?.deposit_note || "",
+    paymentType: doc?.paymentType || doc?.payment_type || "",
   };
 }
 
@@ -239,7 +242,7 @@ function parseDepositFromText(doc: any, netPay: number) {
     return { depositPaid: paid, depositDate: "", depositNote: "ชำระมัดจำตามหมายเหตุ" };
   }
 
-  return { depositPaid: 0, depositDate: "", depositNote: "" };
+  return { depositPaid: 0, depositDate: "", depositNote: "", paymentType: "" };
 }
 
 function resolveDepositInfo(doc: any, documents: any[] = []) {
@@ -257,7 +260,7 @@ function resolveDepositInfo(doc: any, documents: any[] = []) {
     current = docsById.get(String(nextId));
   }
 
-  return { depositPaid: 0, depositDate: "", depositNote: "" };
+  return { depositPaid: 0, depositDate: "", depositNote: "", paymentType: "" };
 }
 
 function calcDocTotal(doc: any, documents: any[] = []) {
@@ -268,12 +271,14 @@ function calcDocTotal(doc: any, documents: any[] = []) {
   const total = afterDisc + vatAmt;
   const whtAmt = doc.wht ? afterDisc * (Number(doc.whtRate || 0) / 100) : 0;
   const netPay = total - whtAmt;
-  let { depositPaid, depositDate, depositNote } = resolveDepositInfo(doc, documents);
+  let { depositPaid, depositDate, depositNote, paymentType } = resolveDepositInfo(doc, documents);
   if (depositPaid <= 0) {
     ({ depositPaid, depositDate, depositNote } = parseDepositFromText(doc, netPay));
   }
-  const balanceDue = Math.max(0, netPay - depositPaid);
-  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, depositDate, depositNote, balanceDue };
+  const cappedDepositPaid = Math.min(netPay, Math.max(0, depositPaid));
+  const balanceDue = Math.max(0, netPay - cappedDepositPaid);
+  const paymentStatus = cappedDepositPaid <= 0 ? "unpaid" : balanceDue > 0 ? "partial_paid" : "paid";
+  return { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid: cappedDepositPaid, depositDate, depositNote, paymentType, balanceDue, paymentStatus };
 }
 
 function mapDocument(doc: any, items: any[]) {
@@ -288,6 +293,11 @@ function mapDocument(doc: any, items: any[]) {
     orderId: doc.order_id || "",
     reference: doc.reference || "",
     salesPerson: doc.sales_person || "",
+    paymentType: doc.payment_type || "",
+    paymentAmount: Number(doc.payment_amount || 0),
+    paymentDate: doc.payment_date || "",
+    paymentNote: doc.payment_note || "",
+    paymentStatus: doc.payment_status || "",
     date: doc.date,
     dueDate: doc.due_date,
     discount: Number(doc.discount || 0),
@@ -378,6 +388,8 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
   const companyName = documentCompanyName(company?.name);
   const customerAddress = doc.overrideAddress || customer?.address || "";
   const totals = calcDocTotal(doc, linkedDocuments);
+  const paymentLabel = totals.paymentType === "full" || totals.paymentType === "final" ? "PAYMENT RECEIVED" : totals.paymentType === "partial" ? "PARTIAL PAYMENT" : "DEPOSIT PAID";
+  const finalTotalLabel = totals.depositPaid > 0 ? (totals.balanceDue > 0 ? "BALANCE DUE" : "PAID IN FULL") : "TOTAL";
   const orderReference = sourceOrder?.doc_no || doc.reference || "";
   const title = `${label.th} ${doc.docNo}`;
   const notes = doc.notes
@@ -491,14 +503,14 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
               {doc.wht && <div className="doc-summary-row"><strong>หัก ณ ที่จ่าย {doc.whtRate}%</strong><span>- {fmtMoney(totals.whtAmt)}</span></div>}
               {totals.depositPaid > 0 && (
                 <div className="doc-summary-row paid">
-                  <strong>DEPOSIT PAID{totals.depositDate ? ` (${fmtDate(totals.depositDate)})` : ""}</strong>
+                  <strong>{paymentLabel}{totals.depositDate ? ` (${fmtDate(totals.depositDate)})` : ""}</strong>
                   <span>- {fmtMoney(totals.depositPaid)}</span>
                 </div>
               )}
               {totals.depositPaid > 0 && totals.depositNote && <div className="doc-summary-note">{totals.depositNote}</div>}
               <div className="doc-summary-total">
                 <div>
-                  <div>{totals.depositPaid > 0 ? "BALANCE DUE" : "TOTAL"}</div>
+                  <div>{finalTotalLabel}</div>
                   <div className="doc-summary-bahttext">{bahtText(totals.depositPaid > 0 ? totals.balanceDue : totals.netPay)}</div>
                 </div>
                 <span>{fmtMoney(totals.depositPaid > 0 ? totals.balanceDue : totals.netPay)} THB</span>

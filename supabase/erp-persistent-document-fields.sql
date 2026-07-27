@@ -7,6 +7,11 @@ alter table if exists public.erp_documents
   add column if not exists marketing_campaign text,
   add column if not exists marketing_adset text,
   add column if not exists marketing_ad text,
+  add column if not exists payment_type text,
+  add column if not exists payment_amount numeric default 0,
+  add column if not exists payment_date date,
+  add column if not exists payment_note text,
+  add column if not exists payment_status text,
   add column if not exists deposit_paid numeric default 0,
   add column if not exists deposit_date date,
   add column if not exists deposit_note text;
