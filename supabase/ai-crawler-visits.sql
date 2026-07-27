@@ -33,6 +33,9 @@ with check (
     'anthropic-ai',
     'Google-Extended',
     'Googlebot',
+    'GoogleOther',
+    'Google-InspectionTool',
+    'Google-CloudVertexBot',
     'Bingbot',
     'FacebookBot'
   )

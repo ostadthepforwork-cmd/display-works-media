@@ -11,6 +11,9 @@ const AI_BOT_PATTERNS = [
   { name: "anthropic-ai", pattern: /anthropic-ai/i },
   { name: "Google-Extended", pattern: /Google-Extended/i },
   { name: "Googlebot", pattern: /Googlebot/i },
+  { name: "GoogleOther", pattern: /GoogleOther/i },
+  { name: "Google-InspectionTool", pattern: /Google-InspectionTool/i },
+  { name: "Google-CloudVertexBot", pattern: /Google-CloudVertexBot/i },
   { name: "Bingbot", pattern: /bingbot/i },
   { name: "FacebookBot", pattern: /FacebookBot|facebookexternalhit/i },
 ];
