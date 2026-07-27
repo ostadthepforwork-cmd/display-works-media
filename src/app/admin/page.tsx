@@ -4734,7 +4734,7 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
       const path = `blog/content-${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
-        .from("cms-media").upload(path, file, { upsert: true, contentType: file.type });
+        .from("cms-media").upload(path, file, { contentType: file.type });
       if (uploadError) { showToast("อัปโหลดไม่ได้: " + uploadError.message, "error"); return; }
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       const url = urlData?.publicUrl;
@@ -5029,7 +5029,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
       const path = `blog/${Date.now()}.${ext}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("cms-media").upload(path, file, { upsert: true, contentType: file.type });
+        .from("cms-media").upload(path, file, { contentType: file.type });
       if (uploadError) { showToast("อัปโหลดไม่ได้: " + uploadError.message, "error"); setUploading(false); return; }
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       if (!urlData?.publicUrl) { showToast("ได้รูปแล้วแต่ URL ไม่ถูกต้อง", "error"); setUploading(false); return; }
@@ -5351,8 +5351,8 @@ function HeroManager({ showToast }: any) {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `hero/bg.${ext}`;
-      const { error } = await supabase.storage.from("cms-media").upload(path, file, { upsert: true });
+      const path = `hero/bg-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("cms-media").upload(path, file);
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       setHero(p => ({ ...p, bgImage: urlData.publicUrl }));
@@ -5533,7 +5533,7 @@ function ServicesManager({ showToast }: any) {
     try {
       const ext = file.name.split(".").pop() ?? "jpg";
       const path = `service-portfolio/${serviceKey}-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("cms-media").upload(path, file, { upsert: true, contentType: file.type });
+      const { error } = await supabase.storage.from("cms-media").upload(path, file, { contentType: file.type });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       updateServicePortfolioItem(serviceKey, index, "image", urlData.publicUrl);
@@ -5839,7 +5839,7 @@ function PortfolioManager({ showToast }: any) {
     try {
       const ext = file.name.split(".").pop() ?? "jpg";
       const path = `portfolio/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("cms-media").upload(path, file, { upsert: true });
+      const { error } = await supabase.storage.from("cms-media").upload(path, file);
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       callback(urlData.publicUrl);
@@ -6152,7 +6152,7 @@ function PageContentManager({ showToast }: any) {
     try {
       const ext = file.name.split(".").pop() || "jpg";
       const path = `service-portfolio/${serviceKey}/${Date.now()}-${index}.${ext}`;
-      const { error } = await supabase.storage.from("cms-media").upload(path, file, { upsert: true, contentType: file.type });
+      const { error } = await supabase.storage.from("cms-media").upload(path, file, { contentType: file.type });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       updateServicePortfolioItem(serviceKey, index, "image", urlData.publicUrl);
