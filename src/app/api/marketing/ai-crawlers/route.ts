@@ -48,6 +48,71 @@ function countPaths(rows: CrawlerVisit[]) {
     .slice(0, 10);
 }
 
+function safeUrl(value: string | null) {
+  if (!value) return null;
+  try {
+    return new URL(value, "https://displayworksmedia.com");
+  } catch {
+    return null;
+  }
+}
+
+function referrerLabel(referrer: string | null) {
+  const url = safeUrl(referrer);
+  return url ? url.hostname.replace(/^www\./, "") : "Direct / hidden";
+}
+
+function searchHintFromUrl(value: string | null) {
+  const url = safeUrl(value);
+  if (!url) return "";
+  const keys = ["q", "query", "search", "keyword", "utm_term", "utm_campaign", "utm_source"];
+  for (const key of keys) {
+    const found = url.searchParams.get(key);
+    if (found) return `${key}: ${found}`.slice(0, 80);
+  }
+  return "";
+}
+
+function inferIntent(path: string, referrer: string | null) {
+  const target = path.toLowerCase();
+  const searchHint = searchHintFromUrl(path) || searchHintFromUrl(referrer);
+  if (target.includes("robots.txt")) return { intent: "Crawler access rules", detail: "Bot checked robots.txt before reading the site" };
+  if (target.includes("sitemap.xml")) return { intent: "Site discovery", detail: "Bot explored URLs from sitemap.xml" };
+  if (target.includes("llms.txt")) return { intent: "AI summary source", detail: "Bot checked llms.txt for AI-readable site context" };
+  if (target.startsWith("/services/")) return { intent: "Service research", detail: searchHint || path };
+  if (target.startsWith("/blog/")) return { intent: "Knowledge / answer research", detail: searchHint || path };
+  if (target.startsWith("/portfolio")) return { intent: "Trust proof / portfolio research", detail: searchHint || path };
+  if (target.startsWith("/faq")) return { intent: "FAQ / objection research", detail: searchHint || path };
+  if (target.startsWith("/contact")) return { intent: "Contact / conversion research", detail: searchHint || path };
+  if (target === "/" || target.startsWith("/?")) return { intent: "Brand / homepage overview", detail: searchHint || "Homepage" };
+  return { intent: "General crawl", detail: searchHint || path };
+}
+
+function countIntents(rows: CrawlerVisit[]) {
+  const grouped = rows.reduce<Record<string, { intent: string; count: number; examples: string[] }>>((acc, row) => {
+    const inferred = inferIntent(row.path, row.referrer);
+    const group = acc[inferred.intent] || { intent: inferred.intent, count: 0, examples: [] };
+    group.count += 1;
+    if (group.examples.length < 3 && !group.examples.includes(inferred.detail)) group.examples.push(inferred.detail);
+    acc[inferred.intent] = group;
+    return acc;
+  }, {});
+  return Object.values(grouped).sort((a, b) => b.count - a.count);
+}
+
+function countReferrers(rows: CrawlerVisit[]) {
+  return Object.entries(
+    rows.reduce<Record<string, number>>((acc, row) => {
+      const label = referrerLabel(row.referrer);
+      acc[label] = (acc[label] || 0) + 1;
+      return acc;
+    }, {}),
+  )
+    .map(([referrer, count]) => ({ referrer, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+}
+
 export async function GET(request: Request) {
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -110,7 +175,14 @@ export async function GET(request: Request) {
       },
       byBot: countBy(rows, (row) => row.bot_name),
       byPath: countPaths(rows),
-      recent: rows.slice(0, 20),
+      byIntent: countIntents(rows),
+      byReferrer: countReferrers(rows),
+      recent: rows.slice(0, 20).map((row) => ({
+        ...row,
+        referrer_label: referrerLabel(row.referrer),
+        search_hint: searchHintFromUrl(row.path) || searchHintFromUrl(row.referrer),
+        inferred_intent: inferIntent(row.path, row.referrer),
+      })),
     },
     { headers: { "Cache-Control": "no-store" } },
   );

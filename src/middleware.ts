@@ -52,6 +52,24 @@ function shouldLogCrawler(req: NextRequest) {
   return Boolean(detectAiBot(req.headers.get("user-agent") || ""));
 }
 
+function crawlerPublicPath(req: NextRequest) {
+  const url = req.nextUrl.clone();
+  const sensitiveParams = [
+    "name",
+    "email",
+    "phone",
+    "tel",
+    "line",
+    "message",
+    "contact",
+    "address",
+    "customer",
+  ];
+  sensitiveParams.forEach((key) => url.searchParams.delete(key));
+  const query = url.searchParams.toString();
+  return `${url.pathname}${query ? `?${query}` : ""}`.slice(0, 300);
+}
+
 async function logAiCrawlerVisit(req: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -69,7 +87,7 @@ async function logAiCrawlerVisit(req: NextRequest) {
     },
     body: JSON.stringify({
       bot_name: botName,
-      path: req.nextUrl.pathname.slice(0, 300),
+      path: crawlerPublicPath(req),
       user_agent: userAgent,
       referrer: (req.headers.get("referer") || "").slice(0, 300) || null,
       country: req.headers.get("x-vercel-ip-country") || null,

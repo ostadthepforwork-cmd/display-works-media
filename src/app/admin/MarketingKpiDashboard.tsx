@@ -1418,6 +1418,37 @@ export default function MarketingKpiDashboard({
                   </div>
                 </div>
               </div>
+              <div className="mk-row" style={{ marginTop: 16 }}>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>Likely AI Intent</h3>
+                  <p>เป็นการประเมินจากหน้าที่ bot เข้าอ่าน ไม่ใช่ prompt จริงของผู้ใช้</p>
+                  <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+                    {(aiCrawlers.byIntent || []).length ? aiCrawlers.byIntent.map((item: any) => (
+                      <div className="mk-source" key={item.intent}>
+                        <div>
+                          <strong>{item.intent}</strong>
+                          <div style={{ color: "#8b95a7", fontSize: 12, marginTop: 4 }}>
+                            {(item.examples || []).join(" / ") || "-"}
+                          </div>
+                        </div>
+                        <span className="mk-badge">{money(Number(item.count || 0))} ครั้ง</span>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มีข้อมูลพอให้วิเคราะห์ intent</div>}
+                  </div>
+                </div>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>Referrer / Source Hints</h3>
+                  <p>แสดงเฉพาะเมื่อ crawler ส่ง referrer หรือ query/UTM มาด้วย</p>
+                  <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+                    {(aiCrawlers.byReferrer || []).length ? aiCrawlers.byReferrer.map((item: any) => (
+                      <div className="mk-source" key={item.referrer}>
+                        <strong>{item.referrer}</strong>
+                        <span className="mk-badge">{money(Number(item.count || 0))} ครั้ง</span>
+                      </div>
+                    )) : <div className="mk-empty">ส่วนใหญ่ crawler จะซ่อน referrer จึงอาจเห็นเป็น Direct / hidden</div>}
+                  </div>
+                </div>
+              </div>
               {activeSection !== "dashboard" && (
                 <div className="mk-table-wrap" style={{ marginTop: 16 }}>
                   <table className="mk-table">
@@ -1425,6 +1456,9 @@ export default function MarketingKpiDashboard({
                       <tr>
                         <th>Bot</th>
                         <th>Page</th>
+                        <th>Likely Intent</th>
+                        <th>Referrer</th>
+                        <th>Query / UTM</th>
                         <th>Country</th>
                         <th>Time</th>
                       </tr>
@@ -1434,6 +1468,9 @@ export default function MarketingKpiDashboard({
                         <tr key={visit.id}>
                           <td>{visit.bot_name}</td>
                           <td>{visit.path}</td>
+                          <td>{visit.inferred_intent?.intent || "-"}</td>
+                          <td>{visit.referrer_label || visit.referrer || "-"}</td>
+                          <td>{visit.search_hint || "-"}</td>
                           <td>{visit.country || "-"}</td>
                           <td>{visit.created_at ? new Date(visit.created_at).toLocaleString("th-TH") : "-"}</td>
                         </tr>
