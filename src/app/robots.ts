@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/", "/auth/"],
+        disallow: ["/admin/", "/api/", "/auth/", "/doc/", "/login"],
       },
       // อนุญาต AI crawlers ทุกตัว — จำเป็นสำหรับ GEO/AEO
       {
@@ -48,7 +48,7 @@ export default function robots(): MetadataRoute.Robots {
           "AI2Bot",
         ],
         allow: "/",
-        disallow: ["/admin/", "/api/", "/auth/"],
+        disallow: ["/admin/", "/api/", "/auth/", "/doc/", "/login"],
       },
     ],
     sitemap: "https://displayworksmedia.com/sitemap.xml",
