@@ -59,7 +59,8 @@ type MarketingSection =
   | "insight"
   | "reports"
   | "sources"
-  | "settings";
+  | "settings"
+  | "ai";
 
 type DateRangeMode = "7d" | "30d" | "month" | "all" | "custom";
 
@@ -737,6 +738,30 @@ export default function MarketingKpiDashboard({
     { label: "Average Order Value", value: averageOrderValue ? `฿${money(averageOrderValue)}` : "-", sub: "Revenue / Closed Jobs", tone: "orange" },
   ];
 
+  const overviewCards = cards.filter((card) => [
+    "Revenue",
+    "Marketing Spend",
+    "Total Leads",
+    "Cost per Lead",
+    "Closed Jobs",
+    "ROAS",
+    "Gross Profit",
+    "Average Order Value",
+  ].includes(card.label));
+
+  const maxKpiValue = Math.max(receiptRevenue, marketingSpend, Math.max(0, grossProfit), 1);
+  const kpiBars = [
+    { label: "ERP Revenue", value: receiptRevenue, color: "#ff6b00" },
+    { label: "Marketing Spend", value: marketingSpend, color: "#8b5cf6" },
+    { label: "Gross Profit", value: Math.max(0, grossProfit), color: "#22c55e" },
+  ];
+  const leadPipelineBars = [
+    { label: "Total Leads", value: totalLeads, color: "#2563eb" },
+    { label: "Qualified", value: qualifiedLeads, color: "#14b8a6" },
+    { label: "Quotations", value: quotationSent, color: "#f59e0b" },
+    { label: "Closed Jobs", value: closedJobs, color: "#ff6b00" },
+  ];
+
   const sources = [
     {
       id: "ga4",
@@ -956,22 +981,15 @@ export default function MarketingKpiDashboard({
     { label: "Closed Won", value: closedLeadCount, color: "#ff6b00" },
   ] : [];
 
-  const navItems: { id: MarketingSection; label: string }[] = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "facebook", label: "Facebook Ads" },
-    { id: "leads", label: "Leads / CRM" },
-    { id: "customers", label: "Customers" },
-    { id: "quotations", label: "Quotations" },
-    { id: "orders", label: "Orders / Jobs" },
-    { id: "products", label: "Products" },
-    { id: "campaigns", label: "Campaigns" },
-    { id: "budget", label: "Budget" },
-    { id: "funnel", label: "Lead Funnel" },
-    { id: "channels", label: "Channels" },
-    { id: "insight", label: "AI Insight" },
-    { id: "reports", label: "Reports" },
-    { id: "sources", label: "Data Sources" },
-    { id: "settings", label: "Settings" },
+  const navItems: { id: MarketingSection; label: string; desc: string }[] = [
+    { id: "dashboard", label: "Overview", desc: "Main KPI summary" },
+    { id: "facebook", label: "Ads Performance", desc: "Meta spend, campaigns, creatives" },
+    { id: "leads", label: "Leads & CRM", desc: "Lead list and follow-up" },
+    { id: "customers", label: "Customer Intel", desc: "Source, segment, service demand" },
+    { id: "orders", label: "Sales Pipeline", desc: "Quotes, jobs, revenue from ERP" },
+    { id: "reports", label: "Reports", desc: "Export and decision view" },
+    { id: "sources", label: "Data & API", desc: "GA4, Meta, LINE, token expiry" },
+    { id: "ai", label: "AI Search", desc: "Crawler visits and AI visibility" },
   ];
 
   const showDashboard = activeSection === "dashboard";
@@ -985,8 +1003,11 @@ export default function MarketingKpiDashboard({
         .mk-brand{display:flex;gap:14px;align-items:center;margin-bottom:28px}
         .mk-logo{width:48px;height:48px;border-radius:16px;border:1px solid rgba(255,107,0,.6);display:grid;place-items:center;color:#ff6b00;font-weight:900}
         .mk-nav{display:grid;gap:10px}
-        .mk-nav button{background:transparent;border:0;color:#a8b0c0;text-align:left;padding:14px 16px;border-radius:14px;font-weight:800;cursor:pointer}
+        .mk-nav button{background:transparent;border:1px solid transparent;color:#a8b0c0;text-align:left;padding:14px 16px;border-radius:14px;font-weight:800;cursor:pointer}
         .mk-nav button.active,.mk-nav button:hover{background:#ff6b00;color:#fff}
+        .mk-nav-label{display:block;font-size:15px}
+        .mk-nav-desc{display:block;margin-top:4px;font-size:11px;line-height:1.35;color:#718096;font-weight:700}
+        .mk-nav button.active .mk-nav-desc,.mk-nav button:hover .mk-nav-desc{color:rgba(255,255,255,.78)}
         .mk-main{padding:30px;overflow:auto}
         .mk-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px}
         .mk-eyebrow{color:#ff6b00;font-size:12px;letter-spacing:.24em;font-weight:900;text-transform:uppercase}
@@ -996,6 +1017,9 @@ export default function MarketingKpiDashboard({
         .mk-btn{border:1px solid rgba(255,255,255,.12);background:#101827;color:#fff;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer}
         .mk-btn.active{background:#ff6b00;border-color:#ff6b00;color:#fff}
         .mk-btn.orange{background:#ff6b00;border-color:#ff6b00}
+        .mk-mobile-tabs{display:none;gap:8px;overflow:auto;padding:0 0 12px;margin:-4px 0 16px}
+        .mk-mobile-tabs button{white-space:nowrap;border:1px solid rgba(255,255,255,.12);background:#101827;color:#cbd5e1;border-radius:999px;padding:10px 13px;font-weight:900}
+        .mk-mobile-tabs button.active{background:#ff6b00;border-color:#ff6b00;color:#fff}
         .mk-date-controls{display:grid;gap:10px;justify-items:end}.mk-date-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields input{background:#101827;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:11px 12px;font:inherit}
         .mk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
         .mk-card,.mk-panel{background:#111923;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
@@ -1009,6 +1033,10 @@ export default function MarketingKpiDashboard({
         .mk-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}.mk-section-head h3{margin:0 0 6px}.mk-section-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-empty{border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.035);border-radius:16px;padding:18px;color:#94a3b8;line-height:1.7}
         .mk-line-chart{height:270px;border-bottom:1px solid rgba(255,255,255,.1);background:linear-gradient(to top,rgba(255,255,255,.05) 1px,transparent 1px);background-size:100% 48px;position:relative;margin-top:18px;overflow:hidden;border-radius:12px}
         .mk-line{position:absolute;left:5%;right:5%;height:4px;border-radius:999px;background:linear-gradient(90deg,#ff6b00,#8b5cf6);top:50%;transform:skewY(-13deg)}
+        .mk-bar-list{display:grid;gap:14px;margin-top:18px}
+        .mk-bar-head{display:flex;justify-content:space-between;gap:12px;color:#e5e7eb;font-weight:900}
+        .mk-bar-track{height:13px;background:#1f2937;border-radius:999px;overflow:hidden;margin-top:8px}
+        .mk-bar-fill{display:block;height:100%;border-radius:999px}
         .mk-donut{width:210px;height:210px;border-radius:50%;background:conic-gradient(#ff6b00 0 34%,#22c55e 34% 56%,#2563eb 56% 76%,#8b5cf6 76% 100%);display:grid;place-items:center;margin:10px auto}
         .mk-donut-inner{width:118px;height:118px;border-radius:50%;background:#111923;display:grid;place-items:center;text-align:center;font-weight:900}
         .mk-table-wrap{overflow:auto}.mk-table{width:100%;border-collapse:collapse;min-width:760px}.mk-table th,.mk-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}.mk-table th{color:#94a3b8;font-size:12px}.mk-table td{color:#e5e7eb}
@@ -1021,7 +1049,7 @@ export default function MarketingKpiDashboard({
         .mk-expiry{display:inline-flex;align-items:center;width:max-content;border-radius:999px;padding:6px 10px;margin-top:8px;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.12);color:#cbd5e1}.mk-expiry.ready{border-color:rgba(34,197,94,.35);color:#86efac;background:rgba(34,197,94,.08)}.mk-expiry.warning{border-color:rgba(245,158,11,.45);color:#fcd34d;background:rgba(245,158,11,.1)}.mk-expiry.danger{border-color:rgba(239,68,68,.45);color:#fca5a5;background:rgba(239,68,68,.1)}.mk-expiry.unknown{border-color:rgba(148,163,184,.35);color:#cbd5e1;background:rgba(148,163,184,.08)}.mk-source-tools{display:grid;gap:8px;justify-items:end}.mk-expiry-editor{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.mk-expiry-editor input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:10px 12px;font:inherit;min-width:190px}
         .mk-log-list{display:grid;gap:8px;max-height:260px;overflow:auto}.mk-log-item{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;background:rgba(0,0,0,.18);color:#cbd5e1;font-size:13px;line-height:1.55}
         .mk-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mk-input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:12px 14px;font:inherit;min-width:0}.mk-textarea{grid-column:1/-1;min-height:86px;resize:vertical}.mk-tag-row{display:flex;flex-wrap:wrap;gap:8px}.mk-tag{border:1px solid rgba(255,107,0,.35);background:transparent;color:#f8fafc;border-radius:999px;padding:8px 10px;font-weight:800;cursor:pointer}.mk-tag.active{background:#ff6b00;border-color:#ff6b00;color:#fff}.mk-alert{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#fde68a;border-radius:14px;padding:12px 14px;font-weight:800}
-        @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:flex}.mk-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
         @media(max-width:640px){.mk-dashboard{border-radius:0;border-left:0;border-right:0}.mk-main{padding:18px 14px 96px}.mk-top{display:block}.mk-actions,.mk-date-controls,.mk-date-presets,.mk-date-fields{justify-content:flex-start;justify-items:start}.mk-actions{margin-top:16px}.mk-grid,.mk-channel-grid,.mk-form-grid{grid-template-columns:1fr}.mk-card{min-height:128px}.mk-card strong{font-size:24px}.mk-donut{width:180px;height:180px}.mk-donut-inner{width:102px;height:102px}.mk-panel{padding:16px}.mk-source{display:grid;align-items:start}.mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start}.mk-table{min-width:680px}}
       `}</style>
 
@@ -1042,7 +1070,8 @@ export default function MarketingKpiDashboard({
                 type="button"
                 onClick={() => setActiveSection(item.id)}
               >
-                {item.label}
+                <span className="mk-nav-label">{item.label}</span>
+                <span className="mk-nav-desc">{item.desc}</span>
               </button>
             ))}
           </nav>
@@ -1107,8 +1136,21 @@ export default function MarketingKpiDashboard({
             </div>
           </header>
 
+          <nav className="mk-mobile-tabs" aria-label="Marketing dashboard mobile sections">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                className={activeSection === item.id ? "active" : ""}
+                type="button"
+                onClick={() => setActiveSection(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
           {showDashboard && <section className="mk-grid" aria-label="Marketing KPI overview">
-            {cards.map((card) => (
+            {overviewCards.map((card) => (
               <article className="mk-card" key={card.label}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                   <div className={`mk-dot ${card.tone}`}>{card.label.slice(0, 1)}</div>
@@ -1161,7 +1203,21 @@ export default function MarketingKpiDashboard({
 
           {showDashboard && <section className="mk-row">
             <div className="mk-panel">
-              <h3>Revenue & Spend Trend</h3>
+              <h3>Revenue vs Spend</h3>
+              <p>Real business outcome from ERP receipts compared with marketing cost.</p>
+              <div className="mk-bar-list">
+                {kpiBars.map((item) => (
+                  <div key={item.label}>
+                    <div className="mk-bar-head">
+                      <span>{item.label}</span>
+                      <span>THB {money(item.value)}</span>
+                    </div>
+                    <div className="mk-bar-track">
+                      <span className="mk-bar-fill" style={{ width: `${Math.max(2, (item.value / maxKpiValue) * 100)}%`, background: item.color }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
               <p>สรุปตัวเลขจริงตามช่วงวันที่ ไม่ใช้กราฟจำลอง</p>
               <div className="mk-channel-grid" style={{ marginTop: 18 }}>
                 <div className="mk-mini"><strong>฿{money(receiptRevenue)}</strong><div>ERP Receipt Revenue</div></div>
@@ -1174,7 +1230,22 @@ export default function MarketingKpiDashboard({
               </div>
             </div>
             <div className="mk-panel">
-              <h3>Performance Overview</h3>
+              <h3>Lead Pipeline</h3>
+              <p>How many inquiries move from lead to real closed jobs.</p>
+              <div className="mk-bar-list">
+                {leadPipelineBars.map((item) => (
+                  <div key={item.label}>
+                    <div className="mk-bar-head">
+                      <span>{item.label}</span>
+                      <span>{money(item.value)}</span>
+                    </div>
+                    <div className="mk-bar-track">
+                      <span className="mk-bar-fill" style={{ width: `${Math.max(2, (item.value / Math.max(totalLeads, closedJobs, 1)) * 100)}%`, background: item.color }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <h3 style={{ marginTop: 22 }}>Channel Mix</h3>
               <p>สัดส่วนจากข้อมูลที่มีจริง: Meta leads/clicks, CRM leads และ GA4 sessions</p>
               <div className="mk-donut" style={{ background: totalChannelMix ? undefined : "#1f2937" }}>
                 <div className="mk-donut-inner">
@@ -1231,7 +1302,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(showDashboard || activeSection === "facebook" || activeSection === "campaigns") && <section className="mk-panel" style={{ marginTop: 16 }}>
+          {(activeSection === "facebook" || activeSection === "campaigns") && <section className="mk-panel" style={{ marginTop: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
               <div>
                 <h3>Campaign Performance</h3>
@@ -1297,7 +1368,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(showDashboard || activeSection === "budget" || activeSection === "funnel") && <section className="mk-row">
+          {(activeSection === "budget" || activeSection === "funnel" || activeSection === "reports") && <section className="mk-row">
             <div className="mk-panel">
               <h3>Budget Monitoring</h3>
               <p>ติดตามงบที่ตั้งไว้และงบที่ใช้จริง</p>
@@ -1337,7 +1408,7 @@ export default function MarketingKpiDashboard({
             </div>
           </section>}
 
-          {(showDashboard || activeSection === "channels") && <section className="mk-panel" style={{ marginTop: 16 }}>
+          {(activeSection === "channels" || activeSection === "reports") && <section className="mk-panel" style={{ marginTop: 16 }}>
             <h3>Channel Performance Comparison</h3>
             <p>เปรียบเทียบจากสัญญาณจริงของแต่ละช่องทาง ไม่แบ่งรายได้ ERP แบบเดาเอง</p>
             <div className="mk-channel-grid" style={{ marginTop: 14 }}>
@@ -1387,7 +1458,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(showDashboard || activeSection === "insight" || activeSection === "leads") && <section className="mk-row">
+          {(activeSection === "insight" || activeSection === "leads" || activeSection === "reports") && <section className="mk-row">
             <div className="mk-panel">
               <h3>AI Insight</h3>
               <p>สรุปแนวทางที่ควรทำต่อจากข้อมูลปัจจุบัน</p>
@@ -1537,7 +1608,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(showDashboard || activeSection === "quotations" || activeSection === "orders" || activeSection === "products" || activeSection === "reports") && (
+          {(activeSection === "quotations" || activeSection === "orders" || activeSection === "products" || activeSection === "reports") && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
               <h3>
                 {activeSection === "quotations" ? "Quotations"
@@ -1559,7 +1630,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(showDashboard || activeSection === "insight" || activeSection === "sources") && (
+          {activeSection === "ai" && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
               <div className="mk-section-head">
                 <div>
@@ -1631,8 +1702,7 @@ export default function MarketingKpiDashboard({
                   </div>
                 </div>
               </div>
-              {activeSection !== "dashboard" && (
-                <div className="mk-table-wrap" style={{ marginTop: 16 }}>
+              <div className="mk-table-wrap" style={{ marginTop: 16 }}>
                   <table className="mk-table">
                     <thead>
                       <tr>
@@ -1660,22 +1730,19 @@ export default function MarketingKpiDashboard({
                     </tbody>
                   </table>
                 </div>
-              )}
             </section>
           )}
 
-          {(showDashboard || activeSection === "sources" || activeSection === "settings") && <section className="mk-panel" style={{ marginTop: 16 }}>
+          {(activeSection === "sources" || activeSection === "settings") && <section className="mk-panel" style={{ marginTop: 16 }}>
             <div className="mk-section-head">
               <div>
                 <h3>Data Sources</h3>
                 <p>สถานะการเชื่อมต่อข้อมูลสำหรับ Dashboard และรอบต่ออายุ API</p>
               </div>
-              {activeSection !== "dashboard" && (
-                <div className="mk-section-actions">
-                  <button className="mk-btn" type="button" onClick={() => loadMarketingSources("manual sync")}>Sync All</button>
-                  <button className="mk-btn" type="button" onClick={() => setSourceLogs([])}>Clear Logs</button>
-                </div>
-              )}
+              <div className="mk-section-actions">
+                <button className="mk-btn" type="button" onClick={() => loadMarketingSources("manual sync")}>Sync All</button>
+                <button className="mk-btn" type="button" onClick={() => setSourceLogs([])}>Clear Logs</button>
+              </div>
             </div>
             <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
               {sources.map((source) => (
@@ -1697,7 +1764,7 @@ export default function MarketingKpiDashboard({
                   </div>
                   <div className="mk-source-tools">
                     <span className={`mk-status ${source.ready ? "ready" : ""}`}>{source.ready ? "พร้อมใช้" : "รอเชื่อมต่อ"}</span>
-                    {source.expiry && activeSection !== "dashboard" && (
+                    {source.expiry && (
                       <div className="mk-expiry-editor">
                         <input
                           type="date"
@@ -1713,8 +1780,7 @@ export default function MarketingKpiDashboard({
                         />
                       </div>
                     )}
-                    {activeSection !== "dashboard" && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
                         <button className="mk-btn" type="button" onClick={() => loadMarketingSources(`sync ${source.name}`)}>Sync Now</button>
                         <button className="mk-btn" type="button" onClick={() => {
                           addSourceLog(`${source.name} connect checklist: ${source.envKeys}`);
@@ -1725,14 +1791,12 @@ export default function MarketingKpiDashboard({
                           setActiveSourceLog(source.name.includes("Facebook") ? "Meta" : source.name);
                           addSourceLog(`${source.name} logs opened`);
                         }}>View Logs</button>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-            {activeSection !== "dashboard" && (
-              <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 18 }}>
                 <div className="mk-section-head">
                   <div>
                     <h3>Sync Logs</h3>
@@ -1759,7 +1823,6 @@ export default function MarketingKpiDashboard({
                   <div className="mk-empty">ยังไม่มี log สำหรับแหล่งข้อมูลนี้ กด Sync Now หรือ Connect เพื่อเริ่มตรวจสอบ</div>
                 )}
               </div>
-            )}
           </section>}
         </main>
       </div>
