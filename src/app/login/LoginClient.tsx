@@ -44,7 +44,11 @@ export default function LoginPage() {
         boxSizing: "border-box", margin: "0 auto",
       }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <div style={{ background: "#FF6B00", color: "#fff", fontWeight: 800, fontSize: 18, padding: "6px 14px", borderRadius: 8, display: "inline-block", marginBottom: 12 }}>DW</div>
+          <img
+            src="/images/logo.png"
+            alt="Display Works Media"
+            style={{ width: 74, height: 48, objectFit: "contain", display: "block", margin: "0 auto 12px" }}
+          />
           <h1 style={{ fontSize: "20px", fontWeight: "700", color: "#fff", margin: 0 }}>Display Works Media</h1>
           <p style={{ color: "#6b7280", fontSize: "14px", marginTop: "6px" }}>เข้าสู่ระบบผู้ดูแล</p>
         </div>

@@ -1024,7 +1024,11 @@ export default function AdminPage() {
         paddingTop: "max(env(safe-area-inset-top, 0px), 0px)",
         gap: 8, flexShrink: 0, zIndex: 100,
       }}>
-        <span style={{ fontWeight: 800, fontSize: 16, color: "#FF6B00", marginRight: 4 }}>DW</span>
+        <img
+          src="/images/logo.png"
+          alt="Display Works Media"
+          style={{ width: 32, height: 28, objectFit: "contain", marginRight: 4, flexShrink: 0 }}
+        />
         <span className="hide-mobile" style={{ fontWeight: 600, fontSize: 13, color: "#fff", marginRight: 16 }}>Display Works</span>
         <div className="hide-mobile" style={{ display: "flex", gap: 4 }}>
           {["erp","cms"].map(t => (
@@ -2004,7 +2008,9 @@ function MarketingPage({ documents, showToast }: any) {
       <div className="marketing-shell-grid" style={{ display: "grid", gridTemplateColumns: "250px minmax(0,1fr)" }}>
         <aside className="marketing-sidebar" style={{ background: "rgba(7,10,13,0.92)", borderRight: "1px solid rgba(255,107,0,0.16)", padding: 22, display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 14, display: "grid", placeItems: "center", color: "#FF6B00", background: "rgba(255,107,0,0.12)", border: "1px solid rgba(255,107,0,0.35)", fontWeight: 950 }}>DW</div>
+            <div style={{ width: 48, height: 38, borderRadius: 12, display: "grid", placeItems: "center", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,107,0,0.35)", overflow: "hidden", flexShrink: 0 }}>
+              <img src="/images/logo.png" alt="Display Works Media" style={{ width: 42, height: 30, objectFit: "contain", display: "block" }} />
+            </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 950, color: "#F8FAFC", lineHeight: 1.15 }}>Display Works Media</div>
               <div style={{ fontSize: 10, color: "#FF6B00", letterSpacing: 1.3, textTransform: "uppercase" }}>Marketing KPI Dashboard</div>

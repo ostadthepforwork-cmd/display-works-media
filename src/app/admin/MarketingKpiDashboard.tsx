@@ -761,6 +761,15 @@ export default function MarketingKpiDashboard({
     { label: "Quotations", value: quotationSent, color: "#f59e0b" },
     { label: "Closed Jobs", value: closedJobs, color: "#ff6b00" },
   ];
+  const maxLeadPipeline = Math.max(...leadPipelineBars.map((item) => Number(item.value || 0)), 1);
+  const topCampaignRows = campaignRows.slice(0, 6);
+  const topAdSetRows = adSetRows.slice(0, 8);
+  const topCreativeRows = creativeRows.slice(0, 8);
+  const topAiBots = (aiCrawlers.byBot || []).slice(0, 8);
+  const topAiPages = (aiCrawlers.byPath || []).slice(0, 8);
+  const topAiIntents = (aiCrawlers.byIntent || []).slice(0, 8);
+  const topAiReferrers = (aiCrawlers.byReferrer || []).slice(0, 6);
+  const recentAiRows = (aiCrawlers.recent || []).slice(0, 12);
 
   const sources = [
     {
@@ -1001,7 +1010,8 @@ export default function MarketingKpiDashboard({
         .mk-shell{display:grid;grid-template-columns:260px 1fr;min-height:calc(100dvh - 92px)}
         .mk-sidebar{background:rgba(0,0,0,.36);border-right:1px solid rgba(255,107,0,.18);padding:26px}
         .mk-brand{display:flex;gap:14px;align-items:center;margin-bottom:28px}
-        .mk-logo{width:48px;height:48px;border-radius:16px;border:1px solid rgba(255,107,0,.6);display:grid;place-items:center;color:#ff6b00;font-weight:900}
+        .mk-logo{width:52px;height:42px;border-radius:12px;border:1px solid rgba(255,107,0,.35);display:grid;place-items:center;background:rgba(255,255,255,.04);overflow:hidden}
+        .mk-logo img{width:46px;height:34px;object-fit:contain;display:block}
         .mk-nav{display:grid;gap:10px}
         .mk-nav button{background:transparent;border:1px solid transparent;color:#a8b0c0;text-align:left;padding:14px 16px;border-radius:14px;font-weight:800;cursor:pointer}
         .mk-nav button.active,.mk-nav button:hover{background:#ff6b00;color:#fff}
@@ -1021,14 +1031,14 @@ export default function MarketingKpiDashboard({
         .mk-mobile-tabs button{white-space:nowrap;border:1px solid rgba(255,255,255,.12);background:#101827;color:#cbd5e1;border-radius:999px;padding:10px 13px;font-weight:900}
         .mk-mobile-tabs button.active{background:#ff6b00;border-color:#ff6b00;color:#fff}
         .mk-date-controls{display:grid;gap:10px;justify-items:end}.mk-date-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields input{background:#101827;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:11px 12px;font:inherit}
-        .mk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+        .mk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
         .mk-card,.mk-panel{background:#111923;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
         .mk-card{min-height:150px;display:flex;flex-direction:column;justify-content:space-between}
         .mk-card strong{font-size:26px;line-height:1;color:#fff}
         .mk-card span{color:#a8b0c0;font-size:12px}
         .mk-dot{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;font-weight:900}
         .mk-dot.green{background:#10b981}.mk-dot.blue{background:#2563eb}.mk-dot.purple{background:#8b5cf6}.mk-dot.orange{background:#ff6b00}.mk-dot.pink{background:#ec4899}.mk-dot.yellow{background:#eab308}.mk-dot.teal{background:#14b8a6}
-        .mk-row{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:16px}
+        .mk-row{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:16px;align-items:start}
         .mk-panel h3{margin:0 0 6px;font-size:20px}.mk-panel p{margin:0;color:#8b95a7;line-height:1.7}
         .mk-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}.mk-section-head h3{margin:0 0 6px}.mk-section-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-empty{border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.035);border-radius:16px;padding:18px;color:#94a3b8;line-height:1.7}
         .mk-line-chart{height:270px;border-bottom:1px solid rgba(255,255,255,.1);background:linear-gradient(to top,rgba(255,255,255,.05) 1px,transparent 1px);background-size:100% 48px;position:relative;margin-top:18px;overflow:hidden;border-radius:12px}
@@ -1039,24 +1049,26 @@ export default function MarketingKpiDashboard({
         .mk-bar-fill{display:block;height:100%;border-radius:999px}
         .mk-donut{width:210px;height:210px;border-radius:50%;background:conic-gradient(#ff6b00 0 34%,#22c55e 34% 56%,#2563eb 56% 76%,#8b5cf6 76% 100%);display:grid;place-items:center;margin:10px auto}
         .mk-donut-inner{width:118px;height:118px;border-radius:50%;background:#111923;display:grid;place-items:center;text-align:center;font-weight:900}
-        .mk-table-wrap{overflow:auto}.mk-table{width:100%;border-collapse:collapse;min-width:760px}.mk-table th,.mk-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}.mk-table th{color:#94a3b8;font-size:12px}.mk-table td{color:#e5e7eb}
+        .mk-table-wrap{overflow:auto}.mk-table-wrap.compact{max-height:560px;border-radius:14px;border:1px solid rgba(255,255,255,.06)}.mk-table-wrap.compact .mk-table th{position:sticky;top:0;background:#111923;z-index:1}.mk-table{width:100%;border-collapse:collapse;min-width:760px}.mk-table th,.mk-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.mk-table th{color:#94a3b8;font-size:12px}.mk-table td{color:#e5e7eb}
         .mk-badge{display:inline-flex;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900}
         .mk-budget{height:18px;background:#1f2937;border-radius:999px;overflow:hidden;margin:18px 0}.mk-budget span{display:block;height:100%;background:linear-gradient(90deg,#ff6b00,#22c55e)}
         .mk-funnel{display:grid;gap:10px;margin-top:16px}.mk-funnel div{border-radius:12px;padding:12px 16px;color:#fff;font-weight:900;display:flex;justify-content:space-between}
         .mk-channel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mk-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px}
+        .mk-decision-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.mk-decision{border:1px solid rgba(255,107,0,.18);background:linear-gradient(135deg,rgba(255,107,0,.12),rgba(255,255,255,.035));border-radius:16px;padding:16px}.mk-decision strong{display:block;margin-bottom:6px}.mk-decision span{color:#a8b0c0;font-size:13px;line-height:1.55}
+        .mk-scroll-list{display:grid;gap:10px;max-height:520px;overflow:auto;padding-right:4px}.mk-source.compact{padding:13px 14px}.mk-source.compact strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-meter-grid{display:grid;gap:12px}.mk-meter-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(160px,2fr) auto;gap:12px;align-items:center;color:#cbd5e1}.mk-meter-track{height:12px;background:#1f2937;border-radius:999px;overflow:hidden}.mk-meter-track span{display:block;height:100%;border-radius:999px}
         .mk-source{display:flex;justify-content:space-between;gap:16px;align-items:center;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;background:rgba(0,0,0,.18)}
         .mk-status{font-weight:900;color:#f59e0b}.mk-status.ready{color:#22c55e}
         .mk-expiry{display:inline-flex;align-items:center;width:max-content;border-radius:999px;padding:6px 10px;margin-top:8px;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.12);color:#cbd5e1}.mk-expiry.ready{border-color:rgba(34,197,94,.35);color:#86efac;background:rgba(34,197,94,.08)}.mk-expiry.warning{border-color:rgba(245,158,11,.45);color:#fcd34d;background:rgba(245,158,11,.1)}.mk-expiry.danger{border-color:rgba(239,68,68,.45);color:#fca5a5;background:rgba(239,68,68,.1)}.mk-expiry.unknown{border-color:rgba(148,163,184,.35);color:#cbd5e1;background:rgba(148,163,184,.08)}.mk-source-tools{display:grid;gap:8px;justify-items:end}.mk-expiry-editor{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.mk-expiry-editor input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:10px 12px;font:inherit;min-width:190px}
         .mk-log-list{display:grid;gap:8px;max-height:260px;overflow:auto}.mk-log-item{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;background:rgba(0,0,0,.18);color:#cbd5e1;font-size:13px;line-height:1.55}
         .mk-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mk-input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:12px 14px;font:inherit;min-width:0}.mk-textarea{grid-column:1/-1;min-height:86px;resize:vertical}.mk-tag-row{display:flex;flex-wrap:wrap;gap:8px}.mk-tag{border:1px solid rgba(255,107,0,.35);background:transparent;color:#f8fafc;border-radius:999px;padding:8px 10px;font-weight:800;cursor:pointer}.mk-tag.active{background:#ff6b00;border-color:#ff6b00;color:#fff}.mk-alert{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#fde68a;border-radius:14px;padding:12px 14px;font-weight:800}
-        @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:flex}.mk-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:640px){.mk-dashboard{border-radius:0;border-left:0;border-right:0}.mk-main{padding:18px 14px 96px}.mk-top{display:block}.mk-actions,.mk-date-controls,.mk-date-presets,.mk-date-fields{justify-content:flex-start;justify-items:start}.mk-actions{margin-top:16px}.mk-grid,.mk-channel-grid,.mk-form-grid{grid-template-columns:1fr}.mk-card{min-height:128px}.mk-card strong{font-size:24px}.mk-donut{width:180px;height:180px}.mk-donut-inner{width:102px;height:102px}.mk-panel{padding:16px}.mk-source{display:grid;align-items:start}.mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start}.mk-table{min-width:680px}}
+        @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:flex}.mk-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid,.mk-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:640px){.mk-dashboard{border-radius:0;border-left:0;border-right:0}.mk-main{padding:18px 14px 96px}.mk-top{display:block}.mk-actions,.mk-date-controls,.mk-date-presets,.mk-date-fields{justify-content:flex-start;justify-items:start}.mk-actions{margin-top:16px}.mk-grid,.mk-channel-grid,.mk-form-grid,.mk-decision-grid{grid-template-columns:1fr}.mk-card{min-height:128px}.mk-card strong{font-size:24px}.mk-donut{width:180px;height:180px}.mk-donut-inner{width:102px;height:102px}.mk-panel{padding:16px}.mk-source{display:grid;align-items:start}.mk-meter-row{grid-template-columns:1fr}.mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start}.mk-table{min-width:680px}}
       `}</style>
 
       <div className="mk-shell">
         <aside className="mk-sidebar">
           <div className="mk-brand">
-            <div className="mk-logo">DW</div>
+            <div className="mk-logo"><img src="/images/logo.png" alt="Display Works Media" /></div>
             <div>
               <strong>Display Works Media</strong>
               <div className="mk-eyebrow" style={{ letterSpacing: ".12em", fontSize: 10 }}>Marketing KPI</div>
@@ -1201,7 +1213,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {showDashboard && <section className="mk-row">
+          {(showDashboard || activeSection === "orders") && <section className="mk-row">
             <div className="mk-panel">
               <h3>Revenue vs Spend</h3>
               <p>Real business outcome from ERP receipts compared with marketing cost.</p>
@@ -1240,7 +1252,7 @@ export default function MarketingKpiDashboard({
                       <span>{money(item.value)}</span>
                     </div>
                     <div className="mk-bar-track">
-                      <span className="mk-bar-fill" style={{ width: `${Math.max(2, (item.value / Math.max(totalLeads, closedJobs, 1)) * 100)}%`, background: item.color }} />
+                      <span className="mk-bar-fill" style={{ width: `${Math.max(2, (item.value / maxLeadPipeline) * 100)}%`, background: item.color }} />
                     </div>
                   </div>
                 ))}
@@ -1308,15 +1320,26 @@ export default function MarketingKpiDashboard({
                 <h3>Campaign Performance</h3>
                 <p>ติดตามงบ Leads Conversion รายได้ และ ROAS ของแต่ละแคมเปญ</p>
               </div>
-              <span className="mk-badge" style={{ background: "rgba(34,197,94,.15)", color: "#22c55e" }}>{campaignRows.length} campaigns</span>
+              <span className="mk-badge" style={{ background: "rgba(34,197,94,.15)", color: "#22c55e" }}>Top {topCampaignRows.length} / {campaignRows.length} campaigns</span>
             </div>
-            <div className="mk-table-wrap">
+            <div className="mk-meter-grid" style={{ marginBottom: 16 }}>
+              {topCampaignRows.slice(0, 5).map((row: Campaign) => (
+                <div className="mk-meter-row" key={`meter-${row.id}`}>
+                  <strong>{row.name}</strong>
+                  <div className="mk-meter-track">
+                    <span style={{ width: `${Math.max(3, (row.spend / Math.max(marketingSpend, 1)) * 100)}%`, background: row.revenue > 0 ? "#22c55e" : "#ff6b00" }} />
+                  </div>
+                  <span>Spend THB {money(row.spend)} / Leads {money(row.leads)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mk-table-wrap compact">
               <table className="mk-table">
                 <thead>
                   <tr><th>Campaign</th><th>Status</th><th>Spend</th><th>Reach</th><th>Clicks</th><th>Leads</th><th>Meta Revenue</th><th>CPL</th><th>ERP Mapped Revenue</th><th>Action</th></tr>
                 </thead>
                 <tbody>
-                  {campaignRows.map((row: Campaign) => {
+                  {topCampaignRows.map((row: Campaign) => {
                     const richRow = facebookRows.find((item) => item.id === row.id);
                     const rowCpl = row.leads ? row.spend / row.leads : 0;
                     return (
@@ -1344,10 +1367,10 @@ export default function MarketingKpiDashboard({
               <div className="mk-panel">
                 <h3>Ad Set Performance</h3>
                 <p>รอเชื่อม ad set id จาก Meta API เพื่อดู audience และต้นทุนต่อกลุ่มเป้าหมาย</p>
-                <div className="mk-table-wrap" style={{ marginTop: 12 }}>
+                <div className="mk-table-wrap compact" style={{ marginTop: 12 }}>
                   <table className="mk-table">
                     <thead><tr><th>Ad Set</th><th>Campaign / Audience</th><th>Spend</th><th>Leads</th><th>CPL</th><th>Qualified</th><th>Closed</th><th>Revenue</th></tr></thead>
-                    <tbody>{adSetRows.map((row) => (
+                    <tbody>{topAdSetRows.map((row) => (
                       <tr key={row.adSetName}><td>{row.adSetName}</td><td>{row.campaign}<div style={{ color: "#8b95a7", fontSize: 12 }}>{row.audience}</div></td><td>฿{money(row.spend)}</td><td>{money(row.leads)}</td><td>{row.cpl ? `฿${money(row.cpl)}` : "-"}</td><td>{money(row.qualifiedLeads)}</td><td>{money(row.closedJobs)}</td><td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td></tr>
                     ))}</tbody>
                   </table>
@@ -1356,10 +1379,10 @@ export default function MarketingKpiDashboard({
               <div className="mk-panel">
                 <h3>Creative Performance</h3>
                 <p>ดูว่า Artwork / Hook แบบไหนควรทำซ้ำ</p>
-                <div className="mk-table-wrap" style={{ marginTop: 12 }}>
+                <div className="mk-table-wrap compact" style={{ marginTop: 12 }}>
                   <table className="mk-table">
                     <thead><tr><th>Creative</th><th>Type</th><th>Hook</th><th>Product</th><th>Spend</th><th>Leads</th><th>Revenue</th><th>ควรทำอะไรต่อ</th></tr></thead>
-                    <tbody>{creativeRows.map((row) => (
+                    <tbody>{topCreativeRows.map((row) => (
                       <tr key={row.creativeName}><td>{row.creativeName}</td><td>{row.creativeType}</td><td>{row.hook}</td><td>{row.product}</td><td>฿{money(row.spend)}</td><td>{money(row.leads)}</td><td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td><td>{row.advice || row.note}</td></tr>
                     ))}</tbody>
                   </table>
@@ -1650,9 +1673,9 @@ export default function MarketingKpiDashboard({
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h3>Top AI Bots</h3>
-                  <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
-                    {(aiCrawlers.byBot || []).length ? aiCrawlers.byBot.map((bot: any) => (
-                      <div className="mk-source" key={bot.name}>
+                  <div className="mk-scroll-list" style={{ marginTop: 12 }}>
+                    {topAiBots.length ? topAiBots.map((bot: any) => (
+                      <div className="mk-source compact" key={bot.name}>
                         <strong>{bot.name}</strong>
                         <span className="mk-badge">{money(Number(bot.count || 0))} ครั้ง</span>
                       </div>
@@ -1661,9 +1684,9 @@ export default function MarketingKpiDashboard({
                 </div>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h3>Top Pages</h3>
-                  <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
-                    {(aiCrawlers.byPath || []).length ? aiCrawlers.byPath.map((page: any) => (
-                      <div className="mk-source" key={page.path || page.name || "Unknown"}>
+                  <div className="mk-scroll-list" style={{ marginTop: 12 }}>
+                    {topAiPages.length ? topAiPages.map((page: any) => (
+                      <div className="mk-source compact" key={page.path || page.name || "Unknown"}>
                         <strong>{page.path || page.name || "Unknown"}</strong>
                         <span className="mk-badge">{money(Number(page.count || 0))} ครั้ง</span>
                       </div>
@@ -1675,9 +1698,9 @@ export default function MarketingKpiDashboard({
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h3>Likely AI Intent</h3>
                   <p>เป็นการประเมินจากหน้าที่ bot เข้าอ่าน ไม่ใช่ prompt จริงของผู้ใช้</p>
-                  <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
-                    {(aiCrawlers.byIntent || []).length ? aiCrawlers.byIntent.map((item: any) => (
-                      <div className="mk-source" key={item.intent}>
+                  <div className="mk-scroll-list" style={{ marginTop: 12 }}>
+                    {topAiIntents.length ? topAiIntents.map((item: any) => (
+                      <div className="mk-source compact" key={item.intent}>
                         <div>
                           <strong>{item.intent}</strong>
                           <div style={{ color: "#8b95a7", fontSize: 12, marginTop: 4 }}>
@@ -1692,9 +1715,9 @@ export default function MarketingKpiDashboard({
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h3>Referrer / Source Hints</h3>
                   <p>แสดงเฉพาะเมื่อ crawler ส่ง referrer หรือ query/UTM มาด้วย</p>
-                  <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
-                    {(aiCrawlers.byReferrer || []).length ? aiCrawlers.byReferrer.map((item: any) => (
-                      <div className="mk-source" key={item.referrer}>
+                  <div className="mk-scroll-list" style={{ marginTop: 12 }}>
+                    {topAiReferrers.length ? topAiReferrers.map((item: any) => (
+                      <div className="mk-source compact" key={item.referrer}>
                         <strong>{item.referrer}</strong>
                         <span className="mk-badge">{money(Number(item.count || 0))} ครั้ง</span>
                       </div>
@@ -1702,7 +1725,7 @@ export default function MarketingKpiDashboard({
                   </div>
                 </div>
               </div>
-              <div className="mk-table-wrap" style={{ marginTop: 16 }}>
+              <div className="mk-table-wrap compact" style={{ marginTop: 16 }}>
                   <table className="mk-table">
                     <thead>
                       <tr>
@@ -1716,7 +1739,7 @@ export default function MarketingKpiDashboard({
                       </tr>
                     </thead>
                     <tbody>
-                      {(aiCrawlers.recent || []).map((visit: any) => (
+                      {recentAiRows.map((visit: any) => (
                         <tr key={visit.id}>
                           <td>{visit.bot_name}</td>
                           <td>{visit.path}</td>
