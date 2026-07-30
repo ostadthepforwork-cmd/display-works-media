@@ -69,6 +69,11 @@ type ApiExpiryConfig = {
   note: string;
 };
 
+type TrendPoint = {
+  date: string;
+  value: number;
+};
+
 const storageKeys = {
   campaigns: "dwm_marketing_campaigns_v3",
   leads: "dwm_marketing_leads_v3",
@@ -994,6 +999,55 @@ export default function MarketingKpiDashboard({
     { label: "Closed Won", value: closedLeadCount, color: "#ff6b00" },
   ] : [];
 
+  const trendLength = dateRangeMode === "7d" ? 7 : 30;
+  const trendEnd = endDate || todayInput();
+  const trendDates = Array.from({ length: trendLength }, (_, index) => {
+    const date = new Date(`${trendEnd}T00:00:00`);
+    date.setDate(date.getDate() - (trendLength - 1 - index));
+    return dateInputValue(date);
+  });
+  const trendMap = (rows: any[], dateFn: (row: any) => unknown, valueFn: (row: any) => number): TrendPoint[] => {
+    const values = new Map(trendDates.map((date) => [date, 0]));
+    rows.forEach((row) => {
+      const date = safeDateValue(dateFn(row));
+      if (!values.has(date)) return;
+      values.set(date, (values.get(date) || 0) + Number(valueFn(row) || 0));
+    });
+    return trendDates.map((date) => ({ date, value: values.get(date) || 0 }));
+  };
+  const trendTotal = (points: TrendPoint[]) => points.reduce((sum, point) => sum + Number(point.value || 0), 0);
+  const trendDelta = (points: TrendPoint[]) => {
+    const splitAt = Math.floor(points.length / 2);
+    const previous = trendTotal(points.slice(0, splitAt));
+    const current = trendTotal(points.slice(splitAt));
+    if (previous <= 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
+  const revenueTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, (doc) => documentTotal(doc));
+  const profitTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, (doc) => documentTotal(doc) - documentCost(doc));
+  const closedJobTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, () => 1);
+  const leadTrend = trendMap(filteredLeads, (lead) => lead.date, () => 1);
+  const quoteTrend = trendMap(
+    filteredDocuments.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled"),
+    (doc) => doc?.date || doc?.createdAt || doc?.created_at,
+    () => 1,
+  );
+  const aiVisitTrend = trendMap(Array.isArray(aiCrawlers.recent) ? aiCrawlers.recent : [], (row) => row.created_at || row.createdAt || row.time, () => 1);
+  const growthPanels = [
+    { title: "Revenue Growth", value: `THB ${money(trendTotal(revenueTrend))}`, detail: "ERP receipt revenue by day", color: "#ff6b00", points: revenueTrend },
+    { title: "Profit Growth", value: `THB ${money(trendTotal(profitTrend))}`, detail: "Revenue minus real cost", color: "#22c55e", points: profitTrend },
+    { title: "Lead Growth", value: money(trendTotal(leadTrend)), detail: "CRM leads by day", color: "#2563eb", points: leadTrend },
+    { title: "Closed Jobs Growth", value: money(trendTotal(closedJobTrend)), detail: "Receipt count by day", color: "#f59e0b", points: closedJobTrend },
+  ];
+  const sectionGrowthPanels =
+    activeSection === "orders"
+      ? [growthPanels[0], growthPanels[1], growthPanels[3]]
+      : activeSection === "leads"
+        ? [growthPanels[2], { title: "Quotation Growth", value: money(trendTotal(quoteTrend)), detail: "ERP quotation count by day", color: "#8b5cf6", points: quoteTrend }, growthPanels[3]]
+        : activeSection === "ai"
+          ? [{ title: "AI Crawl Growth", value: money(trendTotal(aiVisitTrend)), detail: "Recent AI/Search bot visits", color: "#14b8a6", points: aiVisitTrend }]
+          : [];
+
   const navItems: { id: MarketingSection; label: string; desc: string }[] = [
     { id: "dashboard", label: "Overview", desc: "Main KPI summary" },
     { id: "facebook", label: "Ads Performance", desc: "Meta spend, campaigns, creatives" },
@@ -1036,6 +1090,16 @@ export default function MarketingKpiDashboard({
         .mk-mobile-tabs button.active{background:#ff6b00;border-color:#ff6b00;color:#fff}
         .mk-date-controls{display:grid;gap:10px;justify-items:end}.mk-date-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields input{background:#101827;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:11px 12px;font:inherit}
         .mk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
+        .mk-growth-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:16px}
+        .mk-growth-card{background:linear-gradient(180deg,rgba(17,25,35,.98),rgba(10,16,24,.98));border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:18px;min-width:0}
+        .mk-growth-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+        .mk-growth-head span{color:#94a3b8;font-size:12px;line-height:1.55}
+        .mk-growth-value{display:block;margin-top:8px;font-size:24px;line-height:1;font-weight:900;color:#fff}
+        .mk-growth-delta{border-radius:999px;padding:6px 9px;font-size:12px;font-weight:900;white-space:nowrap;background:rgba(34,197,94,.1);color:#86efac}
+        .mk-growth-delta.down{background:rgba(239,68,68,.1);color:#fca5a5}
+        .mk-spark-bars{height:88px;display:flex;align-items:flex-end;gap:5px;margin-top:16px;padding:8px 0 0;border-bottom:1px solid rgba(255,255,255,.1);overflow:hidden}
+        .mk-spark-bars span{flex:1;min-width:4px;border-radius:999px 999px 0 0;background:linear-gradient(180deg,var(--bar-color),rgba(255,255,255,.14));box-shadow:0 -8px 20px color-mix(in srgb,var(--bar-color) 25%,transparent)}
+        .mk-spark-caption{display:flex;justify-content:space-between;gap:10px;margin-top:8px;color:#64748b;font-size:11px}
         .mk-card,.mk-panel{background:#111923;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
         .mk-card{min-height:150px;display:flex;flex-direction:column;justify-content:space-between}
         .mk-card strong{font-size:26px;line-height:1;color:#fff}
@@ -1053,6 +1117,7 @@ export default function MarketingKpiDashboard({
         .mk-bar-fill{display:block;height:100%;border-radius:999px}
         .mk-donut{width:210px;height:210px;border-radius:50%;background:conic-gradient(#ff6b00 0 34%,#22c55e 34% 56%,#2563eb 56% 76%,#8b5cf6 76% 100%);display:grid;place-items:center;margin:10px auto}
         .mk-donut-inner{width:118px;height:118px;border-radius:50%;background:#111923;display:grid;place-items:center;text-align:center;font-weight:900}
+        .mk-split-chart{display:grid;grid-template-columns:minmax(140px,170px) minmax(0,1fr);gap:18px;align-items:center;margin-top:14px}.mk-split-chart .mk-donut{width:168px;height:168px;margin:0 auto}.mk-split-chart .mk-donut-inner{width:96px;height:96px}.mk-split-list{display:grid;gap:12px;min-width:0}.mk-split-list span,.mk-split-list strong{min-width:0}
         .mk-table-wrap{overflow:auto}.mk-table-wrap.compact{max-height:560px;border-radius:14px;border:1px solid rgba(255,255,255,.06)}.mk-table-wrap.compact .mk-table th{position:sticky;top:0;background:#111923;z-index:1}.mk-table{width:100%;border-collapse:collapse;min-width:760px}.mk-table th,.mk-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.mk-table th{color:#94a3b8;font-size:12px}.mk-table td{color:#e5e7eb}
         .mk-badge{display:inline-flex;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900}
         .mk-budget{height:18px;background:#1f2937;border-radius:999px;overflow:hidden;margin:18px 0}.mk-budget span{display:block;height:100%;background:linear-gradient(90deg,#ff6b00,#22c55e)}
@@ -1067,8 +1132,8 @@ export default function MarketingKpiDashboard({
         .mk-expiry{display:inline-flex;align-items:center;width:max-content;border-radius:999px;padding:6px 10px;margin-top:8px;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.12);color:#cbd5e1}.mk-expiry.ready{border-color:rgba(34,197,94,.35);color:#86efac;background:rgba(34,197,94,.08)}.mk-expiry.warning{border-color:rgba(245,158,11,.45);color:#fcd34d;background:rgba(245,158,11,.1)}.mk-expiry.danger{border-color:rgba(239,68,68,.45);color:#fca5a5;background:rgba(239,68,68,.1)}.mk-expiry.unknown{border-color:rgba(148,163,184,.35);color:#cbd5e1;background:rgba(148,163,184,.08)}.mk-source-tools{display:grid;gap:8px;justify-items:end}.mk-expiry-editor{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.mk-expiry-editor input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:10px 12px;font:inherit;min-width:190px}
         .mk-log-list{display:grid;gap:8px;max-height:260px;overflow:auto}.mk-log-item{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;background:rgba(0,0,0,.18);color:#cbd5e1;font-size:13px;line-height:1.55}
         .mk-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mk-input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:12px 14px;font:inherit;min-width:0}.mk-textarea{grid-column:1/-1;min-height:86px;resize:vertical}.mk-tag-row{display:flex;flex-wrap:wrap;gap:8px}.mk-tag{border:1px solid rgba(255,107,0,.35);background:transparent;color:#f8fafc;border-radius:999px;padding:8px 10px;font-weight:800;cursor:pointer}.mk-tag.active{background:#ff6b00;border-color:#ff6b00;color:#fff}.mk-alert{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#fde68a;border-radius:14px;padding:12px 14px;font-weight:800}
-        @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:flex}.mk-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid,.mk-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:640px){.mk-dashboard{border-radius:0;border-left:0;border-right:0}.mk-main{padding:18px 14px 96px}.mk-top{display:block}.mk-actions,.mk-date-controls,.mk-date-presets,.mk-date-fields{justify-content:flex-start;justify-items:start}.mk-actions{margin-top:16px}.mk-grid,.mk-channel-grid,.mk-form-grid,.mk-decision-grid{grid-template-columns:1fr}.mk-card{min-height:128px}.mk-card strong{font-size:24px}.mk-donut{width:180px;height:180px}.mk-donut-inner{width:102px;height:102px}.mk-panel{padding:16px}.mk-source{display:grid;align-items:start}.mk-meter-row{grid-template-columns:1fr}.mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start}.mk-table{min-width:680px}}
+        @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:flex}.mk-grid,.mk-growth-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid,.mk-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:640px){.mk-dashboard{border-radius:0;border-left:0;border-right:0}.mk-main{padding:18px 14px 96px}.mk-top{display:block}.mk-actions,.mk-date-controls,.mk-date-presets,.mk-date-fields{justify-content:flex-start;justify-items:start}.mk-actions{margin-top:16px}.mk-grid,.mk-growth-grid,.mk-channel-grid,.mk-form-grid,.mk-decision-grid,.mk-split-chart{grid-template-columns:1fr}.mk-card{min-height:128px}.mk-card strong{font-size:24px}.mk-growth-value{font-size:22px}.mk-spark-bars{height:74px}.mk-donut{width:180px;height:180px}.mk-donut-inner{width:102px;height:102px}.mk-split-chart .mk-donut{width:160px;height:160px}.mk-split-chart .mk-donut-inner{width:92px;height:92px}.mk-panel{padding:16px}.mk-source{display:grid;align-items:start}.mk-meter-row{grid-template-columns:1fr}.mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start}.mk-table{min-width:680px}}
       `}</style>
 
       <div className="mk-shell">
@@ -1184,6 +1249,40 @@ export default function MarketingKpiDashboard({
           </section>}
 
           {showDashboard && (
+            <section className="mk-growth-grid" aria-label="Growth trends">
+              {growthPanels.map((panel) => {
+                const maxValue = Math.max(1, ...panel.points.map((point) => Math.max(0, Number(point.value || 0))));
+                const delta = trendDelta(panel.points);
+                return (
+                  <article className="mk-growth-card" key={panel.title}>
+                    <div className="mk-growth-head">
+                      <div>
+                        <strong>{panel.title}</strong>
+                        <span style={{ display: "block", marginTop: 4 }}>{panel.detail}</span>
+                        <span className="mk-growth-value">{panel.value}</span>
+                      </div>
+                      <span className={`mk-growth-delta ${delta < 0 ? "down" : ""}`}>{delta >= 0 ? "+" : ""}{percent(delta)}</span>
+                    </div>
+                    <div className="mk-spark-bars">
+                      {panel.points.map((point) => (
+                        <span
+                          key={`${panel.title}-${point.date}`}
+                          title={`${point.date}: ${money(point.value)}`}
+                          style={{
+                            height: `${Math.max(4, (Math.max(0, point.value) / maxValue) * 100)}%`,
+                            ["--bar-color" as any]: panel.color,
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <div className="mk-spark-caption"><span>{panel.points[0]?.date || "-"}</span><span>{panel.points.at(-1)?.date || "-"}</span></div>
+                  </article>
+                );
+              })}
+            </section>
+          )}
+
+          {showDashboard && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
               <div className="mk-section-head">
                 <div>
@@ -1216,6 +1315,40 @@ export default function MarketingKpiDashboard({
               <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
                 {alerts.map((alert) => <div className="mk-alert" key={alert}>{alert}</div>)}
               </div>
+            </section>
+          )}
+
+          {!showDashboard && sectionGrowthPanels.length > 0 && (
+            <section className="mk-growth-grid" aria-label="Section growth trends">
+              {sectionGrowthPanels.map((panel) => {
+                const maxValue = Math.max(1, ...panel.points.map((point) => Math.max(0, Number(point.value || 0))));
+                const delta = trendDelta(panel.points);
+                return (
+                  <article className="mk-growth-card" key={panel.title}>
+                    <div className="mk-growth-head">
+                      <div>
+                        <strong>{panel.title}</strong>
+                        <span style={{ display: "block", marginTop: 4 }}>{panel.detail}</span>
+                        <span className="mk-growth-value">{panel.value}</span>
+                      </div>
+                      <span className={`mk-growth-delta ${delta < 0 ? "down" : ""}`}>{delta >= 0 ? "+" : ""}{percent(delta)}</span>
+                    </div>
+                    <div className="mk-spark-bars">
+                      {panel.points.map((point) => (
+                        <span
+                          key={`${panel.title}-${point.date}`}
+                          title={`${point.date}: ${money(point.value)}`}
+                          style={{
+                            height: `${Math.max(4, (Math.max(0, point.value) / maxValue) * 100)}%`,
+                            ["--bar-color" as any]: panel.color,
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <div className="mk-spark-caption"><span>{panel.points[0]?.date || "-"}</span><span>{panel.points.at(-1)?.date || "-"}</span></div>
+                  </article>
+                );
+              })}
             </section>
           )}
 
@@ -1554,11 +1687,11 @@ export default function MarketingKpiDashboard({
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h3>ลูกค้าเจอเราจากไหน</h3>
                   <p>อ้างอิงจาก Lead Source ในเอกสาร ERP และยอดขายจริงจากใบเสร็จ</p>
-                  <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: 16, alignItems: "center", marginTop: 14 }}>
+                  <div className="mk-split-chart">
                     <div className="mk-donut" style={{ background: `conic-gradient(${donutStops(customerSourceRows.map((row) => ({ ...row, value: row.customers || row.docs })))})` }}>
                       <div className="mk-donut-inner"><div><div style={{ color: "#94a3b8", fontSize: 12 }}>Channels</div><strong>{customerSourceRows.length}</strong></div></div>
                     </div>
-                    <div style={{ display: "grid", gap: 12 }}>
+                    <div className="mk-split-list">
                       {customerSourceRows.length ? customerSourceRows.slice(0, 6).map((row, index) => (
                         <div key={row.label}>
                           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontWeight: 900 }}>
