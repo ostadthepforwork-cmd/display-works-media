@@ -1088,7 +1088,7 @@ export default function AdminPage() {
                   totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
                   docCounts={docCounts} setPage={setErpPage} />
               )}
-              {erpPage === "customers" && <CustomerPage customers={customers} setCustomers={setCustomers} showToast={showToast} />}
+              {erpPage === "customers" && <CustomerPage customers={customers} setCustomers={setCustomers} documents={documents} products={catalogProducts} showToast={showToast} />}
               {erpPage === "products" && <ProductPage products={products} setProducts={setProducts} suppliers={suppliers} showToast={showToast} />}
               {erpPage === "suppliers" && <SupplierPage suppliers={suppliers} setSuppliers={setSuppliers} showToast={showToast} />}
               {erpPage === "company" && <CompanyPage company={company} setCompany={setCompany} showToast={showToast} />}
@@ -2798,7 +2798,137 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
 // ============================================================
 // CUSTOMER PAGE
 // ============================================================
-function CustomerPage({ customers, setCustomers, showToast }: any) {
+function CustomerInsightDashboard({ customers = [], documents = [], products = [] }: any) {
+  const activeDocs = (documents || []).filter((doc: any) => !doc.deleted);
+  const salesDocs = reportingDocuments(activeDocs);
+  const salesDocIds = new Set(salesDocs.map((doc: any) => String(doc.id)));
+  const sumBy = (rows: any[], keyFn: (row: any) => string, valueFn: (row: any) => number = () => 1) => {
+    const map = new Map<string, number>();
+    rows.forEach((row: any) => {
+      const key = keyFn(row) || "ไม่ระบุ";
+      map.set(key, (map.get(key) || 0) + valueFn(row));
+    });
+    return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+  };
+  const sourceRows = (() => {
+    const map = new Map<string, { label: string; customerIds: Set<string>; docs: number; revenue: number; profit: number }>();
+    activeDocs.forEach((doc: any) => {
+      const label = doc.leadSource || "ไม่ระบุ";
+      const entry = map.get(label) || { label, customerIds: new Set<string>(), docs: 0, revenue: 0, profit: 0 };
+      if (doc.customerId) entry.customerIds.add(String(doc.customerId));
+      entry.docs += 1;
+      if (salesDocIds.has(String(doc.id))) {
+        const totals = calcDocTotal(doc);
+        const cost = (doc.items || []).reduce((sum: number, item: any) => sum + lineCost(item, fallbackItemCost(products, item)), 0);
+        entry.revenue += totals.total;
+        entry.profit += totals.total - cost;
+      }
+      map.set(label, entry);
+    });
+    return [...map.values()]
+      .map((entry) => ({ ...entry, customers: entry.customerIds.size }))
+      .sort((a, b) => b.customers - a.customers || b.docs - a.docs);
+  })();
+  const segmentRows = sumBy(customers, (customer: any) => customer.customerSegment || "ไม่ระบุ");
+  const businessRows = sumBy(customers, (customer: any) => customer.businessType || "ไม่ระบุ").slice(0, 8);
+  const productRows = (() => {
+    const map = new Map<string, { label: string; jobs: number; qty: number; revenue: number; profit: number }>();
+    activeDocs.forEach((doc: any) => {
+      (doc.items || []).forEach((item: any) => {
+        const label = item.name || "ไม่ระบุสินค้า/บริการ";
+        const entry = map.get(label) || { label, jobs: 0, qty: 0, revenue: 0, profit: 0 };
+        const revenue = lineAmount(item);
+        const cost = lineCost(item, fallbackItemCost(products, item));
+        entry.jobs += 1;
+        entry.qty += Number(item.qty || 0);
+        entry.revenue += revenue;
+        entry.profit += revenue - cost;
+        map.set(label, entry);
+      });
+    });
+    return [...map.values()].sort((a, b) => b.jobs - a.jobs || b.revenue - a.revenue).slice(0, 8);
+  })();
+  const repeatCustomers = customers.filter((customer: any) =>
+    activeDocs.filter((doc: any) => String(doc.customerId || "") === String(customer.id)).length > 1
+  ).length;
+  const totalRevenue = salesDocs.reduce((sum: number, doc: any) => sum + calcDocTotal(doc).total, 0);
+  const totalProfit = salesDocs.reduce((sum: number, doc: any) => {
+    const totals = calcDocTotal(doc);
+    const cost = (doc.items || []).reduce((itemSum: number, item: any) => itemSum + lineCost(item, fallbackItemCost(products, item)), 0);
+    return sum + totals.total - cost;
+  }, 0);
+  const max = (rows: any[], key = "value") => Math.max(1, ...rows.map((row: any) => Number(row[key] || 0)));
+  const cardStyle = { background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 16 } as const;
+  const statStyle = { background: "linear-gradient(135deg,#141A24,#10151F)", border: "1px solid rgba(255,107,0,0.20)", borderRadius: 14, padding: "14px 16px" } as const;
+  const Bar = ({ pct, color = "#FF6B00" }: any) => (
+    <div style={{ height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 999, overflow: "hidden", marginTop: 8 }}>
+      <div style={{ height: "100%", width: `${Math.max(3, Math.min(100, pct))}%`, background: color, borderRadius: 999 }} />
+    </div>
+  );
+  return (
+    <div style={{ display: "grid", gap: 14, marginBottom: 22 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
+        <div style={statStyle}><div style={{ color: "#9CA3AF", fontSize: 12 }}>ลูกค้าทั้งหมด</div><div style={{ color: "#F8FAFC", fontSize: 26, fontWeight: 900 }}>{customers.length}</div></div>
+        <div style={statStyle}><div style={{ color: "#9CA3AF", fontSize: 12 }}>ลูกค้าสั่งซ้ำ</div><div style={{ color: "#10B981", fontSize: 26, fontWeight: 900 }}>{repeatCustomers}</div></div>
+        <div style={statStyle}><div style={{ color: "#9CA3AF", fontSize: 12 }}>ยอดขายจากใบเสร็จ</div><div style={{ color: "#F8FAFC", fontSize: 24, fontWeight: 900 }}>฿{fmtMoney(totalRevenue)}</div></div>
+        <div style={statStyle}><div style={{ color: "#9CA3AF", fontSize: 12 }}>กำไรโดยประมาณ</div><div style={{ color: "#10B981", fontSize: 24, fontWeight: 900 }}>฿{fmtMoney(totalProfit)}</div></div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14 }}>
+        <div style={cardStyle}>
+          <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>ลูกค้าเจอเราจากไหน</h3>
+          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 12 }}>อ้างอิงจาก Lead Source ในเอกสาร ERP</p>
+          {sourceRows.length === 0 ? <div style={{ color: "#6B7280", fontSize: 13 }}>ยังไม่มีข้อมูลแหล่งที่มา</div> : sourceRows.slice(0, 6).map((row) => (
+            <div key={row.label} style={{ padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontWeight: 800 }}>
+                <span>{row.label}</span>
+                <span style={{ color: "#FF6B00" }}>{row.customers || row.docs} ราย</span>
+              </div>
+              <div style={{ color: "#94A3B8", fontSize: 12, marginTop: 3 }}>เอกสาร {row.docs} ใบ · ยอดขาย ฿{fmtMoney(row.revenue)} · กำไร ฿{fmtMoney(row.profit)}</div>
+              <Bar pct={(row.customers || row.docs) / max(sourceRows, "customers") * 100} />
+            </div>
+          ))}
+        </div>
+        <div style={cardStyle}>
+          <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 12 }}>B2B / B2C</h3>
+          {segmentRows.map((row) => (
+            <div key={row.label} style={{ marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800 }}><span>{row.label}</span><span>{row.value} ราย</span></div>
+              <Bar pct={row.value / max(segmentRows) * 100} color={row.label === "B2B" ? "#FF6B00" : "#3B82F6"} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14 }}>
+        <div style={cardStyle}>
+          <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 12 }}>ประเภทธุรกิจ</h3>
+          {businessRows.length === 0 ? <div style={{ color: "#6B7280", fontSize: 13 }}>ยังไม่มีข้อมูลประเภทธุรกิจ</div> : businessRows.map((row) => (
+            <div key={row.label} style={{ marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 800 }}><span>{row.label}</span><span>{row.value} ราย</span></div>
+              <Bar pct={row.value / max(businessRows) * 100} color="#10B981" />
+            </div>
+          ))}
+        </div>
+        <div style={cardStyle}>
+          <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>สินค้า / บริการที่ให้บริการมากที่สุด</h3>
+          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 12 }}>นับจากรายการสินค้าในเอกสารทั้งหมด</p>
+          {productRows.length === 0 ? <div style={{ color: "#6B7280", fontSize: 13 }}>ยังไม่มีรายการสินค้า/บริการ</div> : productRows.map((row, index) => (
+            <div key={row.label} style={{ display: "grid", gridTemplateColumns: "28px 1fr auto", gap: 10, alignItems: "center", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ color: index === 0 ? "#FFB000" : "#8B95A7", fontWeight: 900 }}>#{index + 1}</div>
+              <div>
+                <div style={{ fontWeight: 800 }}>{row.label}</div>
+                <div style={{ color: "#94A3B8", fontSize: 12 }}>จำนวน {fmtMoney(row.qty)} · ยอดขาย ฿{fmtMoney(row.revenue)} · กำไร ฿{fmtMoney(row.profit)}</div>
+                <Bar pct={row.jobs / max(productRows, "jobs") * 100} color="#FFB000" />
+              </div>
+              <div style={{ color: "#FF6B00", fontWeight: 900 }}>{row.jobs} งาน</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CustomerPage({ customers, setCustomers, documents = [], products = [], showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "", customerSegment: "B2B", businessType: "" };
@@ -2848,6 +2978,7 @@ function CustomerPage({ customers, setCustomers, showToast }: any) {
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มลูกค้า</Btn>
         </div>
       </div>
+      <CustomerInsightDashboard customers={customers} documents={documents} products={products} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
         {filtered.map(c => (
           <div key={c.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 18px" }}>
