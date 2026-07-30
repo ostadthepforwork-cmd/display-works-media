@@ -24,15 +24,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const supabase = await createSupabaseServerClient();
     const { data: doc } = await supabase
       .from("erp_documents")
-      .select("type, doc_no")
+      .select("type, doc_no, customer_name, project_name")
       .eq("id", id)
       .eq("deleted", false)
       .maybeSingle();
     if (doc) {
       const label = DOC_LABELS[doc.type] || DOC_LABELS.quote;
+      const title = `${label.th} ${doc.doc_no} | Display Works Media`;
+      const description = [
+        `${label.th}เลขที่ ${doc.doc_no}`,
+        doc.customer_name ? `สำหรับ ${doc.customer_name}` : "",
+        doc.project_name ? `โครงการ ${doc.project_name}` : "",
+      ].filter(Boolean).join(" - ");
+      const url = `https://displayworksmedia.com/doc/${id}`;
       return {
-        title: `${label.th} ${doc.doc_no} | Display Works Media`,
+        title,
+        description,
         robots: { index: false, follow: false },
+        openGraph: {
+          title,
+          description,
+          url,
+          siteName: "Display Works Media",
+          type: "article",
+          images: [{ url: "/images/logo.png", width: 1200, height: 630, alt: "Display Works Media document" }],
+        },
+        twitter: {
+          card: "summary_large_image",
+          title,
+          description,
+          images: ["/images/logo.png"],
+        },
       };
     }
   } catch {}
