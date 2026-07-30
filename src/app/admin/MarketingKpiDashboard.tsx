@@ -1032,7 +1032,16 @@ export default function MarketingKpiDashboard({
     (doc) => doc?.date || doc?.createdAt || doc?.created_at,
     () => 1,
   );
-  const aiVisitTrend = trendMap(Array.isArray(aiCrawlers.recent) ? aiCrawlers.recent : [], (row) => row.created_at || row.createdAt || row.time, () => 1);
+  const aiVisitSourceRows = Array.isArray(aiCrawlers.daily) && aiCrawlers.daily.length
+    ? aiCrawlers.daily
+    : Array.isArray(aiCrawlers.recent)
+      ? aiCrawlers.recent
+      : [];
+  const aiVisitTrend = trendMap(
+    aiVisitSourceRows,
+    (row) => row.date || row.created_at || row.createdAt || row.time,
+    (row) => Number(row.count || 1),
+  );
   const growthPanels = [
     { title: "Revenue Growth", value: `THB ${money(trendTotal(revenueTrend))}`, detail: "ERP receipt revenue by day", color: "#ff6b00", points: revenueTrend },
     { title: "Profit Growth", value: `THB ${money(trendTotal(profitTrend))}`, detail: "Revenue minus real cost", color: "#22c55e", points: profitTrend },

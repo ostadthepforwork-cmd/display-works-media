@@ -113,6 +113,18 @@ function countReferrers(rows: CrawlerVisit[]) {
     .slice(0, 10);
 }
 
+function countDaily(rows: CrawlerVisit[]) {
+  return Object.entries(
+    rows.reduce<Record<string, number>>((acc, row) => {
+      const date = row.created_at ? row.created_at.slice(0, 10) : "Unknown";
+      acc[date] = (acc[date] || 0) + 1;
+      return acc;
+    }, {}),
+  )
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
 export async function GET(request: Request) {
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -177,6 +189,7 @@ export async function GET(request: Request) {
       byPath: countPaths(rows),
       byIntent: countIntents(rows),
       byReferrer: countReferrers(rows),
+      daily: countDaily(rows),
       recent: rows.slice(0, 20).map((row) => ({
         ...row,
         referrer_label: referrerLabel(row.referrer),
