@@ -167,6 +167,46 @@ const isInRange = (value: unknown, startDate: string, endDate: string, mode: Dat
   return (!startDate || date >= startDate) && (!endDate || date <= endDate);
 };
 
+const thaiProvinces = [
+  "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท",
+  "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม", "นครราชสีมา",
+  "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์",
+  "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี",
+  "เพชรบูรณ์", "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง",
+  "ระยอง", "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร", "สงขลา", "สตูล", "สมุทรปราการ",
+  "สมุทรสงคราม", "สมุทรสาคร", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์",
+  "หนองคาย", "หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี",
+];
+
+const unknownLabel = "ไม่ระบุ";
+
+const inferProvince = (record: any) => {
+  const explicit = String(record?.province || record?.customerProvince || record?.customer_province || "").trim();
+  if (explicit) return explicit === "กรุงเทพฯ" ? "กรุงเทพมหานคร" : explicit;
+  const address = String(record?.address || record?.overrideAddress || record?.override_address || "").replace(/กรุงเทพฯ/g, "กรุงเทพมหานคร");
+  if (!address) return unknownLabel;
+  if (/กรุงเทพ/.test(address)) return "กรุงเทพมหานคร";
+  return thaiProvinces.find((province) => address.includes(province)) || unknownLabel;
+};
+
+const inferDistrict = (record: any) => {
+  const explicit = String(record?.district || record?.amphoe || record?.area || record?.customerDistrict || record?.customer_district || "").trim();
+  if (explicit) return explicit;
+  const address = String(record?.address || record?.overrideAddress || record?.override_address || "").trim();
+  if (!address) return unknownLabel;
+  const patterns = [
+    /(เขต)\s*([ก-๙A-Za-z0-9.\-]+)/,
+    /(อำเภอ|อ\.)\s*([ก-๙A-Za-z0-9.\-]+)/,
+    /(แขวง)\s*([ก-๙A-Za-z0-9.\-]+)/,
+    /(ตำบล|ต\.)\s*([ก-๙A-Za-z0-9.\-]+)/,
+  ];
+  for (const pattern of patterns) {
+    const found = address.match(pattern);
+    if (found?.[1] && found?.[2]) return `${found[1]}${found[2]}`;
+  }
+  return unknownLabel;
+};
+
 const defaultApiExpiries = (): Record<string, ApiExpiryConfig> => ({
   ga4: {
     expiresAt: addDaysInput(90),
@@ -952,6 +992,8 @@ export default function MarketingKpiDashboard({
   })();
   const customerSegmentRows = summarizeRows(customers, (customer) => customer.customerSegment || customer.customer_segment || "ไม่ระบุ");
   const customerBusinessRows = summarizeRows(customers, (customer) => customer.businessType || customer.business_type || "ไม่ระบุ").slice(0, 8);
+  const customerProvinceRows = summarizeRows(customers, inferProvince).slice(0, 8);
+  const customerDistrictRows = summarizeRows(customers, inferDistrict).slice(0, 8);
   const customerProductRows = (() => {
     const map = new Map<string, { label: string; docs: Set<string>; qty: number; revenue: number; profit: number }>();
     receipts.forEach((doc) => {
@@ -1766,6 +1808,44 @@ export default function MarketingKpiDashboard({
                         <span className="mk-badge">{row.jobs} งาน</span>
                       </div>
                     )) : <div className="mk-empty">ยังไม่มีรายการสินค้า/บริการจากใบเสร็จใน ERP</div>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mk-row" style={{ marginTop: 16 }}>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>จังหวัดลูกค้า</h3>
+                  <p>อ่านจากข้อมูลจังหวัด หรือ fallback จากที่อยู่ลูกค้าใน ERP</p>
+                  <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
+                    {customerProvinceRows.length ? customerProvinceRows.map((row, index) => (
+                      <div key={row.label}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontWeight: 900 }}>
+                          <span>{index + 1}. {row.label}</span>
+                          <span>{row.value} ราย</span>
+                        </div>
+                        <div className="mk-budget" style={{ height: 10, margin: "8px 0 0" }}>
+                          <span style={{ width: `${Math.max(3, row.value / maxRows(customerProvinceRows) * 100)}%`, background: customerChartColors[index % customerChartColors.length] }} />
+                        </div>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มีข้อมูลจังหวัดลูกค้า</div>}
+                  </div>
+                </div>
+
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>เขต / อำเภอลูกค้า</h3>
+                  <p>ช่วยดูพื้นที่ที่มีลูกค้าสนใจมาก เพื่อวางคอนเทนต์และแคมเปญให้ตรงกลุ่ม</p>
+                  <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
+                    {customerDistrictRows.length ? customerDistrictRows.map((row, index) => (
+                      <div key={row.label}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontWeight: 900 }}>
+                          <span>{index + 1}. {row.label}</span>
+                          <span>{row.value} ราย</span>
+                        </div>
+                        <div className="mk-budget" style={{ height: 10, margin: "8px 0 0" }}>
+                          <span style={{ width: `${Math.max(3, row.value / maxRows(customerDistrictRows) * 100)}%`, background: customerChartColors[index % customerChartColors.length] }} />
+                        </div>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มีข้อมูลเขต/อำเภอลูกค้า</div>}
                   </div>
                 </div>
               </div>
