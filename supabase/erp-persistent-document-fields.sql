@@ -3,6 +3,7 @@
 
 alter table if exists public.erp_documents
   add column if not exists vat_rate numeric default 7,
+  add column if not exists discount_type text default 'percent',
   add column if not exists lead_source text,
   add column if not exists marketing_campaign text,
   add column if not exists marketing_adset text,

@@ -280,8 +280,12 @@ const resolveDepositInfo = (doc: any, documents: any[] = []) => {
 
 const calcDocTotal = (doc: any, documents: any[] = []) => {
   const subtotal    = (doc.items || []).reduce((s, i) => s + lineAmount(i), 0);
-  const discountAmt = subtotal * ((doc.discount || 0) / 100);
-  const afterDisc   = subtotal - discountAmt;
+  const discountValue = Math.max(0, Number(doc.discount || 0) || 0);
+  const discountType = doc.discountType || doc.discount_type || "percent";
+  const discountAmt = discountType === "amount"
+    ? Math.min(subtotal, discountValue)
+    : subtotal * (Math.min(discountValue, 100) / 100);
+  const afterDisc   = Math.max(0, subtotal - discountAmt);
   const vatAmt      = doc.vat  ? afterDisc * (docVatRate(doc) / 100)     : 0;
   const total       = afterDisc + vatAmt;
   const whtAmt      = doc.wht  ? afterDisc * ((doc.whtRate || 0) / 100)  : 0;
@@ -467,7 +471,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     </tr>
     ${doc.discount > 0 ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:7px 12px;color:#ef4444;font-size:10px;font-weight:600;">DISCOUNT ${doc.discount}%</td>
+      <td style="padding:7px 12px;color:#ef4444;font-size:10px;font-weight:600;">DISCOUNT ${(doc.discountType || doc.discount_type) === "amount" ? "" : `${doc.discount}%`}</td>
       <td style="padding:7px 12px;text-align:right;font-size:11px;color:#ef4444;">- ${fmtMoney(discountAmt)}</td>
     </tr>
     <tr style="border-bottom:1px solid #f1f5f9;">
@@ -864,6 +868,8 @@ export default function AdminPage() {
         if (custRes.data) setCustomers(custRes.data.map(c => ({
           id: c.id, name: c.name, contact: c.contact, phone: c.phone,
           email: c.email, address: c.address, taxId: c.tax_id,
+          customerSegment: c.customer_segment || "",
+          businessType: c.business_type || "",
         })));
 
         // map products
@@ -934,7 +940,7 @@ export default function AdminPage() {
             paymentNote: d.payment_note || "",
             paymentStatus: d.payment_status || "",
             date: d.date, dueDate: d.due_date,
-            discount: d.discount, vat: d.vat, vatRate: d.vat_rate ?? 7, wht: d.wht, whtRate: d.wht_rate,
+            discount: d.discount, discountType: d.discount_type || "percent", vat: d.vat, vatRate: d.vat_rate ?? 7, wht: d.wht, whtRate: d.wht_rate,
             depositPaid: d.deposit_paid ?? 0,
             depositDate: d.deposit_date || "",
             depositNote: d.deposit_note || "",
@@ -2795,15 +2801,24 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
 function CustomerPage({ customers, setCustomers, showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "" };
+  const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "", customerSegment: "B2B", businessType: "" };
   const filtered = customers.filter(c =>
-    [c.name, c.contact, c.phone].some((value) => String(value || "").includes(search))
+    [c.name, c.contact, c.phone, c.customerSegment, c.businessType].some((value) => String(value || "").includes(search))
   );
   const save = async (form) => {
     if (!form.name.trim()) return showToast("กรุณาใส่ชื่อลูกค้า", "error");
     if (form.taxId && !/^\d{13}$/.test(form.taxId.replace(/-/g, "")))
       return showToast("เลขผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก", "error");
-    const row = { name: form.name, contact: form.contact, phone: form.phone, email: form.email, address: form.address, tax_id: form.taxId };
+    const row = {
+      name: form.name,
+      contact: form.contact,
+      phone: form.phone,
+      email: form.email,
+      address: form.address,
+      tax_id: form.taxId,
+      customer_segment: form.customerSegment || "",
+      business_type: form.businessType || "",
+    };
     if (form.id) {
       const { error } = await supabase.from("erp_customers").update(row).eq("id", form.id);
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
@@ -2844,6 +2859,12 @@ function CustomerPage({ customers, setCustomers, showToast }: any) {
               </div>
             </div>
             <div style={{ fontSize: 12, color: "#888", lineHeight: 2 }}>
+              {(c.customerSegment || c.businessType) && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+                  {c.customerSegment && <span style={{ color: "#FFB076", border: "1px solid rgba(255,107,0,0.35)", background: "rgba(255,107,0,0.12)", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>{c.customerSegment}</span>}
+                  {c.businessType && <span style={{ color: "#A7F3D0", border: "1px solid rgba(16,185,129,0.28)", background: "rgba(16,185,129,0.10)", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>{c.businessType}</span>}
+                </div>
+              )}
               {c.phone && <div>📞 {c.phone}</div>}{c.email && <div>✉️ {c.email}</div>}
               {c.address && <div>📍 {c.address}</div>}{c.taxId && <div>🪪 {c.taxId}</div>}
             </div>
@@ -2857,10 +2878,25 @@ function CustomerPage({ customers, setCustomers, showToast }: any) {
 function CustomerForm({ data, onSave, onCancel }: any) {
   const [f, setF] = useState(data);
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
+  const businessTypes = ["ร้านค้า", "ร้านอาหาร", "คาเฟ่/เครื่องดื่ม", "คลินิก/ความงาม", "อีเวนต์/ออกบูธ", "แบรนด์สินค้า", "องค์กร/บริษัท", "โรงเรียน/สถาบัน", "อื่น ๆ"];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <Field label="ชื่อบริษัท/ลูกค้า *"><input value={f.name} onChange={set("name")} /></Field>
       <Field label="ชื่อผู้ติดต่อ"><input value={f.contact} onChange={set("contact")} /></Field>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Field label="ประเภทลูกค้า">
+          <select value={f.customerSegment || "B2B"} onChange={set("customerSegment")}>
+            <option value="B2B">B2B - ธุรกิจ/องค์กร</option>
+            <option value="B2C">B2C - ลูกค้าทั่วไป</option>
+          </select>
+        </Field>
+        <Field label="ประเภทธุรกิจ">
+          <input list="customer-business-types" value={f.businessType || ""} onChange={set("businessType")} placeholder="เช่น ร้านอาหาร, คาเฟ่, คลินิก" />
+          <datalist id="customer-business-types">
+            {businessTypes.map((type) => <option key={type} value={type} />)}
+          </datalist>
+        </Field>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <Field label="โทรศัพท์"><input value={f.phone} onChange={set("phone")} /></Field>
         <Field label="อีเมล"><input value={f.email} onChange={set("email")} /></Field>
@@ -3493,7 +3529,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
   const nextDocNo = () => nextDocNoForType(type);
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: type === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: type === "receipt" ? today() : "", paymentNote: "", items: [], discount: 0, vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
+    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: type === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: type === "receipt" ? today() : "", paymentNote: "", items: [], discount: 0, discountType: "percent", vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
   const save = async (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
@@ -3533,7 +3569,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       payment_note: doc.paymentNote || "",
       payment_status: paymentTotals.paymentStatus,
       date: doc.date, due_date: doc.dueDate,
-      discount: doc.discount, vat: doc.vat, vat_rate: docVatRate(doc), wht: doc.wht, wht_rate: doc.whtRate,
+      discount: doc.discount, discount_type: doc.discountType || "percent", vat: doc.vat, vat_rate: docVatRate(doc), wht: doc.wht, wht_rate: doc.whtRate,
       deposit_paid: normalizedPaymentAmount,
       deposit_date: doc.depositDate || doc.paymentDate || null,
       deposit_note: doc.depositNote || doc.paymentNote || "",
@@ -3542,12 +3578,13 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       bank_account: doc.bankAccount, bank_type: doc.bankType, qr_image: doc.qrImage,
       deleted: false,
     };
-    const { vat_rate, lead_source, marketing_campaign, marketing_adset, marketing_ad, payment_type, payment_amount, payment_date, payment_note, payment_status, deposit_paid, deposit_date, deposit_note, ...legacyDocRow } = docRow;
+    const { vat_rate, discount_type, lead_source, marketing_campaign, marketing_adset, marketing_ad, payment_type, payment_amount, payment_date, payment_note, payment_status, deposit_paid, deposit_date, deposit_note, ...legacyDocRow } = docRow;
     const isLegacyVatColumnError = (error: any) =>
-      error?.code === "42703" || /vat_rate|lead_source|marketing_campaign|marketing_adset|marketing_ad|payment_type|payment_amount|payment_date|payment_note|payment_status|deposit_paid|deposit_date|deposit_note|column/i.test(error?.message || "");
+      error?.code === "42703" || /vat_rate|discount_type|lead_source|marketing_campaign|marketing_adset|marketing_ad|payment_type|payment_amount|payment_date|payment_note|payment_status|deposit_paid|deposit_date|deposit_note|column/i.test(error?.message || "");
     const requiresPersistentDocColumns =
       docVatRate(doc) !== 7
       || Boolean(doc.leadSource || doc.marketingCampaign || doc.marketingAdSet || doc.marketingAd)
+      || (doc.discountType || "percent") !== "percent"
       || Number(doc.depositPaid || doc.paymentAmount || 0) > 0
       || Boolean(doc.depositDate || doc.depositNote || doc.paymentType || doc.paymentDate || doc.paymentNote);
     const persistentFieldError = "ฐานข้อมูลยังไม่มีคอลัมน์สำหรับ VAT/Marketing/มัดจำ กรุณารัน supabase/erp-persistent-document-fields.sql ใน Supabase Production แล้วบันทึกเอกสารอีกครั้ง";
@@ -4422,8 +4459,14 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
 
         {/* ส่วนลด */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 12 }}>
+          <Field label="ประเภทส่วนลด">
+            <select value={f.discountType || "percent"} onChange={(e) => setF(prev => ({ ...prev, discountType: e.target.value, discount: 0 }))} style={{ borderColor: "#FF6B0044", color: "#FF6B00", fontWeight: 700 }}>
+              <option value="percent">ลดเป็น %</option>
+              <option value="amount">ลดเป็นจำนวนเงิน</option>
+            </select>
+          </Field>
           <Field label="จำนวนส่วนลด (%)">
-            <input type="number" value={f.discount} onChange={setN("discount")} min="0" max="100" style={{ borderColor: "#FF6B0044", color: "#FF6B00", fontWeight: 700 }} />
+            <input type="number" value={f.discount} onChange={setN("discount")} min="0" max={(f.discountType || "percent") === "amount" ? undefined : "100"} step="0.01" placeholder={(f.discountType || "percent") === "amount" ? "เช่น 500" : "เช่น 10"} style={{ borderColor: "#FF6B0044", color: "#FF6B00", fontWeight: 700 }} />
           </Field>
         </div>
       </div>
@@ -4571,7 +4614,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
       {/* ── Summary ── */}
       <div style={{ background: "#1A2233", borderRadius: 12, padding: "16px 20px", display: "flex", flexDirection: "column" as const, gap: 8 }}>
         <SumRow label="มูลค่ารวม (Subtotal)" value={subtotal} />
-        {f.discount > 0 && <SumRow label={`ส่วนลด ${f.discount}%`} value={-discAmt} />}
+        {f.discount > 0 && <SumRow label={(f.discountType || "percent") === "amount" ? "ส่วนลด" : `ส่วนลด ${f.discount}%`} value={-discAmt} />}
         {f.discount > 0 && <SumRow label="หลังหักส่วนลด" value={afterDisc} />}
         {f.vat && <SumRow label={`VAT ${fmtMoney(docVatRate(f))}%`} value={vatAmt} />}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 4, paddingTop: 8 }}>

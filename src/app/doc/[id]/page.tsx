@@ -265,8 +265,12 @@ function resolveDepositInfo(doc: any, documents: any[] = []) {
 
 function calcDocTotal(doc: any, documents: any[] = []) {
   const subtotal = (doc.items || []).reduce((sum: number, item: any) => sum + lineAmount(item), 0);
-  const discountAmt = subtotal * (Number(doc.discount || 0) / 100);
-  const afterDisc = subtotal - discountAmt;
+  const discountValue = Math.max(0, Number(doc.discount || 0) || 0);
+  const discountType = doc.discountType || doc.discount_type || "percent";
+  const discountAmt = discountType === "amount"
+    ? Math.min(subtotal, discountValue)
+    : subtotal * (Math.min(discountValue, 100) / 100);
+  const afterDisc = Math.max(0, subtotal - discountAmt);
   const vatAmt = doc.vat ? afterDisc * (docVatRate(doc) / 100) : 0;
   const total = afterDisc + vatAmt;
   const whtAmt = doc.wht ? afterDisc * (Number(doc.whtRate || 0) / 100) : 0;
@@ -301,6 +305,7 @@ function mapDocument(doc: any, items: any[]) {
     date: doc.date,
     dueDate: doc.due_date,
     discount: Number(doc.discount || 0),
+    discountType: doc.discount_type || "percent",
     vat: Boolean(doc.vat),
     vatRate: Number(doc.vat_rate ?? 7),
     wht: Boolean(doc.wht),
@@ -498,7 +503,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
             </div>
             <div className="doc-summary">
               <div className="doc-summary-row"><strong>SUBTOTAL</strong><span>{fmtMoney(totals.subtotal)}</span></div>
-              {doc.discount > 0 && <div className="doc-summary-row"><strong>DISCOUNT {doc.discount}%</strong><span>- {fmtMoney(totals.discountAmt)}</span></div>}
+              {doc.discount > 0 && <div className="doc-summary-row"><strong>{doc.discountType === "amount" ? "DISCOUNT" : `DISCOUNT ${doc.discount}%`}</strong><span>- {fmtMoney(totals.discountAmt)}</span></div>}
               {doc.vat && <div className="doc-summary-row"><strong>VAT {fmtMoney(docVatRate(doc))}%</strong><span>{fmtMoney(totals.vatAmt)}</span></div>}
               {doc.wht && <div className="doc-summary-row"><strong>หัก ณ ที่จ่าย {doc.whtRate}%</strong><span>- {fmtMoney(totals.whtAmt)}</span></div>}
               {totals.depositPaid > 0 && (
