@@ -866,6 +866,80 @@ export default function MarketingKpiDashboard({
     },
   ];
   const totalChannelMix = channelRows.reduce((sum, row) => sum + Number(row.mixValue || 0), 0);
+  const customerChartColors = ["#ff6b00", "#22c55e", "#2563eb", "#f59e0b", "#8b5cf6", "#14b8a6", "#ef4444"];
+  const sumRows = (rows: any[], key = "value") => rows.reduce((sum, row) => sum + Number(row[key] || 0), 0);
+  const maxRows = (rows: any[], key = "value") => Math.max(1, ...rows.map((row) => Number(row[key] || 0)));
+  const summarizeRows = (rows: any[], labelFn: (row: any) => string, valueFn: (row: any) => number = () => 1) => {
+    const map = new Map<string, number>();
+    rows.forEach((row) => {
+      const label = String(labelFn(row) || "ไม่ระบุ").trim() || "ไม่ระบุ";
+      map.set(label, (map.get(label) || 0) + valueFn(row));
+    });
+    return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+  };
+  const customerDocKey = (doc: any) => String(doc?.customerId || doc?.customer_id || doc?.customerName || doc?.customer_name || "").trim();
+  const docsByCustomer = new Map<string, any[]>();
+  filteredDocuments
+    .filter((doc) => !doc?.deleted && doc?.status !== "cancelled")
+    .forEach((doc) => {
+      const key = customerDocKey(doc);
+      if (!key) return;
+      docsByCustomer.set(key, [...(docsByCustomer.get(key) || []), doc]);
+    });
+  const repeatCustomers = customers.filter((customer) => {
+    const docs = docsByCustomer.get(String(customer.id)) || docsByCustomer.get(String(customer.name || "").trim()) || [];
+    return docs.length > 1;
+  }).length;
+  const customerSourceRows = (() => {
+    const map = new Map<string, { label: string; customers: Set<string>; docs: number; revenue: number }>();
+    filteredDocuments
+      .filter((doc) => !doc?.deleted && doc?.status !== "cancelled")
+      .forEach((doc) => {
+        const label = doc?.leadSource || doc?.lead_source || "ไม่ระบุ";
+        const entry = map.get(label) || { label, customers: new Set<string>(), docs: 0, revenue: 0 };
+        const key = customerDocKey(doc);
+        if (key) entry.customers.add(key);
+        entry.docs += 1;
+        if (doc?.type === "receipt") entry.revenue += documentTotal(doc);
+        map.set(label, entry);
+      });
+    return [...map.values()]
+      .map((entry) => ({ label: entry.label, customers: entry.customers.size, docs: entry.docs, revenue: entry.revenue }))
+      .sort((a, b) => b.customers - a.customers || b.revenue - a.revenue);
+  })();
+  const customerSegmentRows = summarizeRows(customers, (customer) => customer.customerSegment || customer.customer_segment || "ไม่ระบุ");
+  const customerBusinessRows = summarizeRows(customers, (customer) => customer.businessType || customer.business_type || "ไม่ระบุ").slice(0, 8);
+  const customerProductRows = (() => {
+    const map = new Map<string, { label: string; docs: Set<string>; qty: number; revenue: number; profit: number }>();
+    receipts.forEach((doc) => {
+      (Array.isArray(doc?.items) ? doc.items : []).forEach((item: any) => {
+        const label = item?.name || "ไม่ระบุสินค้า/บริการ";
+        const entry = map.get(label) || { label, docs: new Set<string>(), qty: 0, revenue: 0, profit: 0 };
+        const revenue = marketingLineAmount(item);
+        const cost = marketingLineCost(item);
+        entry.docs.add(String(doc?.id || doc?.docNo || doc?.doc_no || label));
+        entry.qty += Number(item?.qty || item?.quantity || 0);
+        entry.revenue += revenue;
+        entry.profit += revenue - cost;
+        map.set(label, entry);
+      });
+    });
+    return [...map.values()]
+      .map((entry) => ({ ...entry, jobs: entry.docs.size }))
+      .sort((a, b) => b.jobs - a.jobs || b.revenue - a.revenue)
+      .slice(0, 8);
+  })();
+  const donutStops = (rows: any[], key = "value") => {
+    const total = sumRows(rows, key);
+    let start = 0;
+    if (!rows.length || total <= 0) return "#1f2937 0% 100%";
+    return rows.map((row, index) => {
+      const pct = Number(row[key] || 0) / total * 100;
+      const segment = `${customerChartColors[index % customerChartColors.length]} ${start}% ${start + pct}%`;
+      start += pct;
+      return segment;
+    }).join(", ");
+  };
   const hasSalesMapping = crmLeads > 0;
   const budgetTarget = plannedBudget || marketingSpend;
 
@@ -1354,11 +1428,119 @@ export default function MarketingKpiDashboard({
             </div>
           </section>}
 
-          {(showDashboard || activeSection === "customers" || activeSection === "quotations" || activeSection === "orders" || activeSection === "products" || activeSection === "reports") && (
+          {activeSection === "customers" && (
+            <section className="mk-panel" style={{ marginTop: 16 }}>
+              <div className="mk-section-head">
+                <div>
+                  <div className="mk-eyebrow">Customer Intelligence</div>
+                  <h3>Dashboard วิเคราะห์ลูกค้า</h3>
+                  <p>ดึงจาก ERP โดยตรง: ลูกค้า, เอกสาร, ใบเสร็จ และรายการสินค้า/บริการ เพื่อดูว่าลูกค้ามาจากไหนและควรต่อยอดอะไร</p>
+                </div>
+                <div className="mk-section-actions">
+                  <div className="mk-mini"><strong>{customers.length}</strong><div>Customers</div></div>
+                  <div className="mk-mini"><strong>{filteredDocuments.length}</strong><div>ERP Docs</div></div>
+                  <div className="mk-mini"><strong>{receipts.length}</strong><div>Receipts</div></div>
+                </div>
+              </div>
+
+              <div className="mk-channel-grid" style={{ marginTop: 14 }}>
+                <div className="mk-mini"><strong>฿{money(receiptRevenue)}</strong><div>ยอดขายจากใบเสร็จ</div></div>
+                <div className="mk-mini"><strong>฿{money(grossProfit)}</strong><div>กำไรโดยประมาณ</div></div>
+                <div className="mk-mini"><strong>{repeatCustomers}</strong><div>ลูกค้าสั่งซ้ำ</div></div>
+                <div className="mk-mini"><strong>{customerSourceRows.filter((row) => row.label !== "ไม่ระบุ").length}</strong><div>ช่องทางที่มีข้อมูล</div></div>
+              </div>
+
+              <div className="mk-row" style={{ marginTop: 16 }}>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>ลูกค้าเจอเราจากไหน</h3>
+                  <p>อ้างอิงจาก Lead Source ในเอกสาร ERP และยอดขายจริงจากใบเสร็จ</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: 16, alignItems: "center", marginTop: 14 }}>
+                    <div className="mk-donut" style={{ background: `conic-gradient(${donutStops(customerSourceRows.map((row) => ({ ...row, value: row.customers || row.docs })))})` }}>
+                      <div className="mk-donut-inner"><div><div style={{ color: "#94a3b8", fontSize: 12 }}>Channels</div><strong>{customerSourceRows.length}</strong></div></div>
+                    </div>
+                    <div style={{ display: "grid", gap: 12 }}>
+                      {customerSourceRows.length ? customerSourceRows.slice(0, 6).map((row, index) => (
+                        <div key={row.label}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontWeight: 900 }}>
+                            <span><span style={{ color: customerChartColors[index % customerChartColors.length] }}>●</span> {row.label}</span>
+                            <span>{row.customers || row.docs} ราย</span>
+                          </div>
+                          <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 4 }}>เอกสาร {row.docs} ใบ · ยอดขายใบเสร็จ ฿{money(row.revenue)}</div>
+                          <div className="mk-budget" style={{ height: 8, margin: "8px 0 0" }}><span style={{ width: `${Math.min(100, Math.max(3, (row.customers || row.docs) / maxRows(customerSourceRows.map((item) => ({ value: item.customers || item.docs }))) * 100))}%`, background: customerChartColors[index % customerChartColors.length] }} /></div>
+                        </div>
+                      )) : <div className="mk-empty">ยังไม่มี Lead Source ในเอกสาร ERP</div>}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>B2B / B2C</h3>
+                  <p>อ้างอิงจากประเภทลูกค้าใน ERP</p>
+                  <div className="mk-donut" style={{ background: `conic-gradient(${donutStops(customerSegmentRows)})` }}>
+                    <div className="mk-donut-inner"><div><div style={{ color: "#94a3b8", fontSize: 12 }}>Customers</div><strong>{customers.length}</strong></div></div>
+                  </div>
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {customerSegmentRows.map((row, index) => (
+                      <div key={row.label}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 900 }}>
+                          <span><span style={{ color: customerChartColors[index % customerChartColors.length] }}>●</span> {row.label}</span>
+                          <span>{row.value} ราย</span>
+                        </div>
+                        <div className="mk-budget" style={{ height: 8, margin: "8px 0 0" }}><span style={{ width: `${Math.max(3, row.value / maxRows(customerSegmentRows) * 100)}%`, background: customerChartColors[index % customerChartColors.length] }} /></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mk-row" style={{ marginTop: 16 }}>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>ประเภทธุรกิจลูกค้า</h3>
+                  <p>ดูว่าธุรกิจแบบไหนใช้บริการ Display Works Media มากที่สุด</p>
+                  <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
+                    {customerBusinessRows.length ? customerBusinessRows.map((row, index) => (
+                      <div key={row.label}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 900 }}>
+                          <span>{index + 1}. {row.label}</span>
+                          <span>{row.value} ราย</span>
+                        </div>
+                        <div className="mk-budget" style={{ height: 10, margin: "8px 0 0" }}><span style={{ width: `${Math.max(3, row.value / maxRows(customerBusinessRows) * 100)}%`, background: customerChartColors[index % customerChartColors.length] }} /></div>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มีข้อมูลประเภทธุรกิจใน ERP</div>}
+                  </div>
+                </div>
+
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h3>สินค้า / บริการที่ให้บริการมากที่สุด</h3>
+                  <p>นับจากรายการในใบเสร็จ เพื่อดูงานที่ขายจริงและควรทำคอนเทนต์/โฆษณาต่อ</p>
+                  <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
+                    {customerProductRows.length ? customerProductRows.map((row, index) => (
+                      <div key={row.label} className="mk-source">
+                        <div style={{ minWidth: 0 }}>
+                          <strong>#{index + 1} {row.label}</strong>
+                          <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 4 }}>ยอดขาย ฿{money(row.revenue)} · กำไร ฿{money(row.profit)} · จำนวน {money(row.qty)}</div>
+                          <div className="mk-budget" style={{ height: 8, margin: "8px 0 0" }}><span style={{ width: `${Math.max(3, row.jobs / maxRows(customerProductRows, "jobs") * 100)}%`, background: "#f59e0b" }} /></div>
+                        </div>
+                        <span className="mk-badge">{row.jobs} งาน</span>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มีรายการสินค้า/บริการจากใบเสร็จใน ERP</div>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mk-channel-grid" style={{ marginTop: 16 }}>
+                <div className="mk-mini"><strong>ใช้ข้อมูลให้ครบ</strong><div>ในหน้าลูกค้าให้กรอก B2B/B2C และประเภทธุรกิจ</div></div>
+                <div className="mk-mini"><strong>วัดช่องทาง</strong><div>ตอนออกเอกสารให้กรอกว่าลูกค้ามาจากไหน เช่น LINE, Facebook, Organic</div></div>
+                <div className="mk-mini"><strong>ต่อยอดโฆษณา</strong><div>สินค้าขายจริงสูง ควรนำไปทำ Hook / Artwork / Landing Page</div></div>
+                <div className="mk-mini"><strong>ดูคุณภาพ Lead</strong><div>ช่องทางที่ลูกค้าเยอะแต่ใบเสร็จน้อย อาจต้องปรับการคัดกรอง</div></div>
+              </div>
+            </section>
+          )}
+
+          {(showDashboard || activeSection === "quotations" || activeSection === "orders" || activeSection === "products" || activeSection === "reports") && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
               <h3>
-                {activeSection === "customers" ? "Customers"
-                  : activeSection === "quotations" ? "Quotations"
+                {activeSection === "quotations" ? "Quotations"
                   : activeSection === "orders" ? "Orders / Jobs"
                   : activeSection === "products" ? "Products"
                   : "Reports"}

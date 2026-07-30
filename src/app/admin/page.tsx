@@ -3038,7 +3038,6 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มลูกค้า</Btn>
         </div>
       </div>
-      <CustomerInsightDashboard customers={customers} documents={documents} products={products} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
         {filtered.map(c => (
           <div key={c.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 18px" }}>
