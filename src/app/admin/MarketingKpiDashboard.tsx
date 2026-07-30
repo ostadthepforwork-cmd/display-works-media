@@ -770,6 +770,10 @@ export default function MarketingKpiDashboard({
   const topAiIntents = (aiCrawlers.byIntent || []).slice(0, 8);
   const topAiReferrers = (aiCrawlers.byReferrer || []).slice(0, 6);
   const recentAiRows = (aiCrawlers.recent || []).slice(0, 12);
+  const maxAiBotCount = Math.max(...topAiBots.map((item: any) => Number(item.count || 0)), 1);
+  const maxAiPageCount = Math.max(...topAiPages.map((item: any) => Number(item.count || 0)), 1);
+  const maxAiIntentCount = Math.max(...topAiIntents.map((item: any) => Number(item.count || 0)), 1);
+  const maxAiReferrerCount = Math.max(...topAiReferrers.map((item: any) => Number(item.count || 0)), 1);
 
   const sources = [
     {
@@ -1056,6 +1060,8 @@ export default function MarketingKpiDashboard({
         .mk-channel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mk-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px}
         .mk-decision-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.mk-decision{border:1px solid rgba(255,107,0,.18);background:linear-gradient(135deg,rgba(255,107,0,.12),rgba(255,255,255,.035));border-radius:16px;padding:16px}.mk-decision strong{display:block;margin-bottom:6px}.mk-decision span{color:#a8b0c0;font-size:13px;line-height:1.55}
         .mk-scroll-list{display:grid;gap:10px;max-height:520px;overflow:auto;padding-right:4px}.mk-source.compact{padding:13px 14px}.mk-source.compact strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-meter-grid{display:grid;gap:12px}.mk-meter-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(160px,2fr) auto;gap:12px;align-items:center;color:#cbd5e1}.mk-meter-track{height:12px;background:#1f2937;border-radius:999px;overflow:hidden}.mk-meter-track span{display:block;height:100%;border-radius:999px}
+        .mk-chart-list{display:grid;gap:12px;max-height:520px;overflow:auto;padding-right:4px}.mk-chart-item{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);border-radius:16px;padding:14px}.mk-chart-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;font-weight:900}.mk-chart-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-chart-sub{color:#8b95a7;font-size:12px;line-height:1.5;margin-top:4px}.mk-chart-bar{height:12px;background:#1f2937;border-radius:999px;overflow:hidden;margin-top:10px}.mk-chart-bar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ff6b00,#f59e0b)}
+        .mk-chart-row{position:relative;overflow:hidden;padding-bottom:22px}.mk-chart-row:before{content:"";position:absolute;left:14px;right:14px;bottom:10px;height:8px;border-radius:999px;background:#1f2937}.mk-chart-row:after{content:"";position:absolute;left:14px;bottom:10px;width:var(--chart-width,0%);height:8px;border-radius:999px;background:var(--chart-color,linear-gradient(90deg,#ff6b00,#f59e0b))}
         .mk-source{display:flex;justify-content:space-between;gap:16px;align-items:center;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;background:rgba(0,0,0,.18)}
         .mk-status{font-weight:900;color:#f59e0b}.mk-status.ready{color:#22c55e}
         .mk-expiry{display:inline-flex;align-items:center;width:max-content;border-radius:999px;padding:6px 10px;margin-top:8px;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.12);color:#cbd5e1}.mk-expiry.ready{border-color:rgba(34,197,94,.35);color:#86efac;background:rgba(34,197,94,.08)}.mk-expiry.warning{border-color:rgba(245,158,11,.45);color:#fcd34d;background:rgba(245,158,11,.1)}.mk-expiry.danger{border-color:rgba(239,68,68,.45);color:#fca5a5;background:rgba(239,68,68,.1)}.mk-expiry.unknown{border-color:rgba(148,163,184,.35);color:#cbd5e1;background:rgba(148,163,184,.08)}.mk-source-tools{display:grid;gap:8px;justify-items:end}.mk-expiry-editor{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.mk-expiry-editor input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:10px 12px;font:inherit;min-width:190px}
@@ -1673,9 +1679,9 @@ export default function MarketingKpiDashboard({
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h3>Top AI Bots</h3>
-                  <div className="mk-scroll-list" style={{ marginTop: 12 }}>
+                  <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiBots.length ? topAiBots.map((bot: any) => (
-                      <div className="mk-source compact" key={bot.name}>
+                      <div className="mk-source compact mk-chart-row" key={bot.name} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(bot.count || 0) / maxAiBotCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#ff6b00,#f59e0b)" }}>
                         <strong>{bot.name}</strong>
                         <span className="mk-badge">{money(Number(bot.count || 0))} ครั้ง</span>
                       </div>
@@ -1684,9 +1690,9 @@ export default function MarketingKpiDashboard({
                 </div>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h3>Top Pages</h3>
-                  <div className="mk-scroll-list" style={{ marginTop: 12 }}>
+                  <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiPages.length ? topAiPages.map((page: any) => (
-                      <div className="mk-source compact" key={page.path || page.name || "Unknown"}>
+                      <div className="mk-source compact mk-chart-row" key={page.path || page.name || "Unknown"} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(page.count || 0) / maxAiPageCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#2563eb,#14b8a6)" }}>
                         <strong>{page.path || page.name || "Unknown"}</strong>
                         <span className="mk-badge">{money(Number(page.count || 0))} ครั้ง</span>
                       </div>
@@ -1698,9 +1704,9 @@ export default function MarketingKpiDashboard({
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h3>Likely AI Intent</h3>
                   <p>เป็นการประเมินจากหน้าที่ bot เข้าอ่าน ไม่ใช่ prompt จริงของผู้ใช้</p>
-                  <div className="mk-scroll-list" style={{ marginTop: 12 }}>
+                  <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiIntents.length ? topAiIntents.map((item: any) => (
-                      <div className="mk-source compact" key={item.intent}>
+                      <div className="mk-source compact mk-chart-row" key={item.intent} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(item.count || 0) / maxAiIntentCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#8b5cf6,#ff6b00)" }}>
                         <div>
                           <strong>{item.intent}</strong>
                           <div style={{ color: "#8b95a7", fontSize: 12, marginTop: 4 }}>
@@ -1715,9 +1721,9 @@ export default function MarketingKpiDashboard({
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h3>Referrer / Source Hints</h3>
                   <p>แสดงเฉพาะเมื่อ crawler ส่ง referrer หรือ query/UTM มาด้วย</p>
-                  <div className="mk-scroll-list" style={{ marginTop: 12 }}>
+                  <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiReferrers.length ? topAiReferrers.map((item: any) => (
-                      <div className="mk-source compact" key={item.referrer}>
+                      <div className="mk-source compact mk-chart-row" key={item.referrer} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(item.count || 0) / maxAiReferrerCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#22c55e,#f59e0b)" }}>
                         <strong>{item.referrer}</strong>
                         <span className="mk-badge">{money(Number(item.count || 0))} ครั้ง</span>
                       </div>
