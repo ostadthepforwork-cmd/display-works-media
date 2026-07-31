@@ -409,6 +409,48 @@ export default function MarketingKpiDashboard({
   const [meta, setMeta] = useState<any>({ loading: true, connected: false, error: "", totals: {}, campaigns: [] });
   const [aiCrawlers, setAiCrawlers] = useState<any>({ loading: true, connected: false, error: "", totals: {}, byBot: [], byPath: [], recent: [] });
 
+  useEffect(() => {
+    const sectionMap: Record<string, MarketingSection> = {
+      overview: "dashboard",
+      dashboard: "dashboard",
+      campaigns: "facebook",
+      facebook: "facebook",
+      funnel: "funnel",
+      tracking: "leads",
+      crm: "leads",
+      leads: "leads",
+      customers: "customers",
+      orders: "orders",
+      channels: "channels",
+      insight: "insight",
+      reports: "reports",
+      sources: "sources",
+      ai: "ai",
+    };
+
+    const applySection = (section?: string) => {
+      if (!section) return;
+      const normalized = section.replace(/^marketing-/, "");
+      const nextSection = sectionMap[normalized];
+      if (nextSection) setActiveSection(nextSection);
+    };
+
+    const onSectionChange = (event: Event) => {
+      applySection((event as CustomEvent<{ section?: string }>).detail?.section);
+    };
+
+    const onHashChange = () => applySection(window.location.hash.replace(/^#/, ""));
+
+    window.addEventListener("dwm-marketing-section", onSectionChange as EventListener);
+    window.addEventListener("hashchange", onHashChange);
+    onHashChange();
+
+    return () => {
+      window.removeEventListener("dwm-marketing-section", onSectionChange as EventListener);
+      window.removeEventListener("hashchange", onHashChange);
+    };
+  }, []);
+
   useEffect(() => saveLocal(storageKeys.campaigns, campaigns), [campaigns]);
   useEffect(() => saveLocal(storageKeys.leads, leads), [leads]);
   useEffect(() => saveLocal(storageKeys.apiExpiries, apiExpiries), [apiExpiries]);
@@ -1113,7 +1155,7 @@ export default function MarketingKpiDashboard({
   const showDashboard = activeSection === "dashboard";
 
   return (
-    <div className="mk-dashboard">
+    <div className="mk-dashboard" id="marketing-dashboard">
       <style>{`
         /* Hallmark · macrostructure: Mobile Command Deck · tone: operational clarity · anchor hue: DWM orange */
         .mk-dashboard{font-family:'Prompt',sans-serif;color:#f8fafc;min-height:100%;background:radial-gradient(circle at 80% 0%,rgba(255,107,0,.18),transparent 34%),#080d14;border:1px solid rgba(255,107,0,.2);border-radius:24px;overflow:hidden}
@@ -1141,6 +1183,11 @@ export default function MarketingKpiDashboard({
         .mk-mobile-tabs::-webkit-scrollbar{display:none}
         .mk-mobile-tabs button{white-space:nowrap;border:1px solid rgba(255,255,255,.12);background:#101827;color:#cbd5e1;border-radius:999px;padding:10px 13px;font-weight:900}
         .mk-mobile-tabs button.active{background:#ff6b00;border-color:#ff6b00;color:#fff}
+        .mk-mobile-command{display:none}
+        .mk-mobile-metrics,.mk-mobile-jump{display:grid}
+        .mk-mobile-chart{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);border-radius:16px;padding:14px}
+        .mk-mobile-chart h3{margin:0 0 10px;font-size:15px}
+        .mk-mobile-chart .mk-bar-list{margin-top:0;gap:10px}
         .mk-date-controls{display:grid;gap:10px;justify-items:end}.mk-date-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields input{background:#101827;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:11px 12px;font:inherit}
         .mk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
         .mk-growth-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:16px}
@@ -1189,27 +1236,45 @@ export default function MarketingKpiDashboard({
         @media(max-width:640px){
           .mk-dashboard{border-radius:0;border-left:0;border-right:0;background:linear-gradient(180deg,rgba(255,107,0,.13),transparent 220px),#080d14}
           .mk-main{padding:14px 12px 112px;overflow-x:hidden}
-          .mk-top{display:block;margin-bottom:6px;padding:14px 2px 4px}
+          .mk-top{display:block;margin:-2px 0 10px;padding:14px;border:1px solid rgba(255,107,0,.18);border-radius:18px;background:linear-gradient(135deg,rgba(255,107,0,.14),rgba(17,25,35,.84))}
           .mk-eyebrow{font-size:10px;letter-spacing:.18em}
-          .mk-title{font-size:25px;line-height:1.12;max-width:12ch;margin-top:10px}
-          .mk-sub{font-size:13px;line-height:1.65;max-width:32ch}
+          .mk-title{font-size:23px;line-height:1.12;max-width:100%;margin:9px 0 8px}
+          .mk-sub{font-size:12px;line-height:1.55;max-width:100%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
           .mk-actions,.mk-date-controls,.mk-date-presets,.mk-date-fields{justify-content:flex-start;justify-items:start;width:100%}
           .mk-actions{margin-top:14px}
           .mk-btn{min-height:44px;border-radius:14px;padding:11px 13px}
-          .mk-date-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%;margin-top:14px}
-          .mk-date-presets .mk-btn{width:100%;font-size:12px;padding:10px 6px}
+          .mk-date-controls{gap:8px}
+          .mk-date-presets{display:flex;gap:8px;width:100%;margin-top:12px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+          .mk-date-presets::-webkit-scrollbar{display:none}
+          .mk-date-presets .mk-btn{flex:0 0 auto;width:auto;min-width:76px;font-size:12px;padding:10px 12px}
           .mk-date-fields{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:8px}
           .mk-date-fields input{width:100%;min-height:46px;font-size:13px}
-          .mk-mobile-tabs{margin:0 -12px 14px;padding:10px 12px 12px;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
+          .mk-date-controls > div[style]{font-size:11px!important}
+          .mk-date-controls .mk-btn.orange{width:100%;justify-content:center;text-align:center}
+          .mk-mobile-tabs{display:none!important}
           .mk-mobile-tabs button{min-height:42px;padding:10px 14px;border-radius:12px}
-          .mk-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-          .mk-card{min-height:118px;padding:13px;border-radius:16px}
-          .mk-card strong{font-size:21px;line-height:1.08;word-break:break-word}
+          .mk-mobile-command{display:grid;gap:12px;margin:12px 0 14px}
+          .mk-mobile-command-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
+          .mk-mobile-command-head strong{font-size:18px}
+          .mk-mobile-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+          .mk-mobile-metric{border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(17,25,35,.96),rgba(9,15,23,.98));border-radius:16px;padding:13px;min-height:96px}
+          .mk-mobile-metric span{display:block;color:#94a3b8;font-size:11px;line-height:1.4}
+          .mk-mobile-metric strong{display:block;margin-top:8px;font-size:20px;line-height:1.08;color:#fff;word-break:break-word}
+          .mk-mobile-chart{padding:13px;border-radius:17px}
+          .mk-mobile-chart .mk-bar-head{font-size:12px}
+          .mk-mobile-chart .mk-bar-track{height:10px;margin-top:6px}
+          .mk-mobile-jump{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+          .mk-mobile-jump button{border:1px solid rgba(255,107,0,.28);background:rgba(255,107,0,.08);color:#fff;border-radius:13px;min-height:44px;font-size:11px;font-weight:900}
+          .mk-overview-grid,.mk-dashboard-secondary{display:none!important}
+          .mk-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+          .mk-card{min-height:108px!important;padding:12px;border-radius:16px}
+          .mk-card > div:first-child{margin-bottom:8px}
+          .mk-card strong{font-size:19px;line-height:1.08;word-break:break-word}
           .mk-card span{font-size:11px;line-height:1.45}
-          .mk-dot{width:34px;height:34px;border-radius:12px;font-size:12px}
-          .mk-growth-grid{display:flex;grid-template-columns:none;gap:12px;margin:14px -12px 8px;padding:0 12px 10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+          .mk-dot{width:30px;height:30px;border-radius:10px;font-size:11px}
+          .mk-growth-grid{display:flex!important;grid-template-columns:none!important;gap:12px;margin:12px -12px 8px;padding:0 12px 10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
           .mk-growth-grid::-webkit-scrollbar{display:none}
-          .mk-growth-card{flex:0 0 84%;scroll-snap-align:start;padding:15px;border-radius:18px;min-height:178px}
+          .mk-growth-card{flex:0 0 84%!important;scroll-snap-align:start;padding:15px;border-radius:18px;min-height:172px}
           .mk-growth-head{gap:10px}
           .mk-growth-head strong{font-size:15px}
           .mk-growth-head span{font-size:11px}
@@ -1224,7 +1289,7 @@ export default function MarketingKpiDashboard({
           .mk-panel p{font-size:13px;line-height:1.65}
           .mk-section-head{display:block}
           .mk-section-actions{justify-content:flex-start;margin-top:12px}
-          .mk-channel-grid{grid-template-columns:1fr 1fr;gap:10px}
+          .mk-channel-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px}
           .mk-mini{padding:13px;border-radius:14px;min-width:0}
           .mk-mini strong{font-size:17px;word-break:break-word}
           .mk-decision-grid,.mk-form-grid{grid-template-columns:1fr}
@@ -1239,13 +1304,13 @@ export default function MarketingKpiDashboard({
           .mk-source{display:grid;align-items:start;padding:13px}
           .mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start}
           .mk-meter-row{grid-template-columns:1fr;gap:8px}
-          .mk-chart-list,.mk-scroll-list{max-height:440px;overflow:auto;padding-right:2px}
+          .mk-chart-list,.mk-scroll-list{max-height:390px;overflow:auto;padding-right:2px}
           .mk-chart-item{padding:13px;border-radius:14px}
           .mk-chart-head{align-items:flex-start}
           .mk-chart-title{white-space:normal;line-height:1.35}
           .mk-chart-sub{font-size:11px}
           .mk-table-wrap{max-width:100%;margin:0 -2px;padding-bottom:8px}
-          .mk-table-wrap.compact{max-height:430px}
+          .mk-table-wrap.compact{max-height:360px}
           .mk-table{min-width:620px}
           .mk-table th,.mk-table td{padding:12px 10px;font-size:12px}
           .mk-empty{padding:14px;font-size:13px}
@@ -1353,7 +1418,86 @@ export default function MarketingKpiDashboard({
             ))}
           </nav>
 
-          {showDashboard && <section className="mk-grid" aria-label="Marketing KPI overview">
+          {showDashboard && (
+            <section className="mk-mobile-command" aria-label="Mobile marketing command summary">
+              <div className="mk-mobile-command-head">
+                <div>
+                  <span className="mk-eyebrow">Quick View</span>
+                  <strong>Marketing Snapshot</strong>
+                </div>
+                <span style={{ color: "#94a3b8", fontSize: 11 }}>{rangeLabel}</span>
+              </div>
+              <div className="mk-mobile-metrics">
+                <div className="mk-mobile-metric">
+                  <span>Revenue</span>
+                  <strong>THB {money(receiptRevenue)}</strong>
+                  <span>ERP receipts</span>
+                </div>
+                <div className="mk-mobile-metric">
+                  <span>Profit</span>
+                  <strong>THB {money(grossProfit)}</strong>
+                  <span>{percent(grossMargin)} margin</span>
+                </div>
+                <div className="mk-mobile-metric">
+                  <span>Leads</span>
+                  <strong>{money(totalLeads)}</strong>
+                  <span>Meta + CRM</span>
+                </div>
+                <div className="mk-mobile-metric">
+                  <span>Ad Spend</span>
+                  <strong>THB {money(marketingSpend)}</strong>
+                  <span>{roas ? `${roas.toFixed(2)} ROAS` : "waiting spend"}</span>
+                </div>
+              </div>
+              <div className="mk-mobile-chart">
+                <h3>Money Flow</h3>
+                <div className="mk-bar-list">
+                  {kpiBars.map((item) => (
+                    <div key={`mobile-${item.label}`}>
+                      <div className="mk-bar-head">
+                        <span>{item.label}</span>
+                        <span>THB {money(item.value)}</span>
+                      </div>
+                      <div className="mk-bar-track">
+                        <span className="mk-bar-fill" style={{ width: `${Math.max(2, (item.value / maxKpiValue) * 100)}%`, background: item.color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mk-mobile-chart">
+                <h3>Lead Pipeline</h3>
+                <div className="mk-bar-list">
+                  {leadPipelineBars.map((item) => (
+                    <div key={`mobile-${item.label}`}>
+                      <div className="mk-bar-head">
+                        <span>{item.label}</span>
+                        <span>{money(item.value)}</span>
+                      </div>
+                      <div className="mk-bar-track">
+                        <span className="mk-bar-fill" style={{ width: `${Math.max(2, (item.value / maxLeadPipeline) * 100)}%`, background: item.color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mk-mobile-jump" aria-label="Open marketing sections">
+                {[
+                  ["Ads", "facebook"],
+                  ["Leads", "leads"],
+                  ["Customer", "customers"],
+                  ["Sales", "orders"],
+                  ["AI", "ai"],
+                ].map(([label, section]) => (
+                  <button key={section} type="button" onClick={() => setActiveSection(section as MarketingSection)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {showDashboard && <section className="mk-grid mk-overview-grid" aria-label="Marketing KPI overview">
             {overviewCards.map((card) => (
               <article className="mk-card" key={card.label}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
@@ -1370,7 +1514,7 @@ export default function MarketingKpiDashboard({
           </section>}
 
           {showDashboard && (
-            <section className="mk-growth-grid" aria-label="Growth trends">
+            <section className="mk-growth-grid mk-dashboard-secondary" aria-label="Growth trends">
               {growthPanels.map((panel) => {
                 const maxValue = Math.max(1, ...panel.points.map((point) => Math.max(0, Number(point.value || 0))));
                 const delta = trendDelta(panel.points);
@@ -1404,7 +1548,7 @@ export default function MarketingKpiDashboard({
           )}
 
           {showDashboard && (
-            <section className="mk-panel" style={{ marginTop: 16 }}>
+            <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
               <div className="mk-section-head">
                 <div>
                   <h3>Lead Source Summary</h3>
@@ -1473,7 +1617,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(showDashboard || activeSection === "orders") && <section className="mk-row">
+          {(showDashboard || activeSection === "orders") && <section className={`mk-row ${showDashboard ? "mk-dashboard-secondary" : ""}`}>
             <div className="mk-panel">
               <h3>Revenue vs Spend</h3>
               <p>Real business outcome from ERP receipts compared with marketing cost.</p>
@@ -1558,7 +1702,7 @@ export default function MarketingKpiDashboard({
           )}
 
           {activeSection === "facebook" && (
-            <section className="mk-panel" style={{ marginTop: 16 }}>
+            <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
               <h3>Facebook Revenue Mapping</h3>
               <div className="mk-channel-grid" style={{ marginTop: 14, marginBottom: 14 }}>
                 <div className="mk-mini"><strong>THB {money(metaReportedRevenue)}</strong><div>Meta Reported Revenue</div></div>
@@ -1574,7 +1718,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "facebook" || activeSection === "campaigns") && <section className="mk-panel" style={{ marginTop: 16 }}>
+          {(activeSection === "facebook" || activeSection === "campaigns") && <section className="mk-panel" id="marketing-campaigns" style={{ marginTop: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
               <div>
                 <h3>Campaign Performance</h3>
@@ -1651,7 +1795,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "budget" || activeSection === "funnel" || activeSection === "reports") && <section className="mk-row">
+          {(activeSection === "budget" || activeSection === "funnel" || activeSection === "reports") && <section className="mk-row" id="marketing-lead-funnel">
             <div className="mk-panel">
               <h3>Budget Monitoring</h3>
               <p>ติดตามงบที่ตั้งไว้และงบที่ใช้จริง</p>
@@ -1691,7 +1835,7 @@ export default function MarketingKpiDashboard({
             </div>
           </section>}
 
-          {(activeSection === "channels" || activeSection === "reports") && <section className="mk-panel" style={{ marginTop: 16 }}>
+          {(activeSection === "channels" || activeSection === "reports") && <section className="mk-panel" id="marketing-channels" style={{ marginTop: 16 }}>
             <h3>Channel Performance Comparison</h3>
             <p>เปรียบเทียบจากสัญญาณจริงของแต่ละช่องทาง ไม่แบ่งรายได้ ERP แบบเดาเอง</p>
             <div className="mk-channel-grid" style={{ marginTop: 14 }}>
@@ -1707,7 +1851,7 @@ export default function MarketingKpiDashboard({
           </section>}
 
           {activeSection === "leads" && (
-            <section className="mk-panel" style={{ marginTop: 16 }}>
+            <section className="mk-panel" id="marketing-crm" style={{ marginTop: 16 }}>
               <h3>Lead Entry</h3>
               <p>บันทึก Lead พร้อม Source, Campaign, พฤติกรรม, สถานะ และวันติดตาม</p>
               <div className="mk-form-grid" style={{ marginTop: 14 }}>
@@ -1741,7 +1885,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "insight" || activeSection === "leads" || activeSection === "reports") && <section className="mk-row">
+          {(activeSection === "insight" || activeSection === "leads" || activeSection === "reports") && <section className="mk-row" id="marketing-ai-insight">
             <div className="mk-panel">
               <h3>AI Insight</h3>
               <p>สรุปแนวทางที่ควรทำต่อจากข้อมูลปัจจุบัน</p>
@@ -1952,7 +2096,7 @@ export default function MarketingKpiDashboard({
           )}
 
           {activeSection === "ai" && (
-            <section className="mk-panel" style={{ marginTop: 16 }}>
+            <section className="mk-panel" id="marketing-ai" style={{ marginTop: 16 }}>
               <div className="mk-section-head">
                 <div>
                   <h3>AI Search Crawler Monitor</h3>
@@ -2054,7 +2198,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "sources" || activeSection === "settings") && <section className="mk-panel" style={{ marginTop: 16 }}>
+          {(activeSection === "sources" || activeSection === "settings") && <section className="mk-panel" id="marketing-data-sources" style={{ marginTop: 16 }}>
             <div className="mk-section-head">
               <div>
                 <h3>Data Sources</h3>

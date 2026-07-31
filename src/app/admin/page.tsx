@@ -825,6 +825,20 @@ export default function AdminPage() {
   const [marketingMobileSection, setMarketingMobileSection] = useState("overview");
   const scrollToMarketingSection = (anchorId: string, navKey: string) => {
     setMarketingMobileSection(navKey);
+    if (typeof window !== "undefined") {
+      const sectionMap: Record<string, string> = {
+        overview: "dashboard",
+        campaigns: "facebook",
+        funnel: "funnel",
+        tracking: "leads",
+        channels: "channels",
+        insight: "insight",
+        sources: "sources",
+      };
+      window.dispatchEvent(new CustomEvent("dwm-marketing-section", {
+        detail: { section: sectionMap[navKey] || navKey },
+      }));
+    }
     // ให้ DOM render/ปิด drawer เสร็จก่อนค่อย scroll กันปัญหาตำแหน่งเพี้ยนตอนปิด drawer
     setTimeout(() => {
       document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" });
