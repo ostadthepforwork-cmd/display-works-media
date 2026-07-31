@@ -261,12 +261,12 @@ a {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
-  padding: max(20px, env(safe-area-inset-top, 0px)) 18px max(20px, env(safe-area-inset-bottom, 0px));
+  padding: max(20px, env(safe-area-inset-top, 0px)) 16px max(20px, env(safe-area-inset-bottom, 0px));
 }
 
 .admin-login-card {
-  width: min(100%, 420px) !important;
-  max-width: calc(100vw - 36px) !important;
+  width: min(420px, calc(100vw - 32px)) !important;
+  max-width: calc(100vw - 32px) !important;
 }
 
 .admin-login-card input,
@@ -276,13 +276,19 @@ a {
 
 @media (max-width: 640px) {
   .admin-login-page {
-    align-items: center !important;
-    padding-right: 16px;
-    padding-left: 16px;
+    display: block !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding-right: 16px !important;
+    padding-left: 16px !important;
+    padding-top: max(48px, env(safe-area-inset-top, 0px)) !important;
   }
 
   .admin-login-card {
-    max-width: calc(100vw - 64px) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 32px) !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
     padding: 28px 20px !important;
     border-radius: 14px !important;
   }

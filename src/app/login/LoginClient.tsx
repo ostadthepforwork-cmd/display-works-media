@@ -33,14 +33,14 @@ export default function LoginPage() {
 
   return (
     <div className="admin-login-page" style={{
-      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+      minHeight: "100dvh", width: "100%", maxWidth: "100vw", display: "flex", alignItems: "center", justifyContent: "center",
       backgroundColor: "#0B0F19", fontFamily: "'Prompt', sans-serif",
-      padding: "20px", boxSizing: "border-box", overflowX: "hidden",
+      padding: "max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom))", boxSizing: "border-box", overflowX: "hidden",
     }}>
       <div className="admin-login-card" style={{
         backgroundColor: "#141A24", border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "16px", boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
-        padding: "clamp(24px, 7vw, 40px)", width: "calc(100vw - 64px)", maxWidth: "420px",
+        padding: "clamp(22px, 7vw, 40px)", width: "min(420px, calc(100vw - 32px))", maxWidth: "calc(100vw - 32px)",
         boxSizing: "border-box", margin: "0 auto",
       }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
@@ -88,6 +88,34 @@ export default function LoginPage() {
 
         <p style={{ textAlign: "center", fontSize: "12px", color: "#374151", marginTop: "24px" }}>© 2025 Display Works Media</p>
       </div>
+      <style>{`
+        html, body { overflow-x: hidden; }
+        .admin-login-page, .admin-login-card { max-width: 100vw; }
+        .admin-login-card input,
+        .admin-login-card button {
+          min-width: 0;
+          max-width: 100%;
+        }
+        @media (max-width: 768px) {
+          .admin-login-page {
+            display: block !important;
+            align-items: flex-start !important;
+            justify-content: flex-start !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+            padding-top: max(48px, env(safe-area-inset-top)) !important;
+          }
+          .admin-login-card {
+            border-radius: 14px !important;
+            width: calc(100vw - 32px) !important;
+            max-width: calc(100vw - 32px) !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

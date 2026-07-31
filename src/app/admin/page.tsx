@@ -1397,6 +1397,10 @@ export default function AdminPage() {
         ::-webkit-scrollbar-track { background: #0B0F19; }
         ::-webkit-scrollbar-thumb { background: #FF6B00; border-radius: 3px; }
 
+        .admin-logout-btn {
+          white-space: nowrap;
+        }
+
         @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
         @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
         @keyframes scaleIn { from { transform: scale(0.95); opacity:0; } to { transform: scale(1); opacity:1; } }
@@ -1415,6 +1419,43 @@ export default function AdminPage() {
             gap: 6px !important;
             padding-left: 10px !important;
             padding-right: 10px !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 250 !important;
+          }
+          .top-bar img {
+            width: 30px !important;
+            height: 26px !important;
+          }
+          .top-bar .show-mobile > span:first-child {
+            min-width: 0 !important;
+            max-width: 34vw !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+          }
+          .top-bar .show-mobile > div {
+            max-width: 42vw !important;
+            overflow-x: auto !important;
+            scrollbar-width: none;
+          }
+          .top-bar .show-mobile > div::-webkit-scrollbar {
+            display: none;
+          }
+          .admin-logout-btn {
+            width: 42px !important;
+            height: 42px !important;
+            min-height: 42px !important;
+            padding: 0 !important;
+            justify-content: center !important;
+            border-radius: 12px !important;
+            font-size: 0 !important;
+          }
+          .admin-logout-btn > span:first-child {
+            font-size: 18px !important;
+          }
+          .admin-logout-text {
+            display: none !important;
           }
           .top-bar > button,
           .top-bar a {
@@ -1459,8 +1500,9 @@ export default function AdminPage() {
             width: 100vw !important;
             max-width: 100vw !important;
             min-width: 0 !important;
-            padding: 14px 12px calc(78px + env(safe-area-inset-bottom, 16px)) !important;
+            padding: 14px 12px calc(92px + env(safe-area-inset-bottom, 16px)) !important;
             overflow-x: hidden !important;
+            scroll-padding-bottom: calc(92px + env(safe-area-inset-bottom, 16px)) !important;
           }
           .main-content-area > div[style*="grid"],
           .main-content-area form,
@@ -1468,6 +1510,12 @@ export default function AdminPage() {
           .main-content-area article {
             max-width: 100%;
             min-width: 0;
+          }
+          .main-content-area div[style*="grid-template-columns: 1fr 1fr"],
+          .main-content-area div[style*="grid-template-columns: 1fr 1fr 1fr"],
+          .main-content-area div[style*="grid-template-columns: repeat(4"],
+          .main-content-area div[style*="grid-template-columns: repeat(auto-fill"] {
+            grid-template-columns: 1fr !important;
           }
           .main-content-area input,
           .main-content-area select,
@@ -1477,6 +1525,19 @@ export default function AdminPage() {
           }
           .main-content-area button {
             max-width: 100%;
+          }
+          .main-content-area [style*="display: flex"] {
+            min-width: 0 !important;
+          }
+          .main-content-area [style*="font-size: 32px"],
+          .main-content-area [style*="fontSize: 32"] {
+            font-size: 24px !important;
+            line-height: 1.2 !important;
+          }
+          .main-content-area [style*="font-size: 28px"],
+          .main-content-area [style*="fontSize: 28"] {
+            font-size: 22px !important;
+            line-height: 1.25 !important;
           }
 
           /* Document table → card list on mobile */
@@ -1508,6 +1569,8 @@ export default function AdminPage() {
             max-width: 100% !important;
             width: 100% !important;
             max-height: 92dvh !important;
+            padding-right: 16px !important;
+            padding-left: 16px !important;
             animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1) !important;
           }
           .modal-panel > div {
@@ -1540,6 +1603,8 @@ export default function AdminPage() {
           .doc-header-row .doc-header-actions input { flex: 1 !important; min-width: 120px !important; }
           .doc-header-row .doc-header-actions select { flex: 1 !important; min-width: 120px !important; }
           .doc-header-row .doc-header-actions button { white-space: nowrap !important; flex-shrink: 0 !important; }
+          .doc-cards { gap: 12px !important; }
+          .doc-cards > div { border-radius: 14px !important; }
 
           /* Insights row single col */
           .insights-row { grid-template-columns: 1fr !important; }
@@ -1608,6 +1673,10 @@ export default function AdminPage() {
             min-width: 0 !important;
             overflow-x: hidden !important;
           }
+          .marketing-main,
+          .marketing-main * {
+            min-width: 0;
+          }
           .marketing-header {
             flex-direction: column !important;
             align-items: flex-start !important;
@@ -1630,6 +1699,10 @@ export default function AdminPage() {
           .marketing-header button {
             flex: 1 0 auto !important;
             min-width: 130px !important;
+          }
+          .marketing-header input[type="date"] {
+            width: 100% !important;
+            min-height: 46px !important;
           }
           .marketing-kpi-grid {
             grid-template-columns: 1fr 1fr !important;
@@ -1654,6 +1727,15 @@ export default function AdminPage() {
           .marketing-main #marketing-crm table {
             min-width: 760px !important;
           }
+          .marketing-main table {
+            min-width: 680px !important;
+          }
+          .marketing-main th,
+          .marketing-main td {
+            padding: 12px 10px !important;
+            white-space: normal !important;
+            vertical-align: top !important;
+          }
           .marketing-main #marketing-crm > div:last-child {
             overflow-x: auto !important;
             -webkit-overflow-scrolling: touch;
@@ -1671,9 +1753,19 @@ export default function AdminPage() {
             display: grid !important;
             grid-template-columns: 1fr 1fr !important;
             gap: 8px !important;
+            overflow: visible !important;
           }
           .marketing-header > div:last-child > div:last-child {
             display: none !important;
+          }
+          .marketing-main {
+            padding: 12px !important;
+          }
+          .marketing-sidebar {
+            margin: -2px -2px 0 !important;
+          }
+          .marketing-sidebar-nav a {
+            min-height: 42px !important;
           }
         }
       `}</style>
@@ -4917,6 +5009,7 @@ function LogoutButton() {
   };
   return (
     <button
+      className="admin-logout-btn"
       onClick={handleLogout}
       style={{
         background: "rgba(239,68,68,0.1)",
@@ -4938,7 +5031,7 @@ function LogoutButton() {
       onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.25)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.5)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)"; }}
     >
-      <span>🚪</span> ออกจากระบบ
+      <span>🚪</span> <span className="admin-logout-text">ออกจากระบบ</span>
     </button>
   );
 }
