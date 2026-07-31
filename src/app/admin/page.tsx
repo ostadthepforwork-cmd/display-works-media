@@ -1063,14 +1063,14 @@ export default function AdminPage() {
           </button>
         </div>
         {/* Mobile: title + ERP/CMS toggle */}
-        <div className="show-mobile" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
+        <div className="show-mobile admin-mobile-top" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+          <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
             {mainTab === "erp"
               ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
           </span>
           {/* ERP / CMS switcher pill */}
-          <div style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: 2, gap: 2, flexShrink: 0 }}>
+          <div className="admin-mobile-switch" style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: 2, gap: 2, flexShrink: 0 }}>
             {(["erp", "cms", "marketing"] as const).map(t => (
               <button key={t} onClick={() => { setMainTab(t); setShowMobileDrawer(false); }} style={{
                 padding: "4px 10px", borderRadius: 6, border: "none", cursor: "pointer",
@@ -1422,6 +1422,7 @@ export default function AdminPage() {
         /* ── Responsive ── */
         .hide-mobile { display: flex; }
         .show-mobile { display: none !important; }
+        .erp-mobile-card-list { display: none; }
 
         @media (max-width: 768px) {
           .hide-mobile { display: none !important; }
@@ -1454,6 +1455,25 @@ export default function AdminPage() {
             scrollbar-width: none;
           }
           .top-bar .show-mobile > div::-webkit-scrollbar {
+            display: none;
+          }
+          .admin-mobile-top {
+            min-width: 0 !important;
+            overflow: hidden !important;
+          }
+          .admin-mobile-title {
+            max-width: 30vw !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+          }
+          .admin-mobile-switch {
+            max-width: 46vw !important;
+            overflow-x: auto !important;
+            scrollbar-width: none;
+          }
+          .admin-mobile-switch::-webkit-scrollbar {
             display: none;
           }
           .admin-logout-btn {
@@ -1540,6 +1560,116 @@ export default function AdminPage() {
           .main-content-area button {
             max-width: 100%;
           }
+          .erp-dashboard-header,
+          .erp-page-header {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+            margin-bottom: 16px !important;
+          }
+          .erp-date-controls {
+            width: 100% !important;
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+            justify-content: stretch !important;
+          }
+          .erp-date-controls button,
+          .erp-date-controls input {
+            width: 100% !important;
+            min-width: 0 !important;
+            min-height: 44px !important;
+            text-align: center !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+          }
+          .erp-page-actions {
+            width: 100% !important;
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+          .erp-page-actions input,
+          .erp-page-actions select,
+          .erp-page-actions button {
+            width: 100% !important;
+          }
+          .erp-card-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .erp-data-card {
+            padding: 14px !important;
+            border-radius: 14px !important;
+          }
+          .erp-card-actions button {
+            width: 44px !important;
+            height: 44px !important;
+          }
+          .erp-desktop-table {
+            display: none !important;
+          }
+          .erp-mobile-card-list {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+          }
+          .erp-mobile-card {
+            background: #141A24 !important;
+            border: 1px solid rgba(255,255,255,0.08) !important;
+            border-radius: 14px !important;
+            padding: 14px !important;
+          }
+          .erp-mobile-card-head {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+            margin-bottom: 12px !important;
+          }
+          .erp-mobile-card-title {
+            color: #fff !important;
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            line-height: 1.45 !important;
+          }
+          .erp-mobile-card-meta {
+            color: #94A3B8 !important;
+            font-size: 12px !important;
+            line-height: 1.55 !important;
+          }
+          .erp-mobile-stats {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+            margin: 10px 0 12px !important;
+          }
+          .erp-mobile-stat {
+            background: rgba(255,255,255,0.035) !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 10px !important;
+            padding: 10px !important;
+          }
+          .erp-mobile-stat span {
+            display: block !important;
+            color: #64748B !important;
+            font-size: 11px !important;
+            margin-bottom: 4px !important;
+          }
+          .erp-mobile-stat strong {
+            color: #fff !important;
+            font-size: 14px !important;
+            line-height: 1.3 !important;
+          }
+          .erp-mobile-actions {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+          }
+          .erp-mobile-actions button {
+            width: 100% !important;
+            min-height: 44px !important;
+          }
           .main-content-area [style*="display: flex"] {
             min-width: 0 !important;
           }
@@ -1619,6 +1749,46 @@ export default function AdminPage() {
           .doc-header-row .doc-header-actions button { white-space: nowrap !important; flex-shrink: 0 !important; }
           .doc-cards { gap: 12px !important; }
           .doc-cards > div { border-radius: 14px !important; }
+          .doc-mobile-card {
+            background: rgba(20,26,36,0.95) !important;
+            border: 1px solid rgba(255,255,255,0.08) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.18) !important;
+          }
+          .doc-mobile-card-head {
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+          .doc-mobile-card-head > div:first-child {
+            min-width: 0 !important;
+          }
+          .doc-mobile-card-head > div:last-child {
+            flex: 0 0 auto !important;
+          }
+          .doc-mobile-card-head [style*="font-family: monospace"] {
+            overflow-wrap: anywhere !important;
+          }
+          .doc-mobile-footer {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+          }
+          .doc-mobile-status button {
+            width: 100% !important;
+            justify-content: center !important;
+            min-height: 42px !important;
+          }
+          .doc-mobile-actions {
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+          }
+          .doc-mobile-actions > button,
+          .doc-mobile-actions > div > button {
+            width: 100% !important;
+            min-height: 42px !important;
+            justify-content: center !important;
+          }
 
           /* Insights row single col */
           .insights-row { grid-template-columns: 1fr !important; }
@@ -1762,6 +1932,20 @@ export default function AdminPage() {
         /* ── iPhone 15 Pro specific (393px wide) ── */
         @media (max-width: 430px) {
           input, select, textarea { font-size: 16px !important; } /* prevent iOS auto-zoom */
+          .admin-mobile-title { max-width: 27vw !important; }
+          .admin-mobile-switch { max-width: 45vw !important; }
+          .erp-date-controls {
+            grid-template-columns: 1fr 1fr !important;
+          }
+          .erp-date-controls input[type="number"] {
+            grid-column: span 2 !important;
+          }
+          .kpi-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .erp-mobile-stats {
+            grid-template-columns: 1fr !important;
+          }
           .marketing-kpi-grid { grid-template-columns: 1fr !important; }
           .marketing-header > div:last-child {
             display: grid !important;
@@ -2610,7 +2794,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
     <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
 
       {/* ── HEADER ──────────────────────────────────────────────── */}
-      <div style={{ marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
+      <div className="erp-dashboard-header" style={{ marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 3, color: "#FF6B00", textTransform: "uppercase", marginBottom: 6 }}>BUSINESS COMMAND CENTER</div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1.2 }}>ภาพรวมธุรกิจ</h1>
@@ -2618,7 +2802,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             {now.toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <div className="erp-date-controls" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
           {[{k:"7d",l:"7 วัน"},{k:"30d",l:"30 วัน"},{k:"12m",l:"12 เดือน"}].map(({k,l}) => (
             <button key={k} onClick={() => { setChartRange(k as any); setDateFilterMode("quick"); }} style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)",
@@ -3143,19 +3327,19 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
   };
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+      <div className="erp-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>ลูกค้า</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{customers.length} ราย</p></div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="erp-page-actions" style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 220 }} />
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มลูกค้า</Btn>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
+      <div className="erp-card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
         {filtered.map(c => (
-          <div key={c.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 18px" }}>
+          <div className="erp-data-card" key={c.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 18px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
               <div><div style={{ fontWeight: 600, fontSize: 15 }}>{c.name}</div>{c.contact && <div style={{ fontSize: 12, color: "#A8B0C0" }}>{c.contact}</div>}</div>
-              <div style={{ display: "flex", gap: 6 }}>
+              <div className="erp-card-actions" style={{ display: "flex", gap: 6 }}>
                 <IconBtn onClick={() => setEditing({ ...c })} title="แก้ไข">✏️</IconBtn>
                 <IconBtn onClick={() => del(c.id)} title="ลบ" danger>🗑️</IconBtn>
               </div>
@@ -3266,14 +3450,14 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
   };
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+      <div className="erp-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>สินค้า/บริการ</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{catalogProducts.length} รายการ</p></div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="erp-page-actions" style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มสินค้า</Btn>
         </div>
       </div>
-      <div style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
+      <div className="erp-desktop-table" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#1A2233" }}>
@@ -3317,6 +3501,46 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
             })}
           </tbody>
         </table>
+      </div>
+      <div className="erp-mobile-card-list">
+        {filtered.map(p => {
+          const margin = p.price - p.cost;
+          const pct = p.cost > 0 ? (margin / p.cost * 100).toFixed(0) : 0;
+          return (
+            <div className="erp-mobile-card" key={`mobile-${p.id}`}>
+              <div className="erp-mobile-card-head">
+                <div>
+                  <div className="erp-mobile-card-title">{p.name}</div>
+                  <div className="erp-mobile-card-meta">
+                    {p.supplierName ? `Supplier: ${p.supplierName}` : "Supplier: -"}
+                    {p.fromSupplierCatalog && <span style={{ marginLeft: 6, color: "#F97316", fontWeight: 700 }}>Catalog</span>}
+                  </div>
+                </div>
+                <div style={{ color: margin > 0 ? "#10b981" : "#ef4444", fontSize: 14, fontWeight: 800, whiteSpace: "nowrap" }}>
+                  ฿{fmtMoney(margin)}
+                </div>
+              </div>
+              <div className="erp-mobile-stats">
+                <div className="erp-mobile-stat"><span>Unit</span><strong>{p.unit}</strong></div>
+                <div className="erp-mobile-stat"><span>Margin</span><strong>{pct}%</strong></div>
+                <div className="erp-mobile-stat"><span>Cost</span><strong style={{ color: "#ef4444" }}>฿{fmtMoney(p.cost)} {priceBasisLabel(p.costUnit)}</strong></div>
+                <div className="erp-mobile-stat"><span>Sale</span><strong style={{ color: "#10b981" }}>฿{fmtMoney(p.price)} {priceBasisLabel(p.priceUnit)}</strong></div>
+              </div>
+              <div className="erp-mobile-actions">
+                {p.fromSupplierCatalog ? (
+                  <button disabled style={{ gridColumn: "1 / -1", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#94A3B8", borderRadius: 10, fontSize: 12, fontFamily: "inherit" }}>
+                    แก้ไขที่เมนู Supplier
+                  </button>
+                ) : (
+                  <>
+                    <button onClick={() => setEditing({ ...p })} style={{ background: "rgba(255,107,0,0.14)", border: "1px solid rgba(255,107,0,0.35)", color: "#FFB076", borderRadius: 10, fontWeight: 700, fontFamily: "inherit" }}>แก้ไข</button>
+                    <button onClick={() => del(p.id)} style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.28)", color: "#FCA5A5", borderRadius: 10, fontWeight: 700, fontFamily: "inherit" }}>ลบ</button>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
       {editing && (
         <Modal title={editing.id ? "แก้ไขสินค้า" : "เพิ่มสินค้า"} onClose={() => setEditing(null)} width={420}>
@@ -4259,8 +4483,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
             {filtered.map(doc => {
               const { total, depositPaid, balanceDue } = calcDocTotal(doc, allDocuments);
               return (
-                <div key={doc.id} style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div className="doc-mobile-card" key={doc.id} style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="doc-mobile-card-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                     <div>
                       <div style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 700, color: dt.color }}>{doc.docNo}</div>
                       <div style={{ fontSize: 13, color: "#e2e8f0", marginTop: 2 }}>{doc.customerName || "-"}</div>
@@ -4272,8 +4496,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{fmtDate(doc.date)}</div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <div style={{ position: "relative", display: "inline-block" }} data-status-dropdown="">
+                  <div className="doc-mobile-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div className="doc-mobile-status" style={{ position: "relative", display: "inline-block" }} data-status-dropdown="">
                       <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
                         style={{ display: "flex", alignItems: "center", gap: 5, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                         {STATUS_LABELS[doc.status]}
@@ -4290,7 +4514,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         </div>
                       )}
                     </div>
-                    <div style={{ display: "flex", gap: 6 }}>
+                    <div className="doc-mobile-actions" style={{ display: "flex", gap: 6 }}>
                       {doc.status !== "approved" && doc.status !== "cancelled" && (
                         <button onClick={() => changeStatus(doc.id, "approved")}
                           style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10B981", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>✅ อนุมัติ</button>
