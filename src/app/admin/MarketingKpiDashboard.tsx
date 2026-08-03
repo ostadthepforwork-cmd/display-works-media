@@ -1235,7 +1235,7 @@ export default function MarketingKpiDashboard({
         @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:flex;position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(8,13,20,.98),rgba(8,13,20,.9));backdrop-filter:blur(18px);padding:10px 0 12px}.mk-grid,.mk-growth-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid,.mk-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
         @media(max-width:640px){
           .mk-dashboard{border-radius:0;border-left:0;border-right:0;background:linear-gradient(180deg,rgba(255,107,0,.13),transparent 220px),#080d14}
-          .mk-main{padding:14px 12px 112px;overflow-x:hidden}
+          .mk-main{padding:12px 10px 112px;overflow-x:hidden}
           .mk-top{display:block;margin:-2px 0 10px;padding:14px;border:1px solid rgba(255,107,0,.18);border-radius:18px;background:linear-gradient(135deg,rgba(255,107,0,.14),rgba(17,25,35,.84))}
           .mk-eyebrow{font-size:10px;letter-spacing:.18em}
           .mk-title{font-size:23px;line-height:1.12;max-width:100%;margin:9px 0 8px}
@@ -1283,33 +1283,37 @@ export default function MarketingKpiDashboard({
           .mk-spark-bars{height:82px;gap:4px;margin-top:14px}
           .mk-spark-bars span{min-width:4px}
           .mk-spark-caption{font-size:10px}
-          .mk-row{grid-template-columns:1fr;gap:12px;margin-top:12px}
+          .mk-row{grid-template-columns:1fr!important;gap:12px!important;margin-top:12px}
           .mk-panel{padding:15px;border-radius:17px}
           .mk-panel h3{font-size:18px}
           .mk-panel p{font-size:13px;line-height:1.65}
-          .mk-section-head{display:block}
-          .mk-section-actions{justify-content:flex-start;margin-top:12px}
+          .mk-section-head{display:block!important}
+          .mk-section-actions{justify-content:flex-start;margin-top:12px;overflow:auto;padding-bottom:3px;scrollbar-width:none}
+          .mk-section-actions::-webkit-scrollbar{display:none}
           .mk-channel-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px}
           .mk-mini{padding:13px;border-radius:14px;min-width:0}
           .mk-mini strong{font-size:17px;word-break:break-word}
-          .mk-decision-grid,.mk-form-grid{grid-template-columns:1fr}
-          .mk-split-chart{grid-template-columns:1fr;gap:12px}
+          .mk-decision-grid,.mk-form-grid{grid-template-columns:1fr!important}
+          .mk-split-chart{grid-template-columns:1fr!important;gap:12px;text-align:left}
           .mk-donut{width:min(168px,64vw);height:min(168px,64vw);margin:12px auto}
           .mk-donut-inner{width:96px;height:96px}
           .mk-split-chart .mk-donut{width:152px;height:152px}
           .mk-split-chart .mk-donut-inner{width:86px;height:86px}
+          .mk-split-list{gap:10px}
+          .mk-split-list .mk-bar-head{display:grid;grid-template-columns:1fr auto;gap:10px}
           .mk-bar-list{gap:12px}
           .mk-bar-head{align-items:flex-start;font-size:13px}
           .mk-bar-track,.mk-chart-bar,.mk-meter-track{height:10px}
-          .mk-source{display:grid;align-items:start;padding:13px}
-          .mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start}
+          .mk-source{display:grid!important;grid-template-columns:1fr!important;align-items:start;padding:13px;gap:10px}
+          .mk-source.compact strong{white-space:normal}
+          .mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start;width:100%}
           .mk-meter-row{grid-template-columns:1fr;gap:8px}
           .mk-chart-list,.mk-scroll-list{max-height:390px;overflow:auto;padding-right:2px}
           .mk-chart-item{padding:13px;border-radius:14px}
           .mk-chart-head{align-items:flex-start}
           .mk-chart-title{white-space:normal;line-height:1.35}
           .mk-chart-sub{font-size:11px}
-          .mk-table-wrap{max-width:100%;margin:0 -2px;padding-bottom:8px}
+          .mk-table-wrap{max-width:100%;margin:0 -2px;padding-bottom:8px;border-radius:14px}
           .mk-table-wrap.compact{max-height:360px}
           .mk-table{min-width:620px}
           .mk-table th,.mk-table td{padding:12px 10px;font-size:12px}

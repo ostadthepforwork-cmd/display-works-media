@@ -98,21 +98,32 @@ export default function LoginPage() {
         }
         @media (max-width: 768px) {
           .admin-login-page {
-            display: block !important;
-            align-items: flex-start !important;
-            justify-content: flex-start !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
             width: 100vw !important;
             max-width: 100vw !important;
-            padding-left: 16px !important;
-            padding-right: 16px !important;
-            padding-top: max(48px, env(safe-area-inset-top)) !important;
+            min-height: 100dvh !important;
+            padding: max(20px, env(safe-area-inset-top)) 12px max(24px, env(safe-area-inset-bottom)) !important;
           }
           .admin-login-card {
-            border-radius: 14px !important;
-            width: calc(100vw - 32px) !important;
-            max-width: calc(100vw - 32px) !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
+            position: fixed !important;
+            left: 50% !important;
+            right: auto !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            border-radius: 18px !important;
+            width: calc(100vw - 56px) !important;
+            max-width: 334px !important;
+            margin: 0 !important;
+            padding: 24px 20px !important;
+          }
+          .admin-login-card h1 {
+            font-size: 20px !important;
+            line-height: 1.2 !important;
+          }
+          .admin-login-card form {
+            gap: 14px !important;
           }
         }
       `}</style>

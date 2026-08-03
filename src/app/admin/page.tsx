@@ -1062,27 +1062,22 @@ export default function AdminPage() {
             Marketing
           </button>
         </div>
-        {/* Mobile: title + ERP/CMS toggle */}
+        {/* Mobile: compact title + drawer trigger */}
         <div className="show-mobile admin-mobile-top" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
           <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
             {mainTab === "erp"
               ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
           </span>
-          {/* ERP / CMS switcher pill */}
-          <div className="admin-mobile-switch" style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: 2, gap: 2, flexShrink: 0 }}>
-            {(["erp", "cms", "marketing"] as const).map(t => (
-              <button key={t} onClick={() => { setMainTab(t); setShowMobileDrawer(false); }} style={{
-                padding: "4px 10px", borderRadius: 6, border: "none", cursor: "pointer",
-                fontSize: 11, fontWeight: 700, fontFamily: "inherit",
-                background: mainTab === t ? "#FF6B00" : "transparent",
-                color: mainTab === t ? "#fff" : "#6B7280",
-                transition: "all 0.2s", minHeight: 28,
-              }}>
-                {t.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            className="admin-module-trigger"
+            onClick={() => setShowMobileDrawer(v => !v)}
+            aria-label="Open admin menu"
+          >
+            <span>{mainTab === "marketing" ? "MKT" : mainTab.toUpperCase()}</span>
+            <b>{showMobileDrawer ? "Close" : "Menu"}</b>
+          </button>
         </div>
         <div style={{ flex: 1 }} className="hide-mobile" />
         <LogoutButton />
@@ -1250,6 +1245,21 @@ export default function AdminPage() {
             overflowY: "auto",
             overscrollBehavior: "contain" as const,
           }}>
+            <div className="mobile-module-switch" aria-label="Admin module switcher">
+              {(["erp", "cms", "marketing"] as const).map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  className={mainTab === t ? "active" : ""}
+                  onClick={() => {
+                    setMainTab(t);
+                    if (t === "marketing") setMarketingMobileSection("dashboard");
+                  }}
+                >
+                  {t === "marketing" ? "Marketing" : t.toUpperCase()}
+                </button>
+              ))}
+            </div>
             <div style={{ width: 36, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99, margin: "0 auto 12px" }} />
 
             {/* ─ ชื่อหัวข้อ drawer ─ */}
@@ -1462,11 +1472,36 @@ export default function AdminPage() {
             overflow: hidden !important;
           }
           .admin-mobile-title {
-            max-width: 30vw !important;
+            max-width: none !important;
             min-width: 0 !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
+            flex: 1 1 auto !important;
+          }
+          .admin-module-trigger {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex: 0 0 auto !important;
+            min-height: 38px !important;
+            border: 1px solid rgba(255,107,0,.38) !important;
+            border-radius: 12px !important;
+            background: linear-gradient(135deg, rgba(255,107,0,.2), rgba(255,255,255,.04)) !important;
+            color: #fff !important;
+            padding: 8px 11px !important;
+            font-family: inherit !important;
+            font-weight: 900 !important;
+            box-shadow: 0 8px 24px rgba(255,107,0,.14) !important;
+          }
+          .admin-module-trigger span {
+            color: #ff6b00 !important;
+            letter-spacing: .04em !important;
+            font-size: 12px !important;
+          }
+          .admin-module-trigger b {
+            font-size: 12px !important;
+            line-height: 1 !important;
           }
           .admin-mobile-switch {
             max-width: 46vw !important;
@@ -1497,6 +1532,29 @@ export default function AdminPage() {
           }
           .mobile-drawer {
             flex-direction: column !important;
+            padding-top: 12px !important;
+          }
+          .mobile-module-switch {
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+            padding: 0 16px 12px !important;
+          }
+          .mobile-module-switch button {
+            min-height: 44px !important;
+            border: 1px solid rgba(255,255,255,.12) !important;
+            border-radius: 13px !important;
+            background: rgba(255,255,255,.05) !important;
+            color: #cbd5e1 !important;
+            font-family: inherit !important;
+            font-size: 12px !important;
+            font-weight: 900 !important;
+          }
+          .mobile-module-switch button.active {
+            border-color: #ff6b00 !important;
+            background: linear-gradient(135deg, #ff6b00, #f97316) !important;
+            color: #fff !important;
+            box-shadow: 0 10px 28px rgba(255,107,0,.22) !important;
           }
           .mobile-drawer > button {
             flex-shrink: 0 !important;
@@ -1517,10 +1575,13 @@ export default function AdminPage() {
             -webkit-overflow-scrolling: touch;
             border-radius: 12px;
           }
+          table:not(.doc-table) {
+            min-width: 680px;
+          }
           table:not(.doc-table) thead,
           table:not(.doc-table) tbody,
           table:not(.doc-table) tr {
-            min-width: 720px;
+            width: 100%;
           }
           .main-content-area > div {
             max-width: none;
@@ -1545,10 +1606,16 @@ export default function AdminPage() {
             max-width: 100%;
             min-width: 0;
           }
-          .main-content-area div[style*="grid-template-columns: 1fr 1fr"],
-          .main-content-area div[style*="grid-template-columns: 1fr 1fr 1fr"],
-          .main-content-area div[style*="grid-template-columns: repeat(4"],
-          .main-content-area div[style*="grid-template-columns: repeat(auto-fill"] {
+          .main-content-area form[style*="grid-template-columns"],
+          .form-grid-2,
+          .form-grid-3,
+          .erp-card-grid,
+          .dash-grid,
+          .kpi-grid,
+          .chart-panel,
+          .insights-row,
+          .service-portfolio-editor-grid,
+          .service-portfolio-fields {
             grid-template-columns: 1fr !important;
           }
           .main-content-area input,
@@ -1713,17 +1780,28 @@ export default function AdminPage() {
             max-width: 100% !important;
             width: 100% !important;
             max-height: 92dvh !important;
-            padding-right: 16px !important;
-            padding-left: 16px !important;
+            padding-right: 12px !important;
+            padding-left: 12px !important;
             animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1) !important;
           }
           .modal-panel > div {
             min-width: 0 !important;
           }
+          .modal-panel > div:first-child {
+            padding: 16px 18px !important;
+          }
+          .modal-panel > div:nth-child(2) {
+            padding: 14px 18px calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+          }
+          .modal-panel .form-grid-2,
+          .modal-panel .form-grid-3 {
+            gap: 12px !important;
+          }
           .modal-panel input,
           .modal-panel select,
           .modal-panel textarea {
             font-size: 16px !important;
+            min-height: 44px !important;
           }
           .modal-backdrop {
             align-items: flex-end !important;
@@ -1932,8 +2010,8 @@ export default function AdminPage() {
         /* ── iPhone 15 Pro specific (393px wide) ── */
         @media (max-width: 430px) {
           input, select, textarea { font-size: 16px !important; } /* prevent iOS auto-zoom */
-          .admin-mobile-title { max-width: 27vw !important; }
-          .admin-mobile-switch { max-width: 45vw !important; }
+          .admin-mobile-title { max-width: none !important; }
+          .admin-mobile-switch { display: none !important; }
           .erp-date-controls {
             grid-template-columns: 1fr 1fr !important;
           }
