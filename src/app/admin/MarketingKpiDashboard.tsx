@@ -1255,7 +1255,10 @@ export default function MarketingKpiDashboard({
           .mk-mobile-tabs button{min-height:42px;padding:10px 14px;border-radius:12px}
           .mk-mobile-command{display:grid;gap:12px;margin:12px 0 14px}
           .mk-mobile-command-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
+          .mk-mobile-command-head > div{display:grid;gap:4px}
+          .mk-mobile-command-head .mk-eyebrow{display:block}
           .mk-mobile-command-head strong{font-size:18px}
+          .mk-mobile-command-head > span{max-width:112px;text-align:right;line-height:1.35}
           .mk-mobile-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
           .mk-mobile-metric{border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(17,25,35,.96),rgba(9,15,23,.98));border-radius:16px;padding:13px;min-height:96px}
           .mk-mobile-metric span{display:block;color:#94a3b8;font-size:11px;line-height:1.4}

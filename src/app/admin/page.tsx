@@ -1209,8 +1209,8 @@ export default function AdminPage() {
         {mainTab === "marketing" && ([
           { id: "overview", icon: "📊", label: "ภาพรวม", anchor: "marketing-dashboard" },
           { id: "campaigns", icon: "📣", label: "แคมเปญ", anchor: "marketing-campaigns" },
-          { id: "sources", icon: "🔗", label: "Source", anchor: "marketing-data-sources" },
-          { id: "tracking", icon: "🎯", label: "Tracking", anchor: "marketing-crm" },
+          { id: "sources", icon: "🔗", label: "แหล่งที่มา", anchor: "marketing-data-sources" },
+          { id: "tracking", icon: "🎯", label: "ติดตาม", anchor: "marketing-crm" },
           { id: "__more__", icon: "☰", label: "เพิ่มเติม" },
         ] as any[]).map(item => (
           <button key={item.id} onClick={() => {
@@ -1253,7 +1253,8 @@ export default function AdminPage() {
                   className={mainTab === t ? "active" : ""}
                   onClick={() => {
                     setMainTab(t);
-                    if (t === "marketing") setMarketingMobileSection("dashboard");
+                    if (t === "marketing") setMarketingMobileSection("overview");
+                    setShowMobileDrawer(false);
                   }}
                 >
                   {t === "marketing" ? "Marketing" : t.toUpperCase()}
@@ -1533,6 +1534,11 @@ export default function AdminPage() {
           .mobile-drawer {
             flex-direction: column !important;
             padding-top: 12px !important;
+            overflow-x: hidden !important;
+            scrollbar-width: none;
+          }
+          .mobile-drawer::-webkit-scrollbar {
+            display: none;
           }
           .mobile-module-switch {
             display: grid !important;
@@ -1774,15 +1780,22 @@ export default function AdminPage() {
           /* Modal bottom sheet on mobile */
           .modal-panel {
             position: fixed !important;
-            bottom: 0 !important; left: 0 !important; right: 0 !important;
+            bottom: 0 !important; left: 8px !important; right: 8px !important;
             top: auto !important;
             border-radius: 20px 20px 0 0 !important;
-            max-width: 100% !important;
-            width: 100% !important;
+            max-width: none !important;
+            width: auto !important;
             max-height: 92dvh !important;
-            padding-right: 12px !important;
-            padding-left: 12px !important;
+            padding-right: 0 !important;
+            padding-left: 0 !important;
+            overflow-x: hidden !important;
+            box-sizing: border-box !important;
             animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1) !important;
+          }
+          .modal-panel * {
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
           }
           .modal-panel > div {
             min-width: 0 !important;
@@ -1795,7 +1808,12 @@ export default function AdminPage() {
           }
           .modal-panel .form-grid-2,
           .modal-panel .form-grid-3 {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
             gap: 12px !important;
+          }
+          .modal-panel [style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
           }
           .modal-panel input,
           .modal-panel select,
@@ -1806,6 +1824,16 @@ export default function AdminPage() {
           .modal-backdrop {
             align-items: flex-end !important;
             padding: 0 !important;
+          }
+          .main-content-area,
+          .modal-panel,
+          .modal-panel > div:nth-child(2) {
+            scrollbar-width: none;
+          }
+          .main-content-area::-webkit-scrollbar,
+          .modal-panel::-webkit-scrollbar,
+          .modal-panel > div:nth-child(2)::-webkit-scrollbar {
+            display: none;
           }
 
           /* Content padding accounts for nav + safe area */
