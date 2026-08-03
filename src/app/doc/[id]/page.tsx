@@ -10,6 +10,8 @@ type PageProps = {
 };
 
 const DEFAULT_COMPANY_NAME = "DISPLAY WORKS MEDIA";
+const SITE_URL = "https://displayworksmedia.com";
+const DOC_OG_IMAGE = `${SITE_URL}/images/logo.png`;
 
 const DOC_LABELS: Record<string, { en: string; th: string; due: string }> = {
   quote: { en: "QUOTATION", th: "ใบเสนอราคา", due: "ยืนยันราคาถึง" },
@@ -30,16 +32,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       .maybeSingle();
     if (doc) {
       const label = DOC_LABELS[doc.type] || DOC_LABELS.quote;
-      const title = `${label.th} ${doc.doc_no} | Display Works Media`;
+      const documentTitle = `${label.th} ${doc.doc_no}`;
+      const title = `${documentTitle} | Display Works Media`;
       const description = [
         `${label.th}เลขที่ ${doc.doc_no}`,
         doc.customer_name ? `สำหรับ ${doc.customer_name}` : "",
         doc.project_name ? `โครงการ ${doc.project_name}` : "",
       ].filter(Boolean).join(" - ");
-      const url = `https://displayworksmedia.com/doc/${id}`;
+      const url = `${SITE_URL}/doc/${id}`;
       return {
+        metadataBase: new URL(SITE_URL),
         title,
         description,
+        alternates: { canonical: url },
         robots: { index: false, follow: false },
         openGraph: {
           title,
@@ -47,20 +52,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           url,
           siteName: "Display Works Media",
           type: "article",
-          images: [{ url: "/images/logo.png", width: 1200, height: 630, alt: "Display Works Media document" }],
+          images: [{ url: DOC_OG_IMAGE, width: 1200, height: 630, alt: documentTitle }],
         },
         twitter: {
           card: "summary_large_image",
           title,
           description,
-          images: ["/images/logo.png"],
+          images: [DOC_OG_IMAGE],
         },
       };
     }
   } catch {}
   return {
-    title: "เอกสาร | Display Works Media",
+    metadataBase: new URL(SITE_URL),
+    title: "เอกสารจาก Display Works Media",
+    description: "เปิดดูเอกสารจาก Display Works Media และบันทึกเป็น PDF ได้จากหน้านี้",
+    alternates: { canonical: `${SITE_URL}/doc/${id}` },
     robots: { index: false, follow: false },
+    openGraph: {
+      title: "เอกสารจาก Display Works Media",
+      description: "เปิดดูเอกสารจาก Display Works Media และบันทึกเป็น PDF ได้จากหน้านี้",
+      url: `${SITE_URL}/doc/${id}`,
+      siteName: "Display Works Media",
+      type: "article",
+      images: [{ url: DOC_OG_IMAGE, width: 1200, height: 630, alt: "Display Works Media document" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "เอกสารจาก Display Works Media",
+      description: "เปิดดูเอกสารจาก Display Works Media และบันทึกเป็น PDF ได้จากหน้านี้",
+      images: [DOC_OG_IMAGE],
+    },
   };
 }
 
