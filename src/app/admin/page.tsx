@@ -4419,7 +4419,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   // ── Dropdown state ──────────────────────────────────────────
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [openStatus, setOpenStatus] = useState<string | null>(null);
-  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number; mobile?: boolean } | null>(null);
   const closeAll = useCallback(() => { setOpenMenu(null); setOpenStatus(null); setMenuPos(null); }, []);
 
   // ── Fix: ใช้ data-attribute แทน ref เพราะ menuRef/statusRef single ref
@@ -4632,13 +4632,14 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       <div style={{ position: "relative" }}>
                         <button onClick={(e) => {
                           if (openMenu === doc.id) { closeAll(); return; }
+                          const isMobileMenu = window.matchMedia("(max-width: 768px)").matches;
                           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                          setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                          setMenuPos(isMobileMenu ? { top: 0, right: 0, mobile: true } : { top: rect.bottom + 4, right: window.innerWidth - rect.right });
                           setOpenMenu(doc.id); setOpenStatus(null);
                         }}
                           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
                         {openMenu === doc.id && menuPos && (
-                          <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "60dvh", overflowY: "auto" }}>
+                          <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.mobile ? "auto" : menuPos.top, right: menuPos.mobile ? 12 : menuPos.right, bottom: menuPos.mobile ? "calc(76px + env(safe-area-inset-bottom, 0px))" : "auto", left: menuPos.mobile ? 12 : "auto", zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: menuPos.mobile ? 16 : 10, padding: "6px 0", minWidth: menuPos.mobile ? 0 : 240, width: menuPos.mobile ? "auto" : undefined, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: menuPos.mobile ? "46dvh" : "60dvh", overflowY: "auto" }}>
                             <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); }} />
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
@@ -5326,8 +5327,7 @@ function IconBtn({ onClick, children, danger, small }: any) {
 
 function Modal({ title, onClose, children, width = 500 }: any) {
   return (
-    <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
@@ -7170,8 +7170,7 @@ function CIconBtn({ onClick, children, danger, small }: any) {
 }
 function CModal({ title, onClose, children, width = 500 }: any) {
   return (
-    <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         {/* drag indicator */}
         <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
