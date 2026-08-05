@@ -261,6 +261,27 @@ const marketingLineAmount = (item: any) =>
   marketingLineQtyForBasis(item, item?.priceUnit || "piece") * Number(item?.price || item?.unitPrice || 0);
 const marketingLineCost = (item: any) =>
   marketingLineQtyForBasis(item, item?.costUnit || "piece") * Number(item?.costSnapshot ?? item?.cost ?? item?.unitCost ?? 0);
+const marketingNormalizeName = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
+const marketingIsShippingItem = (item: any) =>
+  /ems|shipping|delivery|ขนส่ง|จัดส่ง|ค่าส่ง|ส่งของ|พัสดุ/i.test(String(item?.name || ""));
+const marketingFindProductForItem = (products: any[], item: any) => {
+  const itemName = marketingNormalizeName(item?.name);
+  if (!itemName) return null;
+  return (products || []).find((product: any) => {
+    const productName = marketingNormalizeName(product?.name);
+    const itemTokens = itemName.split(" ").filter((token) => token.length >= 3);
+    return productName === itemName
+      || productName.includes(itemName)
+      || itemName.includes(productName)
+      || itemTokens.some((token) => productName.includes(token));
+  }) || null;
+};
+const marketingFallbackItemCost = (products: any[], item: any) => {
+  const snapshot = Number(item?.costSnapshot || 0);
+  if (snapshot > 0) return snapshot;
+  if (marketingIsShippingItem(item)) return Number(item?.price || item?.unitPrice || 0);
+  return Number(marketingFindProductForItem(products, item)?.cost || 0);
+};
 
 function loadLocal<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -280,24 +301,28 @@ function saveLocal(key: string, value: unknown) {
 }
 
 function documentTotal(doc: any) {
-  if (typeof doc?.total === "number") return doc.total;
-  if (typeof doc?.grandTotal === "number") return doc.grandTotal;
   const items = Array.isArray(doc?.items) ? doc.items : [];
   const subtotal = items.reduce((sum: number, item: any) => sum + marketingLineAmount(item), 0);
-  const discountAmt = subtotal * (Number(doc?.discount || 0) / 100);
+  const discountValue = Math.max(0, Number(doc?.discount || 0) || 0);
+  const discountType = doc?.discountType || doc?.discount_type || "percent";
+  const discountAmt = discountType === "amount"
+    ? Math.min(subtotal, discountValue)
+    : subtotal * (Math.min(discountValue, 100) / 100);
   const afterDisc = subtotal - discountAmt;
   const vatAmt = doc?.vat ? afterDisc * (docVatRateForMarketing(doc) / 100) : 0;
   return afterDisc + vatAmt;
 }
 
-function documentCost(doc: any) {
+function documentCost(doc: any, products: any[] = []) {
   if (typeof doc?.costTotal === "number") return doc.costTotal;
   if (typeof doc?.totalCost === "number") return doc.totalCost;
   const items = Array.isArray(doc?.items) ? doc.items : [];
   const lineCost = items.reduce((sum: number, item: any) => {
     const savedCost = Number(item?.costAmount ?? item?.lineCost ?? item?.costTotal ?? 0);
     if (savedCost > 0) return sum + savedCost;
-    return sum + marketingLineCost(item);
+    const cost = marketingLineCost(item);
+    if (cost > 0) return sum + cost;
+    return sum + marketingLineQtyForBasis(item, item?.costUnit || "piece") * marketingFallbackItemCost(products, item);
   }, 0);
   return lineCost + Number(doc?.shippingCost ?? doc?.deliveryCost ?? 0);
 }
@@ -560,8 +585,8 @@ export default function MarketingKpiDashboard({
     return receipts.reduce((sum, doc) => sum + documentTotal(doc), 0);
   }, [receipts]);
   const receiptCost = useMemo(() => {
-    return receipts.reduce((sum, doc) => sum + documentCost(doc), 0);
-  }, [receipts]);
+    return receipts.reduce((sum, doc) => sum + documentCost(doc, products), 0);
+  }, [receipts, products]);
   const metaSpend = Number(meta?.totals?.spend ?? 0);
   const metaReportedRevenue = Number(meta?.totals?.metaReportedRevenue ?? 0);
   const metaReportedRoas = Number(meta?.totals?.metaReportedRoas ?? 0) || (metaSpend > 0 && metaReportedRevenue > 0 ? metaReportedRevenue / metaSpend : 0);
@@ -1108,7 +1133,7 @@ export default function MarketingKpiDashboard({
     return ((current - previous) / previous) * 100;
   };
   const revenueTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, (doc) => documentTotal(doc));
-  const profitTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, (doc) => documentTotal(doc) - documentCost(doc));
+  const profitTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, (doc) => documentTotal(doc) - documentCost(doc, products));
   const closedJobTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, () => 1);
   const leadTrend = trendMap(filteredLeads, (lead) => lead.date, () => 1);
   const quoteTrend = trendMap(
