@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/Navbar";
 import { blogCategories, blogCategoryBySlug, serviceByHref } from "@/lib/seo-content";
 import { safeImageSrc } from "@/lib/image-utils";
+import { blogPostPath } from "@/lib/blog-slug";
 import { ArrowRight, Calendar, Clock } from "lucide-react";
 
 type PageProps = {
@@ -91,7 +92,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
                   const coverAlt = String(post.cover_alt || "").trim() || post.title;
                   return (
                   <article key={post.id} className="group bg-[#0E1310] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
-                    <Link href={`/blog/${post.slug}`} className="block">
+                    <Link href={blogPostPath(post.slug)} className="block">
                       <div className="relative h-48 bg-[#141A24]">
                         {cover ? (
                           <Image src={cover} alt={coverAlt} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />

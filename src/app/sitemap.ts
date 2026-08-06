@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { blogCategories, seoServices } from "@/lib/seo-content";
+import { blogPostPath } from "@/lib/blog-slug";
 
 const BASE_URL = "https://displayworksmedia.com";
 
@@ -22,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     if (posts) {
       blogEntries = posts.map((post) => ({
-        url: `${BASE_URL}/blog/${post.slug}`,
+        url: `${BASE_URL}${blogPostPath(post.slug)}`,
         lastModified: post.date ? new Date(post.date) : now,
         changeFrequency: "monthly" as const,
         priority: 0.6,

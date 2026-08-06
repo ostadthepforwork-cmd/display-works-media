@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import BlogClientShell from "./BlogClientShell";
 import { blogCategories } from "@/lib/seo-content";
 import { safeImageSrc } from "@/lib/image-utils";
+import { blogPostPath } from "@/lib/blog-slug";
 
 export const dynamic = "force-dynamic";
 
@@ -129,7 +130,7 @@ export default async function BlogPage() {
           <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8">
             <p className="text-xs font-bold tracking-widest text-[#FF7A00] mb-6 uppercase">บทความล่าสุด</p>
             <Link
-              href={`/blog/${featuredPost.slug}`}
+              href={blogPostPath(featuredPost.slug)}
               className="group grid lg:grid-cols-2 gap-0 rounded-lg overflow-hidden border border-white/5 bg-[#10151D] hover:border-[#FF6500]/30 transition-all duration-300"
             >
               <div className="relative h-64 lg:h-auto min-h-[300px] bg-[#141A24]">
@@ -176,7 +177,7 @@ export default async function BlogPage() {
                 const coverAlt = post.cover_alt?.trim() || post.title;
                 return (
                 <article key={post.id} className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300 reveal-item">
-                  <Link href={`/blog/${post.slug}`} className="block">
+                  <Link href={blogPostPath(post.slug)} className="block">
                     <div className="relative h-48 overflow-hidden bg-[#141A24]">
                       {cover ? (
                         <Image

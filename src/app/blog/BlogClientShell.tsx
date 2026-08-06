@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Search, Calendar, Clock, ArrowRight } from "lucide-react";
 import { safeImageSrc } from "@/lib/image-utils";
+import { blogPostPath } from "@/lib/blog-slug";
 
 type Post = {
   id: string; title: string; excerpt: string; category: string;
@@ -82,7 +83,7 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
                 const coverAlt = post.cover_alt?.trim() || post.title;
                 return (
                 <article key={post.id} className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300">
-                  <Link href={`/blog/${post.slug}`} className="block">
+                  <Link href={blogPostPath(post.slug)} className="block">
                     <div className="relative h-48 overflow-hidden bg-[#141A24]">
                       {cover ? (
                         <Image

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleSchema, BreadcrumbSchema } from "@/components/SchemaOrg";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { blogSlugCandidates, normalizeBlogSlug } from "@/lib/blog-slug";
 import BlogPostClient from "./BlogPostClient";
 
 type Props = {
@@ -41,7 +42,8 @@ function toIsoDate(date?: string | null) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeBlogSlug(rawSlug);
   const articleUrl = `https://displayworksmedia.com/blog/${slug}`;
 
   try {
@@ -50,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { data: post } = await supabase
       .from("posts")
       .select("title, seo_title, excerpt, meta_desc, focus_keyword, tags, cover, cover_alt, category, date")
-      .eq("slug", slug)
+      .in("slug", blogSlugCandidates(slug))
       .eq("published", true)
       .single<BlogPostRecord>();
 
@@ -118,7 +120,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeBlogSlug(rawSlug);
 
   try {
     const supabase = await createSupabaseServerClient();
@@ -126,7 +129,7 @@ export default async function BlogPostPage({ params }: Props) {
     const { data: post, error: postError } = await supabase
       .from("posts")
       .select("*")
-      .eq("slug", slug)
+      .in("slug", blogSlugCandidates(slug))
       .eq("published", true)
       .maybeSingle();
 
@@ -142,7 +145,7 @@ export default async function BlogPostPage({ params }: Props) {
       .select("*")
       .eq("published", true)
       .eq("category", post.category)
-      .neq("slug", slug)
+      .not("slug", "in", `(${blogSlugCandidates(slug).map((candidate) => `"${candidate}"`).join(",")})`)
       .limit(3);
 
     const articleUrl = `https://displayworksmedia.com/blog/${slug}`;

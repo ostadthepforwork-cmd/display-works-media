@@ -6,8 +6,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { safeImageSrc } from "@/lib/image-utils";
+import { blogPostPath, blogSlugCandidates, normalizeBlogSlug } from "@/lib/blog-slug";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { escapeHtml, sanitizeHtml } from "@/lib/sanitize-html";
 
 import {
   ArrowRight, Calendar, Clock, ChevronRight,
@@ -33,18 +35,18 @@ function bodyToHtml(body: string): string {
   if (!body) return "<p>ยังไม่มีเนื้อหา</p>";
   // ถ้าเป็น HTML จาก RichEditor ให้ใช้โดยตรง
   if (body.trim().startsWith("<") && (body.includes("</p>") || body.includes("</h") || body.includes("</ul>") || body.includes("<figure"))) {
-    return body;
+    return sanitizeHtml(body);
   }
   // fallback: plain text / markdown
   return body.split(/\n{2,}/).map((para) => {
     const t = para.trim();
     if (!t) return "";
-    if (t.startsWith("## ")) return `<h2>${t.slice(3)}</h2>`;
-    if (t.startsWith("# ")) return `<h1>${t.slice(2)}</h1>`;
+    if (t.startsWith("## ")) return `<h2>${escapeHtml(t.slice(3))}</h2>`;
+    if (t.startsWith("# ")) return `<h1>${escapeHtml(t.slice(2))}</h1>`;
     if (t.split("\n").every((l) => l.trim().startsWith("- "))) {
-      return `<ul>${t.split("\n").map((l) => `<li>${l.trim().slice(2)}</li>`).join("")}</ul>`;
+      return `<ul>${t.split("\n").map((l) => `<li>${escapeHtml(l.trim().slice(2))}</li>`).join("")}</ul>`;
     }
-    return `<p>${t.replace(/\n/g, "<br/>")}</p>`;
+    return `<p>${escapeHtml(t).replace(/\n/g, "<br/>")}</p>`;
   }).join("");
 }
 
@@ -72,18 +74,19 @@ export default function BlogPostPage({
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (initialPost?.slug === decodeURIComponent(slug)) return;
+    const decodedSlug = normalizeBlogSlug(decodeURIComponent(slug));
+    if (normalizeBlogSlug(initialPost?.slug) === decodedSlug) return;
 
     async function fetchPost() {
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
-      const decodedSlug = decodeURIComponent(slug);
+      const decodedSlug = normalizeBlogSlug(decodeURIComponent(slug));
       const { data, error } = await supabase
         .from("posts")
         .select("*")
-        .eq("slug", decodedSlug)
+        .in("slug", blogSlugCandidates(decodedSlug))
         .eq("published", true)
         .single();
 
@@ -96,7 +99,7 @@ export default function BlogPostPage({
         .select("*")
         .eq("published", true)
         .eq("category", data.category)
-        .neq("slug", decodedSlug)
+        .not("slug", "in", `(${blogSlugCandidates(decodedSlug).map((candidate) => `"${candidate}"`).join(",")})`)
         .limit(3);
       setRelated(relData || []);
     }
@@ -248,7 +251,7 @@ export default function BlogPostPage({
                 const cover = safeImageSrc(r.cover);
                 const coverAlt = r.cover_alt?.trim() || r.title;
                 return (
-                <Link key={r.id} href={`/blog/${r.slug}`}
+                <Link key={r.id} href={blogPostPath(r.slug)}
                   className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300">
                   <div className="relative h-40 bg-[#141A24]">
                     {cover ? <Image src={cover} alt={coverAlt} fill sizes="(max-width: 768px) 100vw, 33vw" className="blog-cover-img group-hover:scale-[1.02] transition-transform duration-500" />

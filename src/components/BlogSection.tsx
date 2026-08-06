@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock3 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { safeImageSrc } from "@/lib/image-utils";
+import { blogPostPath } from "@/lib/blog-slug";
 
 export interface BlogPost {
   id: string;
@@ -91,7 +92,7 @@ export default function BlogSection({ initialPosts = [] }: { initialPosts?: Blog
                 return (
                   <Link
                     key={post.id}
-                    href={`/blog/${post.slug}`}
+                    href={blogPostPath(post.slug)}
                     className="group home-blog-card reveal-item"
                   >
                     <div className="home-blog-image">
