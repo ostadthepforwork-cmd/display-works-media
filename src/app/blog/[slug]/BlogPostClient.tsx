@@ -68,6 +68,21 @@ function cleanFaqs(faqs: Post["faqs"]) {
     : [];
 }
 
+function withoutCurrentPost(posts: Post[] | null | undefined, slug: string) {
+  const candidates = new Set(blogSlugCandidates(slug));
+  return (posts || []).filter((item) => !candidates.has(String(item.slug || "")));
+}
+
+function uniquePosts(posts: Post[]) {
+  const seen = new Set<string>();
+  return posts.filter((post) => {
+    const key = String(post.id || post.slug || "");
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export default function BlogPostPage({
   initialPost = null,
   initialRelated = [],
@@ -100,15 +115,31 @@ export default function BlogPostPage({
       if (error || !data) { setNotFound(true); return; }
       setPost(data);
 
-      // บทความที่เกี่ยวข้อง
-      const { data: relData } = await supabase
+      const { data: categoryRelated } = await supabase
         .from("posts")
         .select("*")
         .eq("published", true)
         .eq("category", data.category)
-        .not("slug", "in", `(${blogSlugCandidates(decodedSlug).map((candidate) => `"${candidate}"`).join(",")})`)
-        .limit(3);
-      setRelated(relData || []);
+        .order("date", { ascending: false })
+        .limit(8);
+
+      let nextRelated = withoutCurrentPost(categoryRelated, decodedSlug);
+
+      if (nextRelated.length < 3) {
+        const { data: latestRelated } = await supabase
+          .from("posts")
+          .select("*")
+          .eq("published", true)
+          .order("date", { ascending: false })
+          .limit(10);
+
+        nextRelated = uniquePosts([
+          ...nextRelated,
+          ...withoutCurrentPost(latestRelated, decodedSlug),
+        ]);
+      }
+
+      setRelated(nextRelated.slice(0, 3));
     }
     fetchPost();
   }, [initialPost?.slug, slug]);

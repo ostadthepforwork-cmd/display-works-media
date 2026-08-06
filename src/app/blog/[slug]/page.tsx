@@ -41,6 +41,21 @@ function toIsoDate(date?: string | null) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
 }
 
+function withoutCurrentPost<T extends { slug?: string | null }>(posts: T[] | null | undefined, slug: string) {
+  const candidates = new Set(blogSlugCandidates(slug));
+  return (posts || []).filter((item) => !candidates.has(String(item.slug || "")));
+}
+
+function uniquePosts<T extends { id?: string | null; slug?: string | null }>(posts: T[]) {
+  const seen = new Set<string>();
+  return posts.filter((post) => {
+    const key = String(post.id || post.slug || "");
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug: rawSlug } = await params;
   const slug = normalizeBlogSlug(rawSlug);
@@ -140,13 +155,31 @@ export default async function BlogPostPage({ params }: Props) {
 
     if (!post) notFound();
 
-    const { data: related } = await supabase
+    const { data: categoryRelated } = await supabase
       .from("posts")
       .select("*")
       .eq("published", true)
       .eq("category", post.category)
-      .not("slug", "in", `(${blogSlugCandidates(slug).map((candidate) => `"${candidate}"`).join(",")})`)
-      .limit(3);
+      .order("date", { ascending: false })
+      .limit(8);
+
+    let related = withoutCurrentPost(categoryRelated, slug);
+
+    if (related.length < 3) {
+      const { data: latestRelated } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("published", true)
+        .order("date", { ascending: false })
+        .limit(10);
+
+      related = uniquePosts([
+        ...related,
+        ...withoutCurrentPost(latestRelated, slug),
+      ]);
+    }
+
+    related = related.slice(0, 3);
 
     const articleUrl = `https://displayworksmedia.com/blog/${slug}`;
     const description =
