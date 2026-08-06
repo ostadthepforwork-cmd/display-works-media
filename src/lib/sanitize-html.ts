@@ -2,8 +2,12 @@ const ALLOWED_TAGS = new Set([
   "a",
   "blockquote",
   "br",
+  "b",
   "caption",
   "code",
+  "col",
+  "colgroup",
+  "del",
   "div",
   "em",
   "figcaption",
@@ -15,13 +19,19 @@ const ALLOWED_TAGS = new Set([
   "h5",
   "h6",
   "hr",
+  "i",
   "img",
   "li",
+  "mark",
   "ol",
   "p",
   "pre",
+  "s",
+  "small",
   "span",
   "strong",
+  "sub",
+  "sup",
   "table",
   "tbody",
   "td",
@@ -60,7 +70,7 @@ function sanitizeAttrs(attrs: string) {
     const value = match[3] ?? match[4] ?? match[5] ?? "";
 
     if (name.startsWith("on") || name === "style" || name === "srcdoc") continue;
-    if (!["alt", "aria-label", "class", "height", "href", "rel", "src", "target", "title", "width"].includes(name)) continue;
+    if (!["alt", "aria-label", "class", "colspan", "height", "href", "rel", "rowspan", "src", "target", "title", "width"].includes(name)) continue;
     if (URI_ATTRS.has(name) && !isSafeUrl(value)) continue;
 
     safeAttrs.push(`${name}="${escapeHtml(value)}"`);

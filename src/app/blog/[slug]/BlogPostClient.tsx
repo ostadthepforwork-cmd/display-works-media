@@ -34,7 +34,7 @@ function readTimeTH(body: string) {
 function bodyToHtml(body: string): string {
   if (!body) return "<p>ยังไม่มีเนื้อหา</p>";
   // ถ้าเป็น HTML จาก RichEditor ให้ใช้โดยตรง
-  if (body.trim().startsWith("<") && (body.includes("</p>") || body.includes("</h") || body.includes("</ul>") || body.includes("<figure"))) {
+  if (body.trim().startsWith("<") && (body.includes("</p>") || body.includes("</h") || body.includes("</ul>") || body.includes("<figure") || body.includes("<table"))) {
     return sanitizeHtml(body);
   }
   // fallback: plain text / markdown
@@ -331,14 +331,61 @@ export default function BlogPostPage({
         .prose-blog h3 { font-family: 'Kanit', sans-serif; font-size: 1.2rem; font-weight: 600; color: #fff; margin: 1.5rem 0 0.5rem; }
         .prose-blog h4 { font-size: 1rem; font-weight: 600; color: #FF7A00; margin: 1rem 0 0.5rem; }
         .prose-blog p  { color: #CBD5E1; line-height: 1.9; margin-bottom: 1.25rem; font-size: 1rem; }
+        .prose-blog b { color: #fff; font-weight: 700; }
         .prose-blog ul { list-style: none; padding: 0; margin: 0 0 1.25rem; }
         .prose-blog ul li { color: #CBD5E1; padding: 0.35rem 0 0.35rem 1.5rem; position: relative; line-height: 1.8; }
         .prose-blog ul li::before { content: '▸'; position: absolute; left: 0; color: #FF7A00; }
         .prose-blog ol { padding-left: 1.5rem; margin: 0 0 1.25rem; }
         .prose-blog ol li { color: #CBD5E1; line-height: 1.8; margin-bottom: 4px; }
+        .prose-blog li > p { margin: 0.2rem 0; color: inherit; line-height: inherit; }
         .prose-blog blockquote { border-left: 4px solid #FF7A00; padding: 12px 20px; margin: 1.5rem 0; background: rgba(255,122,0,0.05); border-radius: 0 10px 10px 0; color: #A7B0C0; font-style: italic; }
         .prose-blog a { color: #60A5FA; text-decoration: underline; word-break: break-word; }
         .prose-blog a:hover { color: #FF7A00; }
+        .prose-blog table {
+          display: block;
+          width: 100%;
+          max-width: 100%;
+          margin: 2rem 0;
+          overflow-x: auto;
+          border-collapse: collapse;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 8px;
+          background: #0D121A;
+        }
+        .prose-blog thead,
+        .prose-blog tbody,
+        .prose-blog tr {
+          width: 100%;
+        }
+        .prose-blog th,
+        .prose-blog td {
+          min-width: 180px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          padding: 14px 16px;
+          color: #CBD5E1;
+          line-height: 1.75;
+          vertical-align: top;
+        }
+        .prose-blog th,
+        .prose-blog thead td {
+          background: rgba(255, 101, 0, 0.12);
+          color: #fff;
+          font-family: 'Kanit', sans-serif;
+          font-weight: 700;
+        }
+        .prose-blog td p,
+        .prose-blog th p {
+          margin: 0;
+          color: inherit;
+          line-height: inherit;
+        }
+        .prose-blog td span,
+        .prose-blog th span {
+          color: inherit;
+        }
+        .prose-blog tr:nth-child(even) td {
+          background: rgba(255, 255, 255, 0.025);
+        }
         .prose-blog figure { margin: 2rem 0; text-align: center; }
         .prose-blog figure img { max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
         .prose-blog figcaption { font-size: 13px; color: #64748B; margin-top: 10px; font-style: italic; }
