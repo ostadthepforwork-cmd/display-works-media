@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminUser } from "@/lib/admin-auth";
 
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
@@ -94,6 +95,14 @@ function dateRangesFromRequest(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const { user } = await requireAdminUser();
+  if (!user) {
+    return NextResponse.json(
+      { success: false, connected: false, error: "Unauthorized" },
+      { status: 401, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const propertyId = process.env.GA4_PROPERTY_ID;
   const clientEmail = process.env.GA4_CLIENT_EMAIL;
   const privateKey = getPrivateKey();

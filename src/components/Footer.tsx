@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Facebook, Mail, MessageCircle, Phone } from "lucide-react";
+import { Mail, MessageCircle, Phone } from "lucide-react";
+import { Facebook } from "@/components/BrandIcons";
 import { cmsValue, useCmsSettings } from "@/components/CmsSettingsProvider";
 
 const serviceLinks = [

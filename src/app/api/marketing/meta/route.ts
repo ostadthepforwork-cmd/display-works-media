@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminUser } from "@/lib/admin-auth";
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v20.0";
 
@@ -142,6 +143,14 @@ function insightDateParams(request: Request): Record<string, string> {
 }
 
 export async function GET(request: Request) {
+  const { user } = await requireAdminUser();
+  if (!user) {
+    return NextResponse.json(
+      { success: false, connected: false, error: "Unauthorized" },
+      { status: 401, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const adAccountId = getAdAccountId();
   if (!adAccountId || !process.env.META_ACCESS_TOKEN) {
     return NextResponse.json(

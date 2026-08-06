@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Shared public documents render stored logo, QR, and signature image URLs directly for consistent browser print/PDF output. */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";

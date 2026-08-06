@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type MarketingKpiDashboardProps = {
@@ -1357,7 +1358,9 @@ export default function MarketingKpiDashboard({
       <div className="mk-shell">
         <aside className="mk-sidebar">
           <div className="mk-brand">
-            <div className="mk-logo"><img src="/images/logo.png" alt="Display Works Media" /></div>
+            <div className="mk-logo">
+              <Image src="/images/logo.png" alt="Display Works Media" width={34} height={34} />
+            </div>
             <div>
               <strong>Display Works Media</strong>
               <div className="mk-eyebrow" style={{ letterSpacing: ".12em", fontSize: 10 }}>Marketing KPI</div>

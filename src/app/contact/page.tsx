@@ -1,15 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-  Facebook,
-  Globe2,
-  Mail,
-  MessageCircle,
-  Phone,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock, Globe2, Mail, MessageCircle, Phone } from "lucide-react";
+import { Facebook } from "@/components/BrandIcons";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SharedWorkflow } from "@/components/SharedMarketingSections";

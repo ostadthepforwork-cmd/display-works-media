@@ -10,12 +10,8 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import {
-  Plus, Minus, Check, Phone, MessageCircle, ArrowRight, ChevronRight,
-  Sun, Printer, Award, ShoppingCart, UserCheck, PackageCheck,
-  Menu, X, Facebook, FileText, Calculator, CheckCircle2, Cog,
-  Scissors, Layers, Home, Droplets, Zap, Truck,
-  MapPin, Mail, Instagram, Send, CheckCircle, Upload, Sparkles
-} from "lucide-react";
+  Plus, Minus, Check, Phone, MessageCircle, ArrowRight, ChevronRight, Sun, Printer, Award, ShoppingCart, UserCheck, PackageCheck, Menu, X, FileText, Calculator, CheckCircle2, Cog, Scissors, Layers, Home, Droplets, Zap, Truck, MapPin, Mail, Send, CheckCircle, Upload, Sparkles } from "lucide-react";
+import { Facebook, Instagram } from "@/components/BrandIcons";
 
 // ─── DATA ───────────────────────────────────────────────────────────────────
 

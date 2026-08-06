@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-page-custom-font -- The project keeps Google Font links in the root layout so production builds do not need network access to fetch next/font assets. */
 import type { Metadata, Viewport } from "next";
 import "../styles/globals.css";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
@@ -69,12 +70,12 @@ export default async function RootLayout({
     <html lang="th">
       <head>
         {/* preconnect ก่อน แล้วค่อย preload — ลำดับนี้สำคัญ */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/*
           Prompt:400 เท่านั้น — ตัด weight 600 ออกเพราะ globals.css ไม่ได้ใช้
           ประหยัดได้อีก ~40KB และลด dependency chain ของ LCP
         */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Prompt:wght@400&display=swap"
           rel="stylesheet"

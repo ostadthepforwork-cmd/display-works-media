@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageCircle, Facebook, Phone, FileText } from "lucide-react";
+import { MessageCircle, Phone, FileText } from "lucide-react";
+import { Facebook } from "@/components/BrandIcons";
 
 const floatButtons = [
   {
@@ -95,13 +97,13 @@ export default function FloatingButtons() {
           }}
         >
           {/* Quote */}
-          <a
+          <Link
             href="/#quote"
             className="order-3 flex flex-col items-center justify-center gap-1 py-4 text-white transition-colors hover:bg-white/5"
           >
             <FileText size={20} style={{ color: "#FF6500" }} />
             <span className="text-xs font-medium">ขอราคา</span>
-          </a>
+          </Link>
 
           {/* LINE — primary mobile action */}
           <a

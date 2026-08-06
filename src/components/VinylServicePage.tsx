@@ -6,35 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ChevronRight,
-  ChevronLeft,
-  Plus,
-  Minus,
-  Check,
-  Phone,
-  MessageCircle,
-  Facebook,
-  ArrowRight,
-  Menu,
-  X,
-  Shield,
-  Zap,
-  Truck,
-  Star,
-  Home,
-  Droplets,
-  Sun,
-  Printer,
-  Award,
-  ShoppingCart,
-  UserCheck,
-  PackageCheck,
-  BadgeCheck,
-  FileText,
-  Calculator,
-  CheckCircle2,
-  Cog,
-} from "lucide-react";
+  ChevronRight, ChevronLeft, Plus, Minus, Check, Phone, MessageCircle, ArrowRight, Menu, X, Shield, Zap, Truck, Star, Home, Droplets, Sun, Printer, Award, ShoppingCart, UserCheck, PackageCheck, BadgeCheck, FileText, Calculator, CheckCircle2, Cog } from "lucide-react";
+import { Facebook } from "@/components/BrandIcons";
 
 // ─── DATA ───────────────────────────────────────────────────────────────────
 

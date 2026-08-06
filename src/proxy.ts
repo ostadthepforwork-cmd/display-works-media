@@ -70,6 +70,15 @@ function crawlerPublicPath(req: NextRequest) {
   return `${url.pathname}${query ? `?${query}` : ""}`.slice(0, 300);
 }
 
+function isLocalAdminBypass(req: NextRequest) {
+  const hostname = req.nextUrl.hostname;
+  return (
+    process.env.NODE_ENV !== "production" &&
+    process.env.LOCAL_ADMIN_BYPASS === "1" &&
+    (hostname === "127.0.0.1" || hostname === "localhost")
+  );
+}
+
 async function logAiCrawlerVisit(req: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -95,7 +104,7 @@ async function logAiCrawlerVisit(req: NextRequest) {
   }).catch(() => undefined);
 }
 
-export async function middleware(req: NextRequest, event: NextFetchEvent) {
+export async function proxy(req: NextRequest, event: NextFetchEvent) {
   if (shouldLogCrawler(req)) {
     event.waitUntil(logAiCrawlerVisit(req));
   }
@@ -104,6 +113,13 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
   const pathname = req.nextUrl.pathname;
 
   if (!pathname.startsWith("/admin") && pathname !== "/login") {
+    return res;
+  }
+
+  if (isLocalAdminBypass(req)) {
+    if (pathname === "/login") {
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
     return res;
   }
 

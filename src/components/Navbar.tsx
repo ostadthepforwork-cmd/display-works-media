@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, MessageCircle, Facebook, ArrowUpRight } from "lucide-react";
+import { Menu, X, MessageCircle, ArrowUpRight } from "lucide-react";
+import { Facebook } from "@/components/BrandIcons";
 
 const navLinks = [
   { label: "หน้าแรก", href: "/" },
@@ -34,9 +36,11 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="navbar-brand flex min-w-0 items-center gap-3">
           <div className="w-11 h-11 relative flex-shrink-0">
-            <img
+            <Image
               src="/images/logo.png"
               alt="Display Works Media logo"
+              width={44}
+              height={44}
               className="h-11 w-11 object-contain"
               style={{ width: 44, height: 44 }}
               onError={(e) => {

@@ -10,12 +10,8 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import {
-  Plus, Minus, Check, Phone, MessageCircle, ArrowRight, ChevronRight,
-  Sun, Printer, Award, ShoppingCart, UserCheck, PackageCheck,
-  Menu, X, Facebook, FileText, Calculator, CheckCircle2, Cog,
-  Scissors, Layers, CircleDot, Box, Home, Droplets, Zap, Truck, Info,
-  Lock, MapPin, Mail, Instagram, Send, CheckCircle, Upload
-} from "lucide-react";
+  Plus, Minus, Check, Phone, MessageCircle, ArrowRight, ChevronRight, Sun, Printer, Award, ShoppingCart, UserCheck, PackageCheck, Menu, X, FileText, Calculator, CheckCircle2, Cog, Scissors, Layers, CircleDot, Box, Home, Droplets, Zap, Truck, Info, Lock, MapPin, Mail, Send, CheckCircle, Upload } from "lucide-react";
+import { Facebook, Instagram } from "@/components/BrandIcons";
 
 // ─── DATA ───────────────────────────────────────────────────────────────────
 
@@ -194,7 +190,7 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-[70px]">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 relative flex-shrink-0">
-            <img src="/images/logo.png" alt="Display Works Media logo" className="object-contain" style={{ width: 40, height: 40 }} />
+            <Image src="/images/logo.png" alt="Display Works Media logo" width={40} height={40} className="object-contain" style={{ width: 40, height: 40 }} />
           </div>
           <div>
             <div className="font-kanit font-bold text-sm tracking-wider leading-none text-white">DISPLAY WORKS</div>

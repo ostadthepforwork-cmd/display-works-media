@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 type DocActionsProps = {
   title: string;
@@ -8,7 +8,7 @@ type DocActionsProps = {
 };
 
 export default function DocActions({ title, autoPrint = false }: DocActionsProps) {
-  async function waitForDocumentAssets() {
+  const waitForDocumentAssets = useCallback(async () => {
     try {
       if (document.fonts?.ready) await document.fonts.ready;
     } catch {}
@@ -22,12 +22,12 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
         img.addEventListener("error", () => resolve(), { once: true });
       });
     }));
-  }
+  }, []);
 
-  async function printDocument() {
+  const printDocument = useCallback(async () => {
     await waitForDocumentAssets();
     window.setTimeout(() => window.print(), 150);
-  }
+  }, [waitForDocumentAssets]);
 
   useEffect(() => {
     // คำนวณ scale ให้ A4 พอดีจอมือถือ
@@ -55,7 +55,7 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
       void printDocument();
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [autoPrint]);
+  }, [autoPrint, printDocument]);
 
   const shareLink = async () => {
     // สร้าง URL ใหม่ที่สะอาด — เก็บแค่ path ไม่เอา query params ใดๆ ติดไป
