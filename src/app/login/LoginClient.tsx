@@ -141,7 +141,9 @@ export default function LoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background-color: #0B0F19;
+          background:
+            radial-gradient(circle at 50% 18%, rgba(255,107,0,0.14), transparent 310px),
+            linear-gradient(180deg, #0B0F19 0%, #080C14 100%);
           font-family: 'Prompt', sans-serif;
           padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
           box-sizing: border-box;
@@ -149,10 +151,12 @@ export default function LoginPage() {
         }
 
         .admin-login-card {
-          background-color: #141A24;
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 16px;
-          box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+          background:
+            linear-gradient(180deg, rgba(20,26,36,0.98), rgba(12,18,28,0.98));
+          border: 1px solid rgba(255,255,255,0.09);
+          border-top-color: rgba(255,107,0,0.26);
+          border-radius: 22px;
+          box-shadow: 0 24px 80px rgba(0,0,0,0.46);
           padding: clamp(22px, 7vw, 40px);
           width: min(420px, calc(100vw - 32px));
           max-width: calc(100vw - 32px);
@@ -173,7 +177,7 @@ export default function LoginPage() {
           min-width: 0;
           max-width: 100%;
           border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 8px;
+          border-radius: 12px;
           padding: 11px 14px;
           font-size: 14px;
           color: #fff;
@@ -191,7 +195,7 @@ export default function LoginPage() {
           background-color: #450a0a;
           border: 1px solid #ef4444;
           color: #fca5a5;
-          border-radius: 8px;
+          border-radius: 12px;
           padding: 10px 14px;
           font-size: 13px;
           line-height: 1.6;
@@ -201,14 +205,15 @@ export default function LoginPage() {
           width: 100%;
           min-width: 0;
           max-width: 100%;
-          background-color: #FF6B00;
+          background: linear-gradient(135deg, #FF6B00, #F97316);
           color: #fff;
-          font-weight: 600;
+          font-weight: 800;
           font-size: 14px;
           padding: 13px;
-          border-radius: 8px;
+          border-radius: 12px;
           border: none;
           cursor: pointer;
+          box-shadow: 0 14px 34px rgba(255,107,0,0.22);
         }
 
         .admin-login-button:disabled {
@@ -221,14 +226,14 @@ export default function LoginPage() {
             width: 100vw !important;
             max-width: 100vw !important;
             min-height: 100dvh !important;
-            padding: max(20px, env(safe-area-inset-top)) 12px max(24px, env(safe-area-inset-bottom)) !important;
+            padding: max(20px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) !important;
           }
 
           .admin-login-card {
             border-radius: 18px !important;
-            width: calc(100vw - 56px) !important;
-            max-width: 334px !important;
-            margin: 0 !important;
+            width: min(100%, 320px) !important;
+            max-width: calc(100vw - 48px) !important;
+            margin: 0 auto !important;
             padding: 24px 20px !important;
           }
 

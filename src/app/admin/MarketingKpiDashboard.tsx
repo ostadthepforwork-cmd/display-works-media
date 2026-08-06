@@ -1184,15 +1184,16 @@ export default function MarketingKpiDashboard({
     <div className="mk-dashboard" id="marketing-dashboard">
       <style>{`
         /* Hallmark · macrostructure: Mobile Command Deck · tone: operational clarity · anchor hue: DWM orange */
-        .mk-dashboard{font-family:'Prompt',sans-serif;color:#f8fafc;min-height:100%;background:radial-gradient(circle at 80% 0%,rgba(255,107,0,.18),transparent 34%),#080d14;border:1px solid rgba(255,107,0,.2);border-radius:24px;overflow:hidden}
+        .mk-dashboard{font-family:'Prompt',sans-serif;color:#f8fafc;min-height:100%;background:radial-gradient(circle at 80% 0%,rgba(255,107,0,.18),transparent 34%),#080d14;border:1px solid rgba(255,107,0,.2);border-radius:24px;overflow:hidden;box-shadow:0 24px 90px rgba(0,0,0,.28)}
         .mk-shell{display:grid;grid-template-columns:260px 1fr;min-height:calc(100dvh - 92px)}
-        .mk-sidebar{background:rgba(0,0,0,.36);border-right:1px solid rgba(255,107,0,.18);padding:26px}
+        .mk-sidebar{background:linear-gradient(180deg,rgba(0,0,0,.42),rgba(0,0,0,.28));border-right:1px solid rgba(255,107,0,.18);padding:26px;position:sticky;top:0;height:calc(100dvh - 92px)}
         .mk-brand{display:flex;gap:14px;align-items:center;margin-bottom:28px}
         .mk-logo{width:52px;height:42px;border-radius:12px;border:1px solid rgba(255,107,0,.35);display:grid;place-items:center;background:rgba(255,255,255,.04);overflow:hidden}
         .mk-logo img{width:46px;height:34px;object-fit:contain;display:block}
         .mk-nav{display:grid;gap:10px}
-        .mk-nav button{background:transparent;border:1px solid transparent;color:#a8b0c0;text-align:left;padding:14px 16px;border-radius:14px;font-weight:800;cursor:pointer}
-        .mk-nav button.active,.mk-nav button:hover{background:#ff6b00;color:#fff}
+        .mk-nav button{background:transparent;border:1px solid transparent;color:#a8b0c0;text-align:left;padding:14px 16px;border-radius:14px;font-weight:800;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+        .mk-nav button.active,.mk-nav button:hover{background:linear-gradient(135deg,#ff6b00,#e55300);color:#fff;border-color:rgba(255,255,255,.12);box-shadow:0 12px 30px rgba(255,107,0,.18)}
+        .mk-nav button:active{transform:translateY(1px)}
         .mk-nav-label{display:block;font-size:15px}
         .mk-nav-desc{display:block;margin-top:4px;font-size:11px;line-height:1.35;color:#718096;font-weight:700}
         .mk-nav button.active .mk-nav-desc,.mk-nav button:hover .mk-nav-desc{color:rgba(255,255,255,.78)}
@@ -1226,7 +1227,7 @@ export default function MarketingKpiDashboard({
         .mk-spark-bars{height:88px;display:flex;align-items:flex-end;gap:5px;margin-top:16px;padding:8px 0 0;border-bottom:1px solid rgba(255,255,255,.1);overflow:hidden}
         .mk-spark-bars span{flex:1;min-width:4px;border-radius:999px 999px 0 0;background:linear-gradient(180deg,var(--bar-color),rgba(255,255,255,.14));box-shadow:0 -8px 20px color-mix(in srgb,var(--bar-color) 25%,transparent)}
         .mk-spark-caption{display:flex;justify-content:space-between;gap:10px;margin-top:8px;color:#64748b;font-size:11px}
-        .mk-card,.mk-panel{background:#111923;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
+        .mk-card,.mk-panel{background:linear-gradient(180deg,rgba(17,25,35,.98),rgba(11,17,26,.98));border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
         .mk-card{min-height:150px;display:flex;flex-direction:column;justify-content:space-between}
         .mk-card strong{font-size:26px;line-height:1;color:#fff}
         .mk-card span{color:#a8b0c0;font-size:12px}
@@ -1292,11 +1293,12 @@ export default function MarketingKpiDashboard({
           .mk-mobile-chart{padding:13px;border-radius:17px}
           .mk-mobile-chart .mk-bar-head{font-size:12px}
           .mk-mobile-chart .mk-bar-track{height:10px;margin-top:6px}
-          .mk-mobile-jump{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+          .mk-mobile-jump{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;position:sticky;top:8px;z-index:6;padding:8px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(8,13,20,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
           .mk-mobile-jump button{border:1px solid rgba(255,107,0,.28);background:rgba(255,107,0,.08);color:#fff;border-radius:14px;min-height:46px;font-size:12px;font-weight:900;text-align:left;padding:10px 12px}
+          .mk-mobile-jump button.active{background:linear-gradient(135deg,#ff6b00,#f97316);border-color:#ff6b00;box-shadow:0 10px 28px rgba(255,107,0,.2)}
           .mk-overview-grid,.mk-dashboard-secondary{display:none!important}
           .mk-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-          .mk-card{min-height:108px!important;padding:12px;border-radius:16px}
+          .mk-card{min-height:108px!important;padding:13px;border-radius:16px}
           .mk-card > div:first-child{margin-bottom:8px}
           .mk-card strong{font-size:19px;line-height:1.08;word-break:break-word}
           .mk-card span{font-size:11px;line-height:1.45}
@@ -1524,7 +1526,12 @@ export default function MarketingKpiDashboard({
                   ["Sales", "orders"],
                   ["AI", "ai"],
                 ].map(([label, section]) => (
-                  <button key={section} type="button" onClick={() => setActiveSection(section as MarketingSection)}>
+                  <button
+                    key={section}
+                    type="button"
+                    className={activeSection === section ? "active" : ""}
+                    onClick={() => setActiveSection(section as MarketingSection)}
+                  >
                     {label}
                   </button>
                 ))}

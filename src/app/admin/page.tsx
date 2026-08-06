@@ -1043,7 +1043,7 @@ export default function AdminPage() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0B0F19", color: "#fff", fontFamily: "'Prompt','Sarabun',sans-serif", display: "flex", flexDirection: "column" }}>
+    <div className="admin-app-shell" style={{ minHeight: "100vh", background: "#0B0F19", color: "#fff", fontFamily: "'Prompt','Sarabun',sans-serif", display: "flex", flexDirection: "column" }}>
 
       {/* ─── TOP BAR ─── */}
       <div className="top-bar" style={{
@@ -1248,7 +1248,7 @@ export default function AdminPage() {
       </div>
 
       {/* ─── MOBILE BOTTOM NAV ─── */}
-      <div className="show-mobile" style={{
+      <div className="show-mobile admin-bottom-nav" style={{
         position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200,
         background: "rgba(20,26,36,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
         borderTop: "1px solid rgba(255,255,255,0.08)",
@@ -1511,6 +1511,33 @@ export default function AdminPage() {
         .admin-logout-btn {
           white-space: nowrap;
         }
+        .admin-app-shell {
+          --admin-surface: #111923;
+          --admin-surface-2: #141A24;
+          --admin-line: rgba(255,255,255,0.09);
+          --admin-muted: #94A3B8;
+          color-scheme: dark;
+        }
+        .top-bar {
+          box-shadow: 0 10px 34px rgba(0,0,0,0.22);
+        }
+        .main-content-area {
+          background:
+            radial-gradient(circle at 100% 0%, rgba(255,107,0,0.07), transparent 360px),
+            linear-gradient(180deg, rgba(255,255,255,0.015), transparent 260px);
+        }
+        .nav-btn {
+          position: relative;
+          min-width: 0;
+          transition: background .18s ease, color .18s ease, transform .18s ease;
+        }
+        .nav-btn:active {
+          transform: translateY(1px);
+        }
+        .admin-bottom-nav {
+          display: grid !important;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
 
         @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
         @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
@@ -1551,6 +1578,9 @@ export default function AdminPage() {
             position: sticky !important;
             top: 0 !important;
             z-index: 250 !important;
+            background: rgba(13, 19, 29, .94) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
           }
           .top-bar img {
             width: 30px !important;
@@ -1646,6 +1676,9 @@ export default function AdminPage() {
             border-radius: 22px !important;
             overflow-x: hidden !important;
             scrollbar-width: none;
+            background:
+              linear-gradient(180deg, rgba(255,107,0,.08), rgba(20,26,36,.98) 120px),
+              rgba(20,26,36,.98) !important;
           }
           .mobile-drawer::-webkit-scrollbar {
             display: none;
@@ -1808,10 +1841,11 @@ export default function AdminPage() {
             gap: 12px !important;
           }
           .erp-mobile-card {
-            background: #141A24 !important;
-            border: 1px solid rgba(255,255,255,0.08) !important;
-            border-radius: 14px !important;
-            padding: 14px !important;
+            background: linear-gradient(180deg, rgba(20,26,36,0.98), rgba(12,18,28,0.98)) !important;
+            border: 1px solid rgba(255,255,255,0.09) !important;
+            border-radius: 18px !important;
+            padding: 16px !important;
+            box-shadow: 0 14px 38px rgba(0,0,0,0.24) !important;
           }
           .erp-mobile-card-head {
             display: flex !important;
@@ -1862,6 +1896,8 @@ export default function AdminPage() {
           .erp-mobile-actions button {
             width: 100% !important;
             min-height: 44px !important;
+            border-radius: 13px !important;
+            font-weight: 900 !important;
           }
           .main-content-area [style*="display: flex"] {
             min-width: 0 !important;
@@ -1911,6 +1947,8 @@ export default function AdminPage() {
             overflow-x: hidden !important;
             box-sizing: border-box !important;
             animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1) !important;
+            border: 1px solid rgba(255,107,0,.18) !important;
+            box-shadow: 0 -28px 80px rgba(0,0,0,.55) !important;
           }
           .modal-panel * {
             max-width: 100% !important;
@@ -1960,6 +1998,9 @@ export default function AdminPage() {
           /* KPI cards 2-col grid */
           .kpi-grid { grid-template-columns: 1fr 1fr !important; }
           .kpi-grid > div { padding: 14px 12px !important; border-radius: 16px !important; }
+          .kpi-grid > div:first-child {
+            grid-column: 1 / -1 !important;
+          }
           .kpi-grid > div > div:nth-child(2) {
             font-size: 9px !important;
             letter-spacing: .08em !important;
@@ -1989,6 +2030,8 @@ export default function AdminPage() {
             border: 1px solid rgba(255,255,255,0.08) !important;
             border-bottom: 1px solid rgba(255,255,255,0.08) !important;
             box-shadow: 0 10px 26px rgba(0,0,0,0.18) !important;
+            border-radius: 18px !important;
+            padding: 16px !important;
           }
           .doc-mobile-card-head {
             align-items: flex-start !important;
@@ -2032,6 +2075,34 @@ export default function AdminPage() {
           }
           [data-dropdown-menu] {
             max-width: calc(100vw - 24px) !important;
+          }
+          .admin-bottom-nav {
+            min-height: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+            padding: 6px 6px env(safe-area-inset-bottom, 0px) !important;
+            background: rgba(11,15,25,.97) !important;
+            border-top: 1px solid rgba(255,255,255,.1) !important;
+            box-shadow: 0 -18px 44px rgba(0,0,0,.48) !important;
+          }
+          .admin-bottom-nav .nav-btn {
+            border-radius: 16px !important;
+            padding: 7px 2px 8px !important;
+            gap: 2px !important;
+          }
+          .admin-bottom-nav .nav-btn[style*="rgba(255,107,0,0.12)"] {
+            background: linear-gradient(180deg, rgba(255,107,0,.22), rgba(255,107,0,.09)) !important;
+            color: #ff8a2a !important;
+            box-shadow: inset 0 0 0 1px rgba(255,107,0,.22) !important;
+          }
+          .admin-bottom-nav .nav-btn span:first-child {
+            font-size: 20px !important;
+          }
+          .admin-bottom-nav .nav-btn span:last-child {
+            font-size: 10.5px !important;
+            line-height: 1.15 !important;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
           }
           .erp-latest-panel {
             overflow: visible !important;
