@@ -72,9 +72,18 @@ function crawlerPublicPath(req: NextRequest) {
 
 function isLocalAdminBypass(req: NextRequest) {
   const hostname = req.nextUrl.hostname;
+  const localBypassValue = String(
+    process.env.LOCAL_ADMIN_BYPASS ||
+    process.env.NEXT_PUBLIC_LOCAL_ADMIN_BYPASS ||
+    "",
+  ).toLowerCase();
+  const enabled =
+    localBypassValue === "1" ||
+    localBypassValue === "true" ||
+    localBypassValue === "yes";
   return (
     process.env.NODE_ENV !== "production" &&
-    process.env.LOCAL_ADMIN_BYPASS === "1" &&
+    enabled &&
     (hostname === "127.0.0.1" || hostname === "localhost")
   );
 }

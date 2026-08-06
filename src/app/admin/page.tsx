@@ -4,18 +4,15 @@
 'use client';
 // ─── IMPORTS ─────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { blogCategories } from '@/lib/seo-content';
 import { loadLocal, saveLocal } from '@/lib/browser-storage';
 import { isReportDoc, reportRootId, reportingDocuments } from '@/lib/erp-reporting';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import MarketingKpiDashboard from './MarketingKpiDashboard';
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = getSupabaseBrowserClient();
 
 function isLocalAdminBypass() {
   if (typeof window === "undefined") return false;
@@ -873,13 +870,15 @@ export default function AdminPage() {
     salesPerson: "", bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", qrImage: "", signatureImage: "",
   });
   const [erpLoading, setErpLoading] = useState(true);
+  const [erpLoadError, setErpLoadError] = useState("");
 
   // ── โหลดข้อมูลจาก Supabase ครั้งแรก ──────────────────────
   useEffect(() => {
     async function loadAll() {
       setErpLoading(true);
+      setErpLoadError("");
       try {
-        await requireErpSession();
+        await withTimeout(requireErpSession(), 8000, "ERP auth check");
         const [custRes, prodRes, docRes, itemRes, compRes] = await withTimeout(Promise.all([
           supabase.from("erp_customers").select("*").order("created_at"),
           supabase.from("erp_products").select("*").order("created_at"),
@@ -1006,6 +1005,7 @@ export default function AdminPage() {
         });
       } catch (err) {
         console.error("ERP load error:", err);
+        setErpLoadError(((err as any)?.message || String(err)));
         showToast("โหลดข้อมูล ERP จาก database ไม่สำเร็จ: " + ((err as any)?.message || err), "error");
       } finally {
         setErpLoading(false);
@@ -1112,6 +1112,74 @@ export default function AdminPage() {
               {erpLoading ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "#888", fontSize: 14, gap: 10 }}>
                   <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span> กำลังโหลดข้อมูล...
+                </div>
+              ) : erpLoadError ? (
+                <div style={{
+                  maxWidth: 620,
+                  margin: "clamp(32px, 10vh, 96px) auto",
+                  padding: 24,
+                  borderRadius: 18,
+                  background: "rgba(20,26,36,0.92)",
+                  border: "1px solid rgba(239,68,68,0.35)",
+                  boxShadow: "0 20px 80px rgba(0,0,0,0.35)",
+                  color: "#fff",
+                }}>
+                  <div style={{ color: "#EF4444", fontSize: 13, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>
+                    ERP LOAD ERROR
+                  </div>
+                  <h2 style={{ margin: 0, fontSize: 24, lineHeight: 1.25 }}>โหลดข้อมูลหลังบ้านไม่สำเร็จ</h2>
+                  <p style={{ color: "#A8B0C0", fontSize: 14, lineHeight: 1.7, marginTop: 10 }}>
+                    ระบบเปิดหน้า admin ได้แล้ว แต่ยังดึงข้อมูลจากฐานข้อมูลไม่ได้ครบ อาจเกิดจาก session หมดอายุ, Supabase RLS, หรือ local environment ยังไม่ได้ login จริง
+                  </p>
+                  <div style={{
+                    marginTop: 14,
+                    padding: 12,
+                    borderRadius: 12,
+                    background: "rgba(239,68,68,0.08)",
+                    border: "1px solid rgba(239,68,68,0.2)",
+                    color: "#FCA5A5",
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                    wordBreak: "break-word",
+                  }}>
+                    {erpLoadError}
+                  </div>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 18 }}>
+                    <button
+                      type="button"
+                      onClick={() => window.location.reload()}
+                      style={{
+                        flex: "1 1 160px",
+                        minHeight: 44,
+                        borderRadius: 10,
+                        background: "#FF6B00",
+                        color: "#fff",
+                        border: "none",
+                        fontFamily: "inherit",
+                        fontWeight: 800,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ลองโหลดใหม่
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/login")}
+                      style={{
+                        flex: "1 1 160px",
+                        minHeight: 44,
+                        borderRadius: 10,
+                        background: "rgba(255,255,255,0.04)",
+                        color: "#fff",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        fontFamily: "inherit",
+                        fontWeight: 800,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ไปหน้า Login
+                    </button>
+                  </div>
                 </div>
               ) : (<>
               {erpPage === "dashboard" && (
