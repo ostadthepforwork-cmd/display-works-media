@@ -1520,6 +1520,23 @@ export default function AdminPage() {
         .hide-mobile { display: flex; }
         .show-mobile { display: none !important; }
         .erp-mobile-card-list { display: none; }
+        .erp-latest-cards { display: none; }
+        .kpi-grid,
+        .dash-grid,
+        .insights-row,
+        .chart-panel {
+          min-width: 0;
+        }
+        .kpi-grid > div,
+        .dash-grid > div,
+        .insights-row > div,
+        .chart-panel > div {
+          min-width: 0;
+        }
+        .kpi-grid > div div {
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
 
         @media (max-width: 768px) {
           .hide-mobile { display: none !important; }
@@ -1619,7 +1636,14 @@ export default function AdminPage() {
           }
           .mobile-drawer {
             flex-direction: column !important;
-            padding-top: 12px !important;
+            left: 10px !important;
+            right: 10px !important;
+            bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+            max-height: min(68dvh, 560px) !important;
+            padding: 14px 0 12px !important;
+            border: 1px solid rgba(255,107,0,.32) !important;
+            border-bottom: 1px solid rgba(255,107,0,.18) !important;
+            border-radius: 22px !important;
             overflow-x: hidden !important;
             scrollbar-width: none;
           }
@@ -1650,6 +1674,16 @@ export default function AdminPage() {
           }
           .mobile-drawer > button {
             flex-shrink: 0 !important;
+            margin: 0 12px 8px !important;
+            width: calc(100% - 24px) !important;
+            border-radius: 14px !important;
+            border-left-width: 0 !important;
+            background: rgba(255,255,255,.035) !important;
+            border: 1px solid rgba(255,255,255,.075) !important;
+          }
+          .mobile-drawer > button[style*="rgba(255,107,0,0.1)"] {
+            background: linear-gradient(135deg, rgba(255,107,0,.2), rgba(255,255,255,.045)) !important;
+            border-color: rgba(255,107,0,.42) !important;
           }
           .mobile-drawer > button > span:nth-child(2) {
             min-width: 0 !important;
@@ -1925,7 +1959,16 @@ export default function AdminPage() {
           /* Content padding accounts for nav + safe area */
           /* KPI cards 2-col grid */
           .kpi-grid { grid-template-columns: 1fr 1fr !important; }
-          .kpi-grid > div { padding: 14px 12px !important; }
+          .kpi-grid > div { padding: 14px 12px !important; border-radius: 16px !important; }
+          .kpi-grid > div > div:nth-child(2) {
+            font-size: 9px !important;
+            letter-spacing: .08em !important;
+            line-height: 1.35 !important;
+          }
+          .kpi-grid > div > div:nth-child(3) {
+            font-size: 22px !important;
+            line-height: 1.08 !important;
+          }
 
           /* Chart panel full width */
           .chart-panel { grid-template-columns: 1fr !important; }
@@ -1972,7 +2015,7 @@ export default function AdminPage() {
           }
           .doc-mobile-actions {
             display: grid !important;
-            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             gap: 8px !important;
           }
           .doc-mobile-actions > button,
@@ -1980,6 +2023,135 @@ export default function AdminPage() {
             width: 100% !important;
             min-height: 42px !important;
             justify-content: center !important;
+          }
+          .doc-mobile-actions > div {
+            grid-column: 1 / -1 !important;
+          }
+          .doc-mobile-actions > div > button {
+            border-style: dashed !important;
+          }
+          [data-dropdown-menu] {
+            max-width: calc(100vw - 24px) !important;
+          }
+          .erp-latest-panel {
+            overflow: visible !important;
+          }
+          .erp-latest-table {
+            display: none !important;
+          }
+          .erp-latest-cards {
+            display: grid !important;
+            gap: 12px !important;
+            padding: 12px !important;
+          }
+          .erp-latest-card {
+            width: 100% !important;
+            display: grid !important;
+            gap: 12px !important;
+            text-align: left !important;
+            padding: 14px !important;
+            border: 1px solid rgba(255,255,255,.08) !important;
+            border-radius: 16px !important;
+            background: linear-gradient(180deg, rgba(20,26,36,.98), rgba(12,18,28,.98)) !important;
+            color: #fff !important;
+            font-family: inherit !important;
+          }
+          .erp-latest-card-top {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+          .erp-latest-card-top > div {
+            display: grid !important;
+            gap: 4px !important;
+            min-width: 0 !important;
+          }
+          .erp-latest-card-top strong {
+            font-family: monospace !important;
+            font-size: 15px !important;
+            overflow-wrap: anywhere !important;
+          }
+          .erp-latest-card-top b {
+            font-size: 18px !important;
+            text-align: right !important;
+          }
+          .erp-latest-card-top span {
+            color: #94a3b8 !important;
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+          }
+          .erp-latest-card-meta {
+            display: flex !important;
+            gap: 8px !important;
+            flex-wrap: wrap !important;
+          }
+          .erp-latest-card-meta span {
+            border-radius: 999px !important;
+            padding: 5px 10px !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+          }
+          .erp-latest-balance {
+            border-radius: 12px !important;
+            padding: 10px 12px !important;
+            background: rgba(245,158,11,.1) !important;
+            color: #fbbf24 !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+          }
+          .cms-page-head {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+          }
+          .cms-page-tools {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            width: 100% !important;
+            gap: 10px !important;
+          }
+          .cms-page-tools input,
+          .cms-page-tools button {
+            width: 100% !important;
+          }
+          .cms-blog-row {
+            display: grid !important;
+            grid-template-columns: 92px minmax(0,1fr) !important;
+            align-items: start !important;
+            gap: 12px !important;
+            padding: 12px !important;
+            border-radius: 16px !important;
+          }
+          .cms-blog-cover {
+            width: 92px !important;
+            height: 92px !important;
+            border-radius: 14px !important;
+          }
+          .cms-blog-copy > div:first-child {
+            display: grid !important;
+            gap: 6px !important;
+            align-items: start !important;
+          }
+          .cms-blog-copy span:first-child {
+            line-height: 1.35 !important;
+            overflow-wrap: anywhere !important;
+          }
+          .cms-blog-copy > div:last-child {
+            white-space: normal !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+          }
+          .cms-blog-actions {
+            grid-column: 1 / -1 !important;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+          }
+          .cms-blog-actions button {
+            width: 100% !important;
+            min-height: 42px !important;
           }
 
           /* Insights row single col */
@@ -3231,7 +3403,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
       </div>
 
       {/* ── LATEST ORDERS ─────────────────────────────────────────── */}
-      <div style={{ ...card(), overflow: "hidden" }}>
+      <div className="erp-latest-panel" style={{ ...card(), overflow: "hidden" }}>
         <div style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>🕐 Latest Orders</div>
           <span style={{ fontSize: 11, color: "#4B5563" }}>5 รายการล่าสุด</span>
@@ -3239,7 +3411,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         {recentDocs.length === 0 ? (
           <div style={{ padding: "32px", textAlign: "center", color: "#4B5563", fontSize: 13 }}>ยังไม่มีเอกสาร</div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <>
+          <table className="erp-latest-table" style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "rgba(255,255,255,0.02)" }}>
                 {["เลขที่","ประเภท","ลูกค้า","วันที่","ยอดรวม","สถานะ"].map(h => (
@@ -3276,6 +3449,34 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
               })}
             </tbody>
           </table>
+          <div className="erp-latest-cards" aria-label="Latest orders mobile cards">
+            {recentDocs.map((doc: any) => {
+              const { total, depositPaid, balanceDue } = calcDocTotal(doc, documents);
+              const docType = (DOC_TYPES as any)[doc.type] || {};
+              return (
+                <button key={doc.id} type="button" className="erp-latest-card" onClick={() => setPage(doc.type)} style={{ borderColor: `${docType.color || "#FF6B00"}35` }}>
+                  <div className="erp-latest-card-top">
+                    <div>
+                      <strong style={{ color: docType.color || "#FF6B00" }}>{doc.docNo}</strong>
+                      <span>{doc.customerName || "-"}</span>
+                    </div>
+                    <div>
+                      <b>฿{fmtMoney(total)}</b>
+                      <span>{fmtDate(doc.date)}</span>
+                    </div>
+                  </div>
+                  <div className="erp-latest-card-meta">
+                    <span style={{ background: `${docType.color || "#FF6B00"}20`, color: docType.color || "#FF6B00" }}>{docType.label || doc.type}</span>
+                    <span style={{ background: `${(STATUS_COLORS as any)[doc.status] || "#64748B"}20`, color: (STATUS_COLORS as any)[doc.status] || "#CBD5E1" }}>{(STATUS_LABELS as any)[doc.status] || doc.status}</span>
+                  </div>
+                  {depositPaid > 0 && balanceDue > 0 && (
+                    <div className="erp-latest-balance">ค้างชำระ ฿{fmtMoney(balanceDue)}</div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          </>
         )}
       </div>
     </div>
@@ -4613,7 +4814,10 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           <button onClick={(e) => {
                             if (openMenu === doc.id) { closeAll(); return; }
                             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                            setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                            const menuWidth = Math.min(260, window.innerWidth - 24);
+                            const right = Math.max(12, Math.min(window.innerWidth - rect.right, window.innerWidth - menuWidth - 12));
+                            const top = Math.max(12, Math.min(rect.bottom + 4, window.innerHeight - 360));
+                            setMenuPos({ top, right });
                             setOpenMenu(doc.id); setOpenStatus(null);
                           }}
                             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit", lineHeight: 1 }}>
@@ -4720,7 +4924,10 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           if (openMenu === doc.id) { closeAll(); return; }
                           const isMobileMenu = window.matchMedia("(max-width: 768px)").matches;
                           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                          setMenuPos(isMobileMenu ? { top: 0, right: 0, mobile: true } : { top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                          const menuWidth = Math.min(260, window.innerWidth - 24);
+                          const right = Math.max(12, Math.min(window.innerWidth - rect.right, window.innerWidth - menuWidth - 12));
+                          const top = Math.max(12, Math.min(rect.bottom + 4, window.innerHeight - 360));
+                          setMenuPos(isMobileMenu ? { top: 0, right: 0, mobile: true } : { top, right });
                           setOpenMenu(doc.id); setOpenStatus(null);
                         }}
                           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
@@ -5711,26 +5918,26 @@ function BlogManager({ showToast }: any) {
   );
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+    <div className="cms-blog-manager" style={{ animation: "fadeIn 0.3s ease" }}>
+      <div className="cms-page-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>จัดการบทความ</h2>
           <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{posts.length} บทความ</p>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="cms-page-tools" style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
           <CBtn onClick={() => setEditing({ id: "", title: "", excerpt: "", category: "", date: new Date().toISOString().slice(0,10), slug: "", cover: "", cover_alt: "", published: true, body: "", seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media", last_updated: "", tags: "", ai_summary: "", key_takeaways: "", faqs: [], related_services: [] })} color="#FF6B00">+ เพิ่มบทความ</CBtn>
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className="cms-blog-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {filtered.map(p => (
-          <div key={p.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
+          <div key={p.id} className="cms-blog-row" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
             {/* Cover */}
-            <div style={{ width: 80, height: 60, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#1A2233", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="cms-blog-cover" style={{ width: 80, height: 60, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#1A2233", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {p.cover ? <img src={p.cover} alt={p.cover_alt || p.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 24 }}>📄</span>}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="cms-blog-copy" style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                 <span style={{ fontWeight: 600, fontSize: 14 }}>{p.title}</span>
                 <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: p.published ? "rgba(16,185,129,0.15)" : "rgba(107,114,128,0.2)", color: p.published ? "#10b981" : "#6b7280" }}>
@@ -5740,7 +5947,7 @@ function BlogManager({ showToast }: any) {
               <div style={{ fontSize: 12, color: "#555" }}>{p.category} · {fmtDate(p.date)}</div>
               <div style={{ fontSize: 12, color: "#888", marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.excerpt}</div>
             </div>
-            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            <div className="cms-blog-actions" style={{ display: "flex", gap: 6, flexShrink: 0 }}>
               <CIconBtn onClick={() => setEditing({ ...p })}>✏️</CIconBtn>
               <CIconBtn onClick={() => del(p.id)} danger>🗑️</CIconBtn>
             </div>

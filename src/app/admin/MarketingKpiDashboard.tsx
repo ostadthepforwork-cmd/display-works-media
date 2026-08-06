@@ -1292,8 +1292,8 @@ export default function MarketingKpiDashboard({
           .mk-mobile-chart{padding:13px;border-radius:17px}
           .mk-mobile-chart .mk-bar-head{font-size:12px}
           .mk-mobile-chart .mk-bar-track{height:10px;margin-top:6px}
-          .mk-mobile-jump{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
-          .mk-mobile-jump button{border:1px solid rgba(255,107,0,.28);background:rgba(255,107,0,.08);color:#fff;border-radius:13px;min-height:44px;font-size:11px;font-weight:900}
+          .mk-mobile-jump{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+          .mk-mobile-jump button{border:1px solid rgba(255,107,0,.28);background:rgba(255,107,0,.08);color:#fff;border-radius:14px;min-height:46px;font-size:12px;font-weight:900;text-align:left;padding:10px 12px}
           .mk-overview-grid,.mk-dashboard-secondary{display:none!important}
           .mk-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
           .mk-card{min-height:108px!important;padding:12px;border-radius:16px}
@@ -1301,9 +1301,9 @@ export default function MarketingKpiDashboard({
           .mk-card strong{font-size:19px;line-height:1.08;word-break:break-word}
           .mk-card span{font-size:11px;line-height:1.45}
           .mk-dot{width:30px;height:30px;border-radius:10px;font-size:11px}
-          .mk-growth-grid{display:flex!important;grid-template-columns:none!important;gap:12px;margin:12px -12px 8px;padding:0 12px 10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+          .mk-growth-grid{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;margin:12px 0 8px!important;padding:0!important;overflow:visible!important;scroll-snap-type:none!important}
           .mk-growth-grid::-webkit-scrollbar{display:none}
-          .mk-growth-card{flex:0 0 84%!important;scroll-snap-align:start;padding:15px;border-radius:18px;min-height:172px}
+          .mk-growth-card{width:100%!important;flex:initial!important;scroll-snap-align:none!important;padding:15px;border-radius:18px;min-height:160px}
           .mk-growth-head{gap:10px}
           .mk-growth-head strong{font-size:15px}
           .mk-growth-head span{font-size:11px}
