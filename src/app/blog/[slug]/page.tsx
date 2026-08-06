@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { createClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import { ArticleSchema, BreadcrumbSchema } from "@/components/SchemaOrg";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import BlogPostClient from "./BlogPostClient";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type BlogPostRecord = {
   title: string;
@@ -23,17 +26,6 @@ type BlogPostRecord = {
   ai_summary?: string | null;
   author?: string | null;
 };
-
-export function generateStaticParams() {
-  return [];
-}
-
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key);
-}
 
 function splitKeywords(...values: Array<string | null | undefined>) {
   return values
@@ -53,8 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const articleUrl = `https://displayworksmedia.com/blog/${slug}`;
 
   try {
-    const supabase = getSupabase();
-    if (!supabase) throw new Error("Supabase env is not configured");
+    const supabase = await createSupabaseServerClient();
 
     const { data: post } = await supabase
       .from("posts")
@@ -130,15 +121,19 @@ export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
 
   try {
-    const supabase = getSupabase();
-    if (!supabase) notFound();
+    const supabase = await createSupabaseServerClient();
 
-    const { data: post } = await supabase
+    const { data: post, error: postError } = await supabase
       .from("posts")
       .select("*")
       .eq("slug", slug)
       .eq("published", true)
-      .single();
+      .maybeSingle();
+
+    if (postError) {
+      console.error("Blog post query failed:", { slug, error: postError.message });
+      throw postError;
+    }
 
     if (!post) notFound();
 
@@ -180,7 +175,8 @@ export default async function BlogPostPage({ params }: Props) {
         <BlogPostClient initialPost={post} initialRelated={related || []} />
       </>
     );
-  } catch {
+  } catch (error) {
+    console.error("Blog post render failed:", error);
     notFound();
   }
 }
