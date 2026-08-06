@@ -31,14 +31,21 @@ function fmtDateTH(dateStr: string) {
 function readTimeTH(body: string) {
   return `${Math.max(1, Math.round((body || "").length / 5 / 200))} นาที`;
 }
+
+function wrapArticleTables(html: string) {
+  return html.replace(/<table\b([^>]*)>([\s\S]*?)<\/table>/gi, (table, attrs, content) => (
+    `<div class="article-table-scroll"><table${attrs}>${content}</table></div>`
+  ));
+}
+
 function bodyToHtml(body: string): string {
   if (!body) return "<p>ยังไม่มีเนื้อหา</p>";
   // ถ้าเป็น HTML จาก RichEditor ให้ใช้โดยตรง
   if (body.trim().startsWith("<") && (body.includes("</p>") || body.includes("</h") || body.includes("</ul>") || body.includes("<figure") || body.includes("<table"))) {
-    return sanitizeHtml(body);
+    return wrapArticleTables(sanitizeHtml(body));
   }
   // fallback: plain text / markdown
-  return body.split(/\n{2,}/).map((para) => {
+  return wrapArticleTables(body.split(/\n{2,}/).map((para) => {
     const t = para.trim();
     if (!t) return "";
     if (t.startsWith("## ")) return `<h2>${escapeHtml(t.slice(3))}</h2>`;
@@ -47,7 +54,7 @@ function bodyToHtml(body: string): string {
       return `<ul>${t.split("\n").map((l) => `<li>${escapeHtml(l.trim().slice(2))}</li>`).join("")}</ul>`;
     }
     return `<p>${escapeHtml(t).replace(/\n/g, "<br/>")}</p>`;
-  }).join("");
+  }).join(""));
 }
 
 function cleanFaqs(faqs: Post["faqs"]) {
@@ -341,37 +348,54 @@ export default function BlogPostPage({
         .prose-blog blockquote { border-left: 4px solid #FF7A00; padding: 12px 20px; margin: 1.5rem 0; background: rgba(255,122,0,0.05); border-radius: 0 10px 10px 0; color: #A7B0C0; font-style: italic; }
         .prose-blog a { color: #60A5FA; text-decoration: underline; word-break: break-word; }
         .prose-blog a:hover { color: #FF7A00; }
-        .prose-blog table {
+        .prose-blog .article-table-scroll {
           display: block;
           width: 100%;
-          max-width: 100%;
-          margin: 2rem 0;
+          margin: 2.25rem 0;
           overflow-x: auto;
-          border-collapse: collapse;
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 8px;
-          background: #0D121A;
+          overflow-y: hidden;
+          border: 1px solid rgba(255, 101, 0, 0.28);
+          border-radius: 12px;
+          background:
+            linear-gradient(90deg, rgba(255, 101, 0, 0.08), transparent 18%),
+            #0D121A;
+          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+          -webkit-overflow-scrolling: touch;
         }
-        .prose-blog thead,
-        .prose-blog tbody,
-        .prose-blog tr {
+        .prose-blog .article-table-scroll::-webkit-scrollbar {
+          height: 8px;
+        }
+        .prose-blog .article-table-scroll::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.06);
+        }
+        .prose-blog .article-table-scroll::-webkit-scrollbar-thumb {
+          background: rgba(255, 101, 0, 0.75);
+          border-radius: 999px;
+        }
+        .prose-blog table {
           width: 100%;
+          min-width: 680px;
+          border-collapse: collapse;
+          table-layout: fixed;
+          background: transparent;
         }
         .prose-blog th,
         .prose-blog td {
-          min-width: 180px;
           border: 1px solid rgba(255, 255, 255, 0.12);
-          padding: 14px 16px;
+          padding: 16px 18px;
           color: #CBD5E1;
           line-height: 1.75;
           vertical-align: top;
+          word-break: break-word;
         }
         .prose-blog th,
         .prose-blog thead td {
-          background: rgba(255, 101, 0, 0.12);
+          border-color: rgba(255, 101, 0, 0.26);
+          background: rgba(255, 101, 0, 0.15);
           color: #fff;
           font-family: 'Kanit', sans-serif;
           font-weight: 700;
+          letter-spacing: 0;
         }
         .prose-blog td p,
         .prose-blog th p {
@@ -384,7 +408,23 @@ export default function BlogPostPage({
           color: inherit;
         }
         .prose-blog tr:nth-child(even) td {
-          background: rgba(255, 255, 255, 0.025);
+          background: rgba(255, 255, 255, 0.035);
+        }
+        @media (max-width: 640px) {
+          .prose-blog .article-table-scroll {
+            margin-left: -2px;
+            margin-right: -2px;
+            border-radius: 10px;
+          }
+          .prose-blog table {
+            min-width: 620px;
+          }
+          .prose-blog th,
+          .prose-blog td {
+            padding: 13px 14px;
+            font-size: 0.92rem;
+            line-height: 1.65;
+          }
         }
         .prose-blog figure { margin: 2rem 0; text-align: center; }
         .prose-blog figure img { max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
