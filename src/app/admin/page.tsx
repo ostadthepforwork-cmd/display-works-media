@@ -1140,7 +1140,7 @@ export default function AdminPage() {
                   <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span> กำลังโหลดข้อมูล...
                 </div>
               ) : erpLoadError ? (
-                <div style={{
+                <div className="erp-load-error-card" style={{
                   maxWidth: 620,
                   margin: "clamp(32px, 10vh, 96px) auto",
                   padding: 24,
@@ -3081,6 +3081,349 @@ export default function AdminPage() {
           .admin-bottom-nav {
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
+          }
+
+          /* Mobile ERP app refresh: match the white, card-based operational reference. */
+          .top-bar {
+            min-height: 58px !important;
+            background: rgba(255,255,255,.98) !important;
+            color: #111827 !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            box-shadow: 0 8px 26px rgba(15,23,42,.06) !important;
+          }
+          .top-bar strong,
+          .top-bar b,
+          .admin-mobile-title {
+            color: #111827 !important;
+          }
+          .top-bar span {
+            color: inherit !important;
+          }
+          .admin-module-trigger {
+            border: 1px solid #fed7aa !important;
+            background: #fff7ed !important;
+            color: #111827 !important;
+            box-shadow: 0 8px 20px rgba(234,88,12,.12) !important;
+          }
+          .admin-module-trigger b {
+            color: #111827 !important;
+          }
+          .admin-module-trigger span {
+            color: #f97316 !important;
+          }
+          .admin-logout-btn {
+            background: #fff1f2 !important;
+            border-color: #fecdd3 !important;
+            color: #e11d48 !important;
+          }
+          .main-content-area {
+            background: #f4f6f9 !important;
+            color: #111827 !important;
+          }
+          .main-content-area .erp-dashboard-header,
+          .main-content-area .erp-page-header,
+          .main-content-area .doc-header-row {
+            position: relative !important;
+            top: auto !important;
+            margin: -2px -2px 14px !important;
+            padding: 16px !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 22px !important;
+            background: #fff !important;
+            color: #111827 !important;
+            box-shadow: 0 14px 34px rgba(15,23,42,.07) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+          }
+          .main-content-area .erp-dashboard-header h2,
+          .main-content-area .erp-page-header h2,
+          .main-content-area .doc-header-row h2 {
+            color: #111827 !important;
+            font-size: 24px !important;
+            line-height: 1.15 !important;
+            letter-spacing: 0 !important;
+          }
+          .main-content-area .erp-dashboard-header p,
+          .main-content-area .erp-page-header p,
+          .main-content-area .doc-header-row p {
+            color: #6b7280 !important;
+            line-height: 1.55 !important;
+          }
+          .erp-date-controls,
+          .erp-page-actions,
+          .doc-header-actions {
+            background: #f8fafc !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 18px !important;
+          }
+          .main-content-area input,
+          .main-content-area select,
+          .main-content-area textarea {
+            background: #fff !important;
+            border: 1px solid #d7dde8 !important;
+            color: #111827 !important;
+            border-radius: 14px !important;
+            min-height: 46px !important;
+            box-shadow: inset 0 1px 0 rgba(15,23,42,.02) !important;
+          }
+          .main-content-area input::placeholder,
+          .main-content-area textarea::placeholder {
+            color: #9ca3af !important;
+          }
+          .main-content-area input:focus,
+          .main-content-area select:focus,
+          .main-content-area textarea:focus {
+            outline: 2px solid rgba(249,115,22,.25) !important;
+            outline-offset: 1px !important;
+            border-color: #fb923c !important;
+          }
+          .kpi-grid > div,
+          .dash-grid > div,
+          .insights-row > div,
+          .chart-panel > div,
+          .erp-data-card,
+          .erp-mobile-card,
+          .doc-mobile-card,
+          .erp-latest-card,
+          .doc-list-panel,
+          .erp-latest-panel,
+          .main-content-area section > div[style*="border: 1px solid rgba(255,255,255,0.07)"] {
+            background: #fff !important;
+            border: 1px solid #e5e7eb !important;
+            color: #111827 !important;
+            box-shadow: 0 14px 34px rgba(15,23,42,.07) !important;
+          }
+          .kpi-grid > div {
+            min-height: 126px !important;
+            border-radius: 20px !important;
+          }
+          .kpi-grid > div:first-child {
+            grid-column: span 1 !important;
+          }
+          .kpi-grid > div > div,
+          .dash-grid > div > div,
+          .insights-row > div > div,
+          .chart-panel > div > div,
+          .erp-data-card div,
+          .erp-mobile-card div,
+          .doc-mobile-card div,
+          .erp-latest-card div {
+            color: inherit;
+          }
+          .main-content-area h1,
+          .main-content-area h2,
+          .main-content-area h3,
+          .main-content-area strong,
+          .main-content-area b,
+          .erp-mobile-card-title,
+          .doc-mobile-card-head strong,
+          .erp-latest-card-top strong {
+            color: #111827 !important;
+          }
+          .main-content-area p,
+          .main-content-area small,
+          .erp-mobile-card-meta,
+          .erp-mobile-stat span,
+          .doc-mobile-footer,
+          .erp-latest-card-meta,
+          .erp-latest-card-top span {
+            color: #6b7280 !important;
+          }
+          .erp-mobile-card,
+          .doc-mobile-card,
+          .erp-latest-card {
+            border-radius: 22px !important;
+            padding: 16px !important;
+          }
+          .erp-mobile-card:before {
+            background: linear-gradient(180deg, #fb923c, #f97316) !important;
+          }
+          .erp-mobile-stats {
+            gap: 8px !important;
+          }
+          .erp-mobile-stat {
+            background: #f8fafc !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 16px !important;
+          }
+          .erp-mobile-stat strong {
+            color: #111827 !important;
+          }
+          .erp-mobile-actions,
+          .doc-mobile-actions {
+            gap: 10px !important;
+          }
+          .erp-mobile-actions button,
+          .doc-mobile-actions > button,
+          .doc-mobile-actions > div > button,
+          .erp-card-actions button {
+            min-height: 48px !important;
+            border-radius: 16px !important;
+            font-weight: 900 !important;
+            box-shadow: none !important;
+          }
+          .erp-mobile-actions button[style*="#FF6B00"],
+          .doc-mobile-actions button[style*="#FF6B00"],
+          .erp-card-actions button[style*="#FF6B00"] {
+            background: #ff5a00 !important;
+            border-color: #ff5a00 !important;
+            color: #fff !important;
+            box-shadow: 0 10px 22px rgba(255,90,0,.18) !important;
+          }
+          .doc-mobile-footer {
+            border-top: 1px solid #e5e7eb !important;
+          }
+          .doc-mobile-status button {
+            background: #ecfdf5 !important;
+            border-color: #a7f3d0 !important;
+            color: #059669 !important;
+          }
+          [data-dropdown-menu] {
+            background: #fff !important;
+            border: 1px solid #e5e7eb !important;
+            color: #111827 !important;
+            box-shadow: 0 18px 48px rgba(15,23,42,.16) !important;
+          }
+          [data-dropdown-menu] button {
+            color: #111827 !important;
+            background: transparent !important;
+          }
+          [data-dropdown-menu] button:hover {
+            background: #fff7ed !important;
+          }
+          .mobile-drawer {
+            left: 12px !important;
+            right: 12px !important;
+            bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+            background: #fff !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 24px !important;
+            color: #111827 !important;
+            box-shadow: 0 -18px 48px rgba(15,23,42,.18) !important;
+          }
+          .mobile-drawer > div[style*="letter-spacing"] {
+            color: #f97316 !important;
+          }
+          .mobile-drawer > button {
+            min-height: 56px !important;
+            background: #f8fafc !important;
+            border: 1px solid #e5e7eb !important;
+            color: #111827 !important;
+          }
+          .mobile-drawer > button[style*="rgba(255,107,0,0.1)"] {
+            background: #fff7ed !important;
+            border-color: #fdba74 !important;
+            color: #c2410c !important;
+          }
+          .mobile-module-switch button {
+            background: #f8fafc !important;
+            border-color: #e5e7eb !important;
+            color: #475569 !important;
+          }
+          .mobile-module-switch button.active {
+            background: #ff5a00 !important;
+            border-color: #ff5a00 !important;
+            color: #fff !important;
+          }
+          .modal-panel {
+            background: #fff !important;
+            color: #111827 !important;
+            border-color: #e5e7eb !important;
+            border-radius: 24px 24px 0 0 !important;
+            box-shadow: 0 -20px 52px rgba(15,23,42,.18) !important;
+          }
+          .modal-panel > div:first-child {
+            background: #fff !important;
+            border-bottom: 1px solid #e5e7eb !important;
+          }
+          .modal-panel h2,
+          .modal-panel h3,
+          .modal-panel strong,
+          .modal-panel b {
+            color: #111827 !important;
+          }
+          .modal-panel label {
+            color: #475569 !important;
+            font-weight: 800 !important;
+          }
+          .modal-panel input,
+          .modal-panel select,
+          .modal-panel textarea {
+            background: #f8fafc !important;
+            color: #111827 !important;
+            border: 1px solid #d7dde8 !important;
+            min-height: 48px !important;
+          }
+          .modal-panel button[style*="#FF6B00"],
+          .modal-panel button[style*="255,107,0"] {
+            background: #ff5a00 !important;
+            color: #fff !important;
+            border-color: #ff5a00 !important;
+          }
+          .admin-bottom-nav {
+            background: rgba(255,255,255,.98) !important;
+            border-top: 1px solid #e5e7eb !important;
+            box-shadow: 0 -10px 30px rgba(15,23,42,.09) !important;
+          }
+          .admin-bottom-nav .nav-btn {
+            color: #64748b !important;
+            background: transparent !important;
+          }
+          .admin-bottom-nav .nav-btn[style*="rgba(255,107,0,0.12)"] {
+            background: #fff7ed !important;
+            color: #f97316 !important;
+          }
+          .admin-bottom-nav .nav-btn span:last-child {
+            color: inherit !important;
+            font-weight: 900 !important;
+          }
+          .admin-bottom-nav .nav-btn span:first-child {
+            color: inherit !important;
+          }
+          .erp-load-error-card {
+            width: 100% !important;
+            max-width: calc(100vw - 24px) !important;
+            margin: 28px auto !important;
+            box-sizing: border-box !important;
+            background: #fff !important;
+            border: 1px solid #fecaca !important;
+            color: #111827 !important;
+            box-shadow: 0 18px 42px rgba(15,23,42,.08) !important;
+          }
+          .erp-load-error-card h2,
+          .erp-load-error-card strong,
+          .erp-load-error-card b {
+            color: #111827 !important;
+          }
+          .erp-load-error-card p {
+            color: #64748b !important;
+          }
+          .erp-load-error-card > div:nth-of-type(2) {
+            background: #fff1f2 !important;
+            border-color: #fecdd3 !important;
+            color: #be123c !important;
+          }
+          .erp-load-error-card button:last-child {
+            background: #f8fafc !important;
+            color: #111827 !important;
+            border-color: #d7dde8 !important;
+          }
+          .admin-home-summary,
+          .admin-home-summary * {
+            color: rgba(255,255,255,.76) !important;
+          }
+          .admin-home-summary h1,
+          .admin-home-summary strong,
+          .admin-home-money strong {
+            color: #fff !important;
+          }
+          .admin-home-summary h1 {
+            text-shadow: 0 2px 12px rgba(0,0,0,.2) !important;
+          }
+          .admin-home-summary p,
+          .admin-home-summary small,
+          .admin-home-summary span {
+            color: rgba(255,255,255,.72) !important;
           }
         }
 
