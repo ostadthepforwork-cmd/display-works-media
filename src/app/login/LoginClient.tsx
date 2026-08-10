@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 const supabase = getSupabaseBrowserClient();
@@ -83,12 +84,14 @@ export default function LoginPage() {
   return (
     <main className="admin-login-page">
       <section className="admin-login-hero" aria-label="Display Works Media admin login">
-        <div className="admin-login-logo-card">
-          <Image src="/images/logo.png" alt="Display Works Media" width={92} height={74} priority />
+        <div className="admin-login-hero-inner">
+          <div className="admin-login-logo-card">
+            <Image src="/images/logo.png" alt="Display Works Media" width={116} height={84} priority />
+          </div>
+          <p className="admin-login-brand">DISPLAY WORKS MEDIA</p>
+          <h1>เข้าสู่ระบบหลังบ้าน</h1>
+          <p className="admin-login-subtitle">จัดการ ERP, CMS และ Marketing ในที่เดียว</p>
         </div>
-        <p>DISPLAY WORKS MEDIA</p>
-        <h1>เข้าสู่ระบบหลังบ้าน</h1>
-        <span>จัดการ ERP, CMS และ Marketing ในที่เดียว</span>
       </section>
 
       <section className="admin-login-panel">
@@ -101,8 +104,8 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="admin-login-form">
             <label className="admin-login-field">
               <span>อีเมล</span>
-              <div>
-                <i aria-hidden="true">✉</i>
+              <div className="admin-login-input">
+                <Mail size={24} aria-hidden="true" />
                 <input
                   type="email"
                   required
@@ -116,8 +119,8 @@ export default function LoginPage() {
 
             <label className="admin-login-field">
               <span>รหัสผ่าน</span>
-              <div>
-                <i aria-hidden="true">⌕</i>
+              <div className="admin-login-input">
+                <Lock size={24} aria-hidden="true" />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
@@ -126,8 +129,13 @@ export default function LoginPage() {
                   placeholder="••••••••••••"
                   autoComplete="current-password"
                 />
-                <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}>
-                  {showPassword ? "ซ่อน" : "ดู"}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                  className="admin-login-icon-btn"
+                >
+                  {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
                 </button>
               </div>
             </label>
@@ -143,13 +151,13 @@ export default function LoginPage() {
             {error && <div className="admin-login-error">{error}</div>}
 
             <button type="submit" disabled={loading} className="admin-login-submit">
-              {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
-              <span aria-hidden="true">→</span>
+              <span>{loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}</span>
+              <ArrowRight size={34} aria-hidden="true" />
             </button>
           </form>
 
           <div className="admin-login-note">
-            <span aria-hidden="true">◇</span>
+            <ShieldCheck size={32} aria-hidden="true" />
             <p>สำหรับผู้ดูแลระบบที่ได้รับอนุญาตเท่านั้น</p>
           </div>
         </div>
@@ -162,22 +170,21 @@ export default function LoginPage() {
         .admin-login-page {
           min-height: 100dvh;
           display: grid;
-          grid-template-columns: minmax(360px, 0.9fr) minmax(420px, 1fr);
+          grid-template-columns: minmax(380px, .92fr) minmax(460px, 1fr);
           background: #f4f6f9;
-          color: #14171c;
+          color: #15171c;
           font-family: 'Prompt', sans-serif;
         }
 
         .admin-login-hero {
           min-height: 100dvh;
-          padding: clamp(40px, 7vw, 88px);
+          padding: clamp(42px, 7vw, 92px);
           display: flex;
-          flex-direction: column;
-          justify-content: center;
+          align-items: center;
           background:
-            linear-gradient(120deg, rgba(0,0,0,.74), rgba(0,0,0,.34)),
-            radial-gradient(circle at 88% 30%, rgba(255,107,0,.36), transparent 210px),
-            linear-gradient(135deg, #101216 0%, #242628 100%);
+            linear-gradient(120deg, rgba(10,10,10,.86), rgba(13,13,14,.52)),
+            radial-gradient(circle at 88% 28%, rgba(255,107,0,.34), transparent 240px),
+            linear-gradient(135deg, #171819 0%, #2b2d2f 100%);
           position: relative;
           overflow: hidden;
         }
@@ -187,71 +194,74 @@ export default function LoginPage() {
           position: absolute;
           inset: 0;
           background-image:
-            linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
-          background-size: 64px 64px;
-          mask-image: linear-gradient(90deg, rgba(0,0,0,.95), transparent);
+            linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+          background-size: 68px 68px;
+          mask-image: linear-gradient(90deg, rgba(0,0,0,.96), transparent);
           pointer-events: none;
         }
 
         .admin-login-hero:after {
           content: "";
           position: absolute;
-          right: -70px;
-          top: 12%;
-          width: 360px;
-          height: 520px;
-          border-right: 7px solid #FF6B00;
-          border-bottom: 7px solid #FF6B00;
-          transform: rotate(36deg);
+          right: -84px;
+          top: 10%;
+          width: 380px;
+          height: 560px;
+          border-right: 8px solid #ff6b00;
+          border-bottom: 8px solid #ff6b00;
+          transform: rotate(35deg);
           opacity: .92;
+          filter: drop-shadow(0 0 28px rgba(255,107,0,.28));
           pointer-events: none;
         }
 
-        .admin-login-hero > * {
+        .admin-login-hero-inner {
           position: relative;
           z-index: 1;
+          max-width: 680px;
         }
 
         .admin-login-logo-card {
-          width: 116px;
-          height: 116px;
-          border-radius: 26px;
+          width: 132px;
+          height: 132px;
+          border-radius: 28px;
           display: grid;
           place-items: center;
           background: #fff;
-          box-shadow: 0 24px 70px rgba(0,0,0,.28);
-          margin-bottom: 38px;
+          box-shadow: 0 28px 72px rgba(0,0,0,.34);
+          margin-bottom: 40px;
         }
 
         .admin-login-logo-card img {
-          width: 92px;
-          height: 74px;
+          width: 116px;
+          height: 84px;
           object-fit: contain;
         }
 
-        .admin-login-hero p {
+        .admin-login-brand {
           color: #fff;
           font-weight: 900;
           letter-spacing: .08em;
-          margin: 0 0 22px;
-          text-shadow: 0 10px 30px rgba(0,0,0,.32);
+          margin: 0 0 20px;
+          text-shadow: 0 12px 34px rgba(0,0,0,.36);
         }
 
         .admin-login-hero h1 {
           color: #fff;
-          font-size: clamp(52px, 7vw, 86px);
-          line-height: 1.04;
+          font-size: clamp(58px, 7vw, 92px);
+          line-height: 1.03;
           letter-spacing: 0;
           margin: 0 0 22px;
-          text-shadow: 0 14px 40px rgba(0,0,0,.45);
+          text-shadow: 0 16px 42px rgba(0,0,0,.46);
         }
 
-        .admin-login-hero span {
+        .admin-login-subtitle {
           color: rgba(255,255,255,.78);
-          font-size: clamp(18px, 2.4vw, 28px);
+          font-size: clamp(20px, 2.25vw, 30px);
           line-height: 1.45;
-          max-width: 620px;
+          margin: 0;
+          max-width: 650px;
         }
 
         .admin-login-panel {
@@ -259,20 +269,20 @@ export default function LoginPage() {
           align-content: center;
           justify-items: center;
           gap: 28px;
-          padding: clamp(28px, 5vw, 72px);
+          padding: clamp(30px, 5vw, 78px);
         }
 
         .admin-login-card {
-          width: min(100%, 560px);
-          border-radius: 28px;
+          width: min(100%, 580px);
+          border-radius: 30px;
           background: #fff;
-          box-shadow: 0 32px 100px rgba(15,23,42,.16);
-          padding: clamp(28px, 5vw, 58px);
+          box-shadow: 0 34px 110px rgba(15,23,42,.16);
+          padding: clamp(30px, 5vw, 60px);
         }
 
         .admin-login-heading h2 {
           margin: 0;
-          font-size: clamp(32px, 4vw, 52px);
+          font-size: clamp(34px, 4vw, 54px);
           line-height: 1.08;
           letter-spacing: 0;
         }
@@ -298,25 +308,29 @@ export default function LoginPage() {
           font-size: 17px;
         }
 
-        .admin-login-field > div {
+        .admin-login-input {
           display: grid;
-          grid-template-columns: 42px minmax(0, 1fr) auto;
+          grid-template-columns: 56px minmax(0, 1fr) auto;
           align-items: center;
           min-height: 72px;
           border: 1px solid #d7dce4;
-          border-radius: 14px;
+          border-radius: 15px;
           background: #fff;
           overflow: hidden;
+          transition: border-color .18s ease, box-shadow .18s ease;
         }
 
-        .admin-login-field i {
+        .admin-login-input:focus-within {
+          border-color: #ff6b00;
+          box-shadow: 0 0 0 4px rgba(255,107,0,.12);
+        }
+
+        .admin-login-input svg {
+          justify-self: center;
           color: #6b7280;
-          font-style: normal;
-          text-align: center;
-          font-size: 24px;
         }
 
-        .admin-login-field input {
+        .admin-login-input input {
           width: 100%;
           min-width: 0;
           border: 0;
@@ -325,18 +339,22 @@ export default function LoginPage() {
           color: #111827;
           font: inherit;
           font-weight: 500;
-          padding: 0 12px;
+          padding: 0 12px 0 0;
         }
 
-        .admin-login-field button {
+        .admin-login-icon-btn {
+          width: 54px;
+          height: 54px;
           border: 0;
           background: transparent;
           color: #6b7280;
-          font: inherit;
-          font-size: 14px;
-          font-weight: 800;
-          padding: 0 16px;
+          display: grid;
+          place-items: center;
           cursor: pointer;
+        }
+
+        .admin-login-icon-btn svg {
+          color: currentColor;
         }
 
         .admin-login-options {
@@ -358,11 +376,11 @@ export default function LoginPage() {
         .admin-login-options input {
           width: 22px;
           height: 22px;
-          accent-color: #FF6B00;
+          accent-color: #ff6b00;
         }
 
         .admin-login-options > span {
-          color: #FF5A00;
+          color: #ff5a00;
           font-weight: 900;
         }
 
@@ -379,8 +397,8 @@ export default function LoginPage() {
           width: 100%;
           min-height: 72px;
           border: 0;
-          border-radius: 14px;
-          background: linear-gradient(135deg, #FF4D00, #FF6B00);
+          border-radius: 15px;
+          background: linear-gradient(135deg, #ff4d00, #ff6b00);
           color: #fff;
           font: inherit;
           font-size: 22px;
@@ -389,18 +407,13 @@ export default function LoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 20px;
+          gap: 18px;
           box-shadow: 0 22px 48px rgba(255,107,0,.26);
         }
 
         .admin-login-submit:disabled {
           opacity: .62;
           cursor: not-allowed;
-        }
-
-        .admin-login-submit span {
-          font-size: 34px;
-          line-height: 1;
         }
 
         .admin-login-note {
@@ -414,9 +427,9 @@ export default function LoginPage() {
           font-size: 17px;
         }
 
-        .admin-login-note span {
-          color: #FF5A00;
-          font-size: 28px;
+        .admin-login-note svg {
+          color: #ff5a00;
+          flex: 0 0 auto;
         }
 
         .admin-login-note p {
@@ -435,40 +448,55 @@ export default function LoginPage() {
           }
 
           .admin-login-hero {
-            min-height: 42dvh;
-            padding: max(44px, env(safe-area-inset-top)) 28px 92px;
+            min-height: 45dvh;
+            align-items: flex-start;
+            padding: max(46px, env(safe-area-inset-top)) 28px 104px;
+          }
+
+          .admin-login-hero:after {
+            right: -122px;
+            top: 8%;
+            width: 320px;
+            height: 480px;
+            border-width: 6px;
           }
 
           .admin-login-logo-card {
-            width: 92px;
-            height: 92px;
-            border-radius: 18px;
-            margin-bottom: 28px;
+            width: 98px;
+            height: 98px;
+            border-radius: 20px;
+            margin-bottom: 30px;
           }
 
           .admin-login-logo-card img {
-            width: 74px;
-            height: 58px;
+            width: 80px;
+            height: 60px;
+          }
+
+          .admin-login-brand {
+            font-size: 18px;
           }
 
           .admin-login-hero h1 {
             font-size: clamp(44px, 11vw, 62px);
+            max-width: 7.5em;
           }
 
-          .admin-login-hero span {
+          .admin-login-subtitle {
             font-size: 22px;
+            max-width: 12em;
           }
 
           .admin-login-panel {
-            margin-top: -70px;
+            margin-top: -76px;
             padding: 0 18px max(30px, env(safe-area-inset-bottom));
             position: relative;
             z-index: 2;
           }
 
           .admin-login-card {
-            border-radius: 28px;
-            padding: 32px 26px 28px;
+            border-radius: 30px;
+            padding: 34px 26px 30px;
           }
 
           .admin-login-heading h2 {
@@ -479,8 +507,14 @@ export default function LoginPage() {
             font-size: 17px;
           }
 
-          .admin-login-field > div {
+          .admin-login-input {
             min-height: 64px;
+            grid-template-columns: 50px minmax(0, 1fr) auto;
+          }
+
+          .admin-login-icon-btn {
+            width: 48px;
+            height: 48px;
           }
 
           .admin-login-options {
@@ -491,6 +525,27 @@ export default function LoginPage() {
           .admin-login-submit {
             min-height: 64px;
             font-size: 21px;
+          }
+
+          .admin-login-note {
+            font-size: 15px;
+          }
+        }
+
+        @media (max-width: 380px) {
+          .admin-login-hero {
+            padding-left: 22px;
+            padding-right: 22px;
+          }
+
+          .admin-login-panel {
+            padding-left: 12px;
+            padding-right: 12px;
+          }
+
+          .admin-login-card {
+            padding-left: 20px;
+            padding-right: 20px;
           }
         }
       `}</style>

@@ -2765,6 +2765,323 @@ export default function AdminPage() {
           .marketing-main svg {
             max-width: 100% !important;
           }
+          .top-bar {
+            min-height: calc(58px + env(safe-area-inset-top, 0px)) !important;
+            padding-top: env(safe-area-inset-top, 0px) !important;
+          }
+          .admin-mobile-top {
+            gap: 8px !important;
+          }
+          .admin-module-trigger {
+            min-width: 96px !important;
+            justify-content: center !important;
+          }
+          .admin-module-trigger b {
+            max-width: 64px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+          }
+          .admin-home-systems > div,
+          .admin-home-tasks > div {
+            gap: 12px !important;
+          }
+          .admin-home-systems button,
+          .admin-home-tasks button {
+            border-radius: 18px !important;
+            box-shadow: 0 12px 30px rgba(15,23,42,.08) !important;
+          }
+          .erp-page-header > div:first-child,
+          .erp-dashboard-header > div:first-child {
+            min-width: 0 !important;
+          }
+          .erp-page-header h2,
+          .erp-dashboard-header h2 {
+            font-size: 20px !important;
+            line-height: 1.2 !important;
+            overflow-wrap: anywhere !important;
+          }
+          .erp-page-header p,
+          .erp-dashboard-header p {
+            font-size: 12px !important;
+            line-height: 1.55 !important;
+          }
+          .erp-page-actions input,
+          .erp-page-actions select {
+            min-height: 48px !important;
+            border-radius: 14px !important;
+            background: rgba(255,255,255,.055) !important;
+          }
+          .erp-page-actions button {
+            min-height: 48px !important;
+            border-radius: 14px !important;
+          }
+          .erp-mobile-card {
+            position: relative !important;
+            overflow: hidden !important;
+          }
+          .erp-mobile-card:before {
+            content: "" !important;
+            position: absolute !important;
+            inset: 0 auto 0 0 !important;
+            width: 3px !important;
+            background: linear-gradient(180deg,#ff6b00,rgba(255,107,0,0)) !important;
+            opacity: .75 !important;
+          }
+          .erp-mobile-card-head {
+            padding-left: 4px !important;
+          }
+          .erp-mobile-actions,
+          .doc-mobile-actions {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          }
+          .doc-mobile-actions > div {
+            grid-column: auto !important;
+          }
+          .erp-mobile-actions button,
+          .doc-mobile-actions > button,
+          .doc-mobile-actions > div > button {
+            min-height: 48px !important;
+            border-radius: 14px !important;
+            font-size: 12px !important;
+            padding-inline: 8px !important;
+          }
+          [data-dropdown-menu] {
+            left: 12px !important;
+            right: 12px !important;
+            width: auto !important;
+            min-width: 0 !important;
+            border-radius: 18px !important;
+            padding: 8px !important;
+            box-shadow: 0 -18px 50px rgba(0,0,0,.52) !important;
+          }
+          [data-dropdown-menu] button {
+            min-height: 46px !important;
+            border-radius: 12px !important;
+          }
+          .cms-blog-row {
+            grid-template-columns: 108px minmax(0,1fr) !important;
+            background: linear-gradient(180deg, rgba(20,26,36,.98), rgba(12,18,28,.98)) !important;
+          }
+          .cms-blog-cover {
+            width: 108px !important;
+            height: 82px !important;
+            aspect-ratio: 4 / 3 !important;
+          }
+          .cms-blog-actions {
+            grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+          }
+          .modal-panel {
+            max-height: min(90dvh, 760px) !important;
+          }
+          .modal-panel > div:first-child {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 2 !important;
+            background: rgba(20,26,36,.98) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+          }
+          .modal-panel button {
+            min-height: 46px !important;
+          }
+          .admin-bottom-nav {
+            min-height: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
+          }
+          .admin-bottom-nav .nav-btn {
+            min-width: 0 !important;
+          }
+          .admin-bottom-nav .nav-btn span:first-child {
+            width: 28px !important;
+            height: 24px !important;
+            display: grid !important;
+            place-items: center !important;
+            margin-bottom: 2px !important;
+          }
+          .mobile-drawer {
+            left: 12px !important;
+            right: 12px !important;
+            bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+          }
+          .mobile-drawer > button {
+            min-height: 52px !important;
+          }
+
+          /* Final admin mobile polish: compact command center rhythm */
+          .admin-home-content,
+          .main-content-area {
+            width: 100% !important;
+            overflow-x: hidden !important;
+          }
+          .admin-home-summary {
+            width: 100% !important;
+            margin-inline: auto !important;
+            border-radius: 22px !important;
+          }
+          .admin-home-summary h1,
+          .admin-home-systems h2,
+          .admin-home-tasks h2 {
+            letter-spacing: 0 !important;
+          }
+          .admin-home-systems button {
+            min-height: 168px !important;
+            align-items: stretch !important;
+          }
+          .admin-system-card {
+            position: relative !important;
+            overflow: hidden !important;
+          }
+          .admin-system-card:before {
+            content: "" !important;
+            position: absolute !important;
+            inset: 0 auto 0 0 !important;
+            width: 4px !important;
+            background: var(--system-color, #ff6b00) !important;
+            opacity: .72 !important;
+          }
+          .admin-system-icon {
+            align-self: start !important;
+          }
+          .admin-system-body {
+            min-width: 0 !important;
+          }
+          .admin-system-stats {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            width: 100% !important;
+          }
+          .admin-system-stats div {
+            min-width: 0 !important;
+            padding-left: 10px !important;
+          }
+          .admin-system-card em {
+            min-height: 46px !important;
+            border-radius: 14px !important;
+          }
+          .admin-home-tasks button {
+            grid-template-columns: auto minmax(0, 1fr) auto !important;
+            min-height: 58px !important;
+          }
+          .admin-home-tasks button strong {
+            line-height: 1.35 !important;
+            overflow-wrap: anywhere !important;
+          }
+          .erp-dashboard-header,
+          .erp-page-header,
+          .cms-page-head {
+            position: sticky !important;
+            top: calc(58px + env(safe-area-inset-top, 0px)) !important;
+            z-index: 5 !important;
+            padding: 12px !important;
+            margin: -6px -6px 14px !important;
+            background: rgba(11,15,25,.94) !important;
+            border: 1px solid rgba(255,255,255,.07) !important;
+            border-radius: 0 0 18px 18px !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+          }
+          .erp-page-actions,
+          .cms-page-tools {
+            background: rgba(255,255,255,.03) !important;
+            border: 1px solid rgba(255,255,255,.06) !important;
+            border-radius: 16px !important;
+            padding: 10px !important;
+          }
+          .erp-data-card,
+          .erp-mobile-card,
+          .doc-mobile-card,
+          .erp-latest-card,
+          .cms-blog-row,
+          .card-pad,
+          .main-content-area section > div[style*="border: 1px solid rgba(255,255,255,0.07)"] {
+            box-shadow: 0 14px 38px rgba(0,0,0,.22) !important;
+          }
+          .erp-data-card {
+            display: grid !important;
+            gap: 10px !important;
+          }
+          .erp-card-actions {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+          }
+          .erp-card-actions button {
+            width: 100% !important;
+            min-height: 46px !important;
+            border-radius: 14px !important;
+          }
+          .erp-mobile-card-title,
+          .doc-mobile-card-head strong,
+          .erp-latest-card-top strong {
+            letter-spacing: 0 !important;
+          }
+          .erp-mobile-actions button,
+          .doc-mobile-actions button {
+            white-space: normal !important;
+            line-height: 1.25 !important;
+          }
+          .doc-mobile-card {
+            display: grid !important;
+            gap: 14px !important;
+          }
+          .doc-mobile-card-head {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto !important;
+          }
+          .doc-mobile-footer {
+            border-top: 1px solid rgba(255,255,255,.08) !important;
+            padding-top: 12px !important;
+          }
+          .modal-panel {
+            background: #121923 !important;
+          }
+          .modal-panel label {
+            color: #b6c2d4 !important;
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+          }
+          .modal-panel input,
+          .modal-panel select,
+          .modal-panel textarea {
+            border-radius: 14px !important;
+            border-color: rgba(148,163,184,.28) !important;
+            background: #0b1220 !important;
+          }
+          .modal-panel input:focus,
+          .modal-panel select:focus,
+          .modal-panel textarea:focus {
+            outline: 2px solid rgba(255,107,0,.36) !important;
+            outline-offset: 1px !important;
+            border-color: rgba(255,107,0,.7) !important;
+          }
+          .cms-blog-list {
+            gap: 10px !important;
+          }
+          .cms-blog-row {
+            border-radius: 18px !important;
+          }
+          .cms-blog-copy {
+            min-width: 0 !important;
+          }
+          .cms-blog-copy span,
+          .cms-blog-copy div {
+            overflow-wrap: anywhere !important;
+          }
+          .cms-blog-actions button {
+            border-radius: 14px !important;
+            font-weight: 900 !important;
+          }
+          .service-portfolio-editor-card {
+            border-radius: 18px !important;
+            background: rgba(255,255,255,.035) !important;
+          }
+          .service-portfolio-editor-card img {
+            border-radius: 14px !important;
+          }
+          .admin-bottom-nav {
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+          }
         }
 
         /* ── iPhone 15 Pro specific (393px wide) ── */
@@ -2803,6 +3120,27 @@ export default function AdminPage() {
           .marketing-sidebar-nav a {
             min-height: 42px !important;
           }
+          .erp-mobile-actions,
+          .doc-mobile-actions {
+            grid-template-columns: 1fr 1fr !important;
+          }
+          .doc-mobile-actions > div {
+            grid-column: 1 / -1 !important;
+          }
+          .cms-blog-row {
+            grid-template-columns: 1fr !important;
+          }
+          .cms-blog-cover {
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 16 / 9 !important;
+          }
+          .cms-blog-actions {
+            grid-template-columns: 1fr 1fr !important;
+          }
+          .mobile-module-switch {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
         }
       `}</style>
     </div>
@@ -2825,8 +3163,9 @@ function AdminHome({
 }: any) {
   const activeDocs = (documents || []).filter((doc: any) => !doc?.deleted && doc?.status !== "cancelled");
   const pendingQuotes = activeDocs.filter((doc: any) => doc.type === "quote" && ["draft", "sent"].includes(doc.status)).length;
-  const pendingPayments = activeDocs.filter((doc: any) => calcDocTotal(doc, documents).balanceDue > 0).length;
-  const pendingBalance = activeDocs.reduce((sum: number, doc: any) => sum + Math.max(0, Number(calcDocTotal(doc, documents).balanceDue || 0)), 0);
+  const outstandingDocs = activeDocs.filter((doc: any) => ["bill", "invoice"].includes(doc.type) && calcDocTotal(doc, documents).balanceDue > 0);
+  const pendingPayments = outstandingDocs.length;
+  const pendingBalance = outstandingDocs.reduce((sum: number, doc: any) => sum + Math.max(0, Number(calcDocTotal(doc, documents).balanceDue || 0)), 0);
   const receiptCount = Number(docCounts?.receipt || 0);
   const today = new Intl.DateTimeFormat("th-TH", {
     weekday: "long",
@@ -2889,7 +3228,7 @@ function AdminHome({
 
   const taskRows = [
     { label: "ใบเสนอราคาที่ต้องติดตาม", value: pendingQuotes, color: "#F97316", onClick: () => goErp("quote") },
-    { label: "เอกสารที่มียอดค้างชำระ", value: pendingPayments, color: "#EF4444", onClick: () => goErp("receipt") },
+    { label: "ใบแจ้งหนี้ / ใบวางบิลค้างชำระ", value: pendingPayments, color: "#EF4444", onClick: () => goErp("invoice") },
     { label: "สินค้าและบริการในระบบ", value: products.length, color: "#2563EB", onClick: () => goErp("products") },
   ];
 
