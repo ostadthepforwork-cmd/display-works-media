@@ -819,9 +819,9 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
 
 export default function AdminPage() {
   const initialSection = () => {
-    if (typeof window === "undefined") return "erp";
+    if (typeof window === "undefined") return "home";
     const requestedSection = new URLSearchParams(window.location.search).get("section");
-    return ["erp", "cms", "marketing"].includes(requestedSection || "") ? requestedSection! : "erp";
+    return ["home", "erp", "cms", "marketing"].includes(requestedSection || "") ? requestedSection! : "home";
   };
   const initialCmsTab = () => {
     if (typeof window === "undefined") return "blog";
@@ -1063,6 +1063,13 @@ export default function AdminPage() {
         />
         <span className="hide-mobile" style={{ fontWeight: 600, fontSize: 13, color: "#fff", marginRight: 16 }}>Display Works</span>
         <div className="hide-mobile" style={{ display: "flex", gap: 4 }}>
+          <button onClick={() => setMainTab("home")} style={{
+            padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
+            background: mainTab === "home" ? "#FF6B00" : "transparent",
+            color: mainTab === "home" ? "#fff" : "#A8B0C0", transition: "all 0.2s",
+          }}>
+            Home
+          </button>
           {["erp","cms"].map(t => (
             <button key={t} onClick={() => setMainTab(t)} style={{
               padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
@@ -1083,7 +1090,7 @@ export default function AdminPage() {
         {/* Mobile: compact title + drawer trigger */}
         <div className="show-mobile admin-mobile-top" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
           <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
-            {mainTab === "erp"
+            {mainTab === "home" ? "Admin" : mainTab === "erp"
               ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
           </span>
@@ -1102,6 +1109,25 @@ export default function AdminPage() {
       </div>
 
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+        {mainTab === "home" && (
+          <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+            <div className="main-content-area admin-home-content" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
+              <AdminHome
+                customers={customers}
+                documents={documents}
+                products={catalogProducts}
+                totalRevenue={totalRevenue}
+                totalCost={totalCost}
+                totalProfit={totalProfit}
+                docCounts={docCounts}
+                setMainTab={setMainTab}
+                setErpPage={setErpPage}
+                setTab={setTab}
+                setMarketingMobileSection={setMarketingMobileSection}
+              />
+            </div>
+          </div>
+        )}
         {/* ─── ERP ─── */}
         {mainTab === "erp" && (
           <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
@@ -1255,6 +1281,32 @@ export default function AdminPage() {
         display: "flex", paddingBottom: "env(safe-area-inset-bottom, 0px)",
         boxShadow: "0 -8px 32px rgba(0,0,0,0.4)",
       }}>
+        {mainTab === "home" && ([
+          { id: "home", icon: "⌂", label: "หน้าแรก" },
+          { id: "erp", icon: "ERP", label: "งานขาย" },
+          { id: "cms", icon: "CMS", label: "เว็บไซต์" },
+          { id: "marketing", icon: "MKT", label: "การตลาด" },
+          { id: "__more__", icon: "☰", label: "เพิ่มเติม" },
+        ] as any[]).map(item => (
+          <button key={item.id} onClick={() => {
+            if (item.id === "__more__") setShowMobileDrawer(v => !v);
+            else {
+              setMainTab(item.id);
+              if (item.id === "erp") setErpPage("dashboard");
+              if (item.id === "cms") setTab("blog");
+              if (item.id === "marketing") setMarketingMobileSection("overview");
+              setShowMobileDrawer(false);
+            }
+          }} style={{
+            flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
+            padding: "10px 2px 8px", border: "none", cursor: "pointer", fontFamily: "inherit",
+            background: (item.id === "home" && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "rgba(255,107,0,0.12)" : "transparent",
+            color: (item.id === "home" && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "#FF6B00" : "#6B7280",
+          }} className="nav-btn">
+            <span style={{ fontSize: item.id === "home" || item.id === "__more__" ? 22 : 11, lineHeight: 1, fontWeight: 900 }}>{item.icon}</span>
+            <span style={{ fontSize: 10, marginTop: 4, fontWeight: 600 }}>{item.label}</span>
+          </button>
+        ))}
         {mainTab === "erp" && ([
           { id: "dashboard", icon: "⊞", label: "ภาพรวม" },
           { id: "quote",     icon: "📋", label: "ใบเสนอ" },
@@ -1332,7 +1384,7 @@ export default function AdminPage() {
             overscrollBehavior: "contain" as const,
           }}>
             <div className="mobile-module-switch" aria-label="Admin module switcher">
-              {(["erp", "cms", "marketing"] as const).map(t => (
+              {(["home", "erp", "cms", "marketing"] as const).map(t => (
                 <button
                   key={t}
                   type="button"
@@ -1343,7 +1395,7 @@ export default function AdminPage() {
                     setShowMobileDrawer(false);
                   }}
                 >
-                  {t === "marketing" ? "Marketing" : t.toUpperCase()}
+                  {t === "home" ? "Home" : t === "marketing" ? "Marketing" : t.toUpperCase()}
                 </button>
               ))}
             </div>
@@ -1538,6 +1590,217 @@ export default function AdminPage() {
           display: grid !important;
           grid-template-columns: repeat(5, minmax(0, 1fr));
         }
+        .admin-home {
+          display: grid;
+          gap: 22px;
+          max-width: 1040px;
+          margin: 0 auto;
+        }
+        .admin-home-hero {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+        }
+        .admin-home-brand {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .admin-home-brand img {
+          width: 48px;
+          height: 38px;
+          object-fit: contain;
+        }
+        .admin-home-brand strong {
+          display: block;
+          font-size: 28px;
+          line-height: 1.1;
+        }
+        .admin-home-brand span,
+        .admin-home-date {
+          color: #94A3B8;
+          font-size: 13px;
+        }
+        .admin-home-summary {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
+          gap: 24px;
+          align-items: stretch;
+          overflow: hidden;
+          border-radius: 26px;
+          padding: clamp(24px, 5vw, 40px);
+          border: 1px solid rgba(255,107,0,.2);
+          background:
+            linear-gradient(135deg, rgba(11,15,25,.96), rgba(24,24,22,.94) 55%, rgba(255,107,0,.18)),
+            #111923;
+          box-shadow: 0 26px 90px rgba(0,0,0,.26);
+          position: relative;
+        }
+        .admin-home-summary:after {
+          content: "";
+          position: absolute;
+          inset: 0 0 0 auto;
+          width: 34%;
+          background: linear-gradient(135deg, transparent, rgba(255,107,0,.22));
+          clip-path: polygon(42% 0, 100% 0, 100% 100%, 0 100%);
+          opacity: .8;
+          pointer-events: none;
+        }
+        .admin-home-summary > * {
+          position: relative;
+          z-index: 1;
+        }
+        .admin-home-summary span {
+          color: #A8B0C0;
+          font-weight: 700;
+        }
+        .admin-home-summary h1 {
+          margin: 10px 0 12px;
+          font-size: clamp(30px, 5vw, 52px);
+          line-height: 1.05;
+        }
+        .admin-home-summary p {
+          max-width: 540px;
+          color: #CBD5E1;
+          margin: 0;
+          line-height: 1.75;
+        }
+        .admin-home-money {
+          display: grid;
+          align-content: center;
+          gap: 8px;
+          border-left: 1px solid rgba(255,255,255,.14);
+          padding-left: 28px;
+        }
+        .admin-home-money strong {
+          font-size: clamp(30px, 5vw, 48px);
+          line-height: 1;
+        }
+        .admin-home-money small {
+          color: #A8B0C0;
+          line-height: 1.6;
+        }
+        .admin-home-systems,
+        .admin-home-tasks {
+          display: grid;
+          gap: 14px;
+        }
+        .admin-home-systems h2,
+        .admin-home-tasks h2 {
+          margin: 0;
+          font-size: 24px;
+        }
+        .admin-system-card {
+          width: 100%;
+          display: grid;
+          grid-template-columns: 72px minmax(0, 1fr) minmax(130px, auto);
+          gap: 18px;
+          align-items: center;
+          text-align: left;
+          border-radius: 20px;
+          border: 1px solid rgba(255,255,255,.08);
+          background: rgba(20,26,36,.86);
+          color: #fff;
+          padding: 20px;
+          font-family: inherit;
+          cursor: pointer;
+          box-shadow: 0 16px 48px rgba(0,0,0,.18);
+        }
+        .admin-system-card:hover {
+          border-color: color-mix(in srgb, var(--system-color), transparent 45%);
+          transform: translateY(-1px);
+        }
+        .admin-system-icon {
+          width: 60px;
+          height: 60px;
+          border-radius: 16px;
+          display: grid;
+          place-items: center;
+          font-size: 18px;
+          font-weight: 900;
+          color: var(--system-color);
+          background: color-mix(in srgb, var(--system-color), transparent 86%);
+        }
+        .admin-system-body {
+          display: grid;
+          gap: 8px;
+          min-width: 0;
+        }
+        .admin-system-body strong {
+          font-size: 24px;
+          line-height: 1.2;
+        }
+        .admin-system-body span {
+          color: #A8B0C0;
+          line-height: 1.5;
+        }
+        .admin-system-stats {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+          margin-top: 8px;
+        }
+        .admin-system-stats div {
+          border-left: 1px solid rgba(255,255,255,.12);
+          padding-left: 14px;
+        }
+        .admin-system-stats small {
+          display: block;
+          color: #94A3B8;
+          font-size: 12px;
+        }
+        .admin-system-stats b {
+          display: block;
+          margin-top: 2px;
+          font-size: 20px;
+        }
+        .admin-system-card em {
+          justify-self: end;
+          min-width: 128px;
+          text-align: center;
+          border-radius: 14px;
+          padding: 13px 18px;
+          color: #fff;
+          font-style: normal;
+          font-weight: 900;
+          background: var(--system-color);
+        }
+        .admin-home-tasks > div {
+          display: grid;
+          gap: 10px;
+          border-radius: 18px;
+          border: 1px solid rgba(255,255,255,.08);
+          background: rgba(20,26,36,.82);
+          padding: 12px;
+        }
+        .admin-home-tasks button {
+          display: grid;
+          grid-template-columns: 12px minmax(0, 1fr) auto;
+          gap: 14px;
+          align-items: center;
+          min-height: 56px;
+          border: none;
+          background: transparent;
+          color: #fff;
+          font-family: inherit;
+          cursor: pointer;
+          border-radius: 12px;
+          padding: 0 12px;
+          text-align: left;
+        }
+        .admin-home-tasks button:hover {
+          background: rgba(255,255,255,.04);
+        }
+        .admin-home-tasks button span {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+        }
+        .admin-home-tasks button b {
+          color: #fff;
+          font-size: 20px;
+        }
 
         @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
         @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
@@ -1685,7 +1948,7 @@ export default function AdminPage() {
           }
           .mobile-module-switch {
             display: grid !important;
-            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
             gap: 8px !important;
             padding: 0 16px 12px !important;
           }
@@ -1751,12 +2014,152 @@ export default function AdminPage() {
             font-size: 18px !important;
           }
           .main-content-area {
-            width: 100vw !important;
+            width: 100% !important;
             max-width: 100vw !important;
             min-width: 0 !important;
+            box-sizing: border-box !important;
             padding: 14px 12px calc(92px + env(safe-area-inset-bottom, 16px)) !important;
             overflow-x: hidden !important;
             scroll-padding-bottom: calc(92px + env(safe-area-inset-bottom, 16px)) !important;
+          }
+          .admin-home-content {
+            background: #f4f6f9 !important;
+            color: #121417 !important;
+          }
+          .admin-home {
+            gap: 18px !important;
+            color: #121417 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+          }
+          .admin-home-hero {
+            padding: 8px 0 2px !important;
+            align-items: flex-start !important;
+          }
+          .admin-home-brand strong {
+            color: #121417 !important;
+            font-size: 24px !important;
+          }
+          .admin-home-brand span,
+          .admin-home-date {
+            color: #68707c !important;
+          }
+          .admin-home-date {
+            display: none !important;
+          }
+          .admin-home-summary {
+            grid-template-columns: 1fr !important;
+            border-radius: 24px !important;
+            padding: 20px !important;
+            min-height: 190px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+            box-shadow: 0 18px 46px rgba(15,23,42,.14) !important;
+          }
+          .admin-home-summary:after {
+            width: 52% !important;
+          }
+          .admin-home-summary h1 {
+            color: #fff !important;
+            font-size: clamp(30px, 9vw, 36px) !important;
+            line-height: 1.1 !important;
+            overflow-wrap: anywhere !important;
+          }
+          .admin-home-summary p,
+          .admin-home-summary span,
+          .admin-home-money small {
+            color: rgba(255,255,255,.72) !important;
+            font-size: 13px !important;
+            line-height: 1.6 !important;
+            overflow-wrap: anywhere !important;
+          }
+          .admin-home-summary p {
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+            max-width: 100% !important;
+          }
+          .admin-home-money {
+            border-left: 0 !important;
+            border-top: 1px solid rgba(255,255,255,.12) !important;
+            padding-left: 0 !important;
+            padding-top: 18px !important;
+          }
+          .admin-home-money strong {
+            color: #fff !important;
+            font-size: 34px !important;
+          }
+          .admin-home-systems h2,
+          .admin-home-tasks h2 {
+            color: #121417 !important;
+            font-size: 26px !important;
+          }
+          .admin-system-card {
+            grid-template-columns: 60px minmax(0, 1fr) !important;
+            padding: 16px !important;
+            border-radius: 18px !important;
+            background: #fff !important;
+            color: #121417 !important;
+            border-color: rgba(15,23,42,.08) !important;
+            box-shadow: 0 12px 30px rgba(15,23,42,.08) !important;
+          }
+          .admin-system-card,
+          .admin-system-body,
+          .admin-system-stats,
+          .admin-system-stats div {
+            min-width: 0 !important;
+          }
+          .admin-system-icon {
+            width: 52px !important;
+            height: 52px !important;
+            border-radius: 14px !important;
+          }
+          .admin-system-body strong {
+            color: #121417 !important;
+            font-size: 21px !important;
+            overflow-wrap: anywhere !important;
+          }
+          .admin-system-body span,
+          .admin-system-stats small {
+            color: #6b7280 !important;
+            overflow-wrap: anywhere !important;
+          }
+          .admin-system-stats {
+            gap: 10px !important;
+          }
+          .admin-system-stats div {
+            border-left-color: rgba(15,23,42,.12) !important;
+          }
+          .admin-system-stats b {
+            color: #121417 !important;
+            font-size: 18px !important;
+            overflow-wrap: anywhere !important;
+          }
+          .admin-system-card em {
+            grid-column: 1 / -1 !important;
+            width: 100% !important;
+            justify-self: stretch !important;
+          }
+          .admin-home-tasks > div {
+            background: #fff !important;
+            border-color: rgba(15,23,42,.08) !important;
+            box-shadow: 0 12px 30px rgba(15,23,42,.06) !important;
+          }
+          .admin-home-tasks button {
+            color: #121417 !important;
+            border-bottom: 1px solid rgba(15,23,42,.08) !important;
+          }
+          .admin-home-tasks button:last-child {
+            border-bottom: 0 !important;
+          }
+          .admin-home-tasks button b,
+          .admin-home-tasks button strong {
+            color: #121417 !important;
           }
           .main-content-area > div[style*="grid"],
           .main-content-area form,
@@ -2407,6 +2810,153 @@ export default function AdminPage() {
 }
 
 // ─── MARKETING COMPONENTS ─────────────────────────────────────────────────────
+function AdminHome({
+  customers = [],
+  documents = [],
+  products = [],
+  totalRevenue = 0,
+  totalCost = 0,
+  totalProfit = 0,
+  docCounts = {},
+  setMainTab,
+  setErpPage,
+  setTab,
+  setMarketingMobileSection,
+}: any) {
+  const activeDocs = (documents || []).filter((doc: any) => !doc?.deleted && doc?.status !== "cancelled");
+  const pendingQuotes = activeDocs.filter((doc: any) => doc.type === "quote" && ["draft", "sent"].includes(doc.status)).length;
+  const pendingPayments = activeDocs.filter((doc: any) => calcDocTotal(doc, documents).balanceDue > 0).length;
+  const pendingBalance = activeDocs.reduce((sum: number, doc: any) => sum + Math.max(0, Number(calcDocTotal(doc, documents).balanceDue || 0)), 0);
+  const receiptCount = Number(docCounts?.receipt || 0);
+  const today = new Intl.DateTimeFormat("th-TH", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
+  const goErp = (page = "dashboard") => {
+    setMainTab("erp");
+    setErpPage(page);
+  };
+  const goCms = (cmsTab = "blog") => {
+    setMainTab("cms");
+    setTab(cmsTab);
+  };
+  const goMarketing = () => {
+    setMainTab("marketing");
+    setMarketingMobileSection("overview");
+  };
+
+  const systemCards = [
+    {
+      key: "erp",
+      label: "ระบบ ERP",
+      sub: "งานขาย ลูกค้า เอกสาร และการเงิน",
+      color: "#FF6B00",
+      stats: [
+        { label: "รออนุมัติ", value: `${pendingQuotes} เอกสาร` },
+        { label: "ค้างชำระ", value: fmtMoney(pendingBalance) },
+      ],
+      action: "เข้าสู่ ERP",
+      onClick: () => goErp("dashboard"),
+    },
+    {
+      key: "cms",
+      label: "ระบบ CMS",
+      sub: "บทความ บริการ ผลงาน และเว็บไซต์",
+      color: "#2563EB",
+      stats: [
+        { label: "บทความ", value: "จัดการเว็บ" },
+        { label: "ผลงาน", value: "แก้ไขได้" },
+      ],
+      action: "เข้าสู่ CMS",
+      onClick: () => goCms("blog"),
+    },
+    {
+      key: "mkt",
+      label: "Marketing",
+      sub: "Leads โฆษณา ROAS และ Customer Insight",
+      color: "#16A34A",
+      stats: [
+        { label: "ใบเสร็จ", value: `${receiptCount} ฉบับ` },
+        { label: "กำไร", value: fmtMoney(totalProfit) },
+      ],
+      action: "เข้าสู่ MKT",
+      onClick: goMarketing,
+    },
+  ];
+
+  const taskRows = [
+    { label: "ใบเสนอราคาที่ต้องติดตาม", value: pendingQuotes, color: "#F97316", onClick: () => goErp("quote") },
+    { label: "เอกสารที่มียอดค้างชำระ", value: pendingPayments, color: "#EF4444", onClick: () => goErp("receipt") },
+    { label: "สินค้าและบริการในระบบ", value: products.length, color: "#2563EB", onClick: () => goErp("products") },
+  ];
+
+  return (
+    <div className="admin-home">
+      <div className="admin-home-hero">
+        <div className="admin-home-brand">
+          <Image src="/images/logo.png" alt="Display Works Media" width={52} height={42} />
+          <div>
+            <strong>Admin</strong>
+            <span>Display Works Media</span>
+          </div>
+        </div>
+        <div className="admin-home-date">{today}</div>
+      </div>
+
+      <section className="admin-home-summary">
+        <div>
+          <span>ภาพรวมวันนี้</span>
+          <h1>สวัสดี คุณผู้ดูแล</h1>
+          <p>เลือกจัดการ ERP, CMS หรือ Marketing จากการ์ดด้านล่าง</p>
+        </div>
+        <div className="admin-home-money">
+          <span>ยอดจากใบเสร็จ</span>
+          <strong>{fmtMoney(totalRevenue)}</strong>
+          <small>กำไรขั้นต้น {fmtMoney(totalProfit)} / ต้นทุน {fmtMoney(totalCost)}</small>
+        </div>
+      </section>
+
+      <section className="admin-home-systems">
+        <h2>เลือกระบบที่ต้องการจัดการ</h2>
+        {systemCards.map((card) => (
+          <button key={card.key} type="button" className="admin-system-card" onClick={card.onClick} style={{ "--system-color": card.color } as any}>
+            <div className="admin-system-icon">{card.key.toUpperCase()}</div>
+            <div className="admin-system-body">
+              <strong>{card.label}</strong>
+              <span>{card.sub}</span>
+              <div className="admin-system-stats">
+                {card.stats.map((stat) => (
+                  <div key={stat.label}>
+                    <small>{stat.label}</small>
+                    <b>{stat.value}</b>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <em>{card.action}</em>
+          </button>
+        ))}
+      </section>
+
+      <section className="admin-home-tasks">
+        <h2>สิ่งที่ต้องจัดการ</h2>
+        <div>
+          {taskRows.map((task) => (
+            <button key={task.label} type="button" onClick={task.onClick}>
+              <span style={{ background: task.color }} />
+              <strong>{task.label}</strong>
+              <b>{task.value}</b>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function MarketingPage({ documents, showToast }: any) {
   const defaultCampaigns = [
     { id: genId(), name: "Vinyl Banner Lead Gen", channel: "Facebook Ads", objective: "LINE Inquiry", budget: 1500, status: "planning", startDate: today(), endDate: addDays(today(), 14), landingPage: "/services/vinyl-banner", note: "โปรโมตงานป้ายไวนิลสำหรับร้านอาหารและหน้าร้าน" },
