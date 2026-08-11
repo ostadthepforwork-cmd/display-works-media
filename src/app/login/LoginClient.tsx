@@ -445,20 +445,32 @@ export default function LoginPage() {
           .admin-login-page {
             display: block;
             min-height: 100dvh;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
           }
 
           .admin-login-hero {
             min-height: 45dvh;
             align-items: flex-start;
-            padding: max(46px, env(safe-area-inset-top)) 28px 104px;
+            width: 100%;
+            max-width: 100vw;
+            box-sizing: border-box;
+            padding: max(46px, env(safe-area-inset-top)) 28px 94px;
+            overflow: hidden;
           }
 
           .admin-login-hero:after {
-            right: -122px;
-            top: 8%;
-            width: 320px;
-            height: 480px;
+            right: -156px;
+            top: 3%;
+            width: 280px;
+            height: 430px;
             border-width: 6px;
+            opacity: .72;
+          }
+
+          .admin-login-hero-inner {
+            max-width: 100%;
           }
 
           .admin-login-logo-card {
@@ -475,16 +487,19 @@ export default function LoginPage() {
 
           .admin-login-brand {
             font-size: 18px;
+            max-width: 100%;
+            overflow-wrap: anywhere;
           }
 
           .admin-login-hero h1 {
-            font-size: clamp(44px, 11vw, 62px);
-            max-width: 7.5em;
+            font-size: clamp(42px, 10.5vw, 56px);
+            max-width: 7.2em;
+            overflow-wrap: anywhere;
           }
 
           .admin-login-subtitle {
-            font-size: 22px;
-            max-width: 12em;
+            font-size: 20px;
+            max-width: 13em;
           }
 
           .admin-login-panel {
@@ -492,9 +507,15 @@ export default function LoginPage() {
             padding: 0 18px max(30px, env(safe-area-inset-bottom));
             position: relative;
             z-index: 2;
+            width: 100%;
+            max-width: 100vw;
+            box-sizing: border-box;
+            overflow-x: hidden;
           }
 
           .admin-login-card {
+            width: 100%;
+            box-sizing: border-box;
             border-radius: 30px;
             padding: 34px 26px 30px;
           }
