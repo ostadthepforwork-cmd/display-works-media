@@ -165,7 +165,15 @@ export default function LoginPage() {
       </section>
 
       <style>{`
-        html, body { overflow-x: hidden; }
+        html, body {
+          width: 100%;
+          margin: 0;
+          overflow-x: hidden;
+        }
+
+        *, *:before, *:after {
+          box-sizing: border-box;
+        }
 
         .admin-login-page {
           min-height: 100dvh;
@@ -673,6 +681,143 @@ export default function LoginPage() {
 
           .admin-login-note {
             display: none;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .admin-login-page {
+            width: 100vw;
+            max-width: 100vw;
+            min-height: 100svh;
+            overflow-x: clip;
+            background: #f4f6f9;
+          }
+
+          .admin-login-hero {
+            min-height: 258px;
+            max-height: 310px;
+            padding: max(26px, env(safe-area-inset-top)) 16px 62px;
+          }
+
+          .admin-login-hero:before {
+            background-size: 48px 48px;
+          }
+
+          .admin-login-hero:after {
+            right: -188px;
+            top: -46px;
+            width: 238px;
+            height: 360px;
+            opacity: .36;
+          }
+
+          .admin-login-logo-card {
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+          }
+
+          .admin-login-logo-card img {
+            width: 52px;
+            height: 38px;
+          }
+
+          .admin-login-brand {
+            font-size: 11px;
+            letter-spacing: .16em;
+            margin-bottom: 10px;
+          }
+
+          .admin-login-hero h1 {
+            font-size: clamp(27px, 8.6vw, 34px);
+            line-height: 1.1;
+            max-width: 9em;
+            margin-bottom: 10px;
+          }
+
+          .admin-login-subtitle {
+            font-size: 14px;
+            line-height: 1.42;
+            max-width: 18em;
+          }
+
+          .admin-login-panel {
+            margin-top: -34px;
+            padding-left: 12px;
+            padding-right: 12px;
+          }
+
+          .admin-login-card {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 22px;
+            padding: 22px 16px 18px;
+            overflow: hidden;
+          }
+
+          .admin-login-card,
+          .admin-login-heading,
+          .admin-login-form,
+          .admin-login-field,
+          .admin-login-options {
+            min-width: 0;
+          }
+
+          .admin-login-heading h2 {
+            font-size: 26px;
+            line-height: 1.18;
+          }
+
+          .admin-login-heading p {
+            margin-top: 8px;
+            font-size: 13px;
+            line-height: 1.45;
+          }
+
+          .admin-login-form {
+            gap: 14px;
+            margin-top: 18px;
+          }
+
+          .admin-login-field {
+            font-size: 13px;
+          }
+
+          .admin-login-input {
+            min-height: 52px;
+            grid-template-columns: 42px minmax(0, 1fr) 42px;
+            border-radius: 15px;
+          }
+
+          .admin-login-input svg {
+            width: 22px;
+            height: 22px;
+          }
+
+          .admin-login-icon-btn {
+            width: 42px;
+            height: 42px;
+          }
+
+          .admin-login-options {
+            font-size: 13px;
+          }
+
+          .admin-login-options input {
+            width: 20px;
+            height: 20px;
+          }
+
+          .admin-login-submit {
+            min-height: 52px;
+            border-radius: 15px;
+            font-size: 17px;
+          }
+
+          .admin-login-panel > small {
+            margin-top: 14px;
+            font-size: 11px;
           }
         }
       `}</style>
