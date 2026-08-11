@@ -1134,7 +1134,7 @@ export default function AdminPage() {
             <div className="hide-mobile" style={{ display: "flex" }}>
               <ErpSidebar page={erpPage} setPage={setErpPage} docCounts={docCounts} />
             </div>
-            <div className="main-content-area" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
+            <div className="main-content-area erp-admin-content" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
               {erpLoading ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "#888", fontSize: 14, gap: 10 }}>
                   <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span> กำลังโหลดข้อมูล...
@@ -1538,7 +1538,11 @@ export default function AdminPage() {
         }
         input:focus, select:focus, textarea:focus { border-color: #FF6B00 !important; box-shadow: 0 0 0 3px rgba(255,107,0,0.15) !important; }
         input::placeholder, textarea::placeholder { color: #94A3B8 !important; opacity: 0.78; }
-        select option { background: #141A24; }
+        select option {
+          background: #fff !important;
+          color: #111827 !important;
+          -webkit-text-fill-color: #111827 !important;
+        }
         label { font-size: 13px; color: #A8B0C0; display: block; margin-bottom: 6px; font-weight: 500; }
         button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         table { min-width: 720px; }
@@ -3528,6 +3532,192 @@ export default function AdminPage() {
           .main-content-area table td b {
             color: #111827 !important;
           }
+          .erp-admin-content .erp-dashboard-header,
+          .erp-admin-content .doc-header-row,
+          .erp-admin-content .erp-page-header {
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 12px 30px rgba(15,23,42,.07) !important;
+          }
+          .erp-admin-content .erp-dashboard-header *,
+          .erp-admin-content .doc-header-row *,
+          .erp-admin-content .erp-page-header * {
+            -webkit-text-fill-color: currentColor !important;
+          }
+          .erp-admin-content .kpi-grid > div * {
+            -webkit-text-fill-color: currentColor !important;
+          }
+          .erp-admin-content .kpi-grid > div [style*="#fff"],
+          .erp-admin-content .kpi-grid > div [style*="color: rgb(255"],
+          .erp-admin-content .chart-panel > div [style*="#fff"],
+          .erp-admin-content .insights-row > div [style*="#fff"],
+          .erp-admin-content .erp-latest-panel [style*="#fff"] {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .erp-admin-content .kpi-grid > div [style*="#10B981"],
+          .erp-admin-content .kpi-grid > div [style*="#10b981"],
+          .erp-admin-content [style*="#10B981"] {
+            color: #047857 !important;
+            -webkit-text-fill-color: #047857 !important;
+          }
+          .erp-admin-content .kpi-grid > div [style*="#EF4444"],
+          .erp-admin-content .kpi-grid > div [style*="#ef4444"],
+          .erp-admin-content [style*="#EF4444"] {
+            color: #dc2626 !important;
+            -webkit-text-fill-color: #dc2626 !important;
+          }
+          .erp-admin-content .kpi-grid > div [style*="#F59E0B"],
+          .erp-admin-content .kpi-grid > div [style*="#FF6B00"],
+          .erp-admin-content [style*="#F59E0B"],
+          .erp-admin-content [style*="#FF6B00"] {
+            color: #c2410c !important;
+            -webkit-text-fill-color: #c2410c !important;
+          }
+          .erp-admin-content .kpi-grid > div > div:nth-child(3),
+          .erp-admin-content .kpi-grid > div > div[style*="font-size: 28"],
+          .erp-admin-content .kpi-grid > div > div[style*="fontSize: 28"] {
+            font-size: clamp(22px, 7vw, 28px) !important;
+            line-height: 1.05 !important;
+            overflow-wrap: anywhere !important;
+          }
+          .erp-admin-content .chart-panel {
+            gap: 12px !important;
+          }
+          .erp-admin-content .chart-panel > div,
+          .erp-admin-content .insights-row > div,
+          .erp-admin-content .erp-latest-panel {
+            background: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb !important;
+          }
+          .erp-admin-content .chart-panel > div *,
+          .erp-admin-content .insights-row > div *,
+          .erp-admin-content .erp-latest-panel * {
+            -webkit-text-fill-color: currentColor !important;
+          }
+          .erp-admin-content .chart-panel [style*="#4B5563"],
+          .erp-admin-content .chart-panel [style*="#6B7280"],
+          .erp-admin-content .insights-row [style*="#4B5563"],
+          .erp-admin-content .insights-row [style*="#6B7280"],
+          .erp-admin-content .erp-latest-panel [style*="#4B5563"],
+          .erp-admin-content .erp-latest-panel [style*="#6B7280"] {
+            color: #64748b !important;
+            -webkit-text-fill-color: #64748b !important;
+          }
+          .erp-admin-content .erp-latest-card {
+            background: #ffffff !important;
+            border-color: #e5e7eb !important;
+            box-shadow: 0 12px 28px rgba(15,23,42,.06) !important;
+          }
+          .erp-admin-content .erp-latest-card-top b,
+          .erp-admin-content .doc-mobile-card-head [style*="font-size: 16"],
+          .erp-admin-content .doc-mobile-card-head [style*="fontSize: 16"] {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .erp-admin-content .doc-list-panel,
+          .erp-admin-content .doc-mobile-card {
+            background: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb !important;
+          }
+          .erp-admin-content .doc-mobile-card * {
+            -webkit-text-fill-color: currentColor !important;
+          }
+          .erp-admin-content .doc-mobile-card [style*="#e2e8f0"],
+          .erp-admin-content .doc-mobile-card [style*="#fff"],
+          .erp-admin-content .doc-mobile-card [style*="#F8FAFC"] {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .erp-admin-content .doc-mobile-card [style*="#888"],
+          .erp-admin-content .doc-mobile-card [style*="#A8B0C0"],
+          .erp-admin-content .doc-mobile-card [style*="#94A3B8"] {
+            color: #64748b !important;
+            -webkit-text-fill-color: #64748b !important;
+          }
+          .erp-admin-content .doc-header-actions {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            width: 100% !important;
+            gap: 10px !important;
+          }
+          .erp-admin-content .doc-header-actions input,
+          .erp-admin-content .doc-header-actions select,
+          .erp-admin-content .doc-header-actions button {
+            width: 100% !important;
+          }
+          .erp-admin-content .doc-mobile-footer {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            align-items: stretch !important;
+          }
+          .erp-admin-content .doc-mobile-status,
+          .erp-admin-content .doc-mobile-status button {
+            width: 100% !important;
+          }
+          .erp-admin-content .doc-mobile-actions {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            width: 100% !important;
+          }
+          .erp-admin-content .doc-mobile-actions > div {
+            grid-column: 1 / -1 !important;
+            width: 100% !important;
+          }
+          .erp-admin-content .doc-mobile-actions > div > button {
+            width: 100% !important;
+          }
+          .erp-admin-content [data-dropdown-menu] {
+            position: fixed !important;
+            left: 12px !important;
+            right: 12px !important;
+            top: auto !important;
+            bottom: calc(90px + env(safe-area-inset-bottom, 0px)) !important;
+            width: auto !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            max-height: min(56dvh, 420px) !important;
+            overflow-y: auto !important;
+            border-radius: 22px !important;
+            padding: 10px !important;
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 -18px 48px rgba(15,23,42,.2) !important;
+            z-index: 999999 !important;
+          }
+          .erp-admin-content [data-dropdown-menu] button {
+            min-height: 50px !important;
+            border-radius: 14px !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .erp-admin-content [data-status-dropdown] > div {
+            position: fixed !important;
+            left: 12px !important;
+            right: 12px !important;
+            top: auto !important;
+            bottom: calc(90px + env(safe-area-inset-bottom, 0px)) !important;
+            width: auto !important;
+            min-width: 0 !important;
+            max-height: 45dvh !important;
+            overflow-y: auto !important;
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 22px !important;
+            box-shadow: 0 -18px 48px rgba(15,23,42,.2) !important;
+            z-index: 999999 !important;
+          }
+          .erp-admin-content [data-status-dropdown] > div button {
+            min-height: 48px !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .erp-admin-content .modal-panel,
+          .erp-admin-content + .modal-panel {
+            background: #ffffff !important;
+          }
           .modal-panel .blog-form-body {
             display: flex !important;
             flex-direction: column !important;
@@ -3639,6 +3829,291 @@ export default function AdminPage() {
           .modal-panel .rich-editor-surface:empty:before {
             color: #94a3b8 !important;
             -webkit-text-fill-color: #94a3b8 !important;
+          }
+
+          /* Final ERP mobile override. Keep this at the end of the 768px block
+             because older admin mobile rules above are intentionally broad. */
+          .erp-admin-content {
+            background: #f4f6f9 !important;
+            color: #111827 !important;
+            padding: 12px 12px calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+            overflow-x: hidden !important;
+          }
+          .erp-admin-content *,
+          .erp-admin-content *::before,
+          .erp-admin-content *::after {
+            box-sizing: border-box !important;
+            max-width: 100% !important;
+            -webkit-text-fill-color: currentColor;
+          }
+          .erp-admin-content > div {
+            max-width: 100% !important;
+          }
+          .erp-admin-content .erp-dashboard-header,
+          .erp-admin-content .erp-page-header,
+          .erp-admin-content .doc-header-row {
+            position: relative !important;
+            top: auto !important;
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+            margin: 0 0 14px !important;
+            padding: 16px !important;
+            border-radius: 22px !important;
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 14px 34px rgba(15,23,42,.08) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+          }
+          .erp-admin-content .erp-dashboard-header h1,
+          .erp-admin-content .erp-dashboard-header h2,
+          .erp-admin-content .erp-page-header h1,
+          .erp-admin-content .erp-page-header h2,
+          .erp-admin-content .doc-header-row h1,
+          .erp-admin-content .doc-header-row h2 {
+            color: #111827 !important;
+            font-size: clamp(22px, 7vw, 28px) !important;
+            line-height: 1.18 !important;
+            letter-spacing: 0 !important;
+            overflow-wrap: anywhere !important;
+          }
+          .erp-admin-content .erp-dashboard-header p,
+          .erp-admin-content .erp-page-header p,
+          .erp-admin-content .doc-header-row p,
+          .erp-admin-content [style*="#4B5563"],
+          .erp-admin-content [style*="#6B7280"],
+          .erp-admin-content [style*="#888"],
+          .erp-admin-content [style*="#A8B0C0"],
+          .erp-admin-content [style*="#94A3B8"] {
+            color: #64748b !important;
+            -webkit-text-fill-color: #64748b !important;
+          }
+          .erp-admin-content .erp-date-controls,
+          .erp-admin-content .erp-page-actions,
+          .erp-admin-content .doc-header-actions {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+            width: 100% !important;
+            padding: 10px !important;
+            border-radius: 18px !important;
+            background: #f8fafc !important;
+            border: 1px solid #e5e7eb !important;
+          }
+          .erp-admin-content .doc-header-actions {
+            grid-template-columns: 1fr !important;
+          }
+          .erp-admin-content .erp-date-controls button,
+          .erp-admin-content .erp-page-actions button,
+          .erp-admin-content .doc-header-actions button {
+            width: 100% !important;
+            min-height: 48px !important;
+            border-radius: 14px !important;
+            font-weight: 900 !important;
+          }
+          .erp-admin-content input,
+          .erp-admin-content select,
+          .erp-admin-content textarea {
+            width: 100% !important;
+            min-height: 48px !important;
+            border-radius: 14px !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            border: 1px solid #d7dde8 !important;
+            font-size: 16px !important;
+            box-shadow: inset 0 1px 0 rgba(15,23,42,.02) !important;
+          }
+          .erp-admin-content select,
+          .erp-admin-content select option,
+          .modal-panel select,
+          .modal-panel select option {
+            color-scheme: light !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .erp-admin-content .kpi-grid,
+          .erp-admin-content .dash-grid,
+          .erp-admin-content .chart-panel,
+          .erp-admin-content .insights-row {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+            margin-bottom: 14px !important;
+          }
+          .erp-admin-content .kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+          .erp-admin-content .kpi-grid > div,
+          .erp-admin-content .dash-grid > div,
+          .erp-admin-content .chart-panel > div,
+          .erp-admin-content .insights-row > div,
+          .erp-admin-content .erp-latest-panel,
+          .erp-admin-content .doc-list-panel,
+          .erp-admin-content .doc-mobile-card,
+          .erp-admin-content .erp-latest-card,
+          .erp-admin-content .erp-data-card,
+          .erp-admin-content .erp-mobile-card {
+            background: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 22px !important;
+            box-shadow: 0 12px 30px rgba(15,23,42,.07) !important;
+          }
+          .erp-admin-content .kpi-grid > div {
+            min-height: 122px !important;
+            padding: 16px !important;
+            overflow: hidden !important;
+          }
+          .erp-admin-content .kpi-grid > div > div:nth-child(3),
+          .erp-admin-content .kpi-grid > div [style*="font-size: 28"] {
+            font-size: clamp(22px, 7vw, 28px) !important;
+            line-height: 1.08 !important;
+            overflow-wrap: anywhere !important;
+          }
+          .erp-admin-content .chart-panel svg,
+          .erp-admin-content .chart-panel canvas {
+            max-width: 100% !important;
+          }
+          .erp-admin-content .erp-latest-panel {
+            overflow: visible !important;
+          }
+          .erp-admin-content .erp-latest-panel > div:first-child,
+          .erp-admin-content .doc-list-panel > div:first-child {
+            border-color: #e5e7eb !important;
+          }
+          .erp-admin-content .erp-latest-table,
+          .erp-admin-content .doc-table {
+            display: none !important;
+          }
+          .erp-admin-content .erp-latest-cards,
+          .erp-admin-content .doc-cards {
+            display: grid !important;
+            gap: 12px !important;
+            padding: 12px !important;
+          }
+          .erp-admin-content .erp-latest-card,
+          .erp-admin-content .doc-mobile-card {
+            text-align: left !important;
+            padding: 16px !important;
+          }
+          .erp-admin-content .erp-latest-card-top,
+          .erp-admin-content .doc-mobile-card-head {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            gap: 12px !important;
+            align-items: start !important;
+          }
+          .erp-admin-content .erp-latest-card-top strong,
+          .erp-admin-content .erp-latest-card-top b,
+          .erp-admin-content .doc-mobile-card-head strong,
+          .erp-admin-content .doc-mobile-card-head b,
+          .erp-admin-content .doc-mobile-card-head [style*="#fff"],
+          .erp-admin-content .doc-mobile-card-head [style*="#e2e8f0"] {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .erp-admin-content .doc-mobile-footer {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+            padding-top: 12px !important;
+            border-top: 1px solid #e5e7eb !important;
+          }
+          .erp-admin-content .doc-mobile-status button {
+            width: 100% !important;
+            justify-content: center !important;
+            min-height: 50px !important;
+            border-radius: 999px !important;
+            background: #ecfdf5 !important;
+            border-color: #a7f3d0 !important;
+            color: #047857 !important;
+            -webkit-text-fill-color: #047857 !important;
+          }
+          .erp-admin-content .doc-mobile-actions {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+          }
+          .erp-admin-content .doc-mobile-actions > div {
+            grid-column: 1 / -1 !important;
+            width: 100% !important;
+          }
+          .erp-admin-content .doc-mobile-actions button {
+            width: 100% !important;
+            min-height: 50px !important;
+            border-radius: 16px !important;
+            white-space: normal !important;
+            line-height: 1.25 !important;
+            font-weight: 900 !important;
+            background: #f8fafc !important;
+            color: #111827 !important;
+            border-color: #d7dde8 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .erp-admin-content .doc-mobile-actions button[style*="16,185,129"],
+          .erp-admin-content .doc-mobile-actions button[style*="#10B981"] {
+            background: #047857 !important;
+            border-color: #047857 !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+          }
+          .erp-admin-content .doc-mobile-actions button[style*="#FDBA74"],
+          .erp-admin-content .doc-mobile-actions button[style*="#FF6B00"],
+          .erp-admin-content .doc-mobile-actions button[style*="255,107,0"] {
+            background: #c2410c !important;
+            border-color: #c2410c !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+          }
+          .erp-admin-content [data-dropdown-menu],
+          .erp-admin-content [data-status-dropdown] > div {
+            position: fixed !important;
+            left: 12px !important;
+            right: 12px !important;
+            top: auto !important;
+            bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+            width: auto !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            max-height: min(58dvh, 440px) !important;
+            overflow-y: auto !important;
+            padding: 10px !important;
+            border-radius: 22px !important;
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 -18px 48px rgba(15,23,42,.22) !important;
+            z-index: 999999 !important;
+          }
+          .erp-admin-content [data-dropdown-menu] button,
+          .erp-admin-content [data-status-dropdown] > div button {
+            min-height: 50px !important;
+            border-radius: 14px !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .modal-backdrop .modal-panel {
+            width: calc(100vw - 16px) !important;
+            left: 8px !important;
+            right: 8px !important;
+            max-height: 92dvh !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            border-color: #e5e7eb !important;
+          }
+          .modal-backdrop .modal-panel > div:nth-child(2) {
+            overflow-x: hidden !important;
+          }
+          .modal-backdrop .modal-panel input,
+          .modal-backdrop .modal-panel select,
+          .modal-backdrop .modal-panel textarea {
+            background: #f8fafc !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            border-color: #d7dde8 !important;
           }
         }
 
