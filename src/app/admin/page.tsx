@@ -5120,7 +5120,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
     return points;
   })();
 
-  const maxVal = Math.max(...chartData.map(p => Math.max(p.rev, p.cost, 1)));
+  const maxVal = Math.max(...chartData.map(p => Math.max(p.rev, p.cost, Math.max(p.profit, 0), 1)));
   const recentDocs = [...documents].sort((a: any, b: any) => b.createdAt - a.createdAt).slice(0, 5);
 
   // ─── Alerts ───────────────────────────────────────────────────
@@ -5133,6 +5133,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   // ─── Styles ───────────────────────────────────────────────────
   const card = (extra = {}) => ({ background: "rgba(20,26,36,0.8)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, ...extra });
   const fmtB = (n: number) => n >= 1000000 ? `${(n/1000000).toFixed(2)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : fmtMoney(n);
+  const axisTicks = [1, 0.75, 0.5, 0.25, 0];
+  const candleHeight = (value: number) => `${Math.max(value > 0 ? 4 : 0, maxVal > 0 ? (Math.max(value, 0) / maxVal) * 100 : 0)}%`;
   const filterInputStyle = {
     width: 128,
     minHeight: 34,
@@ -5261,8 +5263,72 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             </div>
           </div>
 
-          {/* Bar Chart */}
-          <div style={{ display: "flex", alignItems: "flex-end", gap: chartRange === "30d" ? 2 : 6, height: 160, paddingBottom: 24, position: "relative" }}>
+          {/* Candlestick-style grouped chart */}
+          <div style={{ display: "grid", gridTemplateColumns: "46px minmax(0, 1fr)", gap: 8, height: 184 }}>
+            <div style={{ display: "grid", gridTemplateRows: "repeat(5, 1fr)", padding: "2px 0 28px", textAlign: "right", color: "#64748B", fontSize: 10, lineHeight: 1 }}>
+              {axisTicks.map((tick) => (
+                <div key={tick} style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "clip", paddingRight: 4 }}>
+                  ฿{fmtB(maxVal * tick)}
+                </div>
+              ))}
+            </div>
+            <div style={{ position: "relative", minWidth: 0, paddingBottom: 28, overflow: "hidden" }}>
+              {axisTicks.map((tick) => (
+                <div
+                  key={tick}
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    top: `${(1 - tick) * 100}%`,
+                    borderTop: "1px dashed rgba(148,163,184,0.14)",
+                    transform: tick === 0 ? "translateY(-1px)" : undefined,
+                  }}
+                />
+              ))}
+              <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", alignItems: "flex-end", gap: chartData.length > 20 ? 3 : 8 }}>
+                {chartData.map((pt, i) => (
+                  <div key={i} style={{ flex: "1 1 0", minWidth: 0, height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", position: "relative" }}>
+                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "flex-end", justifyContent: "center", gap: chartData.length > 20 ? 1 : 3 }}>
+                      {[
+                        { key: "rev", label: "Revenue", value: pt.rev, color: "#10B981", glow: "rgba(16,185,129,0.28)" },
+                        { key: "cost", label: "Expense", value: pt.cost, color: "#EF4444", glow: "rgba(239,68,68,0.24)" },
+                        { key: "profit", label: "Profit", value: Math.max(pt.profit, 0), color: "#3B82F6", glow: "rgba(59,130,246,0.28)" },
+                      ].map((bar) => (
+                        <div
+                          key={bar.key}
+                          title={`${bar.label}: ฿${fmtMoney(bar.value)}`}
+                          style={{
+                            width: chartData.length > 20 ? 4 : 8,
+                            height: candleHeight(bar.value),
+                            minHeight: bar.value > 0 ? 5 : 0,
+                            position: "relative",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {bar.value > 0 && (
+                            <>
+                              <span style={{ position: "absolute", bottom: 0, width: 1, height: "100%", background: bar.color, opacity: 0.45, borderRadius: 99 }} />
+                              <span style={{ position: "absolute", bottom: "12%", width: "100%", height: "62%", minHeight: 4, background: bar.color, borderRadius: 4, boxShadow: `0 0 12px ${bar.glow}` }} />
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {pt.label && (
+                      <div style={{ position: "absolute", bottom: -24, left: "50%", transform: "translateX(-50%)", maxWidth: 54, fontSize: 10, color: "#64748B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pt.label}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Legacy bar chart kept hidden as fallback */}
+          <div style={{ display: "none", alignItems: "flex-end", gap: chartRange === "30d" ? 2 : 6, height: 160, paddingBottom: 24, position: "relative" }}>
             {/* Y-axis lines */}
             {[0,25,50,75,100].map(p => (
               <div key={p} style={{ position: "absolute", left: 0, right: 0, bottom: 24 + (p/100)*(160-24), borderTop: "1px dashed rgba(255,255,255,0.04)", fontSize: 9, color: "#4B5563" }}>
