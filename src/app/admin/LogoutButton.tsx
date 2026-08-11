@@ -3,12 +3,13 @@
 // ปุ่ม Logout — ต้องเป็น Client Component เพราะใช้ onClick
 
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 export default function LogoutButton() {
   const router = useRouter();
 
   const handleLogout = async () => {
+    const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();

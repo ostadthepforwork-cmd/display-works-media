@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import type { CmsSettings } from "@/lib/cms-settings";
 
 const CmsSettingsContext = createContext<CmsSettings>({});
@@ -17,6 +17,7 @@ export function CmsSettingsProvider({
 
   useEffect(() => {
     let active = true;
+    const supabase = getSupabaseBrowserClient();
 
     supabase
       .from("cms_settings")

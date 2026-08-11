@@ -1827,6 +1827,24 @@ export default function AdminPage() {
           min-width: 0;
           overflow-wrap: anywhere;
         }
+        .cms-service-card {
+          color: #f8fafc;
+        }
+        .cms-service-card > div:nth-child(2) {
+          color: #f8fafc !important;
+          font-size: 16px !important;
+          font-weight: 800 !important;
+          line-height: 1.35 !important;
+        }
+        .cms-service-card > div:nth-child(3) {
+          color: #a8b0c0 !important;
+          font-size: 13px !important;
+          line-height: 1.65 !important;
+        }
+        .cms-service-card > div:nth-child(4) {
+          color: #ff8a2a !important;
+          font-weight: 800 !important;
+        }
 
         @media (max-width: 768px) {
           .hide-mobile { display: none !important; }
@@ -2381,6 +2399,15 @@ export default function AdminPage() {
           .modal-panel textarea {
             font-size: 16px !important;
             min-height: 44px !important;
+          }
+          .cms-service-card {
+            padding: 14px !important;
+            border-color: rgba(255,107,0,.16) !important;
+            border-radius: 16px !important;
+          }
+          .cms-service-card > div:first-child button {
+            width: 44px !important;
+            height: 44px !important;
           }
           .modal-backdrop {
             align-items: flex-end !important;
@@ -6928,7 +6955,7 @@ function Modal({ title, onClose, children, width = 500 }: any) {
         <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
         <div style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
       </div>
@@ -7849,7 +7876,7 @@ function ServicesManager({ showToast }: any) {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
         {services.map(s => (
-          <div key={s.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 18px" }}>
+          <div key={s.id} className="cms-service-card" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 18px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
               <div style={{ fontSize: 28 }}>{s.icon}</div>
               <div style={{ display: "flex", gap: 6 }}>
@@ -8738,9 +8765,9 @@ function SectionTitle({ children }: any) {
 function CField({ label, children, style }: any) {
   return <div style={style}><label>{label}</label>{children}</div>;
 }
-function CBtn({ onClick, children, color, outline, small, style, disabled }: any) {
+function CBtn({ onClick, children, color, outline, small, style, disabled, ...rest }: any) {
   return (
-    <button onClick={onClick} disabled={disabled} style={{
+    <button onClick={onClick} disabled={disabled} {...rest} style={{
       background: outline ? "transparent" : (color || "#FF6B00"),
       border: `1px solid ${outline ? "rgba(255,255,255,0.15)" : (color || "#FF6B00")}`,
       color: outline ? "#A8B0C0" : "#fff",
@@ -8752,9 +8779,9 @@ function CBtn({ onClick, children, color, outline, small, style, disabled }: any
     }}>{children}</button>
   );
 }
-function CIconBtn({ onClick, children, danger, small }: any) {
+function CIconBtn({ onClick, children, danger, small, ...rest }: any) {
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} {...rest} style={{
       background: danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
       border: `1px solid ${danger ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)"}`,
       color: danger ? "#ef4444" : "#A8B0C0",
@@ -8772,7 +8799,7 @@ function CModal({ title, onClose, children, width = 500 }: any) {
         <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
         <div style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
       </div>
