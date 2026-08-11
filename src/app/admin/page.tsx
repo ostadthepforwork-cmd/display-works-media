@@ -3043,9 +3043,36 @@ export default function AdminPage() {
             letter-spacing: 0 !important;
           }
           .erp-mobile-actions button,
-          .doc-mobile-actions button {
+          .doc-mobile-actions button,
+          .cms-blog-actions button,
+          .cms-blog-row button,
+          .erp-data-card button,
+          .erp-mobile-card button,
+          .doc-mobile-card button {
             white-space: normal !important;
             line-height: 1.25 !important;
+          }
+          .top-bar button,
+          .admin-bottom-nav button,
+          .mobile-drawer button,
+          .doc-mobile-actions button,
+          .erp-mobile-actions button,
+          .cms-blog-actions button,
+          .cms-blog-row button,
+          .erp-data-card button,
+          .erp-mobile-card button,
+          .doc-mobile-card button,
+          [data-dropdown-menu] button,
+          .modal-panel button {
+            opacity: 1 !important;
+            text-shadow: none !important;
+            -webkit-text-fill-color: currentColor !important;
+          }
+          .top-bar button,
+          .admin-module-trigger,
+          .admin-logout-btn {
+            min-width: 44px !important;
+            min-height: 44px !important;
           }
           .doc-mobile-card {
             display: grid !important;
@@ -3283,19 +3310,35 @@ export default function AdminPage() {
           .erp-mobile-actions button,
           .doc-mobile-actions > button,
           .doc-mobile-actions > div > button,
+          .cms-blog-actions button,
+          .cms-blog-row button,
           .erp-card-actions button {
             min-height: 48px !important;
             border-radius: 16px !important;
             font-weight: 900 !important;
             box-shadow: none !important;
           }
+          .doc-mobile-actions button,
+          .erp-mobile-actions button,
+          .cms-blog-actions button {
+            color: #111827 !important;
+            background: #f8fafc !important;
+            border-color: #d7dde8 !important;
+          }
           .erp-mobile-actions button[style*="#FF6B00"],
           .doc-mobile-actions button[style*="#FF6B00"],
+          .doc-mobile-actions button[style*="#FDBA74"],
           .erp-card-actions button[style*="#FF6B00"] {
             background: #c2410c !important;
             border-color: #c2410c !important;
             color: #fff !important;
             box-shadow: 0 10px 22px rgba(194,65,12,.18) !important;
+          }
+          .doc-mobile-actions button[style*="16,185,129"],
+          .erp-mobile-actions button[style*="16,185,129"] {
+            background: #047857 !important;
+            border-color: #047857 !important;
+            color: #fff !important;
           }
           .doc-mobile-footer {
             border-top: 1px solid #e5e7eb !important;
@@ -3317,6 +3360,9 @@ export default function AdminPage() {
           }
           [data-dropdown-menu] button:hover {
             background: #fff7ed !important;
+          }
+          [data-dropdown-menu] button span {
+            color: inherit !important;
           }
           .mobile-drawer {
             left: 12px !important;
@@ -3372,6 +3418,11 @@ export default function AdminPage() {
           .modal-panel label {
             color: #475569 !important;
             font-weight: 800 !important;
+          }
+          .modal-panel button[aria-label="Close dialog"] {
+            background: #f1f5f9 !important;
+            color: #111827 !important;
+            border: 1px solid #e2e8f0 !important;
           }
           .modal-panel input,
           .modal-panel select,
@@ -6115,7 +6166,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 140, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
                             {Object.entries(STATUS_LABELS).map(([k, v]) => (
                               <button type="button" key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
-                                style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: doc.status === k ? STATUS_COLORS[k] + "22" : "transparent", color: doc.status === k ? STATUS_COLORS[k] : "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left" }}>
+                              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: doc.status === k ? STATUS_COLORS[k] + "22" : "transparent", color: doc.status === k ? STATUS_COLORS[k] : "#F8FAFC", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left", fontWeight: 700 }}>
                                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[k], flexShrink: 0, display: "inline-block" }} />
                                 {v}
                               </button>
@@ -6131,13 +6182,13 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           {/* ✅ อนุมัติ */}
                           {doc.status !== "approved" && doc.status !== "cancelled" && (
                             <button type="button" onClick={() => { changeStatus(doc.id, "approved"); }} title="อนุมัติ"
-                              style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10B981", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
+                            style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.55)", color: "#34D399", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 800 }}>
                               ✅ อนุมัติ
                             </button>
                           )}
                           {/* แก้ไข */}
                           <button type="button" onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }} title="แก้ไข"
-                            style={{ background: doc.status === "approved" ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#444" : "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
+                            style={{ background: doc.status === "approved" ? "rgba(148,163,184,0.10)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: doc.status === "approved" ? "#94A3B8" : "#F8FAFC", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit", fontWeight: 700 }}>
                             แก้ไข
                           </button>
                           {/* ⋮ More */}
@@ -6150,7 +6201,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             setMenuPos({ top, right });
                             setOpenMenu(doc.id); setOpenStatus(null);
                           }}
-                            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit", lineHeight: 1 }}>
+                            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: "#F8FAFC", borderRadius: 8, padding: "5px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit", lineHeight: 1, fontWeight: 900 }}>
                             ⋮
                           </button>
                         </div>
@@ -6179,7 +6230,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             {(DOC_NEXT[doc.type] || []).length > 0 && (
                               <>
                                 <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
-                                <div style={{ padding: "4px 14px 4px", fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>สร้างเอกสารต่อ</div>
+                                <div style={{ padding: "4px 14px 4px", fontSize: 10, color: "#94A3B8", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>สร้างเอกสารต่อ</div>
                                 {(DOC_NEXT[doc.type] || []).map((next, ni) => (
                                   <MenuBtn key={ni}
                                     icon={next.split ? "✂️" : DOC_TYPES[next.type]?.short === "BL" ? "📋" : DOC_TYPES[next.type]?.short === "IV" ? "📑" : "🧾"}
@@ -6246,9 +6297,9 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10B981", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>✅ อนุมัติ</button>
                       )}
                       <button type="button" onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }}
-                        style={{ background: doc.status === "approved" ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#444" : "#ccc", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit" }}>แก้ไข</button>
+                        style={{ background: doc.status === "approved" ? "rgba(148,163,184,0.10)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#94A3B8" : "#F8FAFC", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit", fontWeight: 700 }}>แก้ไข</button>
                       <button type="button" onClick={() => printDocument(doc, customers, company, { allDocuments })}
-                        style={{ background: "rgba(255,107,0,0.15)", border: "1px solid rgba(255,107,0,0.3)", color: "#FF6B00", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>🖨️</button>
+                        style={{ background: "rgba(255,107,0,0.15)", border: "1px solid rgba(255,107,0,0.3)", color: "#FDBA74", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 800 }}>PDF</button>
                       <div style={{ position: "relative" }}>
                         <button type="button" onClick={(e) => {
                           if (openMenu === doc.id) { closeAll(); return; }
@@ -6260,7 +6311,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           setMenuPos(isMobileMenu ? { top: 0, right: 0, mobile: true } : { top, right });
                           setOpenMenu(doc.id); setOpenStatus(null);
                         }}
-                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
+                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#F8FAFC", borderRadius: 8, padding: "6px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 800 }}>เพิ่มเติม</button>
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.mobile ? "auto" : menuPos.top, right: menuPos.mobile ? 12 : menuPos.right, bottom: menuPos.mobile ? "calc(76px + env(safe-area-inset-bottom, 0px))" : "auto", left: menuPos.mobile ? 12 : "auto", zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: menuPos.mobile ? 16 : 10, padding: "6px 0", minWidth: menuPos.mobile ? 0 : 240, width: menuPos.mobile ? "auto" : undefined, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: menuPos.mobile ? "46dvh" : "60dvh", overflowY: "auto" }}>
                             <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
@@ -6271,7 +6322,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" }); closeAll(); }} />
                             {(DOC_NEXT[doc.type] || []).length > 0 && <>
                               <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
-                              <div style={{ padding: "4px 14px", fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase" as const }}>สร้างเอกสารต่อ</div>
+                              <div style={{ padding: "4px 14px", fontSize: 10, color: "#94A3B8", fontWeight: 700, textTransform: "uppercase" as const }}>สร้างเอกสารต่อ</div>
                               {(DOC_NEXT[doc.type] || []).map((next, ni) => (
                                 <MenuBtn key={ni} icon={next.split ? "✂️" : "📑"} label={next.label} color={DOC_TYPES[next.type]?.color} onClick={() => { createFrom(doc, next.type, next.split); closeAll(); }} />
                               ))}
@@ -7041,7 +7092,7 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
       if (!url) { showToast("URL ไม่ถูกต้อง", "error"); return; }
       editorRef.current?.focus();
       document.execCommand("insertHTML", false,
-        `<figure style="margin:24px 0;text-align:center"><img src="${url}" alt="??????????????? Display Works Media" style="max-width:100%;height:auto;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.15)" /><figcaption style="font-size:13px;color:#888;margin-top:8px">คำบรรยายรูปภาพ (แก้ได้)</figcaption></figure>`
+        `<figure style="margin:24px 0;text-align:center"><img src="${url}" alt="รูปประกอบบทความ Display Works Media" style="max-width:100%;height:auto;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.15)" /><figcaption style="font-size:13px;color:#888;margin-top:8px">คำบรรยายรูปภาพ (แก้ได้)</figcaption></figure>`
       );
       sync();
       showToast("แทรกรูปสำเร็จ ✓");
@@ -7420,7 +7471,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
               <label style={labelStyle}>รูป Cover บทความ</label>
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <div style={{ width: 140, height: 88, borderRadius: 8, overflow: "hidden", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  {f.cover ? <img src={f.cover} alt="???????????????????" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 28, opacity: 0.4 }}>🖼️</span>}
+                  {f.cover ? <img src={f.cover} alt={f.coverAlt || f.title || "รูปปกบทความ Display Works Media"} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 28, opacity: 0.4 }}>🖼️</span>}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
                   <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadCover(e.target.files?.[0])} />
@@ -7686,7 +7737,7 @@ function HeroManager({ showToast }: any) {
         <SectionTitle>รูปพื้นหลัง</SectionTitle>
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 16 }}>
           <div style={{ width: 200, height: 110, borderRadius: 10, overflow: "hidden", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0, position: "relative" }}>
-            {hero.bgImage && <img src={hero.bgImage.startsWith("/") ? hero.bgImage : hero.bgImage} alt="??????????? Hero Section" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => (e.target as HTMLImageElement).style.display="none"} />}
+            {hero.bgImage && <img src={hero.bgImage.startsWith("/") ? hero.bgImage : hero.bgImage} alt="รูปพื้นหลัง Hero Section" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => (e.target as HTMLImageElement).style.display="none"} />}
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ fontSize: 28, opacity: 0.3 }}>🖼️</span>
             </div>
