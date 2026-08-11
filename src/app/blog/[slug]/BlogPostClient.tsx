@@ -29,7 +29,7 @@ function fmtDateTH(dateStr: string) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("th-TH", { day: "2-digit", month: "long", year: "numeric" });
 }
 function readTimeTH(body: string) {
-  return `${Math.max(1, Math.round((body || "").length / 5 / 200))} à¸™à¸²à¸—à¸µ`;
+  return `${Math.max(1, Math.round((body || "").length / 5 / 200))} นาที`;
 }
 
 function wrapArticleTables(html: string) {
@@ -45,8 +45,8 @@ function demoteBodyH1(html: string) {
 }
 
 function bodyToHtml(body: string): string {
-  if (!body) return "<p>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¹€à¸™à¸·à¹‰à¸­à¸«à¸²</p>";
-  // à¸–à¹‰à¸²à¹€à¸›à¹‡à¸™ HTML à¸ˆà¸²à¸ RichEditor à¹ƒà¸«à¹‰à¹ƒà¸Šà¹‰à¹‚à¸”à¸¢à¸•à¸£à¸‡
+  if (!body) return "<p>ยังไม่มีเนื้อหา</p>";
+  // ถ้าเป็น HTML จาก RichEditor ให้ใช้โดยตรง
   if (body.trim().startsWith("<") && (body.includes("</p>") || body.includes("</h") || body.includes("</ul>") || body.includes("<figure") || body.includes("<table"))) {
     return wrapArticleTables(demoteBodyH1(sanitizeHtml(body)));
   }
@@ -154,9 +154,9 @@ export default function BlogPostPage({
     return (
       <div className="min-h-screen bg-[#050806] text-white flex flex-col items-center justify-center gap-6">
         <AlertCircle size={48} className="text-[#FF7A00]" />
-        <h1 className="font-['Kanit'] font-bold text-2xl">à¹„à¸¡à¹ˆà¸žà¸šà¸šà¸—à¸„à¸§à¸²à¸¡à¸™à¸µà¹‰</h1>
-        <p className="text-[#A7B0C0] text-sm">à¸­à¸²à¸ˆà¸–à¸¹à¸à¸¥à¸šà¸«à¸£à¸·à¸­ URL à¹„à¸¡à¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡</p>
-        <Link href="/blog" className="bg-[#C2410C] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-[#9A3412] transition-all">â† à¸à¸¥à¸±à¸šà¹„à¸›à¸«à¸™à¹‰à¸²à¸šà¸—à¸„à¸§à¸²à¸¡</Link>
+        <h1 className="font-['Kanit'] font-bold text-2xl">ไม่พบบทความนี้</h1>
+        <p className="text-[#A7B0C0] text-sm">อาจถูกลบหรือ URL ไม่ถูกต้อง</p>
+        <Link href="/blog" className="bg-[#C2410C] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-[#9A3412] transition-all">← กลับไปหน้าบทความ</Link>
       </div>
     );
   }
@@ -175,7 +175,7 @@ export default function BlogPostPage({
   const quickAnswer = String(post.ai_summary || post.excerpt || "").trim();
   const keyTakeaways = String(post.key_takeaways || "")
     .split(/\n|,/)
-    .map((item) => item.replace(/^[-â€¢\s]+/, "").trim())
+    .map((item) => item.replace(/^[-•\s]+/, "").trim())
     .filter(Boolean)
     .slice(0, 5);
 
@@ -205,7 +205,7 @@ export default function BlogPostPage({
       <div className="pt-[72px] bg-[#070A0F] border-b border-white/5">
         <div className="max-w-4xl mx-auto px-6 py-3 flex items-center gap-2 text-sm text-[#A7B0C0] flex-wrap">
           <Home size={14} /><ChevronRight size={14} />
-          <Link href="/blog" className="hover:text-white transition-colors">à¸šà¸—à¸„à¸§à¸²à¸¡</Link>
+          <Link href="/blog" className="hover:text-white transition-colors">บทความ</Link>
           <ChevronRight size={14} />
           <span className="text-[#FF6500] line-clamp-1">{post.title}</span>
         </div>
@@ -230,7 +230,7 @@ export default function BlogPostPage({
           <h1 className="font-['Kanit'] font-extrabold text-3xl md:text-4xl lg:text-5xl text-white leading-tight mb-6">{post.title}</h1>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-[#A7B0C0] mb-8 pb-8 border-b border-white/10">
             <span className="flex items-center gap-1.5"><Calendar size={15} /> {fmtDateTH(post.date)}</span>
-            <span className="flex items-center gap-1.5"><Clock size={15} /> à¸­à¹ˆà¸²à¸™ {readTimeTH(post.body)}</span>
+            <span className="flex items-center gap-1.5"><Clock size={15} /> อ่าน {readTimeTH(post.body)}</span>
           </div>
           {post.excerpt && (
             <p className="brand-article-excerpt text-lg text-[#A7B0C0] leading-relaxed mb-12">{post.excerpt}</p>
@@ -238,8 +238,8 @@ export default function BlogPostPage({
         </div>
 
         {quickAnswer && (
-          <section className="blog-quick-answer reveal-section" aria-label="à¸„à¸³à¸•à¸­à¸šà¸ªà¸±à¹‰à¸™">
-            <span>à¸„à¸³à¸•à¸­à¸šà¸ªà¸±à¹‰à¸™</span>
+          <section className="blog-quick-answer reveal-section" aria-label="คำตอบสั้น">
+            <span>คำตอบสั้น</span>
             <p>{quickAnswer}</p>
             {keyTakeaways.length > 0 && (
               <ul>
@@ -258,7 +258,7 @@ export default function BlogPostPage({
             <div className="mb-6">
               <span className="section-label">FAQ</span>
               <h2 className="mt-3 font-['Kanit'] text-2xl font-extrabold text-white">
-                à¸„à¸³à¸–à¸²à¸¡à¸—à¸µà¹ˆà¸žà¸šà¸šà¹ˆà¸­à¸¢
+                คำถามที่พบบ่อย
               </h2>
             </div>
             <div className="space-y-3">
@@ -281,7 +281,7 @@ export default function BlogPostPage({
 
         <div className="mt-16 pt-8 border-t border-white/10">
           <Link href="/blog" className="inline-flex items-center gap-2 text-[#FF6500] font-semibold text-sm hover:gap-3 transition-all">
-            <ArrowRight size={16} className="rotate-180" /> à¸à¸¥à¸±à¸šà¹„à¸›à¸«à¸™à¹‰à¸²à¸šà¸—à¸„à¸§à¸²à¸¡à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”
+            <ArrowRight size={16} className="rotate-180" /> กลับไปหน้าบทความทั้งหมด
           </Link>
         </div>
       </article>
@@ -289,7 +289,7 @@ export default function BlogPostPage({
       {related.length > 0 && (
         <section className="bg-[#0D121A] border-t border-white/5 py-16">
           <div className="max-w-4xl mx-auto px-6 lg:px-8">
-            <h2 className="font-['Kanit'] font-bold text-xl text-white mb-8">à¸šà¸—à¸„à¸§à¸²à¸¡à¸—à¸µà¹ˆà¹€à¸à¸µà¹ˆà¸¢à¸§à¸‚à¹‰à¸­à¸‡</h2>
+            <h2 className="font-['Kanit'] font-bold text-xl text-white mb-8">บทความที่เกี่ยวข้อง</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {related.map((r) => {
                 const cover = safeImageSrc(r.cover);
@@ -299,7 +299,7 @@ export default function BlogPostPage({
                   className="group bg-[#10151D] rounded-lg overflow-hidden border border-white/5 hover:border-[#FF6500]/30 transition-all duration-300">
                   <div className="relative h-40 bg-[#141A24]">
                     {cover ? <Image src={cover} alt={coverAlt} fill sizes="(max-width: 768px) 100vw, 33vw" className="blog-cover-img group-hover:scale-[1.02] transition-transform duration-500" />
-                      : <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸¹à¸›à¸›à¸</div>}
+                      : <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>}
                   </div>
                   <div className="p-4">
                     <p className="text-xs text-[#A7B0C0] mb-2 flex items-center gap-1"><Calendar size={11} /> {fmtDateTH(r.date)}</p>
@@ -325,7 +325,7 @@ export default function BlogPostPage({
                   <div className="font-bold text-sm tracking-wider leading-none" style={{ color: "#FF7A00" }}>MEDIA</div>
                 </div>
               </Link>
-              <p className="text-sm leading-relaxed mb-6 text-[#A7B0C0]">à¸šà¸£à¸´à¸à¸²à¸£à¸ªà¸±à¹ˆà¸‡à¸›à¹‰à¸²à¸¢à¹à¸¥à¸°à¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œà¸­à¸­à¸™à¹„à¸¥à¸™à¹Œà¸„à¸£à¸šà¸§à¸‡à¸ˆà¸£ à¸‡à¹ˆà¸²à¸¢ à¹€à¸£à¹‡à¸§ à¸¡à¸·à¸­à¸­à¸²à¸Šà¸µà¸ž à¸ªà¹ˆà¸‡à¸—à¸±à¹ˆà¸§à¸›à¸£à¸°à¹€à¸—à¸¨</p>
+              <p className="text-sm leading-relaxed mb-6 text-[#A7B0C0]">บริการสั่งป้ายและงานพิมพ์ออนไลน์ครบวงจร ง่าย เร็ว มืออาชีพ ส่งทั่วประเทศ</p>
               <div className="flex gap-2.5">
                 {socials.map(({ icon: Icon, href, label, hoverBg }) => (
                   <a key={label} href={href} target="_blank" className="w-10 h-10 rounded-xl bg-[#141A24] border border-white/5 flex items-center justify-center text-[#A7B0C0] transition-all duration-200"
@@ -337,32 +337,32 @@ export default function BlogPostPage({
               </div>
             </div>
             <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">à¹€à¸¡à¸™à¸¹</h4>
+              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">เมนู</h4>
               <div className="flex flex-col gap-3">
                 {navLinks.map((link) => (<a key={link.href} href={link.href} className="text-sm text-[#A7B0C0] hover:text-white transition-colors">{link.label}</a>))}
               </div>
             </div>
             <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">à¸šà¸£à¸´à¸à¸²à¸£à¸‚à¸­à¸‡à¹€à¸£à¸²</h4>
+              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">บริการของเรา</h4>
               <div className="flex flex-col gap-3">
-                {["à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥","Sticker Indoor / Outdoor","PP Board / Standee","Roll Up / X-stand","Backdrop","à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²"].map((s) => (
+                {["ป้ายไวนิล","Sticker Indoor / Outdoor","PP Board / Standee","Roll Up / X-stand","Backdrop","ฉลากสินค้า"].map((s) => (
                   <a key={s} href="/#services" className="text-sm text-[#A7B0C0] hover:text-white transition-colors">{s}</a>
                 ))}
               </div>
             </div>
             <div>
-              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">à¸•à¸´à¸”à¸•à¹ˆà¸­à¹€à¸£à¸²</h4>
+              <h4 className="text-xs font-bold tracking-widest mb-5 text-white">ติดต่อเรา</h4>
               <div className="flex flex-col gap-4">
                 <a href="https://lin.ee/O0nPl03" target="_blank" className="flex items-start gap-3 text-sm text-[#A7B0C0] hover:text-white transition-colors"><MessageCircle size={16} className="text-[#06C755] flex-shrink-0 mt-0.5" /> LINE @displayworks</a>
                 <a href="tel:0659161539" className="flex items-start gap-3 text-sm text-[#A7B0C0] hover:text-white transition-colors"><Phone size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> 065-916-1539</a>
                 <a href="mailto:info.displayworksmedia@gmail.com" className="flex items-start gap-3 text-sm text-[#A7B0C0] hover:text-white transition-colors"><Mail size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> info.displayworksmedia@gmail.com</a>
-                <div className="flex items-start gap-3 text-sm text-[#A7B0C0]"><MapPin size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> à¹ƒà¸«à¹‰à¸šà¸£à¸´à¸à¸²à¸£à¸—à¸±à¹ˆà¸§à¸›à¸£à¸°à¹€à¸—à¸¨à¹„à¸—à¸¢</div>
+                <div className="flex items-start gap-3 text-sm text-[#A7B0C0]"><MapPin size={16} className="text-[#FF7A00] flex-shrink-0 mt-0.5" /> ให้บริการทั่วประเทศไทย</div>
               </div>
             </div>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 pt-8 border-t border-white/5 text-xs text-gray-500">
-            <span>Â© {new Date().getFullYear()} Display Works Media. All Rights Reserved.</span>
-            <span>à¸­à¸­à¸à¹à¸šà¸šà¹à¸¥à¸°à¸žà¸±à¸’à¸™à¸²à¹‚à¸”à¸¢à¸—à¸µà¸¡à¸‡à¸²à¸™ Display Works Media</span>
+            <span>© {new Date().getFullYear()} Display Works Media. All Rights Reserved.</span>
+            <span>ออกแบบและพัฒนาโดยทีมงาน Display Works Media</span>
           </div>
         </div>
       </footer>
@@ -378,7 +378,7 @@ export default function BlogPostPage({
         .prose-blog b { color: #fff; font-weight: 700; }
         .prose-blog ul { list-style: none; padding: 0; margin: 0 0 1.25rem; }
         .prose-blog ul li { color: #CBD5E1; padding: 0.35rem 0 0.35rem 1.5rem; position: relative; line-height: 1.8; }
-        .prose-blog ul li::before { content: 'â–¸'; position: absolute; left: 0; color: #FF7A00; }
+        .prose-blog ul li::before { content: '▸'; position: absolute; left: 0; color: #FF7A00; }
         .prose-blog ol { padding-left: 1.5rem; margin: 0 0 1.25rem; }
         .prose-blog ol li { color: #CBD5E1; line-height: 1.8; margin-bottom: 4px; }
         .prose-blog li > p { margin: 0.2rem 0; color: inherit; line-height: inherit; }

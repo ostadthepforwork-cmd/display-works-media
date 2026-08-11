@@ -17,8 +17,8 @@ type FormData = {
 };
 
 const services = [
-  "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥", "Sticker Indoor", "Sticker Outdoor",
-  "PP Board", "Roll Up", "X-Stand", "Backdrop", "Standee", "à¸­à¸·à¹ˆà¸™à¹†",
+  "ป้ายไวนิล", "Sticker Indoor", "Sticker Outdoor",
+  "PP Board", "Roll Up", "X-Stand", "Backdrop", "Standee", "อื่นๆ",
 ];
 
 const inputStyle = {
@@ -52,9 +52,9 @@ export default function QuoteForm({ contact }: { contact?: any }) {
         body: JSON.stringify(data),
       });
       if (res.ok) setSubmitted(true);
-      else alert("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸” à¸à¸£à¸¸à¸“à¸²à¸¥à¸­à¸‡à¹ƒà¸«à¸¡à¹ˆà¸­à¸µà¸à¸„à¸£à¸±à¹‰à¸‡");
+      else alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } catch {
-      alert("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸” à¸à¸£à¸¸à¸“à¸²à¸¥à¸­à¸‡à¹ƒà¸«à¸¡à¹ˆà¸­à¸µà¸à¸„à¸£à¸±à¹‰à¸‡");
+      alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
       setLoading(false);
     }
@@ -65,19 +65,19 @@ export default function QuoteForm({ contact }: { contact?: any }) {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-16 items-start">
 
-          {/* Left info â€” à¸¥à¸š framer-motion à¹ƒà¸Šà¹‰ CSS reveal à¹à¸—à¸™ */}
+          {/* Left info — ลบ framer-motion ใช้ CSS reveal แทน */}
           <div className="lg:col-span-2 reveal-section">
-            <div className="section-label">à¸•à¸´à¸”à¸•à¹ˆà¸­à¸ªà¸­à¸šà¸–à¸²à¸¡</div>
-            <h2 className="section-title">à¸•à¸´à¸”à¸•à¹ˆà¸­à¸ªà¸­à¸šà¸–à¸²à¸¡ à¹à¸¥à¸°à¸›à¸£à¸¶à¸à¸©à¸²à¹„à¸”à¹‰à¸Ÿà¸£à¸µ</h2>
+            <div className="section-label">ติดต่อสอบถาม</div>
+            <h2 className="section-title">ติดต่อสอบถาม และปรึกษาได้ฟรี</h2>
             <p className="section-sub mb-10">
-              à¹„à¸¡à¹ˆà¸§à¹ˆà¸²à¸ˆà¸°à¹€à¸›à¹‡à¸™à¸‡à¸²à¸™à¸›à¹‰à¸²à¸¢ à¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œ à¸«à¸£à¸·à¸­à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸² à¹€à¸£à¸²à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸«à¹‰à¸„à¸³à¹à¸™à¸°à¸™à¸³à¹à¸¥à¸°à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸£à¸²à¸„à¸²à¹€à¸šà¸·à¹‰à¸­à¸‡à¸•à¹‰à¸™à¹‚à¸”à¸¢à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¹ˆà¸²à¹ƒà¸Šà¹‰à¸ˆà¹ˆà¸²à¸¢
+              ไม่ว่าจะเป็นงานป้าย งานพิมพ์ หรือสื่อโฆษณา เราพร้อมให้คำแนะนำและประเมินราคาเบื้องต้นโดยไม่มีค่าใช้จ่าย
             </p>
             <div className="flex flex-col gap-4">
               {[
-                "à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¹ˆà¸²à¹ƒà¸Šà¹‰à¸ˆà¹ˆà¸²à¸¢à¹ƒà¸™à¸à¸²à¸£à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸£à¸²à¸„à¸²",
-                "à¸•à¸­à¸šà¸à¸¥à¸±à¸šà¸ à¸²à¸¢à¹ƒà¸™ 24 à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡",
-                "à¹ƒà¸«à¹‰à¸„à¸³à¸›à¸£à¸¶à¸à¸©à¸²à¸à¹ˆà¸­à¸™à¸•à¸±à¸”à¸ªà¸´à¸™à¹ƒà¸ˆ",
-                "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¹à¸šà¸šà¸à¹‡à¸ªà¸­à¸šà¸–à¸²à¸¡à¹„à¸”à¹‰",
+                "ไม่มีค่าใช้จ่ายในการประเมินราคา",
+                "ตอบกลับภายใน 24 ชั่วโมง",
+                "ให้คำปรึกษาก่อนตัดสินใจ",
+                "ยังไม่มีแบบก็สอบถามได้",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">
                   <CheckCircle size={18} style={{ color: "#FF6B00", flexShrink: 0 }} aria-hidden="true" />
@@ -86,15 +86,15 @@ export default function QuoteForm({ contact }: { contact?: any }) {
               ))}
             </div>
             <div className="mt-10 p-6 rounded-xl border" style={{ background: "#141A24", borderColor: "rgba(255,107,0,0.2)" }}>
-              <div className="text-sm font-semibold text-white mb-3">à¸•à¸´à¸”à¸•à¹ˆà¸­à¸”à¹ˆà¸§à¸™</div>
+              <div className="text-sm font-semibold text-white mb-3">ติดต่อด่วน</div>
               <a href={lineUrl} className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors mb-2">
-                ðŸ’¬ LINE: @displayworks
+                💬 LINE: @displayworks
               </a>
               <a href={`tel:${tel}`} className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors mb-2">
-                ðŸ“ž {phone}
+                📞 {phone}
               </a>
               <a href={`mailto:${email}`} className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors">
-                âœ‰ï¸ {email}
+                ✉️ {email}
               </a>
             </div>
           </div>
@@ -105,25 +105,25 @@ export default function QuoteForm({ contact }: { contact?: any }) {
               {submitted ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center gap-5">
                   <CheckCircle size={56} style={{ color: "#FF6B00" }} aria-hidden="true" />
-                  <h3 className="font-kanit font-bold text-2xl text-white">à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸³à¹€à¸£à¹‡à¸ˆ!</h3>
-                  <p className="text-muted text-sm max-w-xs">à¸—à¸µà¸¡à¸‡à¸²à¸™à¹„à¸”à¹‰à¸£à¸±à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸‚à¸­à¸‡à¸„à¸¸à¸“à¹à¸¥à¹‰à¸§ à¸ˆà¸°à¸•à¸´à¸”à¸•à¹ˆà¸­à¸à¸¥à¸±à¸šà¸ à¸²à¸¢à¹ƒà¸™ 24 à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡</p>
+                  <h3 className="font-kanit font-bold text-2xl text-white">ส่งข้อมูลสำเร็จ!</h3>
+                  <p className="text-muted text-sm max-w-xs">ทีมงานได้รับข้อมูลของคุณแล้ว จะติดต่อกลับภายใน 24 ชั่วโมง</p>
                   <button type="button" onClick={() => setSubmitted(false)} className="mt-4 text-sm underline" style={{ color: "#FF6B00" }}>
-                    à¸ªà¹ˆà¸‡à¹ƒà¸šà¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²à¸­à¸µà¸à¸„à¸£à¸±à¹‰à¸‡
+                    ส่งใบเสนอราคาอีกครั้ง
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                    {/* à¸Šà¸·à¹ˆà¸­ */}
+                    {/* ชื่อ */}
                     <div>
                       <label htmlFor="quote-name" className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
-                        à¸Šà¸·à¹ˆà¸­-à¸™à¸²à¸¡à¸ªà¸à¸¸à¸¥ *
+                        ชื่อ-นามสกุล *
                       </label>
                       <input
                         id="quote-name"
                         {...register("name", { required: true })}
-                        placeholder="à¸Šà¸·à¹ˆà¸­à¸‚à¸­à¸‡à¸„à¸¸à¸“"
+                        placeholder="ชื่อของคุณ"
                         autoComplete="name"
                         className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none"
                         style={{ ...inputStyle, border: `1px solid ${errors.name ? "#FF4444" : "rgba(255,255,255,0.08)"}` }}
@@ -134,10 +134,10 @@ export default function QuoteForm({ contact }: { contact?: any }) {
                       />
                     </div>
 
-                    {/* à¹€à¸šà¸­à¸£à¹Œà¹‚à¸—à¸£ */}
+                    {/* เบอร์โทร */}
                     <div>
                       <label htmlFor="quote-phone" className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
-                        à¹€à¸šà¸­à¸£à¹Œà¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œ *
+                        เบอร์โทรศัพท์ *
                       </label>
                       <input
                         id="quote-phone"
@@ -170,10 +170,10 @@ export default function QuoteForm({ contact }: { contact?: any }) {
                       />
                     </div>
 
-                    {/* à¸›à¸£à¸°à¹€à¸ à¸—à¸ªà¸´à¸™à¸„à¹‰à¸² */}
+                    {/* ประเภทสินค้า */}
                     <div>
                       <label htmlFor="quote-service" className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
-                        à¸›à¸£à¸°à¹€à¸ à¸—à¸ªà¸´à¸™à¸„à¹‰à¸² *
+                        ประเภทสินค้า *
                       </label>
                       <select
                         id="quote-service"
@@ -183,20 +183,20 @@ export default function QuoteForm({ contact }: { contact?: any }) {
                         aria-required="true"
                         aria-invalid={errors.serviceType ? "true" : "false"}
                       >
-                        <option value="">à¹€à¸¥à¸·à¸­à¸à¸›à¸£à¸°à¹€à¸ à¸—</option>
+                        <option value="">เลือกประเภท</option>
                         {services.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </div>
 
-                    {/* à¸‚à¸™à¸²à¸”à¸à¸§à¹‰à¸²à¸‡ */}
+                    {/* ขนาดกว้าง */}
                     <div>
                       <label htmlFor="quote-width" className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
-                        à¸‚à¸™à¸²à¸”à¸à¸§à¹‰à¸²à¸‡ (cm)
+                        ขนาดกว้าง (cm)
                       </label>
                       <input
                         id="quote-width"
                         {...register("width")}
-                        placeholder="à¹€à¸Šà¹ˆà¸™ 100"
+                        placeholder="เช่น 100"
                         type="number"
                         min={1}
                         inputMode="numeric"
@@ -207,15 +207,15 @@ export default function QuoteForm({ contact }: { contact?: any }) {
                       />
                     </div>
 
-                    {/* à¸‚à¸™à¸²à¸”à¸ªà¸¹à¸‡ */}
+                    {/* ขนาดสูง */}
                     <div>
                       <label htmlFor="quote-height" className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
-                        à¸‚à¸™à¸²à¸”à¸ªà¸¹à¸‡ (cm)
+                        ขนาดสูง (cm)
                       </label>
                       <input
                         id="quote-height"
                         {...register("height")}
-                        placeholder="à¹€à¸Šà¹ˆà¸™ 200"
+                        placeholder="เช่น 200"
                         type="number"
                         min={1}
                         inputMode="numeric"
@@ -226,10 +226,10 @@ export default function QuoteForm({ contact }: { contact?: any }) {
                       />
                     </div>
 
-                    {/* à¸ˆà¸³à¸™à¸§à¸™ */}
+                    {/* จำนวน */}
                     <div>
                       <label htmlFor="quote-qty" className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
-                        à¸ˆà¸³à¸™à¸§à¸™ (à¸Šà¸´à¹‰à¸™)
+                        จำนวน (ชิ้น)
                       </label>
                       <input
                         id="quote-qty"
@@ -245,10 +245,10 @@ export default function QuoteForm({ contact }: { contact?: any }) {
                       />
                     </div>
 
-                    {/* à¸§à¸±à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£ */}
+                    {/* วันที่ต้องการ */}
                     <div>
                       <label htmlFor="quote-date" className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
-                        à¸§à¸±à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸£à¸±à¸šà¸‡à¸²à¸™
+                        วันที่ต้องการรับงาน
                       </label>
                       <input
                         id="quote-date"
@@ -260,16 +260,16 @@ export default function QuoteForm({ contact }: { contact?: any }) {
                     </div>
                   </div>
 
-                  {/* à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸” */}
+                  {/* รายละเอียด */}
                   <div>
                     <label htmlFor="quote-details" className="block text-xs text-muted mb-2 font-medium tracking-wide uppercase">
-                      à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡
+                      รายละเอียดเพิ่มเติม
                     </label>
                     <textarea
                       id="quote-details"
                       {...register("details")}
                       rows={4}
-                      placeholder="à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¸‡à¸²à¸™ à¸§à¸±à¸ªà¸”à¸¸ à¸„à¸§à¸²à¸¡à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸žà¸´à¹€à¸¨à¸© à¸«à¸£à¸·à¸­à¸ªà¸´à¹ˆà¸‡à¸—à¸µà¹ˆà¸­à¸¢à¸²à¸à¹ƒà¸«à¹‰à¹€à¸£à¸²à¸—à¸£à¸²à¸š..."
+                      placeholder="รายละเอียดงาน วัสดุ ความต้องการพิเศษ หรือสิ่งที่อยากให้เราทราบ..."
                       className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none resize-y"
                       style={inputStyle}
                       onFocus={onFocusBorder}
@@ -288,18 +288,18 @@ export default function QuoteForm({ contact }: { contact?: any }) {
                     {loading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" />
-                        à¸à¸³à¸¥à¸±à¸‡à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥...
+                        กำลังส่งข้อมูล...
                       </>
                     ) : (
                       <>
                         <Send size={18} aria-hidden="true" />
-                        à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸‚à¸­à¹ƒà¸šà¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²
+                        ส่งข้อมูลขอใบเสนอราคา
                       </>
                     )}
                   </button>
 
                   <p className="text-center text-xs" style={{ color: "#A8B0C0" }}>
-                    à¸—à¸µà¸¡à¸‡à¸²à¸™à¸ˆà¸°à¸•à¸´à¸”à¸•à¹ˆà¸­à¸à¸¥à¸±à¸šà¸ à¸²à¸¢à¹ƒà¸™ 24 à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡ â€¢ à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¹ˆà¸²à¹ƒà¸Šà¹‰à¸ˆà¹ˆà¸²à¸¢à¹ƒà¸™à¸à¸²à¸£à¸‚à¸­à¹ƒà¸šà¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²
+                    ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง • ไม่มีค่าใช้จ่ายในการขอใบเสนอราคา
                   </p>
                 </form>
               )}

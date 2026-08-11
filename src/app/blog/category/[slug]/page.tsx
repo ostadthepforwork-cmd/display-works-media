@@ -19,7 +19,7 @@ function fmtDateTH(dateStr: string) {
 }
 
 function readTimeTH(body: string) {
-  return `${Math.max(1, Math.round((body || "").length / 5 / 200))} à¸™à¸²à¸—à¸µ`;
+  return `${Math.max(1, Math.round((body || "").length / 5 / 200))} นาที`;
 }
 
 async function getPostsByCategory(categoryName: string) {
@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!category) return {};
   const url = `https://displayworksmedia.com/blog/category/${category.slug}`;
   return {
-    title: `${category.name} | à¸šà¸—à¸„à¸§à¸²à¸¡ Display Works Media`,
+    title: `${category.name} | บทความ Display Works Media`,
     description: category.description,
     alternates: { canonical: url },
     openGraph: {
@@ -74,7 +74,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
       <Navbar />
       <section className="pt-[120px] pb-14 px-6 lg:px-8 border-b border-white/5">
         <div className="max-w-7xl mx-auto">
-          <Link href="/blog" className="text-[#FF7A00] text-sm font-semibold">à¸šà¸—à¸„à¸§à¸²à¸¡à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</Link>
+          <Link href="/blog" className="text-[#FF7A00] text-sm font-semibold">บทความทั้งหมด</Link>
           <h1 className="font-kanit font-extrabold text-4xl lg:text-6xl mt-5 mb-5 max-w-4xl leading-tight">
             {category.name}
           </h1>
@@ -97,7 +97,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
                         {cover ? (
                           <Image src={cover} alt={coverAlt} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                         ) : (
-                          <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸¹à¸›à¸›à¸</div>
+                          <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>
                         )}
                       </div>
                       <div className="p-6">
@@ -107,7 +107,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
                         </div>
                         <h2 className="font-kanit font-bold text-lg text-white mb-2 group-hover:text-[#FF7A00] transition-colors">{post.title}</h2>
                         <p className="text-[#A7B0C0] text-sm leading-relaxed mb-4">{post.excerpt}</p>
-                        <span className="inline-flex items-center gap-1.5 text-[#FF7A00] text-sm font-semibold">à¸­à¹ˆà¸²à¸™à¸•à¹ˆà¸­ <ArrowRight size={14} /></span>
+                        <span className="inline-flex items-center gap-1.5 text-[#FF7A00] text-sm font-semibold">อ่านต่อ <ArrowRight size={14} /></span>
                       </div>
                     </Link>
                   </article>
@@ -116,15 +116,15 @@ export default async function BlogCategoryPage({ params }: PageProps) {
               </div>
             ) : (
               <div className="rounded-2xl bg-[#0E1310] border border-white/5 p-8 text-[#A7B0C0]">
-                <h2 className="font-kanit text-2xl text-white mb-3">à¸à¸³à¸¥à¸±à¸‡à¹€à¸•à¸£à¸µà¸¢à¸¡à¸šà¸—à¸„à¸§à¸²à¸¡à¹ƒà¸™à¸«à¸¡à¸§à¸”à¸™à¸µà¹‰</h2>
-                <p className="leading-relaxed">à¹‚à¸„à¸£à¸‡à¸«à¸¡à¸§à¸”à¸šà¸—à¸„à¸§à¸²à¸¡à¸žà¸£à¹‰à¸­à¸¡à¹à¸¥à¹‰à¸§ à¸ªà¸²à¸¡à¸²à¸£à¸–à¹€à¸žà¸´à¹ˆà¸¡à¸šà¸—à¸„à¸§à¸²à¸¡à¸ˆà¸²à¸ Admin â†’ CMS à¹à¸¥à¸°à¹€à¸¥à¸·à¸­à¸à¸«à¸¡à¸§à¸”à¸™à¸µà¹‰à¹€à¸žà¸·à¹ˆà¸­à¹ƒà¸«à¹‰à¹à¸ªà¸”à¸‡à¹ƒà¸™à¸«à¸™à¹‰à¸²à¸™à¸µà¹‰à¹„à¸”à¹‰à¸—à¸±à¸™à¸—à¸µ</p>
+                <h2 className="font-kanit text-2xl text-white mb-3">กำลังเตรียมบทความในหมวดนี้</h2>
+                <p className="leading-relaxed">โครงหมวดบทความพร้อมแล้ว สามารถเพิ่มบทความจาก Admin → CMS และเลือกหมวดนี้เพื่อให้แสดงในหน้านี้ได้ทันที</p>
               </div>
             )}
           </div>
 
           <aside className="space-y-5">
             <div className="rounded-2xl bg-[#0E1310] border border-white/5 p-6">
-              <h2 className="font-kanit font-bold text-xl mb-4">à¸šà¸£à¸´à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸à¸µà¹ˆà¸¢à¸§à¸‚à¹‰à¸­à¸‡</h2>
+              <h2 className="font-kanit font-bold text-xl mb-4">บริการที่เกี่ยวข้อง</h2>
               <div className="space-y-3">
                 {relatedServices.map((service) => (
                   <Link key={service!.href} href={service!.href} className="block rounded-xl border border-white/5 bg-white/[0.03] p-4 hover:border-[#FF7A00]/35 transition-colors">
@@ -135,7 +135,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
               </div>
             </div>
             <div className="rounded-2xl bg-[#0E1310] border border-white/5 p-6">
-              <h2 className="font-kanit font-bold text-xl mb-4">à¸«à¸¡à¸§à¸”à¸šà¸—à¸„à¸§à¸²à¸¡</h2>
+              <h2 className="font-kanit font-bold text-xl mb-4">หมวดบทความ</h2>
               <div className="space-y-2">
                 {blogCategories.map((item) => (
                   <Link key={item.slug} href={`/blog/category/${item.slug}`} className={`block px-3 py-2 rounded-lg text-sm ${item.slug === slug ? "bg-[#C2410C] text-white" : "text-[#A7B0C0] hover:bg-white/5 hover:text-white"}`}>

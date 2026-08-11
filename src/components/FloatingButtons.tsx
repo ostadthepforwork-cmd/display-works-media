@@ -24,7 +24,7 @@ const floatButtons = [
   {
     icon: Phone,
     href: "tel:0659161539",
-    label: "à¹‚à¸—à¸£",
+    label: "โทร",
     bg: "#FF6B00",
     shadow: "rgba(255,107,0,0.4)",
   },
@@ -45,7 +45,7 @@ export default function FloatingButtons() {
 
   return (
     <>
-      {/* â”€â”€ Desktop: floating buttons (right side) â”€â”€ */}
+      {/* ── Desktop: floating buttons (right side) ── */}
       <div
         className="fixed right-5 bottom-8 z-50 hidden lg:flex flex-col gap-3 transition-all duration-500"
         style={{
@@ -79,7 +79,7 @@ export default function FloatingButtons() {
         ))}
       </div>
 
-      {/* â”€â”€ Mobile: sticky bar at bottom â”€â”€ */}
+      {/* ── Mobile: sticky bar at bottom ── */}
       <div
         className="fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-all duration-500"
         style={{
@@ -102,10 +102,10 @@ export default function FloatingButtons() {
             className="order-3 flex flex-col items-center justify-center gap-1 py-4 text-white transition-colors hover:bg-white/5"
           >
             <FileText size={20} style={{ color: "#FF6500" }} />
-            <span className="text-xs font-medium">à¸‚à¸­à¸£à¸²à¸„à¸²</span>
+            <span className="text-xs font-medium">ขอราคา</span>
           </Link>
 
-          {/* LINE â€” primary mobile action */}
+          {/* LINE — primary mobile action */}
           <a
             href="https://lin.ee/O0nPl03"
             target="_blank"
@@ -120,13 +120,13 @@ export default function FloatingButtons() {
             <span className="text-xs font-semibold">LINE</span>
           </a>
 
-          {/* à¹‚à¸—à¸£ */}
+          {/* โทร */}
           <a
             href="tel:0659161539"
             className="order-2 flex flex-col items-center justify-center gap-1 py-4 transition-colors hover:bg-white/5"
           >
             <Phone size={20} style={{ color: "#FF6500" }} />
-            <span className="text-xs text-white font-medium">à¹‚à¸—à¸£à¹€à¸¥à¸¢</span>
+            <span className="text-xs text-white font-medium">โทรเลย</span>
           </a>
         </div>
 

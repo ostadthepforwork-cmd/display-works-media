@@ -8,14 +8,14 @@ import { Menu, X, MessageCircle, ArrowUpRight } from "lucide-react";
 import { Facebook } from "@/components/BrandIcons";
 
 const navLinks = [
-  { label: "à¸«à¸™à¹‰à¸²à¹à¸£à¸", href: "/" },
-  { label: "à¸šà¸£à¸´à¸à¸²à¸£à¸‚à¸­à¸‡à¹€à¸£à¸²", href: "/services" },
-  { label: "à¸œà¸¥à¸‡à¸²à¸™à¸‚à¸­à¸‡à¹€à¸£à¸²", href: "/portfolio" },
-  { label: "à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™", href: "/#process" },
-  { label: "à¸šà¸—à¸„à¸§à¸²à¸¡", href: "/blog" },
+  { label: "หน้าแรก", href: "/" },
+  { label: "บริการของเรา", href: "/services" },
+  { label: "ผลงานของเรา", href: "/portfolio" },
+  { label: "ขั้นตอนการทำงาน", href: "/#process" },
+  { label: "บทความ", href: "/blog" },
   { label: "FAQ", href: "/faq" },
-  { label: "à¹€à¸à¸µà¹ˆà¸¢à¸§à¸à¸±à¸šà¹€à¸£à¸²", href: "/about" },
-  { label: "à¸•à¸´à¸”à¸•à¹ˆà¸­à¹€à¸£à¸²", href: "/contact" },
+  { label: "เกี่ยวกับเรา", href: "/about" },
+  { label: "ติดต่อเรา", href: "/contact" },
 ];
 
 export default function Navbar() {
@@ -102,14 +102,14 @@ export default function Navbar() {
             className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-sm text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5"
             style={{ backgroundColor: "#047857", boxShadow: "0 4px 20px rgba(4,120,87,0.24)" }}
           >
-            à¸›à¸£à¸¶à¸à¸©à¸²à¸—à¸²à¸‡ LINE <MessageCircle size={16} />
+            ปรึกษาทาง LINE <MessageCircle size={16} />
           </a>
           <Link
             href="/#quote"
             className="inline-flex items-center gap-2 text-white px-4 py-2.5 rounded-sm text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5"
             style={{ backgroundColor: "#C2410C", boxShadow: "0 4px 20px rgba(194,65,12,0.22)" }}
           >
-            à¸‚à¸­à¸£à¸²à¸„à¸² <ArrowUpRight size={15} />
+            ขอราคา <ArrowUpRight size={15} />
           </Link>
         </div>
 
@@ -139,11 +139,11 @@ export default function Navbar() {
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
         >
-          <span>à¹€à¸¡à¸™à¸¹</span>
+          <span>เมนู</span>
           {mobileOpen ? <X size={17} /> : <Menu size={17} />}
         </button>
         <Link href="/#quote" className="navbar-mobile-quote">
-          à¸‚à¸­à¸£à¸²à¸„à¸²
+          ขอราคา
         </Link>
       </div>
 
@@ -159,7 +159,7 @@ export default function Navbar() {
           onClick={() => setMobileOpen(false)}
         />
         <aside className="navbar-mobile-menu-panel xl:hidden" aria-label="Mobile navigation">
-          <div className="navbar-mobile-menu-title">à¹€à¸¡à¸™à¸¹à¸«à¸¥à¸±à¸</div>
+          <div className="navbar-mobile-menu-title">เมนูหลัก</div>
           <button
             type="button"
             className="navbar-mobile-menu-close"
@@ -189,14 +189,14 @@ export default function Navbar() {
               className="navbar-mobile-action-line"
               onClick={() => setMobileOpen(false)}
             >
-              à¸›à¸£à¸¶à¸à¸©à¸²à¸—à¸²à¸‡ LINE à¸Ÿà¸£à¸µ
+              ปรึกษาทาง LINE ฟรี
             </a>
             <Link
               href="/#quote"
               className="navbar-mobile-action-quote"
               onClick={() => setMobileOpen(false)}
             >
-              à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸‚à¸­à¸£à¸²à¸„à¸²
+              ส่งข้อมูลขอราคา
             </Link>
           </div>
         </aside>

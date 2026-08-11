@@ -1,6 +1,6 @@
 "use client";
 // src/app/admin/LogoutButton.tsx
-// à¸›à¸¸à¹ˆà¸¡ Logout â€” à¸•à¹‰à¸­à¸‡à¹€à¸›à¹‡à¸™ Client Component à¹€à¸žà¸£à¸²à¸°à¹ƒà¸Šà¹‰ onClick
+// ปุ่ม Logout — ต้องเป็น Client Component เพราะใช้ onClick
 
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -18,7 +18,7 @@ export default function LogoutButton() {
   return (
     <button
       type="button"
-      aria-label="à¸­à¸­à¸à¸ˆà¸²à¸à¸£à¸°à¸šà¸š"
+      aria-label="ออกจากระบบ"
       onClick={handleLogout}
       style={{
         background: "rgba(239,68,68,0.1)",
@@ -34,7 +34,7 @@ export default function LogoutButton() {
       onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.2)")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.1)")}
     >
-      à¸­à¸­à¸à¸ˆà¸²à¸à¸£à¸°à¸šà¸š
+      ออกจากระบบ
     </button>
   );
 }
