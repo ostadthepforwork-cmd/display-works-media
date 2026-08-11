@@ -3503,6 +3503,143 @@ export default function AdminPage() {
           .admin-home-summary span {
             color: rgba(255,255,255,.72) !important;
           }
+          .main-content-area select,
+          .modal-panel select {
+            color-scheme: light !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .main-content-area select option,
+          .modal-panel select option {
+            background: #ffffff !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .main-content-area table th,
+          .main-content-area table td {
+            color: #334155 !important;
+          }
+          .main-content-area table th,
+          .main-content-area table th * {
+            color: #0f172a !important;
+          }
+          .main-content-area table td strong,
+          .main-content-area table td b {
+            color: #111827 !important;
+          }
+          .modal-panel .blog-form-body {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 0 !important;
+            width: 100% !important;
+          }
+          .modal-panel .blog-form-tabs {
+            width: auto !important;
+            min-width: 0 !important;
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 8px !important;
+            padding: 12px 14px 10px !important;
+            overflow-x: auto !important;
+            border-right: 0 !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            background: #f8fafc !important;
+            scrollbar-width: none !important;
+          }
+          .modal-panel .blog-form-tabs::-webkit-scrollbar {
+            display: none !important;
+          }
+          .modal-panel .blog-form-tabs button {
+            flex: 0 0 auto !important;
+            min-width: 116px !important;
+            min-height: 46px !important;
+            color: #334155 !important;
+            background: #fff !important;
+            border: 1px solid #d7dde8 !important;
+            text-align: center !important;
+          }
+          .modal-panel .blog-form-tabs button[style*="rgba(255,107,0,0.15)"] {
+            background: #fff7ed !important;
+            border-color: #fb923c !important;
+            color: #c2410c !important;
+          }
+          .modal-panel .blog-form-content {
+            padding: 16px !important;
+            max-height: calc(78dvh - 142px) !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+          }
+          .modal-panel .rich-editor-shell {
+            background: #ffffff !important;
+            border: 1px solid #d7dde8 !important;
+            border-radius: 16px !important;
+            overflow: hidden !important;
+          }
+          .modal-panel .rich-editor-toolbar {
+            display: grid !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 7px !important;
+            padding: 10px !important;
+            background: #f8fafc !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            align-items: stretch !important;
+          }
+          .modal-panel .rich-editor-toolbar > div[style*="width: 1"] {
+            display: none !important;
+          }
+          .modal-panel .rich-editor-toolbar select {
+            grid-column: span 2 !important;
+            width: 100% !important;
+            height: 42px !important;
+            min-height: 42px !important;
+            font-size: 13px !important;
+          }
+          .modal-panel .rich-editor-toolbar button,
+          .modal-panel .rich-editor-toolbar label {
+            min-width: 0 !important;
+            min-height: 42px !important;
+            padding: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 12px !important;
+            background: #ffffff !important;
+            border: 1px solid #d7dde8 !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            box-shadow: none !important;
+          }
+          .modal-panel .rich-editor-toolbar button[disabled] {
+            opacity: .6 !important;
+          }
+          .modal-panel .rich-editor-toolbar button[aria-label="Clear article content"] {
+            color: #dc2626 !important;
+            -webkit-text-fill-color: #dc2626 !important;
+          }
+          .modal-panel .rich-editor-surface {
+            min-height: 280px !important;
+            padding: 16px !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            font-size: 16px !important;
+            line-height: 1.75 !important;
+          }
+          .modal-panel .rich-editor-surface * {
+            color: inherit;
+            -webkit-text-fill-color: currentColor;
+          }
+          .modal-panel .rich-editor-surface h1,
+          .modal-panel .rich-editor-surface h2,
+          .modal-panel .rich-editor-surface h3 {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .modal-panel .rich-editor-surface:empty:before {
+            color: #94a3b8 !important;
+            -webkit-text-fill-color: #94a3b8 !important;
+          }
         }
 
         /* ── iPhone 15 Pro specific (393px wide) ── */
@@ -7113,9 +7250,9 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
   const divider = { width: 1, background: "rgba(255,255,255,0.1)", margin: "0 4px", alignSelf: "stretch" };
 
   return (
-    <div style={{ border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, overflow: "hidden", background: "#1A2233" }}>
+    <div className="rich-editor-shell" style={{ border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, overflow: "hidden", background: "#1A2233" }}>
       {/* ─── TOOLBAR ─── */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141A24", alignItems: "center" }}>
+      <div className="rich-editor-toolbar" style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141A24", alignItems: "center" }}>
         {/* Heading */}
         <select aria-label="Article heading style" onChange={e => exec("formatBlock", e.target.value)} defaultValue=""
           style={{ padding: "4px 6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", background: "#1A2233", color: "#ccc", fontSize: 12, cursor: "pointer", height: 28 }}>
@@ -7184,6 +7321,7 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
 
       {/* ─── EDITOR AREA ─── */}
       <div
+        className="rich-editor-surface"
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
@@ -7440,9 +7578,9 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
   const charCountStyle = (len: number, max: number) => ({ fontSize: 11, color: len > max ? "#ef4444" : "#6B7280", textAlign: "right" as const, marginTop: 2 });
 
   return (
-    <div style={{ display: "flex", gap: 0, minHeight: 500 }}>
+    <div className="blog-form-body" style={{ display: "flex", gap: 0, minHeight: 500 }}>
       {/* Sidebar Tabs */}
-      <div style={{ width: 130, background: "#0D1320", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px", flexShrink: 0 }}>
+      <div className="blog-form-tabs" style={{ width: 130, background: "#0D1320", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px", flexShrink: 0 }}>
         {tabs.map(t => (
           <button type="button" key={t.id} onClick={() => setActiveTab(t.id)} style={{ background: activeTab === t.id ? "rgba(255,107,0,0.15)" : "transparent", border: activeTab === t.id ? "1px solid rgba(255,107,0,0.3)" : "1px solid transparent", borderRadius: 8, padding: "10px 8px", color: activeTab === t.id ? "#FF6B00" : "#888", fontSize: 12, cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.15s" }}>
             {t.label}
@@ -7461,7 +7599,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
       </div>
 
       {/* Tab Content */}
-      <div style={{ flex: 1, padding: "20px 24px", overflowY: "auto", maxHeight: 580 }}>
+      <div className="blog-form-content" style={{ flex: 1, padding: "20px 24px", overflowY: "auto", maxHeight: 580 }}>
 
         {/* ── TAB: GENERAL ── */}
         {activeTab === "general" && (

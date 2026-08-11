@@ -1185,6 +1185,9 @@ export default function MarketingKpiDashboard({
       <style>{`
         /* Hallmark · macrostructure: Mobile Command Deck · tone: operational clarity · anchor hue: DWM orange */
         .mk-dashboard{font-family:'Prompt',sans-serif;color:#f8fafc;min-height:100%;background:radial-gradient(circle at 80% 0%,rgba(255,107,0,.18),transparent 34%),#080d14;border:1px solid rgba(255,107,0,.2);border-radius:24px;overflow:hidden;box-shadow:0 24px 90px rgba(0,0,0,.28)}
+        .mk-dashboard,.mk-dashboard *{box-sizing:border-box}
+        .mk-dashboard h1,.mk-dashboard h2,.mk-dashboard h3,.mk-dashboard h4,.mk-dashboard strong,.mk-dashboard b{color:#f8fafc;-webkit-text-fill-color:currentColor}
+        .mk-dashboard p,.mk-dashboard span,.mk-dashboard small,.mk-dashboard div,.mk-dashboard td,.mk-dashboard th{ -webkit-text-fill-color:currentColor}
         .mk-shell{display:grid;grid-template-columns:260px 1fr;min-height:calc(100dvh - 92px)}
         .mk-sidebar{background:linear-gradient(180deg,rgba(0,0,0,.42),rgba(0,0,0,.28));border-right:1px solid rgba(255,107,0,.18);padding:26px;position:sticky;top:0;height:calc(100dvh - 92px)}
         .mk-brand{display:flex;gap:14px;align-items:center;margin-bottom:28px}
@@ -1204,7 +1207,7 @@ export default function MarketingKpiDashboard({
         .mk-title{font-size:clamp(26px,3vw,38px);line-height:1.1;margin:12px 0 10px;font-weight:900}
         .mk-sub{color:#a8b0c0;max-width:760px;line-height:1.75}
         .mk-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-        .mk-btn{border:1px solid rgba(255,255,255,.12);background:#101827;color:#f8fafc;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer}
+        .mk-btn{border:1px solid rgba(255,255,255,.12);background:#101827;color:#f8fafc;-webkit-text-fill-color:#f8fafc;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer}
         .mk-btn.active{background:#c2410c;border-color:#c2410c;color:#fff}
         .mk-btn.orange{background:#c2410c;border-color:#c2410c;color:#fff}
         .mk-mobile-tabs{display:none;gap:8px;overflow:auto;padding:0 0 12px;margin:-4px 0 16px;scrollbar-width:none}
@@ -1216,7 +1219,7 @@ export default function MarketingKpiDashboard({
         .mk-mobile-chart{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);border-radius:16px;padding:14px}
         .mk-mobile-chart h3{margin:0 0 10px;font-size:15px}
         .mk-mobile-chart .mk-bar-list{margin-top:0;gap:10px}
-        .mk-date-controls{display:grid;gap:10px;justify-items:end}.mk-date-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields input{background:#101827;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:11px 12px;font:inherit}
+        .mk-date-controls{display:grid;gap:10px;justify-items:end}.mk-date-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields input{background:#101827;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;-webkit-text-fill-color:#fff;padding:11px 12px;font:inherit;color-scheme:dark}
         .mk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
         .mk-growth-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:16px}
         .mk-growth-card{background:linear-gradient(180deg,rgba(17,25,35,.98),rgba(10,16,24,.98));border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:18px;min-width:0}
@@ -1247,7 +1250,7 @@ export default function MarketingKpiDashboard({
         .mk-donut{width:210px;height:210px;border-radius:50%;background:conic-gradient(#ff6b00 0 34%,#22c55e 34% 56%,#2563eb 56% 76%,#8b5cf6 76% 100%);display:grid;place-items:center;margin:10px auto}
         .mk-donut-inner{width:118px;height:118px;border-radius:50%;background:#111923;display:grid;place-items:center;text-align:center;font-weight:900}
         .mk-split-chart{display:grid;grid-template-columns:minmax(140px,170px) minmax(0,1fr);gap:18px;align-items:center;margin-top:14px}.mk-split-chart .mk-donut{width:168px;height:168px;margin:0 auto}.mk-split-chart .mk-donut-inner{width:96px;height:96px}.mk-split-list{display:grid;gap:12px;min-width:0}.mk-split-list span,.mk-split-list strong{min-width:0}
-        .mk-table-wrap{overflow:auto;overscroll-behavior-x:contain}.mk-table-wrap.compact{max-height:560px;border-radius:14px;border:1px solid rgba(255,255,255,.06)}.mk-table-wrap.compact .mk-table th{position:sticky;top:0;background:#111923;z-index:3}.mk-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}.mk-table th,.mk-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.mk-table th{color:#94a3b8;font-size:12px}.mk-table td{color:#e5e7eb}.mk-table th:first-child,.mk-table td:first-child{position:sticky;left:0;background:#111923;z-index:2;box-shadow:10px 0 22px rgba(0,0,0,.22)}.mk-table th:first-child{z-index:4}.mk-table td strong{color:#fff}
+        .mk-table-wrap{overflow:auto;overscroll-behavior-x:contain}.mk-table-wrap.compact{max-height:560px;border-radius:14px;border:1px solid rgba(255,255,255,.06)}.mk-table-wrap.compact .mk-table th{position:sticky;top:0;background:#111923;z-index:3}.mk-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}.mk-table th,.mk-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.mk-table th{color:#94a3b8;font-size:12px}.mk-table td{color:#e5e7eb}.mk-table th:first-child,.mk-table td:first-child{position:sticky;left:0;background:#111923;z-index:2;box-shadow:10px 0 22px rgba(0,0,0,.22)}.mk-table th:first-child{z-index:4}.mk-table td strong{color:#fff}.mk-dashboard .mk-table th{color:#94a3b8!important;-webkit-text-fill-color:#94a3b8!important}.mk-dashboard .mk-table td{color:#e5e7eb!important;-webkit-text-fill-color:#e5e7eb!important}.mk-dashboard .mk-table td strong{color:#fff!important;-webkit-text-fill-color:#fff!important}
         .mk-badge{display:inline-flex;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900}
         .mk-budget{height:18px;background:#1f2937;border-radius:999px;overflow:hidden;margin:18px 0}.mk-budget span{display:block;height:100%;background:linear-gradient(90deg,#ff6b00,#22c55e)}
         .mk-funnel{display:grid;gap:10px;margin-top:16px}.mk-funnel div{border-radius:12px;padding:12px 16px;color:#fff;font-weight:900;display:flex;justify-content:space-between}
@@ -1260,10 +1263,68 @@ export default function MarketingKpiDashboard({
         .mk-status{font-weight:900;color:#f59e0b}.mk-status.ready{color:#22c55e}
         .mk-expiry{display:inline-flex;align-items:center;width:max-content;border-radius:999px;padding:6px 10px;margin-top:8px;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.12);color:#cbd5e1}.mk-expiry.ready{border-color:rgba(34,197,94,.35);color:#86efac;background:rgba(34,197,94,.08)}.mk-expiry.warning{border-color:rgba(245,158,11,.45);color:#fcd34d;background:rgba(245,158,11,.1)}.mk-expiry.danger{border-color:rgba(239,68,68,.45);color:#fca5a5;background:rgba(239,68,68,.1)}.mk-expiry.unknown{border-color:rgba(148,163,184,.35);color:#cbd5e1;background:rgba(148,163,184,.08)}.mk-source-tools{display:grid;gap:8px;justify-items:end}.mk-expiry-editor{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.mk-expiry-editor input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:10px 12px;font:inherit;min-width:190px}
         .mk-log-list{display:grid;gap:8px;max-height:260px;overflow:auto}.mk-log-item{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;background:rgba(0,0,0,.18);color:#cbd5e1;font-size:13px;line-height:1.55}
-        .mk-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mk-field{display:grid;gap:6px}.mk-field span{color:#94a3b8;font-size:12px;font-weight:800}.mk-input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#f8fafc;padding:12px 14px;font:inherit;min-width:0}.mk-textarea{grid-column:1/-1;min-height:86px;resize:vertical}.mk-tag-row{display:flex;flex-wrap:wrap;gap:8px}.mk-tag{border:1px solid rgba(255,107,0,.35);background:transparent;color:#f8fafc;border-radius:999px;padding:8px 10px;font-weight:800;cursor:pointer}.mk-tag.active{background:#c2410c;border-color:#c2410c;color:#fff}.mk-alert{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#fde68a;border-radius:14px;padding:12px 14px;font-weight:800}
+        .mk-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mk-field{display:grid;gap:6px}.mk-field span{color:#94a3b8;font-size:12px;font-weight:800}.mk-input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#f8fafc;-webkit-text-fill-color:#f8fafc;padding:12px 14px;font:inherit;min-width:0;color-scheme:dark}.mk-input option{background:#0b1220;color:#f8fafc}.mk-textarea{grid-column:1/-1;min-height:86px;resize:vertical}.mk-tag-row{display:flex;flex-wrap:wrap;gap:8px}.mk-tag{border:1px solid rgba(255,107,0,.35);background:transparent;color:#f8fafc;border-radius:999px;padding:8px 10px;font-weight:800;cursor:pointer}.mk-tag.active{background:#c2410c;border-color:#c2410c;color:#fff}.mk-alert{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#fde68a;border-radius:14px;padding:12px 14px;font-weight:800}
         @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:flex;position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(8,13,20,.98),rgba(8,13,20,.9));backdrop-filter:blur(18px);padding:10px 0 12px}.mk-grid,.mk-growth-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid,.mk-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
         @media(max-width:640px){
           .mk-dashboard{width:100%;max-width:100vw;border-radius:0;border-left:0;border-right:0;background:linear-gradient(180deg,rgba(255,107,0,.13),transparent 220px),#080d14;overflow:hidden}
+          .mk-dashboard,
+          .mk-dashboard h1,
+          .mk-dashboard h2,
+          .mk-dashboard h3,
+          .mk-dashboard strong,
+          .mk-dashboard b,
+          .mk-dashboard .mk-title,
+          .mk-dashboard .mk-card strong,
+          .mk-dashboard .mk-growth-value,
+          .mk-dashboard .mk-bar-head,
+          .mk-dashboard .mk-chart-head {
+            color:#f8fafc!important;
+            -webkit-text-fill-color:#f8fafc!important;
+          }
+          .mk-dashboard p,
+          .mk-dashboard small,
+          .mk-dashboard .mk-sub,
+          .mk-dashboard .mk-card span,
+          .mk-dashboard .mk-panel p,
+          .mk-dashboard .mk-chart-sub,
+          .mk-dashboard .mk-source span,
+          .mk-dashboard .mk-mini div {
+            color:#cbd5e1!important;
+            -webkit-text-fill-color:#cbd5e1!important;
+          }
+          .mk-dashboard .mk-eyebrow,
+          .mk-dashboard .mk-nav-desc {
+            color:#ff8a3d!important;
+            -webkit-text-fill-color:#ff8a3d!important;
+          }
+          .mk-dashboard input,
+          .mk-dashboard select,
+          .mk-dashboard textarea,
+          .mk-dashboard .mk-input {
+            background:#101827!important;
+            border-color:rgba(255,255,255,.16)!important;
+            color:#f8fafc!important;
+            -webkit-text-fill-color:#f8fafc!important;
+            color-scheme:dark!important;
+          }
+          .mk-dashboard select option,
+          .mk-dashboard .mk-input option {
+            background:#101827!important;
+            color:#f8fafc!important;
+          }
+          .mk-dashboard button,
+          .mk-dashboard .mk-btn {
+            color:#f8fafc!important;
+            -webkit-text-fill-color:#f8fafc!important;
+          }
+          .mk-dashboard .mk-btn.active,
+          .mk-dashboard .mk-btn.orange,
+          .mk-dashboard .mk-mobile-jump button.active {
+            background:#c2410c!important;
+            border-color:#c2410c!important;
+            color:#fff!important;
+            -webkit-text-fill-color:#fff!important;
+          }
           .mk-shell,.mk-main{min-width:0;max-width:100%}
           .mk-main{padding:12px 10px 112px;overflow-x:hidden}
           .mk-top{display:block;margin:-2px 0 10px;padding:14px;border:1px solid rgba(255,107,0,.18);border-radius:18px;background:linear-gradient(135deg,rgba(255,107,0,.14),rgba(17,25,35,.84));overflow:hidden}
