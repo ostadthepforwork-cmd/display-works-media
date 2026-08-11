@@ -235,7 +235,7 @@ function Navbar() {
           <a
             href="#quote"
             className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 text-white"
-            style={{ background: "#FF7A00", boxShadow: "0 4px 20px rgba(255,122,0,0.2)" }}
+            style={{ background: "#C2410C", boxShadow: "0 4px 20px rgba(255,122,0,0.2)" }}
           >
             ขอใบเสนอราคา
           </a>
@@ -243,7 +243,7 @@ function Navbar() {
 
         {/* Mobile Hamburger */}
         <button
-          className="lg:hidden text-white p-2"
+          type="button" className="lg:hidden text-white p-2"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
@@ -275,7 +275,7 @@ function Navbar() {
             <a
               href="#quote"
               className="mt-2 text-white text-center py-3 rounded-lg font-semibold text-sm"
-              style={{ background: "#FF7A00" }}
+              style={{ background: "#C2410C" }}
               onClick={() => setMobileOpen(false)}
             >
               ขอใบเสนอราคา
@@ -374,7 +374,7 @@ export default function VinylServicePage() {
                   color: "#FF7A00",
                 }}
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] animate-pulse" />
                 บริการออกแบบและผลิต
               </div>
 
@@ -384,12 +384,12 @@ export default function VinylServicePage() {
               >
                 บริการออกแบบและผลิต
               </h1>
-              <h1
+              <div
                 className="font-['Kanit',sans-serif] font-extrabold leading-tight mb-5 drop-shadow-md"
                 style={{ fontSize: "clamp(36px,5vw,60px)", color: "#FF7A00" }}
               >
                 ป้ายไวนิล
-              </h1>
+              </div>
 
               <p className="text-base leading-relaxed mb-8 max-w-md text-gray-200">
                 ป้ายไวนิลคุณภาพสูง สีสด คมชัด ทนแดด ทนฝน
@@ -420,7 +420,7 @@ export default function VinylServicePage() {
                 <a
                   href="#quote"
                   className="inline-flex items-center gap-2 px-7 py-4 rounded-xl font-bold text-white text-sm transition-all duration-200 hover:-translate-y-0.5"
-                  style={{ background: "#FF7A00", boxShadow: "0 4px 24px rgba(255,122,0,0.4)" }}
+                  style={{ background: "#C2410C", boxShadow: "0 4px 24px rgba(255,122,0,0.4)" }}
                 >
                   ขอใบเสนอราคา
                   <ArrowRight size={16} />
@@ -483,7 +483,7 @@ export default function VinylServicePage() {
                 {s.popular && (
                   <div
                     className="absolute -top-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap"
-                    style={{ background: "#FF7A00", color: "#fff" }}
+                    style={{ background: "#C2410C", color: "#fff" }}
                   >
                     ยอดนิยม
                   </div>
@@ -527,7 +527,7 @@ export default function VinylServicePage() {
               </div>
               <div className="font-semibold text-sm text-white">ขนาดพิเศษ</div>
               <p className="text-xs" style={{ color: "#A7B0C0" }}>สั่งผลิตตามขนาดที่ต้องการได้</p>
-              <button
+              <button type="button"
                 className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
                 style={{ background: "rgba(255,122,0,0.1)", color: "#FF7A00" }}
               >
@@ -589,7 +589,7 @@ export default function VinylServicePage() {
                     {m.tag && (
                       <div
                         className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-bold"
-                        style={{ background: "#FF7A00", color: "#fff" }}
+                        style={{ background: "#C2410C", color: "#fff" }}
                       >
                         {m.tag}
                       </div>
@@ -784,14 +784,14 @@ export default function VinylServicePage() {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => setPortfolioIndex(Math.max(0, portfolioIndex - 1))}
+               type="button"  onClick={() => setPortfolioIndex(Math.max(0, portfolioIndex - 1))}
                 className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all"
                 style={{ background: "#050806", borderColor: "rgba(255,255,255,0.1)" }}
               >
                 <ChevronLeft size={18} />
               </button>
               <button
-                onClick={() => setPortfolioIndex(Math.min(portfolioItems.length - 1, portfolioIndex + 1))}
+               type="button"  onClick={() => setPortfolioIndex(Math.min(portfolioItems.length - 1, portfolioIndex + 1))}
                 className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all"
                 style={{ background: "#050806", borderColor: "rgba(255,255,255,0.1)" }}
               >
@@ -826,7 +826,7 @@ export default function VinylServicePage() {
                   </div>
                   <div
                     className="px-2.5 py-1 rounded-full text-xs font-semibold"
-                    style={{ background: "#FF7A00", color: "#fff" }}
+                    style={{ background: "#C2410C", color: "#fff" }}
                   >
                     {p.sub}
                   </div>
@@ -1055,7 +1055,7 @@ export default function VinylServicePage() {
               href="#quote"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5"
               style={{
-                background: "#FF7A00",
+                background: "#C2410C",
                 boxShadow: "0 4px 24px rgba(255,122,0,0.25)",
               }}
             >
@@ -1106,7 +1106,7 @@ export default function VinylServicePage() {
                 }}
               >
                 <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                 type="button"  onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
                 >
                   <span
@@ -1222,7 +1222,7 @@ export default function VinylServicePage() {
             <a
               href="#quote"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white text-sm transition-all hover:-translate-y-0.5"
-              style={{ background: "#FF7A00", boxShadow: "0 6px 28px rgba(255,122,0,0.3)" }}
+              style={{ background: "#C2410C", boxShadow: "0 6px 28px rgba(255,122,0,0.3)" }}
             >
               ขอใบเสนอราคา
               <ArrowRight size={16} />
@@ -1232,7 +1232,7 @@ export default function VinylServicePage() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white text-sm transition-all hover:-translate-y-0.5"
-              style={{ background: "#06C755", boxShadow: "0 6px 28px rgba(6,199,85,0.25)" }}
+              style={{ background: "#047857", boxShadow: "0 6px 28px rgba(4,120,87,0.25)" }}
             >
               <MessageCircle size={16} />
               แอดไลน์

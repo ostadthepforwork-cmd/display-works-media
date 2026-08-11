@@ -25,10 +25,10 @@ const navLinks = [
 
 // เปลี่ยนข้อมูลให้เป็นของ Sticker / Label
 const materials = [
-  { 
-    name: "สติกเกอร์ PP (เงา / ด้าน)", 
-    desc: "วัสดุเนื้อพลาสติกยอดนิยม ให้ผิวสัมผัสเรียบเนียน ไม่ฉีกขาด กันน้ำได้ 100% เหมาะสำหรับสินค้าพรีเมียมที่ต้องแช่เย็นหรือโดนน้ำ", 
-    image: "/images/sticker/sticker-pp.jpg", 
+  {
+    name: "สติกเกอร์ PP (เงา / ด้าน)",
+    desc: "วัสดุเนื้อพลาสติกยอดนิยม ให้ผิวสัมผัสเรียบเนียน ไม่ฉีกขาด กันน้ำได้ 100% เหมาะสำหรับสินค้าพรีเมียมที่ต้องแช่เย็นหรือโดนน้ำ",
+    image: "/images/sticker/sticker-pp.jpg",
     highlights: [
       "กันน้ำ 100% สามารถแช่น้ำหรือแช่แข็งได้โดยที่สีไม่ลอก",
       "เนื้อพลาสติกเหนียว ทนทาน ฉีกไม่ขาด",
@@ -40,10 +40,10 @@ const materials = [
       "กล่องอาหารแช่เย็น / อาหารแช่แข็ง"
     ]
   },
-  { 
-    name: "สติกเกอร์ใส (Clear PP)", 
-    desc: "เนื้อพลาสติกใสโปร่งแสง ทะลุเห็นพื้นผิวของบรรจุภัณฑ์หรือเนื้อสินค้าด้านใน ให้ลุคที่ดูทันสมัยและเป็นหนึ่งเดียวกับตัวขวด", 
-    image: "/images/sticker/sticker-clear.jpg", 
+  {
+    name: "สติกเกอร์ใส (Clear PP)",
+    desc: "เนื้อพลาสติกใสโปร่งแสง ทะลุเห็นพื้นผิวของบรรจุภัณฑ์หรือเนื้อสินค้าด้านใน ให้ลุคที่ดูทันสมัยและเป็นหนึ่งเดียวกับตัวขวด",
+    image: "/images/sticker/sticker-clear.jpg",
     highlights: [
       "ใสเคลียร์ กลมกลืนไปกับผิวบรรจุภัณฑ์ ดูเหมือนพิมพ์ลงบนขวดโดยตรง",
       "กันน้ำได้ 100% กาวเหนียวไม่ทิ้งคราบ",
@@ -55,10 +55,10 @@ const materials = [
       "สติกเกอร์ปิดปากถุงขนม หรือ Seal ป้องกันการแกะ"
     ]
   },
-  { 
-    name: "สติกเกอร์กระดาษ", 
-    desc: "เนื้อวัสดุเป็นกระดาษ สีสันสดใส คมชัด ราคาประหยัดและคุ้มค่าที่สุด เหมาะสำหรับสินค้าที่ไม่มีความจำเป็นต้องโดนน้ำ", 
-    image: "/images/sticker/sticker-paper.jpg", 
+  {
+    name: "สติกเกอร์กระดาษ",
+    desc: "เนื้อวัสดุเป็นกระดาษ สีสันสดใส คมชัด ราคาประหยัดและคุ้มค่าที่สุด เหมาะสำหรับสินค้าที่ไม่มีความจำเป็นต้องโดนน้ำ",
+    image: "/images/sticker/sticker-paper.jpg",
     highlights: [
       "ราคาประหยัดที่สุด ช่วยลดต้นทุนบรรจุภัณฑ์ได้อย่างดีเยี่ยม",
       "งานพิมพ์สีสด คมชัด เนื้อกระดาษเนียนสวยงาม",
@@ -149,7 +149,7 @@ const serviceLinks = [
 
 const socials = [
   { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61581015452518", label: "Facebook", hoverBg: "#1877F2" },
-  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#06C755" },
+  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#047857" },
   { icon: Instagram, href: "https://instagram.com", label: "Instagram", hoverBg: "#E1306C" },
 ];
 
@@ -202,9 +202,9 @@ function Navbar() {
           ))}
         </div>
         <div className="hidden lg:flex items-center gap-4">
-          <a href="#quote" className="bg-[#FF7A00] hover:bg-[#e56a00] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all">ขอใบเสนอราคา</a>
+          <a href="#quote" className="bg-[#C2410C] hover:bg-[#9A3412] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all">ขอใบเสนอราคา</a>
         </div>
-        <button className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button type="button" className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -214,7 +214,7 @@ function Navbar() {
             {navLinks.map((link) => (
               <a key={link.label} href={link.href} className="text-[#A7B0C0] hover:text-white text-base" onClick={() => setMobileOpen(false)}>{link.label}</a>
             ))}
-            <a href="#quote" className="mt-2 bg-[#FF7A00] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
+            <a href="#quote" className="mt-2 bg-[#C2410C] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
           </motion.div>
         )}
       </AnimatePresence>
@@ -228,7 +228,7 @@ export default function LabelServicePage() {
   const cms = useCmsSettings();
   const serviceText = (field: string, fallback: string) => cmsValue(cms, `servicesDetail.label.${field}`, fallback);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  
+
   // Form State
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -265,27 +265,27 @@ export default function LabelServicePage() {
       {/* ── 1. HERO SECTION ── */}
       <section id="hero" className="relative overflow-hidden flex items-center min-h-[560px] bg-[#050806]">
         <Image src="/images/services/product-label-hero.jpg" alt="Product Label Printing" fill priority className="object-cover object-[center_right] z-0" />
-        
+
         {/* Overlays */}
         <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(to right, #050806 10%, rgba(5, 8, 6, 0.85) 45%, rgba(5, 8, 6, 0.3) 75%, transparent 100%)" }} />
         <div className="absolute -bottom-2 left-0 right-0 h-[300px] lg:h-[400px] z-0 pointer-events-none" style={{ background: "linear-gradient(to top, #050806 0%, rgba(5,8,6,0.8) 50%, transparent 100%)" }} />
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full pt-16 pb-24"> 
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full pt-16 pb-24">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="max-w-3xl">
-            
+
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-transparent">
               {serviceText("eyebrow", "บริการพิมพ์และไดคัทสติกเกอร์")}
             </div>
-            
+
             <h1 className="font-['Kanit'] font-extrabold text-5xl lg:text-7xl mb-6 leading-tight text-white">
               {serviceText("title", "พิมพ์ฉลากสินค้า")}
               <span className="block text-[#FF7A00]">{serviceText("highlight", "ระบบดิจิตอล")}</span>
             </h1>
-            
+
             <p className="text-base text-gray-300 max-w-xl mb-10 leading-relaxed">
               {serviceText("subtitle", "ยกระดับแบรนด์ของคุณด้วยฉลากสินค้าสีสด คมชัด ไดคัทฟรีฟอร์ม ลอกแปะง่าย ติดแน่นทนนาน รองรับงานกันน้ำ แช่เย็นได้ 100%")}
             </p>
-            
+
             {/* Features Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
               {stickerFeatures.map((f, i) => (
@@ -300,17 +300,17 @@ export default function LabelServicePage() {
                 </div>
               ))}
             </div>
-            
+
             {/* Buttons */}
             <div className="flex flex-wrap gap-4">
-              <a href="#quote" className="bg-[#FF7A00] hover:bg-[#FF8C33] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#FF7A00]/20">
+              <a href="#quote" className="bg-[#C2410C] hover:bg-[#9A3412] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#FF7A00]/20">
                 ขอใบเสนอราคา <ArrowRight size={18} />
               </a>
               <a href="https://lin.ee/O0nPl03" target="_blank" rel="noopener noreferrer" className="bg-[#00B900] hover:bg-[#009900] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#00B900]/20">
                 <MessageCircle size={18} /> ปรึกษาฟรีผ่าน LINE
               </a>
             </div>
-            
+
           </motion.div>
         </div>
       </section>
@@ -320,7 +320,7 @@ export default function LabelServicePage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-['Kanit'] font-bold text-white mb-6">เลือกเนื้อวัสดุสติกเกอร์ที่เหมาะกับสินค้า</h2>
-            
+
             <div className="bg-[#141A24] border border-white/5 p-6 rounded-2xl mb-10 shadow-lg">
               <p className="text-gray-300 leading-relaxed text-sm sm:text-base">
                 <strong className="text-[#FF7A00]">ฉลากสินค้าที่ดี</strong> ต้องไม่เพียงแต่สวยงาม แต่ต้องเลือกใช้วัสดุที่ตอบโจทย์การใช้งานจริง เช่น สินค้าแช่เย็นต้องใช้เนื้อพลาสติก PP กันน้ำ หรือแพคเกจจิ้งขนมแห้ง สามารถใช้กระดาษเพื่อลดต้นทุนได้
@@ -336,7 +336,7 @@ export default function LabelServicePage() {
                   <div className="relative aspect-video w-full bg-[#141A24] border-b border-white/5">
                     <Image src={item.image} alt={item.name} fill className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   </div>
-                  
+
                   <div className="p-8 flex flex-col flex-grow">
                     <h3 className="text-xl font-bold mb-3 text-[#FF7A00]">{item.name}</h3>
                     <p className="text-gray-300 text-sm leading-relaxed mb-6">
@@ -349,7 +349,7 @@ export default function LabelServicePage() {
                       <ul className="space-y-2 mb-6">
                         {item.highlights.map((p, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{p}</span>
                           </li>
                         ))}
@@ -359,7 +359,7 @@ export default function LabelServicePage() {
                       <ul className="space-y-2">
                         {item.uses.map((u, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{u}</span>
                           </li>
                         ))}
@@ -408,7 +408,7 @@ export default function LabelServicePage() {
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
             <table className="w-full text-left bg-[#050806]">
-              <thead className="bg-[#FF7A00] text-white">
+              <thead className="bg-[#C2410C] text-white">
                 <tr>
                   <th className="px-6 py-4 font-bold">ขนาด</th>
                   <th className="px-6 py-4 font-bold">การใช้งานที่แนะนำ</th>
@@ -442,7 +442,7 @@ export default function LabelServicePage() {
               <motion.div key={i} whileHover={{ scale: 1.05 }} className="relative aspect-square rounded-3xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer bg-[#0E1310]">
                 <Image src={src} alt="Portfolio" fill className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6">
-                   <div className="bg-[#FF7A00] p-3 rounded-full"><Check size={24} className="text-white" /></div>
+                   <div className="bg-[#C2410C] p-3 rounded-full"><Check size={24} className="text-white" /></div>
                 </div>
               </motion.div>
             ))}
@@ -536,7 +536,7 @@ export default function LabelServicePage() {
 
           {/* CTA */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.5 }} className="text-center mt-16">
-            <a href="#quote" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5" style={{ background: "#FF6B00", boxShadow: "0 4px 24px rgba(255,107,0,0.25)" }}>
+            <a href="#quote" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5" style={{ background: "#C2410C", boxShadow: "0 4px 24px rgba(255,107,0,0.25)" }}>
               เริ่มต้นสั่งงานเลย
             </a>
           </motion.div>
@@ -550,7 +550,7 @@ export default function LabelServicePage() {
           <div className="space-y-4">
             {faqs.map((faq, i) => (
               <div key={i} className="bg-[#0E1310] rounded-2xl overflow-hidden border border-white/5 shadow-lg">
-                <button className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                <button type="button" className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span className="font-bold text-sm">{faq.q}</span>
                   {openFaq === i ? <Minus size={18} className="text-[#FF7A00]" /> : <Plus size={18} className="text-gray-500" />}
                 </button>
@@ -571,10 +571,10 @@ export default function LabelServicePage() {
       <section id="legacy-quote" className="py-24 bg-[#0B0F19] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
-            
+
             {/* Left Info */}
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="lg:col-span-2">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-[#FF7A00]/10">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-[#C2410C]/10">
                 ขอใบเสนอราคา
               </div>
               <h2 className="text-4xl lg:text-5xl font-['Kanit'] font-extrabold mb-6 leading-tight text-white">
@@ -614,7 +614,7 @@ export default function LabelServicePage() {
                     <CheckCircle size={56} className="text-[#FF7A00]" />
                     <h3 className="font-['Kanit'] font-bold text-2xl text-white">ส่งข้อมูลสำเร็จ!</h3>
                     <p className="text-gray-400 text-sm max-w-xs">ทีมงานได้รับข้อมูลของคุณแล้ว จะติดต่อกลับพร้อมใบเสนอราคาโดยเร็วที่สุดครับ</p>
-                    <button onClick={() => setSubmitted(false)} className="mt-4 text-sm underline text-[#FF7A00]">ส่งข้อมูลขอราคาอีกครั้ง</button>
+                    <button type="button" onClick={() => setSubmitted(false)} className="mt-4 text-sm underline text-[#FF7A00]">ส่งข้อมูลขอราคาอีกครั้ง</button>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
@@ -662,7 +662,7 @@ export default function LabelServicePage() {
                       </label>
                     </div>
 
-                    <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-white text-base transition-all duration-200 disabled:opacity-70 bg-[#FF7A00] hover:bg-[#FF8C33] shadow-lg shadow-[#FF7A00]/20 mt-4">
+                    <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-white text-base transition-all duration-200 disabled:opacity-70 bg-[#C2410C] hover:bg-[#9A3412] shadow-lg shadow-[#FF7A00]/20 mt-4">
                       {loading ? (
                         <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> กำลังประมวลผล...</>
                       ) : (

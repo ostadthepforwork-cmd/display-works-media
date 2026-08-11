@@ -11,8 +11,8 @@ const floatButtons = [
     icon: MessageCircle,
     href: "https://lin.ee/O0nPl03",
     label: "LINE",
-    bg: "#06C755",
-    shadow: "rgba(6,199,85,0.35)",
+    bg: "#047857",
+    shadow: "rgba(4,120,87,0.35)",
   },
   {
     icon: Facebook,
@@ -24,7 +24,7 @@ const floatButtons = [
   {
     icon: Phone,
     href: "tel:0659161539",
-    label: "โทร",
+    label: "à¹‚à¸—à¸£",
     bg: "#FF6B00",
     shadow: "rgba(255,107,0,0.4)",
   },
@@ -45,7 +45,7 @@ export default function FloatingButtons() {
 
   return (
     <>
-      {/* ── Desktop: floating buttons (right side) ── */}
+      {/* â”€â”€ Desktop: floating buttons (right side) â”€â”€ */}
       <div
         className="fixed right-5 bottom-8 z-50 hidden lg:flex flex-col gap-3 transition-all duration-500"
         style={{
@@ -79,7 +79,7 @@ export default function FloatingButtons() {
         ))}
       </div>
 
-      {/* ── Mobile: sticky bar at bottom ── */}
+      {/* â”€â”€ Mobile: sticky bar at bottom â”€â”€ */}
       <div
         className="fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-all duration-500"
         style={{
@@ -102,31 +102,31 @@ export default function FloatingButtons() {
             className="order-3 flex flex-col items-center justify-center gap-1 py-4 text-white transition-colors hover:bg-white/5"
           >
             <FileText size={20} style={{ color: "#FF6500" }} />
-            <span className="text-xs font-medium">ขอราคา</span>
+            <span className="text-xs font-medium">à¸‚à¸­à¸£à¸²à¸„à¸²</span>
           </Link>
 
-          {/* LINE — primary mobile action */}
+          {/* LINE â€” primary mobile action */}
           <a
             href="https://lin.ee/O0nPl03"
             target="_blank"
             rel="noopener noreferrer"
             className="order-1 flex flex-col items-center justify-center gap-1 py-4 text-white font-bold text-sm transition-all duration-200 active:scale-95"
             style={{
-            background: "#06C755",
-            boxShadow: "0 0 30px rgba(6,199,85,0.28)",
+            background: "#047857",
+            boxShadow: "0 0 30px rgba(4,120,87,0.28)",
             }}
           >
             <MessageCircle size={20} />
             <span className="text-xs font-semibold">LINE</span>
           </a>
 
-          {/* โทร */}
+          {/* à¹‚à¸—à¸£ */}
           <a
             href="tel:0659161539"
             className="order-2 flex flex-col items-center justify-center gap-1 py-4 transition-colors hover:bg-white/5"
           >
             <Phone size={20} style={{ color: "#FF6500" }} />
-            <span className="text-xs text-white font-medium">โทรเลย</span>
+            <span className="text-xs text-white font-medium">à¹‚à¸—à¸£à¹€à¸¥à¸¢</span>
           </a>
         </div>
 

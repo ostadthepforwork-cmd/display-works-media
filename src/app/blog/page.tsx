@@ -12,8 +12,8 @@ import { blogPostPath } from "@/lib/blog-slug";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "บทความและความรู้งานพิมพ์ | Display Works Media",
-  description: "เทคนิค ไอเดีย และความรู้เกี่ยวกับงานพิมพ์และสื่อโฆษณา จากทีมผู้เชี่ยวชาญ Display Works Media",
+  title: "à¸šà¸—à¸„à¸§à¸²à¸¡à¹à¸¥à¸°à¸„à¸§à¸²à¸¡à¸£à¸¹à¹‰à¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œ | Display Works Media",
+  description: "à¹€à¸—à¸„à¸™à¸´à¸„ à¹„à¸­à¹€à¸”à¸µà¸¢ à¹à¸¥à¸°à¸„à¸§à¸²à¸¡à¸£à¸¹à¹‰à¹€à¸à¸µà¹ˆà¸¢à¸§à¸à¸±à¸šà¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œà¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸² à¸ˆà¸²à¸à¸—à¸µà¸¡à¸œà¸¹à¹‰à¹€à¸Šà¸µà¹ˆà¸¢à¸§à¸Šà¸²à¸ Display Works Media",
   alternates: { canonical: "https://displayworksmedia.com/blog" },
 };
 
@@ -22,7 +22,7 @@ function fmtDateTH(dateStr: string) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
 }
 function readTimeTH(body: string) {
-  return `${Math.max(1, Math.round((body || "").length / 5 / 200))} นาที`;
+  return `${Math.max(1, Math.round((body || "").length / 5 / 200))} à¸™à¸²à¸—à¸µ`;
 }
 
 function withTimeout<T>(promise: Promise<T>, ms = 3000): Promise<T> {
@@ -35,7 +35,7 @@ function withTimeout<T>(promise: Promise<T>, ms = 3000): Promise<T> {
 }
 
 export default async function BlogPage() {
-  // สร้าง supabase client ภายใน function — ป้องกัน connection leak ใน serverless
+  // à¸ªà¸£à¹‰à¸²à¸‡ supabase client à¸ à¸²à¸¢à¹ƒà¸™ function â€” à¸›à¹‰à¸­à¸‡à¸à¸±à¸™ connection leak à¹ƒà¸™ serverless
   let allPosts: any[] = [];
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -62,7 +62,7 @@ export default async function BlogPage() {
 
   const featuredPost = allPosts[0];
   const regularPosts = allPosts.slice(1);
-  const categories = ["ทั้งหมด", ...Array.from(new Set(allPosts.map((p) => p.category).filter(Boolean)))];
+  const categories = ["à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”", ...Array.from(new Set(allPosts.map((p) => p.category).filter(Boolean)))];
   const featuredCover = safeImageSrc(featuredPost?.cover);
   const featuredCoverAlt = featuredPost?.cover_alt?.trim() || featuredPost?.title || "";
 
@@ -75,7 +75,7 @@ export default async function BlogPage() {
         <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-sm text-[#A7B0C0]">
           <Home size={14} aria-hidden="true" />
           <ChevronRight size={14} aria-hidden="true" />
-          <span className="text-[#FF7A00]">บทความ</span>
+          <span className="text-[#FF7A00]">à¸šà¸—à¸„à¸§à¸²à¸¡</span>
         </div>
       </div>
 
@@ -87,13 +87,13 @@ export default async function BlogPage() {
               KNOWLEDGE CENTER
             </div>
             <h1 className="blog-knowledge-title w-full text-center font-kanit font-extrabold text-4xl lg:text-6xl text-white mb-4">
-              บทความและ<span style={{ color: "#FF7A00" }}>ความรู้</span>
+              à¸šà¸—à¸„à¸§à¸²à¸¡à¹à¸¥à¸°<span style={{ color: "#FF7A00" }}>à¸„à¸§à¸²à¸¡à¸£à¸¹à¹‰</span>
             </h1>
             <p className="blog-knowledge-subtitle text-[#A7B0C0] text-base max-w-xl mx-auto">
-              เทคนิค ไอเดีย และความรู้เกี่ยวกับงานพิมพ์และสื่อโฆษณา จากทีมผู้เชี่ยวชาญ
+              à¹€à¸—à¸„à¸™à¸´à¸„ à¹„à¸­à¹€à¸”à¸µà¸¢ à¹à¸¥à¸°à¸„à¸§à¸²à¸¡à¸£à¸¹à¹‰à¹€à¸à¸µà¹ˆà¸¢à¸§à¸à¸±à¸šà¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œà¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸² à¸ˆà¸²à¸à¸—à¸µà¸¡à¸œà¸¹à¹‰à¹€à¸Šà¸µà¹ˆà¸¢à¸§à¸Šà¸²à¸
             </p>
           </div>
-          {/* Search + category filter — client component เล็กๆ */}
+          {/* Search + category filter â€” client component à¹€à¸¥à¹‡à¸à¹† */}
           <BlogClientShell posts={allPosts} categories={categories} />
         </div>
       </section>
@@ -103,10 +103,10 @@ export default async function BlogPage() {
           <div className="flex items-end justify-between gap-4 mb-6">
             <div>
               <div className="section-label">CONTENT HUB</div>
-              <h2 className="font-kanit font-bold text-2xl lg:text-3xl text-white">หมวดบทความ</h2>
+              <h2 className="font-kanit font-bold text-2xl lg:text-3xl text-white">à¸«à¸¡à¸§à¸”à¸šà¸—à¸„à¸§à¸²à¸¡</h2>
             </div>
             <Link href="/services" className="hidden sm:inline-flex items-center gap-2 text-[#FF7A00] text-sm font-semibold">
-              ดูบริการทั้งหมด <ArrowRight size={15} />
+              à¸”à¸¹à¸šà¸£à¸´à¸à¸²à¸£à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸” <ArrowRight size={15} />
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -124,11 +124,11 @@ export default async function BlogPage() {
         </div>
       </section>
 
-      {/* FEATURED — server-rendered, Google เห็นทันที */}
+      {/* FEATURED â€” server-rendered, Google à¹€à¸«à¹‡à¸™à¸—à¸±à¸™à¸—à¸µ */}
       {featuredPost && (
         <section className="py-16 bg-[#070A0F]">
           <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8">
-            <p className="text-xs font-bold tracking-widest text-[#FF7A00] mb-6 uppercase">บทความล่าสุด</p>
+            <p className="text-xs font-bold tracking-widest text-[#FF7A00] mb-6 uppercase">à¸šà¸—à¸„à¸§à¸²à¸¡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”</p>
             <Link
               href={blogPostPath(featuredPost.slug)}
               className="group grid lg:grid-cols-2 gap-0 rounded-lg overflow-hidden border border-white/5 bg-[#10151D] hover:border-[#FF6500]/30 transition-all duration-300"
@@ -143,11 +143,11 @@ export default async function BlogPage() {
                     className="blog-cover-img group-hover:scale-[1.02] transition-transform duration-500"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-sm">ไม่มีรูปปก</div>
+                  <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-sm">à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸¹à¸›à¸›à¸</div>
                 )}
               </div>
               <div className="p-8 lg:p-12 flex flex-col justify-center">
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#FF7A00]/10 text-[#FF7A00] border border-[#FF7A00]/20 mb-4 w-fit">
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#C2410C]/10 text-[#FF7A00] border border-[#FF7A00]/20 mb-4 w-fit">
                   {featuredPost.category}
                 </span>
                 <h2 className="font-kanit font-bold text-2xl lg:text-3xl text-white mb-4 leading-snug group-hover:text-[#FF7A00] transition-colors">
@@ -156,10 +156,10 @@ export default async function BlogPage() {
                 <p className="text-[#A7B0C0] text-sm leading-relaxed mb-6">{featuredPost.excerpt}</p>
                 <div className="flex items-center gap-4 text-xs text-[#A7B0C0] mb-6">
                   <span className="flex items-center gap-1.5"><Calendar size={13} aria-hidden="true" /> {fmtDateTH(featuredPost.date)}</span>
-                  <span className="flex items-center gap-1.5"><Clock size={13} aria-hidden="true" /> อ่าน {readTimeTH(featuredPost.body)}</span>
+                  <span className="flex items-center gap-1.5"><Clock size={13} aria-hidden="true" /> à¸­à¹ˆà¸²à¸™ {readTimeTH(featuredPost.body)}</span>
                 </div>
                 <span className="inline-flex items-center gap-2 text-[#FF7A00] text-sm font-semibold">
-                  อ่านบทความ <ArrowRight size={16} aria-hidden="true" />
+                  à¸­à¹ˆà¸²à¸™à¸šà¸—à¸„à¸§à¸²à¸¡ <ArrowRight size={16} aria-hidden="true" />
                 </span>
               </div>
             </Link>
@@ -167,7 +167,7 @@ export default async function BlogPage() {
         </section>
       )}
 
-      {/* GRID — server-rendered */}
+      {/* GRID â€” server-rendered */}
       {regularPosts.length > 0 && (
         <section className="py-16 bg-[#070A0F]">
           <div className="max-w-[1380px] mx-auto px-5 sm:px-6 lg:px-8">
@@ -188,7 +188,7 @@ export default async function BlogPage() {
                           className="blog-cover-img group-hover:scale-[1.02] transition-transform duration-500"
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>
+                        <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸¹à¸›à¸›à¸</div>
                       )}
                       {post.category && (
                         <div className="absolute top-3 left-3">
@@ -208,7 +208,7 @@ export default async function BlogPage() {
                       </h3>
                       <p className="text-[#A7B0C0] text-sm leading-relaxed line-clamp-2 mb-4">{post.excerpt}</p>
                       <span className="inline-flex items-center gap-1.5 text-[#FF7A00] text-xs font-semibold">
-                        อ่านต่อ <ArrowRight size={14} aria-hidden="true" />
+                        à¸­à¹ˆà¸²à¸™à¸•à¹ˆà¸­ <ArrowRight size={14} aria-hidden="true" />
                       </span>
                     </div>
                   </Link>
@@ -222,8 +222,8 @@ export default async function BlogPage() {
 
       {allPosts.length === 0 && (
         <div className="text-center py-32 text-[#A7B0C0]">
-          <p className="text-2xl mb-2">ยังไม่มีบทความ</p>
-          <p className="text-sm">เพิ่มบทความได้ที่หน้า Admin → CMS</p>
+          <p className="text-2xl mb-2">à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸šà¸—à¸„à¸§à¸²à¸¡</p>
+          <p className="text-sm">à¹€à¸žà¸´à¹ˆà¸¡à¸šà¸—à¸„à¸§à¸²à¸¡à¹„à¸”à¹‰à¸—à¸µà¹ˆà¸«à¸™à¹‰à¸² Admin â†’ CMS</p>
         </div>
       )}
       <Footer />

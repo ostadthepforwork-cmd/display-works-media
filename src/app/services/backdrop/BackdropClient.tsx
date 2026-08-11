@@ -24,10 +24,10 @@ const navLinks = [
 ];
 
 const backdropTypes = [
-  { 
-    name: "แบ็คดรอปผ้า (Fabric Backdrop)", 
-    desc: "โครงอะลูมิเนียมน้ำหนักเบา สวมด้วยผ้าพิมพ์ลายแบบปลอกหมอน ไร้รอยต่อ สะท้อนแสงน้อย ภาพดูพรีเมียม", 
-    image: "/images/materials/fabric-backdrop.jpg", 
+  {
+    name: "แบ็คดรอปผ้า (Fabric Backdrop)",
+    desc: "โครงอะลูมิเนียมน้ำหนักเบา สวมด้วยผ้าพิมพ์ลายแบบปลอกหมอน ไร้รอยต่อ สะท้อนแสงน้อย ภาพดูพรีเมียม",
+    image: "/images/materials/fabric-backdrop.jpg",
     highlights: [
       "ผ้าตึงเรียบเนียน ไร้รอยต่อระหว่างแผ่น",
       "เนื้อผ้าสะท้อนแสงแฟลชน้อยมาก เหมาะสำหรับการถ่ายภาพที่สุด",
@@ -39,10 +39,10 @@ const backdropTypes = [
       "บูธนิทรรศการที่ต้องเคลื่อนย้ายบ่อย"
     ]
   },
-  { 
-    name: "แบ็คดรอปป๊อปอัพ (Pop-up Backdrop)", 
-    desc: "โครงตาข่ายพับเก็บได้แบบสปริง ดึงกางออกได้รวดเร็ว ติดแผ่นพิมพ์ด้วยระบบแม่เหล็ก", 
-    image: "/images/materials/popup-backdrop.jpg", 
+  {
+    name: "แบ็คดรอปป๊อปอัพ (Pop-up Backdrop)",
+    desc: "โครงตาข่ายพับเก็บได้แบบสปริง ดึงกางออกได้รวดเร็ว ติดแผ่นพิมพ์ด้วยระบบแม่เหล็ก",
+    image: "/images/materials/popup-backdrop.jpg",
     highlights: [
       "กางและพับเก็บได้รวดเร็ว ไม่ต้องใช้อุปกรณ์ช่างช่วย",
       "โครงสร้างดูหรูหรา แข็งแรง ทรงตัวได้ดี",
@@ -54,10 +54,10 @@ const backdropTypes = [
       "จุดลงทะเบียน (Registration Desk) ในงานอีเวนต์"
     ]
   },
-  { 
-    name: "แบ็คดรอปโครงทรัส/ไม้ (Truss/Wood Backdrop)", 
-    desc: "โครงสร้างขนาดใหญ่พิเศษ ขึงด้วยป้ายไวนิล ทนทาน แข็งแรง สามารถสั่งทำรูปทรงพิเศษได้", 
-    image: "/images/materials/truss-backdrop.jpg", 
+  {
+    name: "แบ็คดรอปโครงทรัส/ไม้ (Truss/Wood Backdrop)",
+    desc: "โครงสร้างขนาดใหญ่พิเศษ ขึงด้วยป้ายไวนิล ทนทาน แข็งแรง สามารถสั่งทำรูปทรงพิเศษได้",
+    image: "/images/materials/truss-backdrop.jpg",
     highlights: [
       "ปรับแต่งขนาดได้ตามต้องการ ไม่จำกัดความกว้าง/สูง",
       "โครงสร้างแข็งแรง ทนลม ทนแดด เหมาะกับงานสเกลใหญ่",
@@ -147,7 +147,7 @@ const serviceLinks = [
 
 const socials = [
   { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61581015452518", label: "Facebook", hoverBg: "#1877F2" },
-  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#06C755" },
+  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#047857" },
   { icon: Instagram, href: "https://instagram.com", label: "Instagram", hoverBg: "#E1306C" },
 ];
 
@@ -200,9 +200,9 @@ function Navbar() {
           ))}
         </div>
         <div className="hidden lg:flex items-center gap-4">
-          <a href="#quote" className="bg-[#FF7A00] hover:bg-[#e56a00] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all">ขอใบเสนอราคา</a>
+          <a href="#quote" className="bg-[#C2410C] hover:bg-[#9A3412] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all">ขอใบเสนอราคา</a>
         </div>
-        <button className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button type="button" className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -212,7 +212,7 @@ function Navbar() {
             {navLinks.map((link) => (
               <a key={link.label} href={link.href} className="text-[#A7B0C0] hover:text-white text-base" onClick={() => setMobileOpen(false)}>{link.label}</a>
             ))}
-            <a href="#quote" className="mt-2 bg-[#FF7A00] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
+            <a href="#quote" className="mt-2 bg-[#C2410C] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
           </motion.div>
         )}
       </AnimatePresence>
@@ -226,7 +226,7 @@ export default function BackdropLandingPage() {
   const cms = useCmsSettings();
   const serviceText = (field: string, fallback: string) => cmsValue(cms, `servicesDetail.backdrop.${field}`, fallback);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  
+
   // Form State
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -270,27 +270,27 @@ export default function BackdropLandingPage() {
       {/* ── 1. HERO SECTION ── */}
       <section id="hero" className="relative overflow-hidden flex items-center min-h-[560px] bg-[#050806]">
         <Image src="/images/hero-bg-backdrop.jpg" alt="Backdrop Display" fill priority className="object-cover object-[center_right] z-0" />
-        
+
         {/* Overlays */}
         <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(to right, #050806 10%, rgba(5, 8, 6, 0.85) 45%, rgba(5, 8, 6, 0.3) 75%, transparent 100%)" }} />
         <div className="absolute -bottom-2 left-0 right-0 h-[300px] lg:h-[400px] z-0 pointer-events-none" style={{ background: "linear-gradient(to top, #050806 0%, rgba(5,8,6,0.8) 50%, transparent 100%)" }} />
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full pt-16 pb-24"> 
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full pt-16 pb-24">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="max-w-3xl">
-            
+
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-transparent">
               {serviceText("eyebrow", "บริการออกแบบและผลิตแบ็คดรอป")}
             </div>
-            
+
             <h1 className="font-['Kanit'] font-extrabold text-5xl lg:text-7xl mb-6 leading-tight text-white">
               {serviceText("title", "แบ็คดรอป")}
               <span className="block text-[#FF7A00]">{serviceText("highlight", "ฉากหลังจัดงาน")}</span>
             </h1>
-            
+
             <p className="text-base text-gray-300 max-w-xl mb-10 leading-relaxed">
               {serviceText("subtitle", "ผลิตแบ็คดรอปสำหรับงานอีเวนต์ นิทรรศการ และงานแต่งงาน ภาพคมชัด โครงสร้างแข็งแรง ติดตั้งง่าย สะกดทุกสายตาให้งานคุณโดดเด่นยิ่งขึ้น")}
             </p>
-            
+
             {/* Features Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
               {backdropFeatures.map((f, i) => (
@@ -305,17 +305,17 @@ export default function BackdropLandingPage() {
                 </div>
               ))}
             </div>
-            
+
             {/* Buttons */}
             <div className="flex flex-wrap gap-4">
-              <a href="#quote" className="bg-[#FF7A00] hover:bg-[#FF8C33] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#FF7A00]/20">
+              <a href="#quote" className="bg-[#C2410C] hover:bg-[#9A3412] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#FF7A00]/20">
                 ขอใบเสนอราคา <ArrowRight size={18} />
               </a>
               <a href="https://lin.ee/O0nPl03" target="_blank" rel="noopener noreferrer" className="bg-[#00B900] hover:bg-[#009900] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#00B900]/20">
                 <MessageCircle size={18} /> ปรึกษาฟรีผ่าน LINE
               </a>
             </div>
-            
+
           </motion.div>
         </div>
       </section>
@@ -325,7 +325,7 @@ export default function BackdropLandingPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-['Kanit'] font-bold text-white mb-6">ทำความรู้จักแบ็คดรอปแต่ละประเภท</h2>
-            
+
             {/* ความหมายของแบ็คดรอป */}
             <div className="bg-[#141A24] border border-white/5 p-6 rounded-2xl mb-10 shadow-lg">
               <p className="text-gray-300 leading-relaxed text-sm sm:text-base">
@@ -342,7 +342,7 @@ export default function BackdropLandingPage() {
                   <div className="relative aspect-video w-full bg-[#141A24] border-b border-white/5">
                     <Image src={item.image} alt={item.name} fill className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   </div>
-                  
+
                   <div className="p-8 flex flex-col flex-grow">
                     <h3 className="text-xl font-bold mb-3 text-[#FF7A00]">{item.name}</h3>
                     <p className="text-gray-300 text-sm leading-relaxed mb-6">
@@ -355,7 +355,7 @@ export default function BackdropLandingPage() {
                       <ul className="space-y-2 mb-6">
                         {item.highlights.map((p, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{p}</span>
                           </li>
                         ))}
@@ -365,7 +365,7 @@ export default function BackdropLandingPage() {
                       <ul className="space-y-2">
                         {item.uses.map((u, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{u}</span>
                           </li>
                         ))}
@@ -414,7 +414,7 @@ export default function BackdropLandingPage() {
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
             <table className="w-full text-left bg-[#050806]">
-              <thead className="bg-[#FF7A00] text-white">
+              <thead className="bg-[#C2410C] text-white">
                 <tr>
                   <th className="px-6 py-4 font-bold">ขนาด (กว้าง x สูง)</th>
                   <th className="px-6 py-4 font-bold">การใช้งานที่แนะนำ</th>
@@ -448,7 +448,7 @@ export default function BackdropLandingPage() {
               <motion.div key={i} whileHover={{ scale: 1.02 }} className="relative aspect-[16/10] rounded-3xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer bg-[#0E1310]">
                 <Image src={src} alt="Portfolio" fill className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
-                   <div className="bg-[#FF7A00] p-3 rounded-full"><Check size={24} className="text-white" /></div>
+                   <div className="bg-[#C2410C] p-3 rounded-full"><Check size={24} className="text-white" /></div>
                 </div>
               </motion.div>
             ))}
@@ -631,7 +631,7 @@ export default function BackdropLandingPage() {
               href="#quote"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5"
               style={{
-                background: "#FF6B00",
+                background: "#C2410C",
                 boxShadow: "0 4px 24px rgba(255,107,0,0.25)",
               }}
             >
@@ -648,7 +648,7 @@ export default function BackdropLandingPage() {
           <div className="space-y-4">
             {faqs.map((faq, i) => (
               <div key={i} className="bg-[#0E1310] rounded-2xl overflow-hidden border border-white/5 shadow-lg">
-                <button className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                <button type="button" className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span className="font-bold text-sm">{faq.q}</span>
                   {openFaq === i ? <Minus size={18} className="text-[#FF7A00]" /> : <Plus size={18} className="text-gray-500" />}
                 </button>
@@ -669,10 +669,10 @@ export default function BackdropLandingPage() {
       <section id="legacy-quote" className="py-24 bg-[#0B0F19] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
-            
+
             {/* Left Info */}
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="lg:col-span-2">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-[#FF7A00]/10">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-[#C2410C]/10">
                 ขอใบเสนอราคา
               </div>
               <h2 className="text-4xl lg:text-5xl font-['Kanit'] font-extrabold mb-6 leading-tight text-white">
@@ -712,7 +712,7 @@ export default function BackdropLandingPage() {
                     <CheckCircle size={56} className="text-[#FF7A00]" />
                     <h3 className="font-['Kanit'] font-bold text-2xl text-white">ส่งข้อมูลสำเร็จ!</h3>
                     <p className="text-gray-400 text-sm max-w-xs">ทีมงานได้รับข้อมูลของคุณแล้ว จะติดต่อกลับภายใน 24 ชั่วโมง</p>
-                    <button onClick={() => setSubmitted(false)} className="mt-4 text-sm underline text-[#FF7A00]">ส่งใบเสนอราคาอีกครั้ง</button>
+                    <button type="button" onClick={() => setSubmitted(false)} className="mt-4 text-sm underline text-[#FF7A00]">ส่งใบเสนอราคาอีกครั้ง</button>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
@@ -770,7 +770,7 @@ export default function BackdropLandingPage() {
                       </label>
                     </div>
 
-                    <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-white text-base transition-all duration-200 disabled:opacity-70 bg-[#FF7A00] hover:bg-[#FF8C33] shadow-lg shadow-[#FF7A00]/20 mt-4">
+                    <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-white text-base transition-all duration-200 disabled:opacity-70 bg-[#C2410C] hover:bg-[#9A3412] shadow-lg shadow-[#FF7A00]/20 mt-4">
                       {loading ? (
                         <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> กำลังส่งข้อมูล...</>
                       ) : (

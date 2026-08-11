@@ -1204,9 +1204,9 @@ export default function MarketingKpiDashboard({
         .mk-title{font-size:clamp(26px,3vw,38px);line-height:1.1;margin:12px 0 10px;font-weight:900}
         .mk-sub{color:#a8b0c0;max-width:760px;line-height:1.75}
         .mk-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-        .mk-btn{border:1px solid rgba(255,255,255,.12);background:#101827;color:#fff;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer}
-        .mk-btn.active{background:#ff6b00;border-color:#ff6b00;color:#fff}
-        .mk-btn.orange{background:#ff6b00;border-color:#ff6b00}
+        .mk-btn{border:1px solid rgba(255,255,255,.12);background:#101827;color:#f8fafc;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer}
+        .mk-btn.active{background:#c2410c;border-color:#c2410c;color:#fff}
+        .mk-btn.orange{background:#c2410c;border-color:#c2410c;color:#fff}
         .mk-mobile-tabs{display:none;gap:8px;overflow:auto;padding:0 0 12px;margin:-4px 0 16px;scrollbar-width:none}
         .mk-mobile-tabs::-webkit-scrollbar{display:none}
         .mk-mobile-tabs button{white-space:nowrap;border:1px solid rgba(255,255,255,.12);background:#101827;color:#cbd5e1;border-radius:999px;padding:10px 13px;font-weight:900}
@@ -1232,12 +1232,12 @@ export default function MarketingKpiDashboard({
         .mk-panel{overflow:hidden}
         .mk-card{min-height:150px;display:flex;flex-direction:column;justify-content:space-between}
         .mk-card strong{font-size:26px;line-height:1;color:#fff}
-        .mk-card span{color:#a8b0c0;font-size:12px}
+        .mk-card span{color:#94a3b8;font-size:12px}
         .mk-dot{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;font-weight:900}
         .mk-dot.green{background:#10b981}.mk-dot.blue{background:#2563eb}.mk-dot.purple{background:#8b5cf6}.mk-dot.orange{background:#ff6b00}.mk-dot.pink{background:#ec4899}.mk-dot.yellow{background:#eab308}.mk-dot.teal{background:#14b8a6}
         .mk-row{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:16px;align-items:start}
-        .mk-panel h3{margin:0 0 6px;font-size:20px}.mk-panel p{margin:0;color:#8b95a7;line-height:1.7}
-        .mk-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}.mk-section-head h3{margin:0 0 6px}.mk-section-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-empty{border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.035);border-radius:16px;padding:18px;color:#94a3b8;line-height:1.7}
+        .mk-panel h2,.mk-panel h3{margin:0 0 6px;font-size:20px}.mk-panel p{margin:0;color:#94a3b8;line-height:1.7}
+        .mk-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}.mk-section-head h2,.mk-section-head h3{margin:0 0 6px}.mk-section-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-empty{border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.035);border-radius:16px;padding:18px;color:#94a3b8;line-height:1.7}
         .mk-line-chart{height:270px;border-bottom:1px solid rgba(255,255,255,.1);background:linear-gradient(to top,rgba(255,255,255,.05) 1px,transparent 1px);background-size:100% 48px;position:relative;margin-top:18px;overflow:hidden;border-radius:12px}
         .mk-line{position:absolute;left:5%;right:5%;height:4px;border-radius:999px;background:linear-gradient(90deg,#ff6b00,#8b5cf6);top:50%;transform:skewY(-13deg)}
         .mk-bar-list{display:grid;gap:14px;margin-top:18px}
@@ -1260,7 +1260,7 @@ export default function MarketingKpiDashboard({
         .mk-status{font-weight:900;color:#f59e0b}.mk-status.ready{color:#22c55e}
         .mk-expiry{display:inline-flex;align-items:center;width:max-content;border-radius:999px;padding:6px 10px;margin-top:8px;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.12);color:#cbd5e1}.mk-expiry.ready{border-color:rgba(34,197,94,.35);color:#86efac;background:rgba(34,197,94,.08)}.mk-expiry.warning{border-color:rgba(245,158,11,.45);color:#fcd34d;background:rgba(245,158,11,.1)}.mk-expiry.danger{border-color:rgba(239,68,68,.45);color:#fca5a5;background:rgba(239,68,68,.1)}.mk-expiry.unknown{border-color:rgba(148,163,184,.35);color:#cbd5e1;background:rgba(148,163,184,.08)}.mk-source-tools{display:grid;gap:8px;justify-items:end}.mk-expiry-editor{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.mk-expiry-editor input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:10px 12px;font:inherit;min-width:190px}
         .mk-log-list{display:grid;gap:8px;max-height:260px;overflow:auto}.mk-log-item{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;background:rgba(0,0,0,.18);color:#cbd5e1;font-size:13px;line-height:1.55}
-        .mk-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mk-input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:12px 14px;font:inherit;min-width:0}.mk-textarea{grid-column:1/-1;min-height:86px;resize:vertical}.mk-tag-row{display:flex;flex-wrap:wrap;gap:8px}.mk-tag{border:1px solid rgba(255,107,0,.35);background:transparent;color:#f8fafc;border-radius:999px;padding:8px 10px;font-weight:800;cursor:pointer}.mk-tag.active{background:#ff6b00;border-color:#ff6b00;color:#fff}.mk-alert{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#fde68a;border-radius:14px;padding:12px 14px;font-weight:800}
+        .mk-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mk-field{display:grid;gap:6px}.mk-field span{color:#94a3b8;font-size:12px;font-weight:800}.mk-input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#f8fafc;padding:12px 14px;font:inherit;min-width:0}.mk-textarea{grid-column:1/-1;min-height:86px;resize:vertical}.mk-tag-row{display:flex;flex-wrap:wrap;gap:8px}.mk-tag{border:1px solid rgba(255,107,0,.35);background:transparent;color:#f8fafc;border-radius:999px;padding:8px 10px;font-weight:800;cursor:pointer}.mk-tag.active{background:#c2410c;border-color:#c2410c;color:#fff}.mk-alert{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#fde68a;border-radius:14px;padding:12px 14px;font-weight:800}
         @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:flex;position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(8,13,20,.98),rgba(8,13,20,.9));backdrop-filter:blur(18px);padding:10px 0 12px}.mk-grid,.mk-growth-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid,.mk-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
         @media(max-width:640px){
           .mk-dashboard{width:100%;max-width:100vw;border-radius:0;border-left:0;border-right:0;background:linear-gradient(180deg,rgba(255,107,0,.13),transparent 220px),#080d14;overflow:hidden}
@@ -1320,7 +1320,7 @@ export default function MarketingKpiDashboard({
           .mk-spark-caption{font-size:10px}
           .mk-row{grid-template-columns:1fr!important;gap:12px!important;margin-top:12px}
           .mk-panel{padding:15px;border-radius:17px}
-          .mk-panel h3{font-size:18px}
+          .mk-panel h2,.mk-panel h3{font-size:18px}
           .mk-panel p{font-size:13px;line-height:1.65}
           .mk-section-head{display:block!important}
           .mk-section-actions{justify-content:flex-start;margin-top:12px;overflow:auto;padding-bottom:3px;scrollbar-width:none}
@@ -1361,7 +1361,9 @@ export default function MarketingKpiDashboard({
           .mk-panel + .mk-row {
             margin-top: 12px !important;
           }
+          .mk-section-head h2,
           .mk-section-head h3,
+          .mk-panel h2,
           .mk-panel h3 {
             letter-spacing: 0 !important;
           }
@@ -1525,7 +1527,10 @@ export default function MarketingKpiDashboard({
                 </button>
               </div>
               <div className="mk-date-fields">
+                <label className="sr-only" htmlFor="mk-start-date">Start date</label>
                 <input
+                  id="mk-start-date"
+                  aria-label="Start date"
                   type="date"
                   value={startDate}
                   disabled={dateRangeMode === "all"}
@@ -1534,7 +1539,10 @@ export default function MarketingKpiDashboard({
                     setStartDate(event.target.value);
                   }}
                 />
+                <label className="sr-only" htmlFor="mk-end-date">End date</label>
                 <input
+                  id="mk-end-date"
+                  aria-label="End date"
                   type="date"
                   value={endDate}
                   disabled={dateRangeMode === "all"}
@@ -1594,7 +1602,7 @@ export default function MarketingKpiDashboard({
                 </div>
               </div>
               <div className="mk-mobile-chart">
-                <h3>Money Flow</h3>
+                <h2>Money Flow</h2>
                 <div className="mk-bar-list">
                   {kpiBars.map((item) => (
                     <div key={`mobile-${item.label}`}>
@@ -1610,7 +1618,7 @@ export default function MarketingKpiDashboard({
                 </div>
               </div>
               <div className="mk-mobile-chart">
-                <h3>Lead Pipeline</h3>
+                <h2>Lead Pipeline</h2>
                 <div className="mk-bar-list">
                   {leadPipelineBars.map((item) => (
                     <div key={`mobile-${item.label}`}>
@@ -1700,7 +1708,7 @@ export default function MarketingKpiDashboard({
             <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
               <div className="mk-section-head">
                 <div>
-                  <h3>Lead Source Summary</h3>
+                  <h2>Lead Source Summary</h2>
                   <p>Lead รวมมาจาก Meta action และ CRM ที่กรอกเอง แยกไว้เพื่อไม่ให้สับสนกับยอดปิดการขายใน ERP</p>
                 </div>
               </div>
@@ -1724,7 +1732,7 @@ export default function MarketingKpiDashboard({
 
           {showDashboard && alerts.length > 0 && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
-              <h3>Marketing Alerts</h3>
+              <h2>Marketing Alerts</h2>
               <p>แจ้งเตือนเรื่องข้อมูลและ API ที่ต้องตรวจสอบก่อนใช้ตัดสินใจ</p>
               <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
                 {alerts.map((alert) => <div className="mk-alert" key={alert}>{alert}</div>)}
@@ -1768,7 +1776,7 @@ export default function MarketingKpiDashboard({
 
           {(showDashboard || activeSection === "orders") && <section className={`mk-row ${showDashboard ? "mk-dashboard-secondary" : ""}`}>
             <div className="mk-panel">
-              <h3>Revenue vs Spend</h3>
+              <h2>Revenue vs Spend</h2>
               <p>Real business outcome from ERP receipts compared with marketing cost.</p>
               <div className="mk-bar-list">
                 {kpiBars.map((item) => (
@@ -1795,7 +1803,7 @@ export default function MarketingKpiDashboard({
               </div>
             </div>
             <div className="mk-panel">
-              <h3>Lead Pipeline</h3>
+              <h2>Lead Pipeline</h2>
               <p>How many inquiries move from lead to real closed jobs.</p>
               <div className="mk-bar-list">
                 {leadPipelineBars.map((item) => (
@@ -1810,7 +1818,7 @@ export default function MarketingKpiDashboard({
                   </div>
                 ))}
               </div>
-              <h3 style={{ marginTop: 22 }}>Channel Mix</h3>
+              <h2 style={{ marginTop: 22 }}>Channel Mix</h2>
               <p>สัดส่วนจากข้อมูลที่มีจริง: Meta leads/clicks, CRM leads และ GA4 sessions</p>
               <div className="mk-donut" style={{ background: totalChannelMix ? undefined : "#1f2937" }}>
                 <div className="mk-donut-inner">
@@ -1852,7 +1860,7 @@ export default function MarketingKpiDashboard({
 
           {activeSection === "facebook" && (
             <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
-              <h3>Facebook Revenue Mapping</h3>
+              <h2>Facebook Revenue Mapping</h2>
               <div className="mk-channel-grid" style={{ marginTop: 14, marginBottom: 14 }}>
                 <div className="mk-mini"><strong>THB {money(metaReportedRevenue)}</strong><div>Meta Reported Revenue</div></div>
                 <div className="mk-mini"><strong>{metaReportedRoas ? metaReportedRoas.toFixed(2) : "-"}</strong><div>Meta Reported ROAS</div></div>
@@ -1870,7 +1878,7 @@ export default function MarketingKpiDashboard({
           {(activeSection === "facebook" || activeSection === "campaigns") && <section className="mk-panel" id="marketing-campaigns" style={{ marginTop: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
               <div>
-                <h3>Campaign Performance</h3>
+                <h2>Campaign Performance</h2>
                 <p>ติดตามงบ Leads Conversion รายได้ และ ROAS ของแต่ละแคมเปญ</p>
               </div>
               <span className="mk-badge" style={{ background: "rgba(34,197,94,.15)", color: "#22c55e" }}>Top {topCampaignRows.length} / {campaignRows.length} campaigns</span>
@@ -1918,7 +1926,7 @@ export default function MarketingKpiDashboard({
           {activeSection === "facebook" && (
             <section className="mk-row">
               <div className="mk-panel">
-                <h3>Ad Set Performance</h3>
+                <h2>Ad Set Performance</h2>
                 <p>รอเชื่อม ad set id จาก Meta API เพื่อดู audience และต้นทุนต่อกลุ่มเป้าหมาย</p>
                 <div className="mk-table-wrap compact" style={{ marginTop: 12 }}>
                   <table className="mk-table">
@@ -1930,7 +1938,7 @@ export default function MarketingKpiDashboard({
                 </div>
               </div>
               <div className="mk-panel">
-                <h3>Creative Performance</h3>
+                <h2>Creative Performance</h2>
                 <p>ดูว่า Artwork / Hook แบบไหนควรทำซ้ำ</p>
                 <div className="mk-table-wrap compact" style={{ marginTop: 12 }}>
                   <table className="mk-table">
@@ -1946,7 +1954,7 @@ export default function MarketingKpiDashboard({
 
           {(activeSection === "budget" || activeSection === "funnel" || activeSection === "reports") && <section className="mk-row" id="marketing-lead-funnel">
             <div className="mk-panel">
-              <h3>Budget Monitoring</h3>
+              <h2>Budget Monitoring</h2>
               <p>ติดตามงบที่ตั้งไว้และงบที่ใช้จริง</p>
               <div className="mk-budget"><span style={{ width: `${budgetTarget ? Math.min(100, (marketingSpend / budgetTarget) * 100) : 0}%` }} /></div>
               <div style={{ display: "grid", gap: 10, color: "#cbd5e1" }}>
@@ -1957,7 +1965,7 @@ export default function MarketingKpiDashboard({
               {!plannedBudget && <div className="mk-empty" style={{ marginTop: 14 }}>ตอนนี้มี spend จาก API แต่ยังไม่ได้ตั้งงบ campaign ในระบบ จึงไม่ควรสรุปว่างบเกิน/งบเหลือ</div>}
             </div>
             <div className="mk-panel">
-              <h3>Marketing Funnel</h3>
+              <h2>Marketing Funnel</h2>
               <p>แยกเฉพาะข้อมูลการตลาด ไม่เอา ERP Customer มารวมมั่ว</p>
               <div className="mk-funnel">
                 {marketingFunnel.map((item, index) => (
@@ -1966,7 +1974,7 @@ export default function MarketingKpiDashboard({
                   </div>
                 ))}
               </div>
-              <h3 style={{ marginTop: 22 }}>Sales Funnel</h3>
+              <h2 style={{ marginTop: 22 }}>Sales Funnel</h2>
               <p>เส้นทางจาก Lead ไปถึงงานที่ปิดได้จริง ต้องมีการ map Lead กับ Order/Receipt</p>
               {hasSalesMapping ? (
                 <div className="mk-funnel">
@@ -1985,7 +1993,7 @@ export default function MarketingKpiDashboard({
           </section>}
 
           {(activeSection === "channels" || activeSection === "reports") && <section className="mk-panel" id="marketing-channels" style={{ marginTop: 16 }}>
-            <h3>Channel Performance Comparison</h3>
+            <h2>Channel Performance Comparison</h2>
             <p>เปรียบเทียบจากสัญญาณจริงของแต่ละช่องทาง ไม่แบ่งรายได้ ERP แบบเดาเอง</p>
             <div className="mk-channel-grid" style={{ marginTop: 14 }}>
               {channelRows.map((row) => (
@@ -2001,42 +2009,42 @@ export default function MarketingKpiDashboard({
 
           {activeSection === "leads" && (
             <section className="mk-panel" id="marketing-crm" style={{ marginTop: 16 }}>
-              <h3>Lead Entry</h3>
+              <h2>Lead Entry</h2>
               <p>บันทึก Lead พร้อม Source, Campaign, พฤติกรรม, สถานะ และวันติดตาม</p>
               <div className="mk-form-grid" style={{ marginTop: 14 }}>
-                <input className="mk-input" placeholder="Customer Name" value={leadForm.name} onChange={(event) => setLeadForm((prev) => ({ ...prev, name: event.target.value }))} />
-                <input className="mk-input" placeholder="Contact / LINE / Phone" value={leadForm.contact} onChange={(event) => setLeadForm((prev) => ({ ...prev, contact: event.target.value }))} />
-                <select className="mk-input" value={leadForm.source} onChange={(event) => setLeadForm((prev) => ({ ...prev, source: event.target.value }))}>
+                <input className="mk-input" aria-label="Customer name" placeholder="Customer Name" value={leadForm.name} onChange={(event) => setLeadForm((prev) => ({ ...prev, name: event.target.value }))} />
+                <input className="mk-input" aria-label="Contact LINE or phone" placeholder="Contact / LINE / Phone" value={leadForm.contact} onChange={(event) => setLeadForm((prev) => ({ ...prev, contact: event.target.value }))} />
+                <select className="mk-input" aria-label="Lead source" value={leadForm.source} onChange={(event) => setLeadForm((prev) => ({ ...prev, source: event.target.value }))}>
                   {["Facebook Ads", "LINE OA", "Website", "Organic", "Referral", "Phone"].map((source) => <option key={source}>{source}</option>)}
                 </select>
-                <input className="mk-input" placeholder="Campaign" value={leadForm.campaign} onChange={(event) => setLeadForm((prev) => ({ ...prev, campaign: event.target.value }))} />
-                <select className="mk-input" value={leadForm.service} onChange={(event) => setLeadForm((prev) => ({ ...prev, service: event.target.value }))}>
+                <input className="mk-input" aria-label="Campaign" placeholder="Campaign" value={leadForm.campaign} onChange={(event) => setLeadForm((prev) => ({ ...prev, campaign: event.target.value }))} />
+                <select className="mk-input" aria-label="Service interest" value={leadForm.service} onChange={(event) => setLeadForm((prev) => ({ ...prev, service: event.target.value }))}>
                   {["ป้ายไวนิล", "สติ๊กเกอร์", "PP Board / Standee", "Roll Up / X-Stand", "Backdrop", "งานพิมพ์อื่นๆ"].map((service) => <option key={service}>{service}</option>)}
                 </select>
-                <select className="mk-input" value={leadForm.customerType} onChange={(event) => setLeadForm((prev) => ({ ...prev, customerType: event.target.value }))}>
+                <select className="mk-input" aria-label="Customer type" value={leadForm.customerType} onChange={(event) => setLeadForm((prev) => ({ ...prev, customerType: event.target.value }))}>
                   {["SME", "ร้านอาหาร", "คาเฟ่", "คลินิก", "อีเวนต์", "แบรนด์สินค้า", "องค์กร"].map((type) => <option key={type}>{type}</option>)}
                 </select>
-                <input className="mk-input" placeholder="Buying Situation" value={leadForm.buyingSituation} onChange={(event) => setLeadForm((prev) => ({ ...prev, buyingSituation: event.target.value }))} />
-                <select className="mk-input" value={leadForm.status} onChange={(event) => setLeadForm((prev) => ({ ...prev, status: event.target.value as Lead["status"] }))}>
+                <input className="mk-input" aria-label="Buying situation" placeholder="Buying Situation" value={leadForm.buyingSituation} onChange={(event) => setLeadForm((prev) => ({ ...prev, buyingSituation: event.target.value }))} />
+                <select className="mk-input" aria-label="Lead status" value={leadForm.status} onChange={(event) => setLeadForm((prev) => ({ ...prev, status: event.target.value as Lead["status"] }))}>
                   {leadStatuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
                 </select>
-                <input className="mk-input" placeholder="Estimated Value" inputMode="decimal" value={leadForm.value} onChange={(event) => setLeadForm((prev) => ({ ...prev, value: event.target.value }))} />
-                <input className="mk-input" type="date" value={leadForm.nextFollowUp} onChange={(event) => setLeadForm((prev) => ({ ...prev, nextFollowUp: event.target.value }))} />
-                <input className="mk-input" placeholder="Owner" value={leadForm.owner} onChange={(event) => setLeadForm((prev) => ({ ...prev, owner: event.target.value }))} />
-                <textarea className="mk-input mk-textarea" placeholder="Note" value={leadForm.note} onChange={(event) => setLeadForm((prev) => ({ ...prev, note: event.target.value }))} />
+                <input className="mk-input" aria-label="Estimated value" placeholder="Estimated Value" inputMode="decimal" value={leadForm.value} onChange={(event) => setLeadForm((prev) => ({ ...prev, value: event.target.value }))} />
+                <input className="mk-input" aria-label="Next follow-up date" type="date" value={leadForm.nextFollowUp} onChange={(event) => setLeadForm((prev) => ({ ...prev, nextFollowUp: event.target.value }))} />
+                <input className="mk-input" aria-label="Owner" placeholder="Owner" value={leadForm.owner} onChange={(event) => setLeadForm((prev) => ({ ...prev, owner: event.target.value }))} />
+                <textarea className="mk-input mk-textarea" aria-label="Lead note" placeholder="Note" value={leadForm.note} onChange={(event) => setLeadForm((prev) => ({ ...prev, note: event.target.value }))} />
               </div>
               <div className="mk-tag-row" style={{ marginTop: 14 }}>
                 {behaviorTagOptions.map((tag) => (
                   <button key={tag} type="button" className={`mk-tag ${leadForm.behaviorTags.includes(tag) ? "active" : ""}`} onClick={() => toggleLeadTag(tag)}>{tag}</button>
                 ))}
               </div>
-              <button className="mk-btn orange" style={{ marginTop: 16 }} onClick={addLead}>+ เพิ่ม Lead</button>
+              <button className="mk-btn orange" type="button" style={{ marginTop: 16 }} onClick={addLead}>+ เพิ่ม Lead</button>
             </section>
           )}
 
           {(activeSection === "insight" || activeSection === "leads" || activeSection === "reports") && <section className="mk-row" id="marketing-ai-insight">
             <div className="mk-panel">
-              <h3>AI Insight</h3>
+              <h2>AI Insight</h2>
               <p>สรุปแนวทางที่ควรทำต่อจากข้อมูลปัจจุบัน</p>
               <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
                 <div className="mk-mini">เพิ่มการติด UTM ทุกปุ่ม LINE เพื่อแยกแหล่งที่มาของ Lead ให้ชัดเจน</div>
@@ -2047,10 +2055,10 @@ export default function MarketingKpiDashboard({
             <div className="mk-panel">
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                 <div>
-                  <h3>Leads / CRM</h3>
+                  <h2>Leads / CRM</h2>
                   <p>บันทึก Lead เบื้องต้นก่อนเชื่อม LINE OA API</p>
                 </div>
-                <button className="mk-btn orange" onClick={addLead}>+ Add Lead</button>
+                <button className="mk-btn orange" type="button" onClick={addLead}>+ Add Lead</button>
               </div>
               <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
                 {filteredLeads.slice(0, activeSection === "leads" ? filteredLeads.length : 4).map((lead) => {
@@ -2080,7 +2088,7 @@ export default function MarketingKpiDashboard({
               <div className="mk-section-head">
                 <div>
                   <div className="mk-eyebrow">Customer Intelligence</div>
-                  <h3>Dashboard วิเคราะห์ลูกค้า</h3>
+                  <h2>Dashboard วิเคราะห์ลูกค้า</h2>
                   <p>ดึงจาก ERP โดยตรง: ลูกค้า, เอกสาร, ใบเสร็จ และรายการสินค้า/บริการ เพื่อดูว่าลูกค้ามาจากไหนและควรต่อยอดอะไร</p>
                 </div>
                 <div className="mk-section-actions">
@@ -2099,7 +2107,7 @@ export default function MarketingKpiDashboard({
 
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>ลูกค้าเจอเราจากไหน</h3>
+                  <h2>ลูกค้าเจอเราจากไหน</h2>
                   <p>อ้างอิงจาก Lead Source ในเอกสาร ERP และยอดขายจริงจากใบเสร็จ</p>
                   <div className="mk-split-chart">
                     <div className="mk-donut" style={{ background: `conic-gradient(${donutStops(customerSourceRows.map((row) => ({ ...row, value: row.customers || row.docs })))})` }}>
@@ -2121,7 +2129,7 @@ export default function MarketingKpiDashboard({
                 </div>
 
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>B2B / B2C</h3>
+                  <h2>B2B / B2C</h2>
                   <p>อ้างอิงจากประเภทลูกค้าใน ERP</p>
                   <div className="mk-donut" style={{ background: `conic-gradient(${donutStops(customerSegmentRows)})` }}>
                     <div className="mk-donut-inner"><div><div style={{ color: "#94a3b8", fontSize: 12 }}>Customers</div><strong>{customers.length}</strong></div></div>
@@ -2142,7 +2150,7 @@ export default function MarketingKpiDashboard({
 
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>ประเภทธุรกิจลูกค้า</h3>
+                  <h2>ประเภทธุรกิจลูกค้า</h2>
                   <p>ดูว่าธุรกิจแบบไหนใช้บริการ Display Works Media มากที่สุด</p>
                   <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
                     {customerBusinessRows.length ? customerBusinessRows.map((row, index) => (
@@ -2158,7 +2166,7 @@ export default function MarketingKpiDashboard({
                 </div>
 
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>สินค้า / บริการที่ให้บริการมากที่สุด</h3>
+                  <h2>สินค้า / บริการที่ให้บริการมากที่สุด</h2>
                   <p>นับจากรายการในใบเสร็จ เพื่อดูงานที่ขายจริงและควรทำคอนเทนต์/โฆษณาต่อ</p>
                   <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
                     {customerProductRows.length ? customerProductRows.map((row, index) => (
@@ -2177,7 +2185,7 @@ export default function MarketingKpiDashboard({
 
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>จังหวัดลูกค้า</h3>
+                  <h2>จังหวัดลูกค้า</h2>
                   <p>อ่านจากข้อมูลจังหวัด หรือ fallback จากที่อยู่ลูกค้าใน ERP</p>
                   <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
                     {customerProvinceRows.length ? customerProvinceRows.map((row, index) => (
@@ -2195,7 +2203,7 @@ export default function MarketingKpiDashboard({
                 </div>
 
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>เขต / อำเภอลูกค้า</h3>
+                  <h2>เขต / อำเภอลูกค้า</h2>
                   <p>ช่วยดูพื้นที่ที่มีลูกค้าสนใจมาก เพื่อวางคอนเทนต์และแคมเปญให้ตรงกลุ่ม</p>
                   <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
                     {customerDistrictRows.length ? customerDistrictRows.map((row, index) => (
@@ -2224,12 +2232,12 @@ export default function MarketingKpiDashboard({
 
           {(activeSection === "quotations" || activeSection === "orders" || activeSection === "products" || activeSection === "reports") && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
-              <h3>
+              <h2>
                 {activeSection === "quotations" ? "Quotations"
                   : activeSection === "orders" ? "Orders / Jobs"
                   : activeSection === "products" ? "Products"
                   : "Reports"}
-              </h3>
+              </h2>
               <p>ข้อมูลส่วนนี้อ้างอิงจาก ERP เพื่อใช้ดูภาพรวมการปิดการขายและกำไรจริง</p>
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
                 <div className="mk-mini"><strong>{customers.length}</strong><div>Customers</div></div>
@@ -2248,7 +2256,7 @@ export default function MarketingKpiDashboard({
             <section className="mk-panel" id="marketing-ai" style={{ marginTop: 16 }}>
               <div className="mk-section-head">
                 <div>
-                  <h3>AI Search Crawler Monitor</h3>
+                  <h2>AI Search Crawler Monitor</h2>
                   <p>นับการเข้าเว็บจาก AI/Search bot บนหน้า public เท่านั้น ไม่รวม admin, API, doc link และไฟล์ภายในระบบ</p>
                 </div>
                 <span className={`mk-status ${aiCrawlers.connected ? "ready" : ""}`}>
@@ -2263,7 +2271,7 @@ export default function MarketingKpiDashboard({
               </div>
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>Top AI Bots</h3>
+                  <h2>Top AI Bots</h2>
                   <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiBots.length ? topAiBots.map((bot: any) => (
                       <div className="mk-source compact mk-chart-row" key={bot.name} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(bot.count || 0) / maxAiBotCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#ff6b00,#f59e0b)" }}>
@@ -2274,7 +2282,7 @@ export default function MarketingKpiDashboard({
                   </div>
                 </div>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>Top Pages</h3>
+                  <h2>Top Pages</h2>
                   <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiPages.length ? topAiPages.map((page: any) => (
                       <div className="mk-source compact mk-chart-row" key={page.path || page.name || "Unknown"} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(page.count || 0) / maxAiPageCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#2563eb,#14b8a6)" }}>
@@ -2287,7 +2295,7 @@ export default function MarketingKpiDashboard({
               </div>
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>Likely AI Intent</h3>
+                  <h2>Likely AI Intent</h2>
                   <p>เป็นการประเมินจากหน้าที่ bot เข้าอ่าน ไม่ใช่ prompt จริงของผู้ใช้</p>
                   <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiIntents.length ? topAiIntents.map((item: any) => (
@@ -2304,7 +2312,7 @@ export default function MarketingKpiDashboard({
                   </div>
                 </div>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h3>Referrer / Source Hints</h3>
+                  <h2>Referrer / Source Hints</h2>
                   <p>แสดงเฉพาะเมื่อ crawler ส่ง referrer หรือ query/UTM มาด้วย</p>
                   <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiReferrers.length ? topAiReferrers.map((item: any) => (
@@ -2350,7 +2358,7 @@ export default function MarketingKpiDashboard({
           {(activeSection === "sources" || activeSection === "settings") && <section className="mk-panel" id="marketing-data-sources" style={{ marginTop: 16 }}>
             <div className="mk-section-head">
               <div>
-                <h3>Data Sources</h3>
+                <h2>Data Sources</h2>
                 <p>สถานะการเชื่อมต่อข้อมูลสำหรับ Dashboard และรอบต่ออายุ API</p>
               </div>
               <div className="mk-section-actions">
@@ -2413,7 +2421,7 @@ export default function MarketingKpiDashboard({
             <div style={{ marginTop: 18 }}>
                 <div className="mk-section-head">
                   <div>
-                    <h3>Sync Logs</h3>
+                    <h2>Sync Logs</h2>
                     <p>ใช้ดูว่ากดปุ่มแล้วระบบเรียก API สำเร็จหรือ error ตรงไหน</p>
                   </div>
                   <div className="mk-section-actions">

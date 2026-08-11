@@ -150,7 +150,7 @@ const serviceLinks = [
 
 const socials = [
   { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61581015452518", label: "Facebook", hoverBg: "#1877F2" },
-  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#06C755" },
+  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#047857" },
   { icon: Instagram, href: "https://instagram.com", label: "Instagram", hoverBg: "#E1306C" },
 ];
 
@@ -203,9 +203,9 @@ function Navbar() {
           ))}
         </div>
         <div className="hidden lg:flex items-center gap-4">
-          <a href="#quote" className="bg-[#FF7A00] hover:bg-[#e56a00] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all">ขอใบเสนอราคา</a>
+          <a href="#quote" className="bg-[#C2410C] hover:bg-[#9A3412] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all">ขอใบเสนอราคา</a>
         </div>
-        <button className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button type="button" className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -215,7 +215,7 @@ function Navbar() {
             {navLinks.map((link) => (
               <a key={link.label} href={link.href} className="text-[#A7B0C0] hover:text-white text-base" onClick={() => setMobileOpen(false)}>{link.label}</a>
             ))}
-            <a href="#quote" className="mt-2 bg-[#FF7A00] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
+            <a href="#quote" className="mt-2 bg-[#C2410C] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
           </motion.div>
         )}
       </AnimatePresence>
@@ -301,7 +301,7 @@ export default function PPBoardLandingPage() {
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <a href="#quote" className="bg-[#FF7A00] hover:bg-[#FF8C33] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#FF7A00]/20">
+              <a href="#quote" className="bg-[#C2410C] hover:bg-[#9A3412] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#FF7A00]/20">
                 ขอใบเสนอราคา <ArrowRight size={18} />
               </a>
               <a href="https://lin.ee/O0nPl03" target="_blank" rel="noopener noreferrer" className="bg-[#00B900] hover:bg-[#009900] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#00B900]/20">
@@ -341,7 +341,7 @@ export default function PPBoardLandingPage() {
                       <ul className="space-y-2 mb-6">
                         {item.highlights.map((p, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{p}</span>
                           </li>
                         ))}
@@ -350,7 +350,7 @@ export default function PPBoardLandingPage() {
                       <ul className="space-y-2">
                         {item.uses.map((u, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{u}</span>
                           </li>
                         ))}
@@ -376,7 +376,7 @@ export default function PPBoardLandingPage() {
               <div key={i} className="bg-[#0E1310] rounded-2xl border border-white/5 overflow-hidden hover:border-[#FF7A00]/50 transition-colors shadow-xl group cursor-pointer">
                 <div className="relative aspect-video w-full bg-[#141A24] border-b border-white/5 overflow-hidden">
                   <Image src={opt.image} alt={opt.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-                  <div className="absolute top-3 left-3 bg-[#FF7A00] text-white text-xs font-bold px-3 py-1 rounded-full">{opt.name}</div>
+                  <div className="absolute top-3 left-3 bg-[#C2410C] text-white text-xs font-bold px-3 py-1 rounded-full">{opt.name}</div>
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-white text-lg mb-1">{opt.sub}</h3>
@@ -397,7 +397,7 @@ export default function PPBoardLandingPage() {
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
             <table className="w-full text-left bg-[#050806]">
-              <thead className="bg-[#FF7A00] text-white">
+              <thead className="bg-[#C2410C] text-white">
                 <tr>
                   <th className="px-6 py-4 font-bold">ขนาด</th>
                   <th className="px-6 py-4 font-bold">การใช้งานที่แนะนำ</th>
@@ -431,7 +431,7 @@ export default function PPBoardLandingPage() {
               <motion.div key={i} whileHover={{ scale: 1.02 }} className="relative aspect-[16/10] rounded-3xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer bg-[#0E1310]">
                 <Image src={src} alt="Portfolio" fill className="object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
-                  <div className="bg-[#FF7A00] p-3 rounded-full"><Check size={24} className="text-white" /></div>
+                  <div className="bg-[#C2410C] p-3 rounded-full"><Check size={24} className="text-white" /></div>
                 </div>
               </motion.div>
             ))}
@@ -496,7 +496,7 @@ export default function PPBoardLandingPage() {
           </div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.5 }} className="text-center mt-16">
-            <a href="#quote" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5" style={{ background: "#FF6B00", boxShadow: "0 4px 24px rgba(255,107,0,0.25)" }}>เริ่มต้นสั่งงานเลย</a>
+            <a href="#quote" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5" style={{ background: "#C2410C", boxShadow: "0 4px 24px rgba(255,107,0,0.25)" }}>เริ่มต้นสั่งงานเลย</a>
           </motion.div>
         </div>
       </section>
@@ -508,7 +508,7 @@ export default function PPBoardLandingPage() {
           <div className="space-y-4">
             {faqs.map((faq, i) => (
               <div key={i} className="bg-[#0E1310] rounded-2xl overflow-hidden border border-white/5 shadow-lg">
-                <button className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                <button type="button" className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span className="font-bold text-sm">{faq.q}</span>
                   {openFaq === i ? <Minus size={18} className="text-[#FF7A00]" /> : <Plus size={18} className="text-gray-500" />}
                 </button>
@@ -531,7 +531,7 @@ export default function PPBoardLandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
 
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="lg:col-span-2">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-[#FF7A00]/10">ขอใบเสนอราคา</div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-[#C2410C]/10">ขอใบเสนอราคา</div>
               <h2 className="text-4xl lg:text-5xl font-['Kanit'] font-extrabold mb-6 leading-tight text-white">มีงานอยู่?<br />เราช่วยดูแลให้</h2>
               <p className="text-gray-400 mb-10 leading-relaxed text-lg">กรอกรายละเอียดงาน ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง</p>
               <div className="flex flex-col gap-4">
@@ -557,7 +557,7 @@ export default function PPBoardLandingPage() {
                     <CheckCircle size={56} className="text-[#FF7A00]" />
                     <h3 className="font-['Kanit'] font-bold text-2xl text-white">ส่งข้อมูลสำเร็จ!</h3>
                     <p className="text-gray-400 text-sm max-w-xs">ทีมงานได้รับข้อมูลของคุณแล้ว จะติดต่อกลับภายใน 24 ชั่วโมง</p>
-                    <button onClick={() => setSubmitted(false)} className="mt-4 text-sm underline text-[#FF7A00]">ส่งใบเสนอราคาอีกครั้ง</button>
+                    <button type="button" onClick={() => setSubmitted(false)} className="mt-4 text-sm underline text-[#FF7A00]">ส่งใบเสนอราคาอีกครั้ง</button>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
@@ -611,7 +611,7 @@ export default function PPBoardLandingPage() {
                         <input type="file" className="hidden" accept=".ai,.pdf,.psd,.jpg,.jpeg,.png" />
                       </label>
                     </div>
-                    <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-white text-base transition-all duration-200 disabled:opacity-70 bg-[#FF7A00] hover:bg-[#FF8C33] shadow-lg shadow-[#FF7A00]/20 mt-4">
+                    <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-white text-base transition-all duration-200 disabled:opacity-70 bg-[#C2410C] hover:bg-[#9A3412] shadow-lg shadow-[#FF7A00]/20 mt-4">
                       {loading ? (<><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> กำลังส่งข้อมูล...</>) : (<><Send size={18} /> ส่งข้อมูลขอใบเสนอราคา</>)}
                     </button>
                     <p className="text-center text-xs text-gray-500 mt-2">ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง • ไม่มีค่าใช้จ่ายในการขอใบเสนอราคา</p>

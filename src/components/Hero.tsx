@@ -2,9 +2,9 @@ import { ArrowRight, CheckCircle2, MessageCircle, Phone, Sparkles } from "lucide
 import Image from "next/image";
 
 const defaultTrustPoints = [
-  "ให้คำปรึกษาและตรวจไฟล์ก่อนผลิต",
-  "ดูแลตั้งแต่ไอเดียจนถึงงานพร้อมใช้งาน",
-  "ผลิตและจัดส่งงานทั่วประเทศไทย",
+  "à¹ƒà¸«à¹‰à¸„à¸³à¸›à¸£à¸¶à¸à¸©à¸²à¹à¸¥à¸°à¸•à¸£à¸§à¸ˆà¹„à¸Ÿà¸¥à¹Œà¸à¹ˆà¸­à¸™à¸œà¸¥à¸´à¸•",
+  "à¸”à¸¹à¹à¸¥à¸•à¸±à¹‰à¸‡à¹à¸•à¹ˆà¹„à¸­à¹€à¸”à¸µà¸¢à¸ˆà¸™à¸–à¸¶à¸‡à¸‡à¸²à¸™à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™",
+  "à¸œà¸¥à¸´à¸•à¹à¸¥à¸°à¸ˆà¸±à¸”à¸ªà¹ˆà¸‡à¸‡à¸²à¸™à¸—à¸±à¹ˆà¸§à¸›à¸£à¸°à¹€à¸—à¸¨à¹„à¸—à¸¢",
 ];
 
 type HeroSettings = {
@@ -72,9 +72,9 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
             className="hero-h1 font-kanit font-extrabold leading-[1.05] mb-5 sm:mb-6 text-white"
             style={{ fontSize: "clamp(40px, 6.4vw, 82px)" }}
           >
-            {hero.headline1 || "รับทำป้ายและ"}
+            {hero.headline1 || "à¸£à¸±à¸šà¸—à¸³à¸›à¹‰à¸²à¸¢à¹à¸¥à¸°"}
             <br />
-            <span style={{ color: "#FF6500" }}>{hero.headlineHighlight || "สื่อโฆษณา"}</span>
+            <span style={{ color: "#FF6500" }}>{hero.headlineHighlight || "à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²"}</span>
             {hero.headline2 ? (
               <>
                 <br />
@@ -92,7 +92,7 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
             }}
           >
             {hero.subtitle ||
-              "ให้ธุรกิจของคุณมองเห็นชัดขึ้น ด้วยบริการให้คำปรึกษา ออกแบบ ผลิต และจัดส่งสื่อโฆษณาคุณภาพสำหรับธุรกิจ"}
+              "à¹ƒà¸«à¹‰à¸˜à¸¸à¸£à¸à¸´à¸ˆà¸‚à¸­à¸‡à¸„à¸¸à¸“à¸¡à¸­à¸‡à¹€à¸«à¹‡à¸™à¸Šà¸±à¸”à¸‚à¸¶à¹‰à¸™ à¸”à¹‰à¸§à¸¢à¸šà¸£à¸´à¸à¸²à¸£à¹ƒà¸«à¹‰à¸„à¸³à¸›à¸£à¸¶à¸à¸©à¸² à¸­à¸­à¸à¹à¸šà¸š à¸œà¸¥à¸´à¸• à¹à¸¥à¸°à¸ˆà¸±à¸”à¸ªà¹ˆà¸‡à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²à¸„à¸¸à¸“à¸ à¸²à¸žà¸ªà¸³à¸«à¸£à¸±à¸šà¸˜à¸¸à¸£à¸à¸´à¸ˆ"}
           </p>
 
           <div className="hero-trust flex flex-col gap-2 mb-8 sm:mb-10">
@@ -122,7 +122,7 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
                 fontSize: "15px",
               }}
             >
-              ปรึกษางานและประเมินราคาฟรี
+              à¸›à¸£à¸¶à¸à¸©à¸²à¸‡à¸²à¸™à¹à¸¥à¸°à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸£à¸²à¸„à¸²à¸Ÿà¸£à¸µ
               <ArrowRight
                 size={18}
                 className="transition-transform group-hover:translate-x-1"
@@ -136,7 +136,7 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
                 fontSize: "15px",
               }}
             >
-              ดูผลงานของเรา
+              à¸”à¸¹à¸œà¸¥à¸‡à¸²à¸™à¸‚à¸­à¸‡à¹€à¸£à¸²
             </a>
           </div>
 
@@ -161,7 +161,7 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-lg px-2 py-1 hover:text-white transition-colors"
             >
-              <MessageCircle size={14} style={{ color: "#06C755" }} /> ปรึกษาฟรีผ่าน LINE
+              <MessageCircle size={14} style={{ color: "#06C755" }} /> à¸›à¸£à¸¶à¸à¸©à¸²à¸Ÿà¸£à¸µà¸œà¹ˆà¸²à¸™ LINE
             </a>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function Hero({ settings }: { settings?: HeroSettings }) {
           scroll
         </div>
         <div className="w-5 h-8 border border-white/20 rounded-full flex items-start justify-center pt-1">
-          <div className="hero-scroll-dot w-1 h-2 rounded-full" style={{ background: "#FF6500" }} />
+          <div className="hero-scroll-dot w-1 h-2 rounded-full" style={{ background: "#C2410C" }} />
         </div>
       </div>
     </section>

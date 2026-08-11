@@ -8,14 +8,14 @@ import { Menu, X, MessageCircle, ArrowUpRight } from "lucide-react";
 import { Facebook } from "@/components/BrandIcons";
 
 const navLinks = [
-  { label: "หน้าแรก", href: "/" },
-  { label: "บริการของเรา", href: "/services" },
-  { label: "ผลงานของเรา", href: "/portfolio" },
-  { label: "ขั้นตอนการทำงาน", href: "/#process" },
-  { label: "บทความ", href: "/blog" },
+  { label: "à¸«à¸™à¹‰à¸²à¹à¸£à¸", href: "/" },
+  { label: "à¸šà¸£à¸´à¸à¸²à¸£à¸‚à¸­à¸‡à¹€à¸£à¸²", href: "/services" },
+  { label: "à¸œà¸¥à¸‡à¸²à¸™à¸‚à¸­à¸‡à¹€à¸£à¸²", href: "/portfolio" },
+  { label: "à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™", href: "/#process" },
+  { label: "à¸šà¸—à¸„à¸§à¸²à¸¡", href: "/blog" },
   { label: "FAQ", href: "/faq" },
-  { label: "เกี่ยวกับเรา", href: "/about" },
-  { label: "ติดต่อเรา", href: "/contact" },
+  { label: "à¹€à¸à¸µà¹ˆà¸¢à¸§à¸à¸±à¸šà¹€à¸£à¸²", href: "/about" },
+  { label: "à¸•à¸´à¸”à¸•à¹ˆà¸­à¹€à¸£à¸²", href: "/contact" },
 ];
 
 export default function Navbar() {
@@ -100,48 +100,50 @@ export default function Navbar() {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-sm text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5"
-            style={{ backgroundColor: "#06C755", boxShadow: "0 4px 20px rgba(6,199,85,0.2)" }}
+            style={{ backgroundColor: "#047857", boxShadow: "0 4px 20px rgba(4,120,87,0.24)" }}
           >
-            ปรึกษาทาง LINE <MessageCircle size={16} />
+            à¸›à¸£à¸¶à¸à¸©à¸²à¸—à¸²à¸‡ LINE <MessageCircle size={16} />
           </a>
           <Link
             href="/#quote"
             className="inline-flex items-center gap-2 text-white px-4 py-2.5 rounded-sm text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5"
-            style={{ backgroundColor: "#FF6500", boxShadow: "0 4px 20px rgba(255,101,0,0.18)" }}
+            style={{ backgroundColor: "#C2410C", boxShadow: "0 4px 20px rgba(194,65,12,0.22)" }}
           >
-            ขอราคา <ArrowUpRight size={15} />
+            à¸‚à¸­à¸£à¸²à¸„à¸² <ArrowUpRight size={15} />
           </Link>
         </div>
 
         {/* Mobile Hamburger */}
         <button
+          type="button"
           className="navbar-menu-button"
           style={{
             marginLeft: "auto",
             minWidth: 74,
-            height: 38,
+            height: 44,
+            minHeight: 44,
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
             gap: 7,
             border: "1px solid rgba(255,255,255,0.18)",
             borderRadius: 6,
-            background: "#FF6500",
+            background: "#C2410C",
             color: "#fff",
             fontSize: 12,
             fontWeight: 800,
             lineHeight: 1,
-            boxShadow: "0 10px 28px rgba(255,101,0,0.22)",
+            boxShadow: "0 10px 28px rgba(194,65,12,0.26)",
           }}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
         >
-          <span>เมนู</span>
+          <span>à¹€à¸¡à¸™à¸¹</span>
           {mobileOpen ? <X size={17} /> : <Menu size={17} />}
         </button>
         <Link href="/#quote" className="navbar-mobile-quote">
-          ขอราคา
+          à¸‚à¸­à¸£à¸²à¸„à¸²
         </Link>
       </div>
 
@@ -157,7 +159,7 @@ export default function Navbar() {
           onClick={() => setMobileOpen(false)}
         />
         <aside className="navbar-mobile-menu-panel xl:hidden" aria-label="Mobile navigation">
-          <div className="navbar-mobile-menu-title">เมนูหลัก</div>
+          <div className="navbar-mobile-menu-title">à¹€à¸¡à¸™à¸¹à¸«à¸¥à¸±à¸</div>
           <button
             type="button"
             className="navbar-mobile-menu-close"
@@ -187,14 +189,14 @@ export default function Navbar() {
               className="navbar-mobile-action-line"
               onClick={() => setMobileOpen(false)}
             >
-              ปรึกษาทาง LINE ฟรี
+              à¸›à¸£à¸¶à¸à¸©à¸²à¸—à¸²à¸‡ LINE à¸Ÿà¸£à¸µ
             </a>
             <Link
               href="/#quote"
               className="navbar-mobile-action-quote"
               onClick={() => setMobileOpen(false)}
             >
-              ส่งข้อมูลขอราคา
+              à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸‚à¸­à¸£à¸²à¸„à¸²
             </Link>
           </div>
         </aside>

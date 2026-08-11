@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps -- Several admin editors intentionally hydrate persisted data once on mount to avoid overwriting active form input. */
 // @ts-nocheck
 'use client';
-// ─── IMPORTS ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ IMPORTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -33,7 +33,7 @@ async function requireErpSession() {
 
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) {
-    throw new Error("Session หมดอายุหรือยังไม่ได้เข้าสู่ระบบ กรุณา login ใหม่");
+    throw new Error("Session à¸«à¸¡à¸”à¸­à¸²à¸¢à¸¸à¸«à¸£à¸·à¸­à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸š à¸à¸£à¸¸à¸“à¸² login à¹ƒà¸«à¸¡à¹ˆ");
   }
   return data.user;
 }
@@ -42,12 +42,12 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): 
   return Promise.race([
     promise,
     new Promise<T>((_, reject) => {
-      window.setTimeout(() => reject(new Error(`${label} ใช้เวลานานเกินไป`)), timeoutMs);
+      window.setTimeout(() => reject(new Error(`${label} à¹ƒà¸Šà¹‰à¹€à¸§à¸¥à¸²à¸™à¸²à¸™à¹€à¸à¸´à¸™à¹„à¸›`)), timeoutMs);
     }),
   ]);
 }
 
-// ─── CMS HELPERS ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ CMS HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadCmsSetting(key: string, fallback: unknown) {
   try {
     const { data, error } = await supabase
@@ -86,7 +86,7 @@ async function saveCmsSetting(key: string, value: unknown) {
 
 
 
-// ─── ERP HELPERS + DATA ───────────────────────────────────────────────────────
+// â”€â”€â”€ ERP HELPERS + DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // ============================================================
 // HELPERS
@@ -112,14 +112,14 @@ const fmtMoney = (n: number) =>
 const DEFAULT_DOCUMENT_COMPANY_NAME = "DISPLAY WORKS MEDIA";
 const PUBLIC_SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://displayworksmedia.com").replace(/\/$/, "");
 const PRICE_BASIS_OPTIONS = [
-  { value: "piece", label: "ต่อชิ้น" },
-  { value: "sqm", label: "ต่อตารางเมตร" },
+  { value: "piece", label: "à¸•à¹ˆà¸­à¸Šà¸´à¹‰à¸™" },
+  { value: "sqm", label: "à¸•à¹ˆà¸­à¸•à¸²à¸£à¸²à¸‡à¹€à¸¡à¸•à¸£" },
 ];
 const priceBasisLabel = (value?: string) =>
-  PRICE_BASIS_OPTIONS.find((option) => option.value === value)?.label || "ต่อชิ้น";
+  PRICE_BASIS_OPTIONS.find((option) => option.value === value)?.label || "à¸•à¹ˆà¸­à¸Šà¸´à¹‰à¸™";
 const isSqmBasis = (value?: string) => value === "sqm";
 const itemBillingBasis = (item: any) =>
-  isSqmBasis(item?.priceUnit) || isSqmBasis(item?.costUnit) || String(item?.unit || "").includes("ตร.ม")
+  isSqmBasis(item?.priceUnit) || isSqmBasis(item?.costUnit) || String(item?.unit || "").includes("à¸•à¸£.à¸¡")
     ? "sqm"
     : "piece";
 const lineQty = (item: any) => Number(item.qty || 0);
@@ -134,7 +134,7 @@ const lineAmount = (item: any) => lineQtyForBasis(item, item?.priceUnit || "piec
 const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) =>
   lineQtyForBasis(item, item?.costUnit || "piece") * Number(unitCost || 0);
 const isShippingItem = (item: any) =>
-  /ems|shipping|delivery|ขนส่ง|จัดส่ง|ค่าส่ง|ส่งของ|พัสดุ/i.test(String(item?.name || ""));
+  /ems|shipping|delivery|à¸‚à¸™à¸ªà¹ˆà¸‡|à¸ˆà¸±à¸”à¸ªà¹ˆà¸‡|à¸„à¹ˆà¸²à¸ªà¹ˆà¸‡|à¸ªà¹ˆà¸‡à¸‚à¸­à¸‡|à¸žà¸±à¸ªà¸”à¸¸/i.test(String(item?.name || ""));
 const fallbackItemCost = (products: any[], item: any) => {
   const snapshot = Number(item.costSnapshot || 0);
   if (snapshot > 0) return snapshot;
@@ -165,7 +165,7 @@ const supplierCatalogProducts = (suppliers: any[]) =>
         supplierName: supplier.name,
         supplierId: supplier.id,
         supplierItemId: item.id,
-        unit: item.unit || (basis === "sqm" ? "ตร.ม." : "ชิ้น"),
+        unit: item.unit || (basis === "sqm" ? "à¸•à¸£.à¸¡." : "à¸Šà¸´à¹‰à¸™"),
         cost: Number(item.supplierPrice || 0),
         price: Number(item.salePrice || 0),
         costUnit: basis,
@@ -177,8 +177,8 @@ const supplierCatalogProducts = (suppliers: any[]) =>
 const customerFacingLineItem = (item: any) => {
   const detailText = String(item?.detail || "");
   const parsedPieces = Number(
-    detailText.match(/(?:จำนวน|qty|pieces?)\D{0,12}(\d+(?:\.\d+)?)/i)?.[1]
-    || detailText.match(/[x×]\s*(\d+(?:\.\d+)?)\s*(?:ชิ้น|pcs?)/i)?.[1]
+    detailText.match(/(?:à¸ˆà¸³à¸™à¸§à¸™|qty|pieces?)\D{0,12}(\d+(?:\.\d+)?)/i)?.[1]
+    || detailText.match(/[xÃ—]\s*(\d+(?:\.\d+)?)\s*(?:à¸Šà¸´à¹‰à¸™|pcs?)/i)?.[1]
     || 0
   );
   const pieces = Number(item?.pieces || 0) || parsedPieces;
@@ -190,7 +190,7 @@ const customerFacingLineItem = (item: any) => {
   return {
     ...item,
     qty: displayQty,
-    unit: "ชิ้น",
+    unit: "à¸Šà¸´à¹‰à¸™",
     price: amount / displayQty,
     costSnapshot: cost / displayQty,
     priceUnit: "piece",
@@ -201,7 +201,7 @@ const customerFacingDetail = (detail?: string) =>
   String(detail || "")
     .split("\n")
     .map((line) => line.trim())
-    .filter((line) => line && !/(ตร\.?ม|ตารางเมตร|sqm|square\s*meter|พื้นที่รวม|คำนวณพื้นที่)/i.test(line));
+    .filter((line) => line && !/(à¸•à¸£\.?à¸¡|à¸•à¸²à¸£à¸²à¸‡à¹€à¸¡à¸•à¸£|sqm|square\s*meter|à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸£à¸§à¸¡|à¸„à¸³à¸™à¸§à¸“à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆ)/i.test(line));
 
 const documentCompanyName = (name?: string) => {
   const cleanName = String(name || DEFAULT_DOCUMENT_COMPANY_NAME)
@@ -232,7 +232,7 @@ const sanitizeForPrint = (value: any): any => {
   );
 };
 
-// ── Shared calculation utility — ใช้ร่วมกันทุกจุด ──────────
+// â”€â”€ Shared calculation utility â€” à¹ƒà¸Šà¹‰à¸£à¹ˆà¸§à¸¡à¸à¸±à¸™à¸—à¸¸à¸à¸ˆà¸¸à¸” â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const docDepositInfo = (doc: any) => {
   const paymentAmount = Math.max(0, Number(doc?.paymentAmount ?? doc?.payment_amount ?? 0) || 0);
   const depositAmount = Math.max(0, Number(doc?.depositPaid ?? doc?.deposit_paid ?? 0) || 0);
@@ -248,22 +248,22 @@ const parseDepositFromText = (doc: any, netPay: number) => {
   const text = [doc?.depositNote, doc?.deposit_note, doc?.notes]
     .filter(Boolean)
     .join("\n");
-  if (!/(มัดจำ|deposit)/i.test(text)) return { depositPaid: 0, depositDate: "", depositNote: "" };
+  if (!/(à¸¡à¸±à¸”à¸ˆà¸³|deposit)/i.test(text)) return { depositPaid: 0, depositDate: "", depositNote: "" };
 
   const percent =
-    text.match(/(?:มัดจำ|deposit)[^\d]{0,24}(\d+(?:\.\d+)?)\s*%/i)?.[1]
-    || text.match(/(\d+(?:\.\d+)?)\s*%[^\n]{0,24}(?:มัดจำ|deposit)/i)?.[1];
+    text.match(/(?:à¸¡à¸±à¸”à¸ˆà¸³|deposit)[^\d]{0,24}(\d+(?:\.\d+)?)\s*%/i)?.[1]
+    || text.match(/(\d+(?:\.\d+)?)\s*%[^\n]{0,24}(?:à¸¡à¸±à¸”à¸ˆà¸³|deposit)/i)?.[1];
   if (percent) {
     const paid = netPay * (Math.min(100, Math.max(0, Number(percent))) / 100);
-    return { depositPaid: paid, depositDate: "", depositNote: `ชำระมัดจำ ${fmtMoney(Number(percent))}%` };
+    return { depositPaid: paid, depositDate: "", depositNote: `à¸Šà¸³à¸£à¸°à¸¡à¸±à¸”à¸ˆà¸³ ${fmtMoney(Number(percent))}%` };
   }
 
   const amount =
-    text.match(/(?:มัดจำ|deposit)[^\d]{0,24}(\d[\d,]*(?:\.\d+)?)/i)?.[1]
-    || text.match(/(\d[\d,]*(?:\.\d+)?)[^\n]{0,16}(?:บาท|THB)[^\n]{0,24}(?:มัดจำ|deposit)/i)?.[1];
+    text.match(/(?:à¸¡à¸±à¸”à¸ˆà¸³|deposit)[^\d]{0,24}(\d[\d,]*(?:\.\d+)?)/i)?.[1]
+    || text.match(/(\d[\d,]*(?:\.\d+)?)[^\n]{0,16}(?:à¸šà¸²à¸—|THB)[^\n]{0,24}(?:à¸¡à¸±à¸”à¸ˆà¸³|deposit)/i)?.[1];
   if (amount) {
     const paid = Math.min(netPay, Math.max(0, Number(String(amount).replace(/,/g, "")) || 0));
-    return { depositPaid: paid, depositDate: "", depositNote: "ชำระมัดจำตามหมายเหตุ" };
+    return { depositPaid: paid, depositDate: "", depositNote: "à¸Šà¸³à¸£à¸°à¸¡à¸±à¸”à¸ˆà¸³à¸•à¸²à¸¡à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸" };
   }
 
   return { depositPaid: 0, depositDate: "", depositNote: "", paymentType: "" };
@@ -310,36 +310,36 @@ const calcDocTotal = (doc: any, documents: any[] = []) => {
 };
 
 const DOC_TYPES = {
-  quote: { label: "ใบเสนอราคา", short: "QT", color: "#3B82F6", prefix: "QT" },
-  bill: { label: "ใบวางบิล", short: "BL", color: "#8B5CF6", prefix: "BL" },
-  invoice: { label: "ใบแจ้งหนี้", short: "IV", color: "#F59E0B", prefix: "IV" },
-  receipt: { label: "ใบเสร็จรับเงิน", short: "RC", color: "#10B981", prefix: "RC" },
+  quote: { label: "à¹ƒà¸šà¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²", short: "QT", color: "#3B82F6", prefix: "QT" },
+  bill: { label: "à¹ƒà¸šà¸§à¸²à¸‡à¸šà¸´à¸¥", short: "BL", color: "#8B5CF6", prefix: "BL" },
+  invoice: { label: "à¹ƒà¸šà¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰", short: "IV", color: "#F59E0B", prefix: "IV" },
+  receipt: { label: "à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸£à¸±à¸šà¹€à¸‡à¸´à¸™", short: "RC", color: "#10B981", prefix: "RC" },
 };
 
 const STATUS_COLORS = {
   draft: "#6B7280", sent: "#3B82F6", approved: "#10B981", cancelled: "#EF4444", paid: "#10B981",
 };
 const STATUS_LABELS = {
-  draft: "ฉบับร่าง", sent: "ส่งแล้ว", approved: "อนุมัติ", cancelled: "ยกเลิก", paid: "ชำระแล้ว",
+  draft: "à¸‰à¸šà¸±à¸šà¸£à¹ˆà¸²à¸‡", sent: "à¸ªà¹ˆà¸‡à¹à¸¥à¹‰à¸§", approved: "à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´", cancelled: "à¸¢à¸à¹€à¸¥à¸´à¸", paid: "à¸Šà¸³à¸£à¸°à¹à¸¥à¹‰à¸§",
 };
 STATUS_COLORS.partial_paid = "#F59E0B";
-STATUS_LABELS.partial_paid = "ชำระบางส่วน";
+STATUS_LABELS.partial_paid = "à¸Šà¸³à¸£à¸°à¸šà¸²à¸‡à¸ªà¹ˆà¸§à¸™";
 
 // ============================================================
 // INITIAL DATA
 // ============================================================
 const INIT_CUSTOMERS = [
-  { id: genId(), name: "บริษัท เอบีซี จำกัด", contact: "คุณสมชาย", phone: "081-234-5678", email: "abc@example.com", address: "123 ถ.สุขุมวิท กรุงเทพฯ 10110", taxId: "0105550123456" },
-  { id: genId(), name: "ร้าน XYZ มาร์เก็ตติ้ง", contact: "คุณสมหญิง", phone: "089-876-5432", email: "xyz@example.com", address: "456 ถ.รัชดา กรุงเทพฯ 10400", taxId: "" },
+  { id: genId(), name: "à¸šà¸£à¸´à¸©à¸±à¸— à¹€à¸­à¸šà¸µà¸‹à¸µ à¸ˆà¸³à¸à¸±à¸”", contact: "à¸„à¸¸à¸“à¸ªà¸¡à¸Šà¸²à¸¢", phone: "081-234-5678", email: "abc@example.com", address: "123 à¸–.à¸ªà¸¸à¸‚à¸¸à¸¡à¸§à¸´à¸— à¸à¸£à¸¸à¸‡à¹€à¸—à¸žà¸¯ 10110", taxId: "0105550123456" },
+  { id: genId(), name: "à¸£à¹‰à¸²à¸™ XYZ à¸¡à¸²à¸£à¹Œà¹€à¸à¹‡à¸•à¸•à¸´à¹‰à¸‡", contact: "à¸„à¸¸à¸“à¸ªà¸¡à¸«à¸à¸´à¸‡", phone: "089-876-5432", email: "xyz@example.com", address: "456 à¸–.à¸£à¸±à¸Šà¸”à¸² à¸à¸£à¸¸à¸‡à¹€à¸—à¸žà¸¯ 10400", taxId: "" },
 ];
 const INIT_PRODUCTS = [
-  { id: genId(), name: "ป้ายไวนิล (ต่อตร.ม.)", unit: "ตร.ม.", cost: 80, price: 200, costUnit: "sqm", priceUnit: "sqm" },
-  { id: genId(), name: "สติ๊กเกอร์ Indoor", unit: "ตร.ม.", cost: 120, price: 350, costUnit: "sqm", priceUnit: "sqm" },
-  { id: genId(), name: "สติ๊กเกอร์ Outdoor", unit: "ตร.ม.", cost: 180, price: 450, costUnit: "sqm", priceUnit: "sqm" },
-  { id: genId(), name: "PP Board", unit: "แผ่น", cost: 150, price: 400, costUnit: "piece", priceUnit: "piece" },
-  { id: genId(), name: "Roll Up Stand", unit: "ชิ้น", cost: 800, price: 2200, costUnit: "piece", priceUnit: "piece" },
-  { id: genId(), name: "Backdrop 3x2m", unit: "ชุด", cost: 1200, price: 3500, costUnit: "piece", priceUnit: "piece" },
-  { id: genId(), name: "ฉลากสินค้า A5", unit: "100 ชิ้น", cost: 150, price: 400, costUnit: "piece", priceUnit: "piece" },
+  { id: genId(), name: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥ (à¸•à¹ˆà¸­à¸•à¸£.à¸¡.)", unit: "à¸•à¸£.à¸¡.", cost: 80, price: 200, costUnit: "sqm", priceUnit: "sqm" },
+  { id: genId(), name: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ Indoor", unit: "à¸•à¸£.à¸¡.", cost: 120, price: 350, costUnit: "sqm", priceUnit: "sqm" },
+  { id: genId(), name: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ Outdoor", unit: "à¸•à¸£.à¸¡.", cost: 180, price: 450, costUnit: "sqm", priceUnit: "sqm" },
+  { id: genId(), name: "PP Board", unit: "à¹à¸œà¹ˆà¸™", cost: 150, price: 400, costUnit: "piece", priceUnit: "piece" },
+  { id: genId(), name: "Roll Up Stand", unit: "à¸Šà¸´à¹‰à¸™", cost: 800, price: 2200, costUnit: "piece", priceUnit: "piece" },
+  { id: genId(), name: "Backdrop 3x2m", unit: "à¸Šà¸¸à¸”", cost: 1200, price: 3500, costUnit: "piece", priceUnit: "piece" },
+  { id: genId(), name: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸² A5", unit: "100 à¸Šà¸´à¹‰à¸™", cost: 150, price: 400, costUnit: "piece", priceUnit: "piece" },
 ];
 
 function loadStore(key: string, def: unknown) {
@@ -424,7 +424,7 @@ function applyErpDocumentShadow(doc: any) {
 }
 
 // ============================================================
-// PRINT / PDF helper — Premium A4 Design (Display Works Media)
+// PRINT / PDF helper â€” Premium A4 Design (Display Works Media)
 // ============================================================
 function printDocument(doc: any, customers: any[], company: any, options: any = {}) {
   const autoPrint = options.autoPrint !== false;
@@ -438,21 +438,21 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   const custAddress = doc.overrideAddress || cust.address || "";
   const dt = DOC_TYPES[doc.type];
 
-  // ── Calculations (shared utility) ─────────────────────────
+  // â”€â”€ Calculations (shared utility) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, depositDate, depositNote, paymentType, balanceDue } = calcDocTotal(doc, linkedDocuments);
   const paymentLabel = paymentType === "full" || paymentType === "final" ? "PAYMENT RECEIVED" : paymentType === "partial" ? "PARTIAL PAYMENT" : "DEPOSIT PAID";
   const finalTotalLabel = depositPaid > 0 ? (balanceDue > 0 ? "BALANCE DUE" : "PAID IN FULL") : "GRAND TOTAL";
 
-  // ── Label mapping per document type ───────────────────────
+  // â”€â”€ Label mapping per document type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const DOC_LABELS = {
-    quote:   { en: "QUOTATION",    sub: "ใบเสนอราคา",     valid: "ยืนยันราคาถึง" },
-    bill:    { en: "BILLING NOTE", sub: "ใบวางบิล",        valid: "วันครบกำหนด" },
-    invoice: { en: "INVOICE",      sub: "ใบแจ้งหนี้",      valid: "วันครบกำหนด" },
-    receipt: { en: "RECEIPT",      sub: "ใบเสร็จรับเงิน",  valid: "วันที่ชำระ" },
+    quote:   { en: "QUOTATION",    sub: "à¹ƒà¸šà¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²",     valid: "à¸¢à¸·à¸™à¸¢à¸±à¸™à¸£à¸²à¸„à¸²à¸–à¸¶à¸‡" },
+    bill:    { en: "BILLING NOTE", sub: "à¹ƒà¸šà¸§à¸²à¸‡à¸šà¸´à¸¥",        valid: "à¸§à¸±à¸™à¸„à¸£à¸šà¸à¸³à¸«à¸™à¸”" },
+    invoice: { en: "INVOICE",      sub: "à¹ƒà¸šà¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰",      valid: "à¸§à¸±à¸™à¸„à¸£à¸šà¸à¸³à¸«à¸™à¸”" },
+    receipt: { en: "RECEIPT",      sub: "à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸£à¸±à¸šà¹€à¸‡à¸´à¸™",  valid: "à¸§à¸±à¸™à¸—à¸µà¹ˆà¸Šà¸³à¸£à¸°" },
   };
   const lbl = DOC_LABELS[doc.type] || DOC_LABELS.quote;
 
-  // ── Table rows — with bullet detail list ─────────────────
+  // â”€â”€ Table rows â€” with bullet detail list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const rows = doc.items.map((rawItem, i) => {
     const item = customerFacingLineItem(rawItem);
     return `
@@ -472,7 +472,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     </tr>`;
   }).join("");
 
-  // ── Summary rows ──────────────────────────────────────────
+  // â”€â”€ Summary rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const summaryRows = `
     <tr style="border-bottom:1px solid #f1f5f9;">
       <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">SUBTOTAL</td>
@@ -494,7 +494,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     </tr>` : ""}
     ${doc.wht ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">หัก ณ ที่จ่าย ${doc.whtRate}%</td>
+      <td style="padding:7px 12px;color:#64748b;font-size:10px;font-weight:600;">à¸«à¸±à¸ à¸“ à¸—à¸µà¹ˆà¸ˆà¹ˆà¸²à¸¢ ${doc.whtRate}%</td>
       <td style="padding:7px 12px;text-align:right;font-size:11px;color:#64748b;">- ${fmtMoney(whtAmt)}</td>
     </tr>` : ""}
     ${depositPaid > 0 ? `
@@ -515,18 +515,18 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       </td>
     </tr>`;
 
-  // ── Notes list ────────────────────────────────────────────
+  // â”€â”€ Notes list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const noteItems = doc.notes
     ? doc.notes.split("\n").filter(Boolean).map(n =>
         `<li style="margin-bottom:3px;">${n}</li>`).join("")
-    : "<li>ขอบคุณที่ไว้วางใจ Display Works Media</li>";
+    : "<li>à¸‚à¸­à¸šà¸„à¸¸à¸“à¸—à¸µà¹ˆà¹„à¸§à¹‰à¸§à¸²à¸‡à¹ƒà¸ˆ Display Works Media</li>";
 
   const logoUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/images/logo.png?v=doc-logo`
       : "/images/logo.png?v=doc-logo";
 
-  // ── Full HTML — Premium quotation layout ─────────────────
+  // â”€â”€ Full HTML â€” Premium quotation layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const html = `<!DOCTYPE html>
 <html lang="th">
 <head>
@@ -549,7 +549,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
 <body>
 <div class="page">
 
-  <!-- ═══ HEADER ════════════════════════════════════════════ -->
+  <!-- â•â•â• HEADER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div>
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:flex-start;
                 padding-bottom:14px;border-bottom:2px solid #f1f5f9;margin-bottom:16px;">
@@ -573,10 +573,10 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
         <div style="font-weight:700;font-size:11px;color:#334155;margin-bottom:3px;">${printCompanyName}</div>
         <div style="font-size:9.5px;color:#94a3b8;line-height:1.7;max-width:380px;">${company.address || ""}</div>
         <div style="font-size:8.5px;color:#94a3b8;line-height:1.7;margin-top:2px;">
-          ${company.phone ? "โทร. " + company.phone : ""}
+          ${company.phone ? "à¹‚à¸—à¸£. " + company.phone : ""}
           ${company.phone && company.email ? " &nbsp;|&nbsp; " : ""}
           ${company.email ? company.email : ""}
-          ${company.taxId ? " &nbsp;|&nbsp; เลขผู้เสียภาษี: " + company.taxId : ""}
+          ${company.taxId ? " &nbsp;|&nbsp; à¹€à¸¥à¸‚à¸œà¸¹à¹‰à¹€à¸ªà¸µà¸¢à¸ à¸²à¸©à¸µ: " + company.taxId : ""}
         </div>
       </div>
       <!-- Doc type right -->
@@ -589,7 +589,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       </div>
     </div>
 
-    <!-- ═══ CLIENT + META ══════════════════════════════════ -->
+    <!-- â•â•â• CLIENT + META â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <div style="display:grid;grid-template-columns:7fr 5fr;gap:0;
                 border-bottom:1px solid #e2e8f0;padding-bottom:16px;margin-bottom:16px;">
       <!-- To / client -->
@@ -597,16 +597,16 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
           <span style="color:#FF5500;font-weight:800;font-size:12px;">TO</span>
           <span style="color:#cbd5e1;font-size:10px;">/</span>
-          <span style="color:#94a3b8;font-size:10px;font-weight:500;">ลูกค้า</span>
+          <span style="color:#94a3b8;font-size:10px;font-weight:500;">à¸¥à¸¹à¸à¸„à¹‰à¸²</span>
         </div>
         <div style="font-weight:700;font-size:13px;color:#0f172a;margin-bottom:4px;">${cust.name || "-"}</div>
         ${custAddress ? `<div style="font-size:10.5px;color:#64748b;line-height:1.7;margin-bottom:5px;white-space:pre-line;">${custAddress}</div>` : ""}
         <div style="font-size:10.5px;color:#64748b;display:flex;flex-direction:column;gap:2px;">
-          ${cust.taxId ? `<div><span style="font-weight:600;color:#475569;">เลขประจำตัวผู้เสียภาษี</span> ${cust.taxId}</div>` : ""}
-          ${cust.phone ? `<div><span style="font-weight:600;color:#475569;">โทร.</span> ${cust.phone}</div>` : ""}
-          ${cust.email ? `<div><span style="font-weight:600;color:#475569;">อีเมล:</span> ${cust.email}</div>` : ""}
+          ${cust.taxId ? `<div><span style="font-weight:600;color:#475569;">à¹€à¸¥à¸‚à¸›à¸£à¸°à¸ˆà¸³à¸•à¸±à¸§à¸œà¸¹à¹‰à¹€à¸ªà¸µà¸¢à¸ à¸²à¸©à¸µ</span> ${cust.taxId}</div>` : ""}
+          ${cust.phone ? `<div><span style="font-weight:600;color:#475569;">à¹‚à¸—à¸£.</span> ${cust.phone}</div>` : ""}
+          ${cust.email ? `<div><span style="font-weight:600;color:#475569;">à¸­à¸µà¹€à¸¡à¸¥:</span> ${cust.email}</div>` : ""}
         </div>
-        ${doc.projectName ? `<div style="margin-top:6px;font-size:10px;color:#64748b;"><span style="font-weight:600;color:#475569;">โครงการ:</span> ${doc.projectName}</div>` : ""}
+        ${doc.projectName ? `<div style="margin-top:6px;font-size:10px;color:#64748b;"><span style="font-weight:600;color:#475569;">à¹‚à¸„à¸£à¸‡à¸à¸²à¸£:</span> ${doc.projectName}</div>` : ""}
       </div>
       <!-- Meta right -->
       <div style="padding-left:20px;display:flex;flex-direction:column;justify-content:center;gap:0;">
@@ -624,37 +624,37 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       </div>
     </div>
 
-    <!-- ═══ ITEMS TABLE ═════════════════════════════════════ -->
+    <!-- â•â•â• ITEMS TABLE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;margin-bottom:16px;">
       <thead>
         <tr style="background:#2c2d30;color:#fff;text-align:center;">
           <th style="padding:9px 6px;font-size:9px;font-weight:700;border-right:1px solid #444;width:6%;">
-            ITEM<br/><span style="font-size:7px;font-weight:400;opacity:.7;">ลำดับ</span>
+            ITEM<br/><span style="font-size:7px;font-weight:400;opacity:.7;">à¸¥à¸³à¸”à¸±à¸š</span>
           </th>
           <th style="padding:9px 10px;font-size:9px;font-weight:700;border-right:1px solid #444;text-align:left;width:20%;">
-            DESCRIPTION<br/><span style="font-size:7px;font-weight:400;opacity:.7;">รายการ</span>
+            DESCRIPTION<br/><span style="font-size:7px;font-weight:400;opacity:.7;">à¸£à¸²à¸¢à¸à¸²à¸£</span>
           </th>
           <th style="padding:9px 10px;font-size:9px;font-weight:700;border-right:1px solid #444;text-align:left;width:30%;">
-            DETAIL<br/><span style="font-size:7px;font-weight:400;opacity:.7;">รายละเอียด</span>
+            DETAIL<br/><span style="font-size:7px;font-weight:400;opacity:.7;">à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”</span>
           </th>
           <th style="padding:9px 6px;font-size:9px;font-weight:700;border-right:1px solid #444;width:8%;">
-            QTY.<br/><span style="font-size:7px;font-weight:400;opacity:.7;">จำนวน</span>
+            QTY.<br/><span style="font-size:7px;font-weight:400;opacity:.7;">à¸ˆà¸³à¸™à¸§à¸™</span>
           </th>
           <th style="padding:9px 6px;font-size:9px;font-weight:700;border-right:1px solid #444;width:8%;">
-            UNIT<br/><span style="font-size:7px;font-weight:400;opacity:.7;">หน่วย</span>
+            UNIT<br/><span style="font-size:7px;font-weight:400;opacity:.7;">à¸«à¸™à¹ˆà¸§à¸¢</span>
           </th>
           <th style="padding:9px 6px;font-size:9px;font-weight:700;border-right:1px solid #444;width:14%;">
-            UNIT PRICE<br/><span style="font-size:7px;font-weight:400;opacity:.7;">ราคาต่อหน่วย</span>
+            UNIT PRICE<br/><span style="font-size:7px;font-weight:400;opacity:.7;">à¸£à¸²à¸„à¸²à¸•à¹ˆà¸­à¸«à¸™à¹ˆà¸§à¸¢</span>
           </th>
           <th style="padding:9px 6px;font-size:9px;font-weight:700;width:14%;">
-            AMOUNT<br/><span style="font-size:7px;font-weight:400;opacity:.7;">จำนวนเงิน</span>
+            AMOUNT<br/><span style="font-size:7px;font-weight:400;opacity:.7;">à¸ˆà¸³à¸™à¸§à¸™à¹€à¸‡à¸´à¸™</span>
           </th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
 
-    <!-- ═══ LOWER: REMARKS + PAYMENT + SUMMARY + SIGNATURES ══ -->
+    <!-- â•â•â• LOWER: REMARKS + PAYMENT + SUMMARY + SIGNATURES â•â• -->
     <div style="display:grid;grid-template-columns:7fr 5fr;gap:16px;">
 
       <!-- Left: Remarks + Payment info + Signatures -->
@@ -663,7 +663,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
         <!-- Remarks -->
         <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;background:#f8fafc;">
           <div style="color:#FF5500;font-weight:700;font-size:8.5px;letter-spacing:1.5px;
-                      text-transform:uppercase;margin-bottom:6px;">REMARKS / หมายเหตุ</div>
+                      text-transform:uppercase;margin-bottom:6px;">REMARKS / à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸</div>
           <ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.8;">
             ${noteItems}
           </ul>
@@ -676,18 +676,18 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
             <div style="color:#FF5500;font-weight:700;font-size:8.5px;letter-spacing:1.5px;
                         text-transform:uppercase;margin-bottom:6px;">PAYMENT INFORMATION</div>
             <div style="font-size:10.5px;margin-bottom:2px;">
-              <span style="color:#94a3b8;">ชื่อบัญชี:</span>
+              <span style="color:#94a3b8;">à¸Šà¸·à¹ˆà¸­à¸šà¸±à¸à¸Šà¸µ:</span>
               <span style="font-weight:700;color:#1e293b;"> ${doc.bankName || company.bankName || printCompanyName || "-"}</span>
             </div>
             <div style="font-size:10px;color:#64748b;margin-bottom:2px;">
-              <span style="color:#94a3b8;">ธนาคาร:</span> ${doc.bankBranch || company.bankBranch || "-"}
+              <span style="color:#94a3b8;">à¸˜à¸™à¸²à¸„à¸²à¸£:</span> ${doc.bankBranch || company.bankBranch || "-"}
             </div>
             <div style="font-size:10px;color:#64748b;margin-bottom:2px;">
-              <span style="color:#94a3b8;">เลขบัญชี:</span>
+              <span style="color:#94a3b8;">à¹€à¸¥à¸‚à¸šà¸±à¸à¸Šà¸µ:</span>
               <span style="font-weight:700;color:#1e293b;"> ${doc.bankAccount || company.bankAccount || "-"}</span>
             </div>
             <div style="font-size:9px;color:#94a3b8;font-style:italic;">
-              <span style="color:#94a3b8;">ประเภท:</span> ${doc.bankType || company.bankType || "ออมทรัพย์"}
+              <span style="color:#94a3b8;">à¸›à¸£à¸°à¹€à¸ à¸—:</span> ${doc.bankType || company.bankType || "à¸­à¸­à¸¡à¸—à¸£à¸±à¸žà¸¢à¹Œ"}
             </div>
           </div>
           <!-- QR Code -->
@@ -715,7 +715,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
               <rect x="15" y="45" width="15" height="8" fill="black"/>
             </svg>`
             }
-            <div style="font-size:7px;color:#94a3b8;margin-top:3px;">สแกนเพื่อชำระเงิน</div>
+            <div style="font-size:7px;color:#94a3b8;margin-top:3px;">à¸ªà¹à¸à¸™à¹€à¸žà¸·à¹ˆà¸­à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™</div>
           </div>
         </div>
 
@@ -729,12 +729,12 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
             </div>
             <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:4px 0;">
               ${company.signatureImage
-                ? `<img src="${company.signatureImage}" alt="ลายเซ็น" style="max-height:48px;max-width:120px;object-fit:contain;">`
+                ? `<img src="${company.signatureImage}" alt="à¸¥à¸²à¸¢à¹€à¸‹à¹‡à¸™" style="max-height:48px;max-width:120px;object-fit:contain;">`
                 : `<div style="border-bottom:1px solid #cbd5e1;width:80%;margin:8px auto;"></div>`}
             </div>
             <div style="font-size:8px;color:#94a3b8;">
               ( ${doc.salesPerson || company.salesPerson || "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"} )<br/>
-              <span style="font-size:7.5px;font-weight:600;color:#64748b;">ผู้เสนอราคา</span>
+              <span style="font-size:7.5px;font-weight:600;color:#64748b;">à¸œà¸¹à¹‰à¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²</span>
             </div>
           </div>
           <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px;
@@ -746,7 +746,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
             <div style="border-bottom:1px solid #cbd5e1;width:80%;margin:12px auto 8px;"></div>
             <div style="font-size:8px;color:#94a3b8;">
               ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )<br/>
-              <span style="font-size:7.5px;font-weight:600;color:#64748b;">ผู้อนุมัติสั่งซื้อ</span>
+              <span style="font-size:7.5px;font-weight:600;color:#64748b;">à¸œà¸¹à¹‰à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¸ªà¸±à¹ˆà¸‡à¸‹à¸·à¹‰à¸­</span>
             </div>
           </div>
         </div>
@@ -763,7 +763,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     </div>
   </div>
 
-  <!-- ═══ FOOTER ════════════════════════════════════════════ -->
+  <!-- â•â•â• FOOTER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div style="margin-top:24px;padding-top:12px;border-top:2px solid #FF5500;
               display:flex;justify-content:space-between;align-items:flex-end;">
     <div style="font-size:9px;color:#94a3b8;font-style:italic;">
@@ -806,7 +806,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   const w = window.open(blobUrl, "_blank", "width=960,height=780");
   if (!w) {
     URL.revokeObjectURL(blobUrl);
-    alert("ไม่สามารถเปิดหน้าต่างเอกสารได้ กรุณาอนุญาต Pop-up สำหรับเว็บนี้");
+    alert("à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹€à¸›à¸´à¸”à¸«à¸™à¹‰à¸²à¸•à¹ˆà¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£à¹„à¸”à¹‰ à¸à¸£à¸¸à¸“à¸²à¸­à¸™à¸¸à¸à¸²à¸• Pop-up à¸ªà¸³à¸«à¸£à¸±à¸šà¹€à¸§à¹‡à¸šà¸™à¸µà¹‰");
     return;
   }
   w.focus();
@@ -848,7 +848,7 @@ export default function AdminPage() {
         detail: { section: sectionMap[navKey] || navKey },
       }));
     }
-    // ให้ DOM render/ปิด drawer เสร็จก่อนค่อย scroll กันปัญหาตำแหน่งเพี้ยนตอนปิด drawer
+    // à¹ƒà¸«à¹‰ DOM render/à¸›à¸´à¸” drawer à¹€à¸ªà¸£à¹‡à¸ˆà¸à¹ˆà¸­à¸™à¸„à¹ˆà¸­à¸¢ scroll à¸à¸±à¸™à¸›à¸±à¸à¸«à¸²à¸•à¸³à¹à¸«à¸™à¹ˆà¸‡à¹€à¸žà¸µà¹‰à¸¢à¸™à¸•à¸­à¸™à¸›à¸´à¸” drawer
     setTimeout(() => {
       document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
@@ -859,7 +859,7 @@ export default function AdminPage() {
     setTimeout(() => setToast(null), 2800);
   };
 
-// ─── ERP STATE ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ ERP STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [erpPage, setErpPage] = useState("dashboard");
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -867,12 +867,12 @@ export default function AdminPage() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [company, setCompany] = useState<any>({
     id: "", name: "", address: "", phone: "", email: "", taxId: "",
-    salesPerson: "", bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", qrImage: "", signatureImage: "",
+    salesPerson: "", bankName: "", bankBranch: "", bankAccount: "", bankType: "à¸­à¸­à¸¡à¸—à¸£à¸±à¸žà¸¢à¹Œ", qrImage: "", signatureImage: "",
   });
   const [erpLoading, setErpLoading] = useState(true);
   const [erpLoadError, setErpLoadError] = useState("");
 
-  // ── โหลดข้อมูลจาก Supabase ครั้งแรก ──────────────────────
+  // â”€â”€ à¹‚à¸«à¸¥à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ˆà¸²à¸ Supabase à¸„à¸£à¸±à¹‰à¸‡à¹à¸£à¸ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     async function loadAll() {
       setErpLoading(true);
@@ -885,11 +885,11 @@ export default function AdminPage() {
           supabase.from("erp_documents").select("*").eq("deleted", false).order("created_at", { ascending: false }),
           supabase.from("erp_document_items").select("*").order("sort_order"),
           supabase.from("erp_company").select("*").limit(1).maybeSingle(),
-        ]), 10000, "โหลดข้อมูล ERP");
+        ]), 10000, "à¹‚à¸«à¸¥à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥ ERP");
         const loadError = [custRes, prodRes, docRes, itemRes, compRes].find((res) => res.error)?.error;
         if (loadError) throw loadError;
 
-        // map snake_case → camelCase สำหรับ customers
+        // map snake_case â†’ camelCase à¸ªà¸³à¸«à¸£à¸±à¸š customers
         if (custRes.data) setCustomers(custRes.data.map(c => ({
           id: c.id, name: c.name, contact: c.contact, phone: c.phone,
           email: c.email, address: c.address, taxId: c.tax_id,
@@ -909,7 +909,7 @@ export default function AdminPage() {
           const { data, error } = await withTimeout(
             supabase.from("erp_suppliers").select("*").order("created_at"),
             6000,
-            "โหลดข้อมูล Supplier",
+            "à¹‚à¸«à¸¥à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥ Supplier",
           );
           if (error) throw error;
           let supplierRows = data || [];
@@ -932,7 +932,7 @@ export default function AdminPage() {
               if (migrateError) throw migrateError;
               supplierRows = migrated || [];
               saveLocal("erp_suppliers", []);
-              showToast("กู้ข้อมูล Supplier จากเครื่องและบันทึกลง database แล้ว");
+              showToast("à¸à¸¹à¹‰à¸‚à¹‰à¸­à¸¡à¸¹à¸¥ Supplier à¸ˆà¸²à¸à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸¥à¸°à¸šà¸±à¸™à¸—à¸¶à¸à¸¥à¸‡ database à¹à¸¥à¹‰à¸§");
             }
           }
           if (supplierRows) setSuppliers(supplierRows.map(s => ({
@@ -999,14 +999,14 @@ export default function AdminPage() {
           phone: compRes.data.phone || "", email: compRes.data.email || "",
           taxId: compRes.data.tax_id || "", salesPerson: compRes.data.sales_person || "",
           bankName: compRes.data.bank_name || "", bankBranch: compRes.data.bank_branch || "",
-          bankAccount: compRes.data.bank_account || "", bankType: compRes.data.bank_type || "ออมทรัพย์",
+          bankAccount: compRes.data.bank_account || "", bankType: compRes.data.bank_type || "à¸­à¸­à¸¡à¸—à¸£à¸±à¸žà¸¢à¹Œ",
           qrImage: compRes.data.qr_image || "",
           signatureImage: compRes.data.signature_image || "",
         });
       } catch (err) {
         console.error("ERP load error:", err);
         setErpLoadError(((err as any)?.message || String(err)));
-        showToast("โหลดข้อมูล ERP จาก database ไม่สำเร็จ: " + ((err as any)?.message || err), "error");
+        showToast("à¹‚à¸«à¸¥à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥ ERP à¸ˆà¸²à¸ database à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: " + ((err as any)?.message || err), "error");
       } finally {
         setErpLoading(false);
       }
@@ -1026,26 +1026,26 @@ export default function AdminPage() {
   const resolveItemCost = (item: any) => fallbackItemCost(catalogProducts, item);
   const totalCost = reportDocs.reduce((s, d) => {
     return s + d.items.reduce((ss, i) => {
-      // ใช้ costSnapshot (บันทึกตอน save) ถ้ามี — ไม่งั้นหาจาก products list (backward compat)
+      // à¹ƒà¸Šà¹‰ costSnapshot (à¸šà¸±à¸™à¸—à¸¶à¸à¸•à¸­à¸™ save) à¸–à¹‰à¸²à¸¡à¸µ â€” à¹„à¸¡à¹ˆà¸‡à¸±à¹‰à¸™à¸«à¸²à¸ˆà¸²à¸ products list (backward compat)
       return ss + lineCost(i, resolveItemCost(i));
     }, 0);
   }, 0);
   const totalProfit = totalRevenue - totalCost;
 
   const cmsTabs = [
-    { id: "blog", icon: "📝", label: "บทความ" },
-    { id: "hero", icon: "🖼️", label: "Hero Section" },
-    { id: "services", icon: "🛠️", label: "บริการ" },
-    { id: "reviews", icon: "⭐", label: "รีวิว" },
-    { id: "portfolio", icon: "🖼", label: "ผลงาน" },
-    { id: "page_content", icon: "📄", label: "ข้อความรายหน้า" },
-    { id: "contact", icon: "📞", label: "ข้อมูลติดต่อ" },
+    { id: "blog", icon: "ðŸ“", label: "à¸šà¸—à¸„à¸§à¸²à¸¡" },
+    { id: "hero", icon: "ðŸ–¼ï¸", label: "Hero Section" },
+    { id: "services", icon: "ðŸ› ï¸", label: "à¸šà¸£à¸´à¸à¸²à¸£" },
+    { id: "reviews", icon: "â­", label: "à¸£à¸µà¸§à¸´à¸§" },
+    { id: "portfolio", icon: "ðŸ–¼", label: "à¸œà¸¥à¸‡à¸²à¸™" },
+    { id: "page_content", icon: "ðŸ“„", label: "à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸£à¸²à¸¢à¸«à¸™à¹‰à¸²" },
+    { id: "contact", icon: "ðŸ“ž", label: "à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸•à¸´à¸”à¸•à¹ˆà¸­" },
   ];
 
   return (
     <div className="admin-app-shell" style={{ minHeight: "100vh", background: "#0B0F19", color: "#fff", fontFamily: "'Prompt','Sarabun',sans-serif", display: "flex", flexDirection: "column" }}>
 
-      {/* ─── TOP BAR ─── */}
+      {/* â”€â”€â”€ TOP BAR â”€â”€â”€ */}
       <div className="top-bar" style={{
         background: "#141A24", borderBottom: "1px solid rgba(255,255,255,0.07)",
         display: "flex", alignItems: "center",
@@ -1063,7 +1063,7 @@ export default function AdminPage() {
         />
         <span className="hide-mobile" style={{ fontWeight: 600, fontSize: 13, color: "#fff", marginRight: 16 }}>Display Works</span>
         <div className="hide-mobile" style={{ display: "flex", gap: 4 }}>
-          <button onClick={() => setMainTab("home")} style={{
+          <button type="button" onClick={() => setMainTab("home")} style={{
             padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
             background: mainTab === "home" ? "#FF6B00" : "transparent",
             color: mainTab === "home" ? "#fff" : "#A8B0C0", transition: "all 0.2s",
@@ -1071,15 +1071,15 @@ export default function AdminPage() {
             Home
           </button>
           {["erp","cms"].map(t => (
-            <button key={t} onClick={() => setMainTab(t)} style={{
+            <button type="button" key={t} onClick={() => setMainTab(t)} style={{
               padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
               background: mainTab === t ? "#FF6B00" : "transparent",
               color: mainTab === t ? "#fff" : "#A8B0C0", transition: "all 0.2s",
             }}>
-              {t === "erp" ? "⚙️ ERP" : "✏️ CMS"}
+              {t === "erp" ? "âš™ï¸ ERP" : "âœï¸ CMS"}
             </button>
           ))}
-          <button onClick={() => setMainTab("marketing")} style={{
+          <button type="button" onClick={() => setMainTab("marketing")} style={{
             padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
             background: mainTab === "marketing" ? "#FF6B00" : "transparent",
             color: mainTab === "marketing" ? "#fff" : "#A8B0C0", transition: "all 0.2s",
@@ -1091,7 +1091,7 @@ export default function AdminPage() {
         <div className="show-mobile admin-mobile-top" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
           <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
             {mainTab === "home" ? "Admin" : mainTab === "erp"
-              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
+              ? (erpPage === "dashboard" ? "à¸ à¸²à¸žà¸£à¸§à¸¡" : erpPage === "customers" ? "à¸¥à¸¹à¸à¸„à¹‰à¸²" : erpPage === "products" ? "à¸ªà¸´à¸™à¸„à¹‰à¸²" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "à¸šà¸£à¸´à¸©à¸±à¸—" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
           </span>
           <button
@@ -1128,7 +1128,7 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-        {/* ─── ERP ─── */}
+        {/* â”€â”€â”€ ERP â”€â”€â”€ */}
         {mainTab === "erp" && (
           <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
             <div className="hide-mobile" style={{ display: "flex" }}>
@@ -1137,7 +1137,7 @@ export default function AdminPage() {
             <div className="main-content-area" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
               {erpLoading ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "#888", fontSize: 14, gap: 10 }}>
-                  <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span> กำลังโหลดข้อมูล...
+                  <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>â³</span> à¸à¸³à¸¥à¸±à¸‡à¹‚à¸«à¸¥à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥...
                 </div>
               ) : erpLoadError ? (
                 <div className="erp-load-error-card" style={{
@@ -1153,9 +1153,9 @@ export default function AdminPage() {
                   <div style={{ color: "#EF4444", fontSize: 13, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>
                     ERP LOAD ERROR
                   </div>
-                  <h2 style={{ margin: 0, fontSize: 24, lineHeight: 1.25 }}>โหลดข้อมูลหลังบ้านไม่สำเร็จ</h2>
+                  <h2 style={{ margin: 0, fontSize: 24, lineHeight: 1.25 }}>à¹‚à¸«à¸¥à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸«à¸¥à¸±à¸‡à¸šà¹‰à¸²à¸™à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ</h2>
                   <p style={{ color: "#A8B0C0", fontSize: 14, lineHeight: 1.7, marginTop: 10 }}>
-                    ระบบเปิดหน้า admin ได้แล้ว แต่ยังดึงข้อมูลจากฐานข้อมูลไม่ได้ครบ อาจเกิดจาก session หมดอายุ, Supabase RLS, หรือ local environment ยังไม่ได้ login จริง
+                    à¸£à¸°à¸šà¸šà¹€à¸›à¸´à¸”à¸«à¸™à¹‰à¸² admin à¹„à¸”à¹‰à¹à¸¥à¹‰à¸§ à¹à¸•à¹ˆà¸¢à¸±à¸‡à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ˆà¸²à¸à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸„à¸£à¸š à¸­à¸²à¸ˆà¹€à¸à¸´à¸”à¸ˆà¸²à¸ session à¸«à¸¡à¸”à¸­à¸²à¸¢à¸¸, Supabase RLS, à¸«à¸£à¸·à¸­ local environment à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰ login à¸ˆà¸£à¸´à¸‡
                   </p>
                   <div style={{
                     marginTop: 14,
@@ -1178,7 +1178,7 @@ export default function AdminPage() {
                         flex: "1 1 160px",
                         minHeight: 44,
                         borderRadius: 10,
-                        background: "#FF6B00",
+                        background: "#C2410C",
                         color: "#fff",
                         border: "none",
                         fontFamily: "inherit",
@@ -1186,7 +1186,7 @@ export default function AdminPage() {
                         cursor: "pointer",
                       }}
                     >
-                      ลองโหลดใหม่
+                      à¸¥à¸­à¸‡à¹‚à¸«à¸¥à¸”à¹ƒà¸«à¸¡à¹ˆ
                     </button>
                     <button
                       type="button"
@@ -1203,7 +1203,7 @@ export default function AdminPage() {
                         cursor: "pointer",
                       }}
                     >
-                      ไปหน้า Login
+                      à¹„à¸›à¸«à¸™à¹‰à¸² Login
                     </button>
                   </div>
                 </div>
@@ -1228,12 +1228,12 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ─── CMS ─── */}
+        {/* â”€â”€â”€ CMS â”€â”€â”€ */}
         {mainTab === "cms" && (
           <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
             <div className="hide-mobile" style={{ width: 200, background: "#141A24", borderRight: "1px solid rgba(255,255,255,0.07)", padding: "16px 8px", display: "flex", flexDirection: "column" as const, gap: 4, flexShrink: 0 }}>
               {cmsTabs.map(t => (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{
+                <button type="button" key={t.id} onClick={() => setTab(t.id)} style={{
                   display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8,
                   fontSize: 13, border: "none", cursor: "pointer", textAlign: "left" as const, fontFamily: "inherit",
                   background: tab === t.id ? "rgba(255,107,0,0.15)" : "transparent",
@@ -1273,7 +1273,7 @@ export default function AdminPage() {
         )}
       </div>
 
-      {/* ─── MOBILE BOTTOM NAV ─── */}
+      {/* â”€â”€â”€ MOBILE BOTTOM NAV â”€â”€â”€ */}
       <div className="show-mobile admin-bottom-nav" style={{
         position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200,
         background: "rgba(20,26,36,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
@@ -1282,13 +1282,13 @@ export default function AdminPage() {
         boxShadow: "0 -8px 32px rgba(0,0,0,0.4)",
       }}>
         {mainTab === "home" && ([
-          { id: "home", icon: "⌂", label: "หน้าแรก" },
-          { id: "erp", icon: "ERP", label: "งานขาย" },
-          { id: "cms", icon: "CMS", label: "เว็บไซต์" },
-          { id: "marketing", icon: "MKT", label: "การตลาด" },
-          { id: "__more__", icon: "☰", label: "เพิ่มเติม" },
+          { id: "home", icon: "âŒ‚", label: "à¸«à¸™à¹‰à¸²à¹à¸£à¸" },
+          { id: "erp", icon: "ERP", label: "à¸‡à¸²à¸™à¸‚à¸²à¸¢" },
+          { id: "cms", icon: "CMS", label: "à¹€à¸§à¹‡à¸šà¹„à¸‹à¸•à¹Œ" },
+          { id: "marketing", icon: "MKT", label: "à¸à¸²à¸£à¸•à¸¥à¸²à¸”" },
+          { id: "__more__", icon: "â˜°", label: "à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡" },
         ] as any[]).map(item => (
-          <button key={item.id} onClick={() => {
+          <button type="button" key={item.id} onClick={() => {
             if (item.id === "__more__") setShowMobileDrawer(v => !v);
             else {
               setMainTab(item.id);
@@ -1308,13 +1308,13 @@ export default function AdminPage() {
           </button>
         ))}
         {mainTab === "erp" && ([
-          { id: "dashboard", icon: "⊞", label: "ภาพรวม" },
-          { id: "quote",     icon: "📋", label: "ใบเสนอ" },
-          { id: "invoice",   icon: "🧾", label: "ใบแจ้งหนี้" },
-          { id: "receipt",   icon: "✅", label: "ใบเสร็จ" },
-          { id: "__more__",  icon: "☰",  label: "เพิ่มเติม" },
+          { id: "dashboard", icon: "âŠž", label: "à¸ à¸²à¸žà¸£à¸§à¸¡" },
+          { id: "quote",     icon: "ðŸ“‹", label: "à¹ƒà¸šà¹€à¸ªà¸™à¸­" },
+          { id: "invoice",   icon: "ðŸ§¾", label: "à¹ƒà¸šà¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰" },
+          { id: "receipt",   icon: "âœ…", label: "à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆ" },
+          { id: "__more__",  icon: "â˜°",  label: "à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡" },
         ] as any[]).map(item => (
-          <button key={item.id} onClick={() => {
+          <button type="button" key={item.id} onClick={() => {
             if (item.id === "__more__") { setShowMobileDrawer(v => !v); }
             else { setErpPage(item.id); setShowMobileDrawer(false); }
           }} style={{
@@ -1329,9 +1329,9 @@ export default function AdminPage() {
         ))}
         {mainTab === "cms" && ([
           ...cmsTabs.slice(0,4),
-          { id: "__more__", icon: "☰", label: "เพิ่มเติม" },
+          { id: "__more__", icon: "â˜°", label: "à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡" },
         ] as any[]).map(item => (
-          <button key={item.id} onClick={() => {
+          <button type="button" key={item.id} onClick={() => {
             if (item.id === "__more__") { setShowMobileDrawer(v => !v); }
             else { setTab(item.id); setShowMobileDrawer(false); }
           }} style={{
@@ -1345,13 +1345,13 @@ export default function AdminPage() {
           </button>
         ))}
         {mainTab === "marketing" && ([
-          { id: "overview", icon: "📊", label: "ภาพรวม", anchor: "marketing-dashboard" },
-          { id: "campaigns", icon: "📣", label: "แคมเปญ", anchor: "marketing-campaigns" },
-          { id: "sources", icon: "🔗", label: "แหล่งที่มา", anchor: "marketing-data-sources" },
-          { id: "tracking", icon: "🎯", label: "ติดตาม", anchor: "marketing-crm" },
-          { id: "__more__", icon: "☰", label: "เพิ่มเติม" },
+          { id: "overview", icon: "ðŸ“Š", label: "à¸ à¸²à¸žà¸£à¸§à¸¡", anchor: "marketing-dashboard" },
+          { id: "campaigns", icon: "ðŸ“£", label: "à¹à¸„à¸¡à¹€à¸›à¸", anchor: "marketing-campaigns" },
+          { id: "sources", icon: "ðŸ”—", label: "à¹à¸«à¸¥à¹ˆà¸‡à¸—à¸µà¹ˆà¸¡à¸²", anchor: "marketing-data-sources" },
+          { id: "tracking", icon: "ðŸŽ¯", label: "à¸•à¸´à¸”à¸•à¸²à¸¡", anchor: "marketing-crm" },
+          { id: "__more__", icon: "â˜°", label: "à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡" },
         ] as any[]).map(item => (
-          <button key={item.id} onClick={() => {
+          <button type="button" key={item.id} onClick={() => {
             if (item.id === "__more__") setShowMobileDrawer(v => !v);
             else { scrollToMarketingSection(item.anchor, item.id); setShowMobileDrawer(false); }
           }} style={{
@@ -1366,7 +1366,7 @@ export default function AdminPage() {
         ))}
       </div>
 
-      {/* ─── MOBILE DRAWER ─── */}
+      {/* â”€â”€â”€ MOBILE DRAWER â”€â”€â”€ */}
       {showMobileDrawer && (
         <>
           <div className="show-mobile" onClick={() => setShowMobileDrawer(false)}
@@ -1401,27 +1401,27 @@ export default function AdminPage() {
             </div>
             <div style={{ width: 36, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99, margin: "0 auto 12px" }} />
 
-            {/* ─ ชื่อหัวข้อ drawer ─ */}
+            {/* â”€ à¸Šà¸·à¹ˆà¸­à¸«à¸±à¸§à¸‚à¹‰à¸­ drawer â”€ */}
             <div style={{ fontSize: 11, fontWeight: 700, color: "#FF6B00", letterSpacing: 2, textTransform: "uppercase", padding: "0 24px 8px" }}>
-              {mainTab === "erp" ? "เมนูทั้งหมด" : mainTab === "marketing" ? "Marketing" : "จัดการเนื้อหา"}
+              {mainTab === "erp" ? "à¹€à¸¡à¸™à¸¹à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”" : mainTab === "marketing" ? "Marketing" : "à¸ˆà¸±à¸”à¸à¸²à¸£à¹€à¸™à¸·à¹‰à¸­à¸«à¸²"}
             </div>
 
-            {/* ─ ERP: แสดงทุกเมนู ─ */}
+            {/* â”€ ERP: à¹à¸ªà¸”à¸‡à¸—à¸¸à¸à¹€à¸¡à¸™à¸¹ â”€ */}
             {mainTab === "erp" && ([
-              { id: "dashboard", icon: "⊞", label: "ภาพรวม",         color: "#A8B0C0" },
-              { id: "quote",     icon: "📋", label: "ใบเสนอราคา",     color: (DOC_TYPES as any).quote.color },
-              { id: "bill",      icon: "📄", label: "ใบวางบิล",       color: (DOC_TYPES as any).bill.color },
-              { id: "invoice",   icon: "🧾", label: "ใบแจ้งหนี้",     color: (DOC_TYPES as any).invoice.color },
-              { id: "receipt",   icon: "✅", label: "ใบเสร็จรับเงิน", color: (DOC_TYPES as any).receipt.color },
-              { id: "customers", icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
-              { id: "products",  icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
-              { id: "suppliers", icon: "🏭", label: "Supplier",       color: "#F97316" },
-              { id: "company",   icon: "🏢", label: "ตั้งค่าบริษัท",  color: "#34D399" },
-              { id: "__cms__",   icon: "✏️", label: "ไปหน้า CMS",     color: "#F59E0B" },
+              { id: "dashboard", icon: "âŠž", label: "à¸ à¸²à¸žà¸£à¸§à¸¡",         color: "#A8B0C0" },
+              { id: "quote",     icon: "ðŸ“‹", label: "à¹ƒà¸šà¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²",     color: (DOC_TYPES as any).quote.color },
+              { id: "bill",      icon: "ðŸ“„", label: "à¹ƒà¸šà¸§à¸²à¸‡à¸šà¸´à¸¥",       color: (DOC_TYPES as any).bill.color },
+              { id: "invoice",   icon: "ðŸ§¾", label: "à¹ƒà¸šà¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰",     color: (DOC_TYPES as any).invoice.color },
+              { id: "receipt",   icon: "âœ…", label: "à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸£à¸±à¸šà¹€à¸‡à¸´à¸™", color: (DOC_TYPES as any).receipt.color },
+              { id: "customers", icon: "ðŸ‘¥", label: "à¸¥à¸¹à¸à¸„à¹‰à¸²",          color: "#60A5FA" },
+              { id: "products",  icon: "ðŸ“¦", label: "à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£",  color: "#A78BFA" },
+              { id: "suppliers", icon: "ðŸ­", label: "Supplier",       color: "#F97316" },
+              { id: "company",   icon: "ðŸ¢", label: "à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¸šà¸£à¸´à¸©à¸±à¸—",  color: "#34D399" },
+              { id: "__cms__",   icon: "âœï¸", label: "à¹„à¸›à¸«à¸™à¹‰à¸² CMS",     color: "#F59E0B" },
             ] as any[]).map(item => {
               const isActive = item.id !== "__cms__" && erpPage === item.id;
               return (
-                <button key={item.id} onClick={() => {
+                <button type="button" key={item.id} onClick={() => {
                   if (item.id === "__cms__") setMainTab("cms");
                   else setErpPage(item.id);
                   setShowMobileDrawer(false);
@@ -1436,22 +1436,22 @@ export default function AdminPage() {
                   <span style={{ fontSize: 20, width: 28, textAlign: "center" as const }}>{item.icon}</span>
                   <span style={{ flex: 1, fontWeight: isActive ? 700 : 400 }}>{item.label}</span>
                   {!isActive && item.id !== "__cms__" && (
-                    <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>เปิด</span>
+                    <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>à¹€à¸›à¸´à¸”</span>
                   )}
-                  {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>● กำลังใช้</span>}
-                  {item.id === "__cms__" && <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>สลับ</span>}
+                  {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>â— à¸à¸³à¸¥à¸±à¸‡à¹ƒà¸Šà¹‰</span>}
+                  {item.id === "__cms__" && <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>à¸ªà¸¥à¸±à¸š</span>}
                 </button>
               );
             })}
 
-            {/* ─ CMS: แสดงทุกแท็บ ─ */}
+            {/* â”€ CMS: à¹à¸ªà¸”à¸‡à¸—à¸¸à¸à¹à¸—à¹‡à¸š â”€ */}
             {mainTab === "cms" && ([
               ...cmsTabs,
-              { id: "__erp__", icon: "⚙️", label: "ไปหน้า ERP", color: "#FF6B00" },
+              { id: "__erp__", icon: "âš™ï¸", label: "à¹„à¸›à¸«à¸™à¹‰à¸² ERP", color: "#FF6B00" },
             ] as any[]).map(item => {
               const isActive = item.id !== "__erp__" && tab === item.id;
               return (
-                <button key={item.id} onClick={() => {
+                <button type="button" key={item.id} onClick={() => {
                   if (item.id === "__erp__") setMainTab("erp");
                   else setTab(item.id);
                   setShowMobileDrawer(false);
@@ -1466,27 +1466,27 @@ export default function AdminPage() {
                   <span style={{ fontSize: 20, width: 28, textAlign: "center" as const }}>{item.icon}</span>
                   <span style={{ flex: 1, fontWeight: isActive ? 700 : 400 }}>{item.label}</span>
                   {!isActive && item.id !== "__erp__" && (
-                    <span style={{ fontSize: 11, color: "#A8B0C0", background: "rgba(255,255,255,0.06)", padding: "2px 10px", borderRadius: 99 }}>เปิด</span>
+                    <span style={{ fontSize: 11, color: "#A8B0C0", background: "rgba(255,255,255,0.06)", padding: "2px 10px", borderRadius: 99 }}>à¹€à¸›à¸´à¸”</span>
                   )}
-                  {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>● กำลังใช้</span>}
-                  {item.id === "__erp__" && <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>สลับ</span>}
+                  {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>â— à¸à¸³à¸¥à¸±à¸‡à¹ƒà¸Šà¹‰</span>}
+                  {item.id === "__erp__" && <span style={{ fontSize: 11, color: item.color, background: item.color + "22", padding: "2px 10px", borderRadius: 99 }}>à¸ªà¸¥à¸±à¸š</span>}
                 </button>
               );
             })}
 
-            {/* ─ Marketing: แสดงทุก section ─ */}
+            {/* â”€ Marketing: à¹à¸ªà¸”à¸‡à¸—à¸¸à¸ section â”€ */}
             {mainTab === "marketing" && ([
-              { id: "overview", icon: "📊", label: "Dashboard", anchor: "marketing-dashboard" },
-              { id: "campaigns", icon: "📣", label: "Campaigns", anchor: "marketing-campaigns" },
-              { id: "funnel", icon: "🌐", label: "Lead Funnel", anchor: "marketing-lead-funnel" },
-              { id: "tracking", icon: "🎯", label: "Leads / CRM", anchor: "marketing-crm" },
-              { id: "channels", icon: "📡", label: "Channels", anchor: "marketing-channels" },
-              { id: "insight", icon: "🤖", label: "AI Insight", anchor: "marketing-ai-insight" },
-              { id: "sources", icon: "🔗", label: "Data Sources", anchor: "marketing-data-sources" },
+              { id: "overview", icon: "ðŸ“Š", label: "Dashboard", anchor: "marketing-dashboard" },
+              { id: "campaigns", icon: "ðŸ“£", label: "Campaigns", anchor: "marketing-campaigns" },
+              { id: "funnel", icon: "ðŸŒ", label: "Lead Funnel", anchor: "marketing-lead-funnel" },
+              { id: "tracking", icon: "ðŸŽ¯", label: "Leads / CRM", anchor: "marketing-crm" },
+              { id: "channels", icon: "ðŸ“¡", label: "Channels", anchor: "marketing-channels" },
+              { id: "insight", icon: "ðŸ¤–", label: "AI Insight", anchor: "marketing-ai-insight" },
+              { id: "sources", icon: "ðŸ”—", label: "Data Sources", anchor: "marketing-data-sources" },
             ] as any[]).map(item => {
               const isActive = marketingMobileSection === item.id;
               return (
-                <button key={item.id} onClick={() => {
+                <button type="button" key={item.id} onClick={() => {
                   scrollToMarketingSection(item.anchor, item.id);
                   setShowMobileDrawer(false);
                 }} style={{
@@ -1499,7 +1499,7 @@ export default function AdminPage() {
                 }}>
                   <span style={{ fontSize: 20, width: 28, textAlign: "center" as const }}>{item.icon}</span>
                   <span style={{ flex: 1, fontWeight: isActive ? 700 : 400 }}>{item.label}</span>
-                  {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>● กำลังใช้</span>}
+                  {isActive && <span style={{ fontSize: 11, color: "#FF6B00" }}>â— à¸à¸³à¸¥à¸±à¸‡à¹ƒà¸Šà¹‰</span>}
                 </button>
               );
             })}
@@ -1517,14 +1517,14 @@ export default function AdminPage() {
           boxShadow: "0 8px 30px rgba(0,0,0,0.4)", display: "flex", alignItems: "center", gap: 10,
           maxWidth: "calc(100vw - 32px)", animation: "scaleIn 0.2s ease",
         }}>
-          <span>{toast.type === "error" ? "✗" : "✓"}</span>{toast.msg}
+          <span>{toast.type === "error" ? "âœ—" : "âœ“"}</span>{toast.msg}
         </div>
       )}
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
 
-        /* ── iPhone 15 Pro base resets ── */
+        /* â”€â”€ iPhone 15 Pro base resets â”€â”€ */
         *, *::before, *::after { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         html { -webkit-text-size-adjust: 100%; }
 
@@ -1537,7 +1537,7 @@ export default function AdminPage() {
           min-height: 48px;
         }
         input:focus, select:focus, textarea:focus { border-color: #FF6B00 !important; box-shadow: 0 0 0 3px rgba(255,107,0,0.15) !important; }
-        input::placeholder, textarea::placeholder { color: #555 !important; }
+        input::placeholder, textarea::placeholder { color: #94A3B8 !important; opacity: 0.78; }
         select option { background: #141A24; }
         label { font-size: 13px; color: #A8B0C0; display: block; margin-bottom: 6px; font-weight: 500; }
         button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -1806,7 +1806,7 @@ export default function AdminPage() {
         @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
         @keyframes scaleIn { from { transform: scale(0.95); opacity:0; } to { transform: scale(1); opacity:1; } }
 
-        /* ── Responsive ── */
+        /* â”€â”€ Responsive â”€â”€ */
         .hide-mobile { display: flex; }
         .show-mobile { display: none !important; }
         .erp-mobile-card-list { display: none; }
@@ -2334,7 +2334,7 @@ export default function AdminPage() {
             line-height: 1.25 !important;
           }
 
-          /* Document table → card list on mobile */
+          /* Document table â†’ card list on mobile */
           .doc-list-panel {
             overflow-x: visible !important;
             -webkit-overflow-scrolling: touch;
@@ -2351,7 +2351,7 @@ export default function AdminPage() {
           .form-grid-2 { grid-template-columns: 1fr !important; }
           .form-grid-3 { grid-template-columns: 1fr !important; }
 
-          /* Touch targets — only for non-nav buttons */
+          /* Touch targets â€” only for non-nav buttons */
           button:not(.nav-btn) { min-height: 44px; }
 
           /* Modal bottom sheet on mobile */
@@ -2444,7 +2444,7 @@ export default function AdminPage() {
           /* Chart panel full width */
           .chart-panel { grid-template-columns: 1fr !important; }
 
-          /* Top bar — use minHeight not height (safe area makes it taller) */
+          /* Top bar â€” use minHeight not height (safe area makes it taller) */
           .top-bar { height: auto !important; min-height: 52px !important; }
 
           /* Doc header stack vertical */
@@ -3292,10 +3292,10 @@ export default function AdminPage() {
           .erp-mobile-actions button[style*="#FF6B00"],
           .doc-mobile-actions button[style*="#FF6B00"],
           .erp-card-actions button[style*="#FF6B00"] {
-            background: #ff5a00 !important;
-            border-color: #ff5a00 !important;
+            background: #c2410c !important;
+            border-color: #c2410c !important;
             color: #fff !important;
-            box-shadow: 0 10px 22px rgba(255,90,0,.18) !important;
+            box-shadow: 0 10px 22px rgba(194,65,12,.18) !important;
           }
           .doc-mobile-footer {
             border-top: 1px solid #e5e7eb !important;
@@ -3348,8 +3348,8 @@ export default function AdminPage() {
             color: #475569 !important;
           }
           .mobile-module-switch button.active {
-            background: #ff5a00 !important;
-            border-color: #ff5a00 !important;
+            background: #c2410c !important;
+            border-color: #c2410c !important;
             color: #fff !important;
           }
           .modal-panel {
@@ -3454,7 +3454,7 @@ export default function AdminPage() {
           }
         }
 
-        /* ── iPhone 15 Pro specific (393px wide) ── */
+        /* â”€â”€ iPhone 15 Pro specific (393px wide) â”€â”€ */
         @media (max-width: 430px) {
           input, select, textarea { font-size: 16px !important; } /* prevent iOS auto-zoom */
           .admin-mobile-title { max-width: none !important; }
@@ -3517,7 +3517,7 @@ export default function AdminPage() {
   );
 }
 
-// ─── MARKETING COMPONENTS ─────────────────────────────────────────────────────
+// â”€â”€â”€ MARKETING COMPONENTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function AdminHome({
   customers = [],
   documents = [],
@@ -3560,46 +3560,46 @@ function AdminHome({
   const systemCards = [
     {
       key: "erp",
-      label: "ระบบ ERP",
-      sub: "งานขาย ลูกค้า เอกสาร และการเงิน",
+      label: "à¸£à¸°à¸šà¸š ERP",
+      sub: "à¸‡à¸²à¸™à¸‚à¸²à¸¢ à¸¥à¸¹à¸à¸„à¹‰à¸² à¹€à¸­à¸à¸ªà¸²à¸£ à¹à¸¥à¸°à¸à¸²à¸£à¹€à¸‡à¸´à¸™",
       color: "#FF6B00",
       stats: [
-        { label: "รออนุมัติ", value: `${pendingQuotes} เอกสาร` },
-        { label: "ค้างชำระ", value: fmtMoney(pendingBalance) },
+        { label: "à¸£à¸­à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´", value: `${pendingQuotes} à¹€à¸­à¸à¸ªà¸²à¸£` },
+        { label: "à¸„à¹‰à¸²à¸‡à¸Šà¸³à¸£à¸°", value: fmtMoney(pendingBalance) },
       ],
-      action: "เข้าสู่ ERP",
+      action: "à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆ ERP",
       onClick: () => goErp("dashboard"),
     },
     {
       key: "cms",
-      label: "ระบบ CMS",
-      sub: "บทความ บริการ ผลงาน และเว็บไซต์",
+      label: "à¸£à¸°à¸šà¸š CMS",
+      sub: "à¸šà¸—à¸„à¸§à¸²à¸¡ à¸šà¸£à¸´à¸à¸²à¸£ à¸œà¸¥à¸‡à¸²à¸™ à¹à¸¥à¸°à¹€à¸§à¹‡à¸šà¹„à¸‹à¸•à¹Œ",
       color: "#2563EB",
       stats: [
-        { label: "บทความ", value: "จัดการเว็บ" },
-        { label: "ผลงาน", value: "แก้ไขได้" },
+        { label: "à¸šà¸—à¸„à¸§à¸²à¸¡", value: "à¸ˆà¸±à¸”à¸à¸²à¸£à¹€à¸§à¹‡à¸š" },
+        { label: "à¸œà¸¥à¸‡à¸²à¸™", value: "à¹à¸à¹‰à¹„à¸‚à¹„à¸”à¹‰" },
       ],
-      action: "เข้าสู่ CMS",
+      action: "à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆ CMS",
       onClick: () => goCms("blog"),
     },
     {
       key: "mkt",
       label: "Marketing",
-      sub: "Leads โฆษณา ROAS และ Customer Insight",
+      sub: "Leads à¹‚à¸†à¸©à¸“à¸² ROAS à¹à¸¥à¸° Customer Insight",
       color: "#16A34A",
       stats: [
-        { label: "ใบเสร็จ", value: `${receiptCount} ฉบับ` },
-        { label: "กำไร", value: fmtMoney(totalProfit) },
+        { label: "à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆ", value: `${receiptCount} à¸‰à¸šà¸±à¸š` },
+        { label: "à¸à¸³à¹„à¸£", value: fmtMoney(totalProfit) },
       ],
-      action: "เข้าสู่ MKT",
+      action: "à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆ MKT",
       onClick: goMarketing,
     },
   ];
 
   const taskRows = [
-    { label: "ใบเสนอราคาที่ต้องติดตาม", value: pendingQuotes, color: "#F97316", onClick: () => goErp("quote") },
-    { label: "ใบแจ้งหนี้ / ใบวางบิลค้างชำระ", value: pendingPayments, color: "#EF4444", onClick: () => goErp("invoice") },
-    { label: "สินค้าและบริการในระบบ", value: products.length, color: "#2563EB", onClick: () => goErp("products") },
+    { label: "à¹ƒà¸šà¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸•à¸´à¸”à¸•à¸²à¸¡", value: pendingQuotes, color: "#F97316", onClick: () => goErp("quote") },
+    { label: "à¹ƒà¸šà¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰ / à¹ƒà¸šà¸§à¸²à¸‡à¸šà¸´à¸¥à¸„à¹‰à¸²à¸‡à¸Šà¸³à¸£à¸°", value: pendingPayments, color: "#EF4444", onClick: () => goErp("invoice") },
+    { label: "à¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸¥à¸°à¸šà¸£à¸´à¸à¸²à¸£à¹ƒà¸™à¸£à¸°à¸šà¸š", value: products.length, color: "#2563EB", onClick: () => goErp("products") },
   ];
 
   return (
@@ -3617,19 +3617,19 @@ function AdminHome({
 
       <section className="admin-home-summary">
         <div>
-          <span>ภาพรวมวันนี้</span>
-          <h1>สวัสดี คุณผู้ดูแล</h1>
-          <p>เลือกจัดการ ERP, CMS หรือ Marketing จากการ์ดด้านล่าง</p>
+          <span>à¸ à¸²à¸žà¸£à¸§à¸¡à¸§à¸±à¸™à¸™à¸µà¹‰</span>
+          <h1>à¸ªà¸§à¸±à¸ªà¸”à¸µ à¸„à¸¸à¸“à¸œà¸¹à¹‰à¸”à¸¹à¹à¸¥</h1>
+          <p>à¹€à¸¥à¸·à¸­à¸à¸ˆà¸±à¸”à¸à¸²à¸£ ERP, CMS à¸«à¸£à¸·à¸­ Marketing à¸ˆà¸²à¸à¸à¸²à¸£à¹Œà¸”à¸”à¹‰à¸²à¸™à¸¥à¹ˆà¸²à¸‡</p>
         </div>
         <div className="admin-home-money">
-          <span>ยอดจากใบเสร็จ</span>
+          <span>à¸¢à¸­à¸”à¸ˆà¸²à¸à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆ</span>
           <strong>{fmtMoney(totalRevenue)}</strong>
-          <small>กำไรขั้นต้น {fmtMoney(totalProfit)} / ต้นทุน {fmtMoney(totalCost)}</small>
+          <small>à¸à¸³à¹„à¸£à¸‚à¸±à¹‰à¸™à¸•à¹‰à¸™ {fmtMoney(totalProfit)} / à¸•à¹‰à¸™à¸—à¸¸à¸™ {fmtMoney(totalCost)}</small>
         </div>
       </section>
 
       <section className="admin-home-systems">
-        <h2>เลือกระบบที่ต้องการจัดการ</h2>
+        <h2>à¹€à¸¥à¸·à¸­à¸à¸£à¸°à¸šà¸šà¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸ˆà¸±à¸”à¸à¸²à¸£</h2>
         {systemCards.map((card) => (
           <button key={card.key} type="button" className="admin-system-card" onClick={card.onClick} style={{ "--system-color": card.color } as any}>
             <div className="admin-system-icon">{card.key.toUpperCase()}</div>
@@ -3651,7 +3651,7 @@ function AdminHome({
       </section>
 
       <section className="admin-home-tasks">
-        <h2>สิ่งที่ต้องจัดการ</h2>
+        <h2>à¸ªà¸´à¹ˆà¸‡à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸ˆà¸±à¸”à¸à¸²à¸£</h2>
         <div>
           {taskRows.map((task) => (
             <button key={task.label} type="button" onClick={task.onClick}>
@@ -3668,8 +3668,8 @@ function AdminHome({
 
 function MarketingPage({ documents, showToast }: any) {
   const defaultCampaigns = [
-    { id: genId(), name: "Vinyl Banner Lead Gen", channel: "Facebook Ads", objective: "LINE Inquiry", budget: 1500, status: "planning", startDate: today(), endDate: addDays(today(), 14), landingPage: "/services/vinyl-banner", note: "โปรโมตงานป้ายไวนิลสำหรับร้านอาหารและหน้าร้าน" },
-    { id: genId(), name: "Sticker Product Label", channel: "Organic / Blog", objective: "Service Page Visit", budget: 0, status: "active", startDate: today(), endDate: addDays(today(), 30), landingPage: "/services/sticker", note: "ดันบทความและหน้าบริการสติ๊กเกอร์ฉลากสินค้า" },
+    { id: genId(), name: "Vinyl Banner Lead Gen", channel: "Facebook Ads", objective: "LINE Inquiry", budget: 1500, status: "planning", startDate: today(), endDate: addDays(today(), 14), landingPage: "/services/vinyl-banner", note: "à¹‚à¸›à¸£à¹‚à¸¡à¸•à¸‡à¸²à¸™à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¸ªà¸³à¸«à¸£à¸±à¸šà¸£à¹‰à¸²à¸™à¸­à¸²à¸«à¸²à¸£à¹à¸¥à¸°à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™" },
+    { id: genId(), name: "Sticker Product Label", channel: "Organic / Blog", objective: "Service Page Visit", budget: 0, status: "active", startDate: today(), endDate: addDays(today(), 30), landingPage: "/services/sticker", note: "à¸”à¸±à¸™à¸šà¸—à¸„à¸§à¸²à¸¡à¹à¸¥à¸°à¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œà¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²" },
   ];
   const [campaigns, setCampaigns] = useState(() => loadLocal("marketing_campaigns", defaultCampaigns));
   const [form, setForm] = useState({
@@ -3818,17 +3818,17 @@ function MarketingPage({ documents, showToast }: any) {
     note: "",
   });
   const saveCampaign = () => {
-    if (!String(form.name || "").trim()) return showToast("กรุณาใส่ชื่อแคมเปญ", "error");
+    if (!String(form.name || "").trim()) return showToast("à¸à¸£à¸¸à¸“à¸²à¹ƒà¸ªà¹ˆà¸Šà¸·à¹ˆà¸­à¹à¸„à¸¡à¹€à¸›à¸", "error");
     const row = { ...form, id: form.id || genId(), budget: Number(form.budget || 0) };
     const next = form.id ? campaigns.map((campaign: any) => campaign.id === form.id ? row : campaign) : [row, ...campaigns];
     saveCampaigns(next);
     resetForm();
-    showToast("บันทึกแคมเปญ Marketing แล้ว");
+    showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¹à¸„à¸¡à¹€à¸›à¸ Marketing à¹à¸¥à¹‰à¸§");
   };
   const editCampaign = (campaign: any) => setForm({ ...campaign, budget: String(campaign.budget || "") });
   const removeCampaign = (id: string) => {
     saveCampaigns(campaigns.filter((campaign: any) => campaign.id !== id));
-    showToast("ลบแคมเปญแล้ว");
+    showToast("à¸¥à¸šà¹à¸„à¸¡à¹€à¸›à¸à¹à¸¥à¹‰à¸§");
   };
   const leadScore = (lead: any) => {
     const tags = lead?.tags || [];
@@ -3885,29 +3885,29 @@ function MarketingPage({ documents, showToast }: any) {
   };
   const utmUrl = buildUtmUrl();
   const trackingItems = [
-    { label: "GA4 / Google Analytics", status: "manual", detail: "ใช้เช็ค traffic, page view และ conversion path" },
-    { label: "Facebook Pixel", status: "manual", detail: "ใช้เก็บ event จาก Ads เช่น PageView, Lead, Contact" },
-    { label: "LINE CTA Click", status: "recommended", detail: "ควร track ปุ่ม LINE ทุกจุดเพื่อดู lead source" },
-    { label: "UTM Campaign", status: campaigns.length > 0 ? "ready" : "recommended", detail: "ใช้แยกผลแคมเปญ Facebook, Blog, LINE และโพสต์ต่าง ๆ" },
+    { label: "GA4 / Google Analytics", status: "manual", detail: "à¹ƒà¸Šà¹‰à¹€à¸Šà¹‡à¸„ traffic, page view à¹à¸¥à¸° conversion path" },
+    { label: "Facebook Pixel", status: "manual", detail: "à¹ƒà¸Šà¹‰à¹€à¸à¹‡à¸š event à¸ˆà¸²à¸ Ads à¹€à¸Šà¹ˆà¸™ PageView, Lead, Contact" },
+    { label: "LINE CTA Click", status: "recommended", detail: "à¸„à¸§à¸£ track à¸›à¸¸à¹ˆà¸¡ LINE à¸—à¸¸à¸à¸ˆà¸¸à¸”à¹€à¸žà¸·à¹ˆà¸­à¸”à¸¹ lead source" },
+    { label: "UTM Campaign", status: campaigns.length > 0 ? "ready" : "recommended", detail: "à¹ƒà¸Šà¹‰à¹à¸¢à¸à¸œà¸¥à¹à¸„à¸¡à¹€à¸›à¸ Facebook, Blog, LINE à¹à¸¥à¸°à¹‚à¸žà¸ªà¸•à¹Œà¸•à¹ˆà¸²à¸‡ à¹†" },
   ];
   const sourceRows = [
-    { source: "LINE Official", intent: "สอบถามราคา / ส่งไฟล์", action: "ใช้เป็น CTA หลัก" },
-    { source: "Facebook Ads", intent: "ดึงลูกค้าใหม่", action: "ใส่ UTM ทุกแคมเปญ" },
-    { source: "Service Pages", intent: "ลูกค้าค้นหาบริการ", action: "เชื่อมปุ่ม LINE และฟอร์ม" },
-    { source: "Blog / Organic", intent: "ให้ความรู้ก่อนตัดสินใจ", action: "ลิงก์ไปหน้าบริการที่เกี่ยวข้อง" },
+    { source: "LINE Official", intent: "à¸ªà¸­à¸šà¸–à¸²à¸¡à¸£à¸²à¸„à¸² / à¸ªà¹ˆà¸‡à¹„à¸Ÿà¸¥à¹Œ", action: "à¹ƒà¸Šà¹‰à¹€à¸›à¹‡à¸™ CTA à¸«à¸¥à¸±à¸" },
+    { source: "Facebook Ads", intent: "à¸”à¸¶à¸‡à¸¥à¸¹à¸à¸„à¹‰à¸²à¹ƒà¸«à¸¡à¹ˆ", action: "à¹ƒà¸ªà¹ˆ UTM à¸—à¸¸à¸à¹à¸„à¸¡à¹€à¸›à¸" },
+    { source: "Service Pages", intent: "à¸¥à¸¹à¸à¸„à¹‰à¸²à¸„à¹‰à¸™à¸«à¸²à¸šà¸£à¸´à¸à¸²à¸£", action: "à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸›à¸¸à¹ˆà¸¡ LINE à¹à¸¥à¸°à¸Ÿà¸­à¸£à¹Œà¸¡" },
+    { source: "Blog / Organic", intent: "à¹ƒà¸«à¹‰à¸„à¸§à¸²à¸¡à¸£à¸¹à¹‰à¸à¹ˆà¸­à¸™à¸•à¸±à¸”à¸ªà¸´à¸™à¹ƒà¸ˆ", action: "à¸¥à¸´à¸‡à¸à¹Œà¹„à¸›à¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸à¸µà¹ˆà¸¢à¸§à¸‚à¹‰à¸­à¸‡" },
   ];
   const connectedSources = [
-    { name: "ERP Receipts", state: "พร้อมใช้", detail: "ใช้ยอดรายได้จากใบเสร็จจริง" },
-    { name: "Campaign Planner", state: "พร้อมใช้", detail: "บันทึกงบและช่วงเวลาแคมเปญ" },
-    { name: "GA4", state: ga4.loading ? "Loading" : ga4.connected ? "Connected" : "Error", detail: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions / 30 days` : (ga4.error || "สำหรับ Visitor, Session, Conversion") },
-    { name: "Facebook Pixel / Ads", state: metaAds.loading ? "Loading" : metaAds.connected ? "Connected" : "Error", detail: metaAds.connected ? `฿${fmtMoney(metaAds.totals.spend)} spend / ${metaAds.totals.clicks.toLocaleString()} clicks` : (metaAds.error || "สำหรับ Spend, CPL, ROAS") },
-    { name: "LINE OA", state: "รอเชื่อมต่อ", detail: "สำหรับจำนวนแชทและ source ของ lead" },
+    { name: "ERP Receipts", state: "à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰", detail: "à¹ƒà¸Šà¹‰à¸¢à¸­à¸”à¸£à¸²à¸¢à¹„à¸”à¹‰à¸ˆà¸²à¸à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸ˆà¸£à¸´à¸‡" },
+    { name: "Campaign Planner", state: "à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰", detail: "à¸šà¸±à¸™à¸—à¸¶à¸à¸‡à¸šà¹à¸¥à¸°à¸Šà¹ˆà¸§à¸‡à¹€à¸§à¸¥à¸²à¹à¸„à¸¡à¹€à¸›à¸" },
+    { name: "GA4", state: ga4.loading ? "Loading" : ga4.connected ? "Connected" : "Error", detail: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions / 30 days` : (ga4.error || "à¸ªà¸³à¸«à¸£à¸±à¸š Visitor, Session, Conversion") },
+    { name: "Facebook Pixel / Ads", state: metaAds.loading ? "Loading" : metaAds.connected ? "Connected" : "Error", detail: metaAds.connected ? `à¸¿${fmtMoney(metaAds.totals.spend)} spend / ${metaAds.totals.clicks.toLocaleString()} clicks` : (metaAds.error || "à¸ªà¸³à¸«à¸£à¸±à¸š Spend, CPL, ROAS") },
+    { name: "LINE OA", state: "à¸£à¸­à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­", detail: "à¸ªà¸³à¸«à¸£à¸±à¸šà¸ˆà¸³à¸™à¸§à¸™à¹à¸Šà¸—à¹à¸¥à¸° source à¸‚à¸­à¸‡ lead" },
   ];
   const channelRows = [
-    { name: "Facebook Ads", leads: metaAds.connected ? metaAds.totals.leads.toLocaleString() : "รอ API", spend: metaAds.connected ? `฿${fmtMoney(metaAds.totals.spend)}` : "รอ API", priority: metaAds.connected ? `CPC ฿${fmtMoney(metaAds.totals.cpc)} / CTR ${metaAds.totals.ctr.toFixed(2)}%` : "ใช้ UTM ทุกแคมเปญ" },
-    { name: "LINE OA", leads: "รอเชื่อมต่อ", spend: "-", priority: "CTA หลักของเว็บ" },
-    { name: "Organic / SEO", leads: "รอฟอร์ม lead", spend: "0", priority: "ดันหน้าบริการและบทความ" },
-    { name: "Direct / Referral", leads: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions` : "รอ GA4", spend: "-", priority: "ตรวจ source จาก UTM" },
+    { name: "Facebook Ads", leads: metaAds.connected ? metaAds.totals.leads.toLocaleString() : "à¸£à¸­ API", spend: metaAds.connected ? `à¸¿${fmtMoney(metaAds.totals.spend)}` : "à¸£à¸­ API", priority: metaAds.connected ? `CPC à¸¿${fmtMoney(metaAds.totals.cpc)} / CTR ${metaAds.totals.ctr.toFixed(2)}%` : "à¹ƒà¸Šà¹‰ UTM à¸—à¸¸à¸à¹à¸„à¸¡à¹€à¸›à¸" },
+    { name: "LINE OA", leads: "à¸£à¸­à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­", spend: "-", priority: "CTA à¸«à¸¥à¸±à¸à¸‚à¸­à¸‡à¹€à¸§à¹‡à¸š" },
+    { name: "Organic / SEO", leads: "à¸£à¸­à¸Ÿà¸­à¸£à¹Œà¸¡ lead", spend: "0", priority: "à¸”à¸±à¸™à¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£à¹à¸¥à¸°à¸šà¸—à¸„à¸§à¸²à¸¡" },
+    { name: "Direct / Referral", leads: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions` : "à¸£à¸­ GA4", spend: "-", priority: "à¸•à¸£à¸§à¸ˆ source à¸ˆà¸²à¸ UTM" },
   ];
   const marketingFunnelRows = [
     { step: "Reach", value: metaAds.connected ? metaAds.totals.reach.toLocaleString() : "Wait Meta API", rate: "Ad visibility" },
@@ -3927,15 +3927,15 @@ function MarketingPage({ documents, showToast }: any) {
     { step: "Repeat Customer", value: repeatCustomers.toLocaleString(), rate: "Unique customers" },
   ];
   const reportCards = [
-    { title: "Monthly Marketing Summary", detail: "สรุปแคมเปญ งบ และรายได้จากใบเสร็จ", status: "พร้อมใช้บางส่วน" },
-    { title: "Channel Performance", detail: "เปรียบเทียบ LINE, Ads, Organic, Blog", status: "รอ source tracking" },
-    { title: "Content Conversion", detail: "ดูบทความ/หน้าบริการที่พาไปสู่ lead", status: "รอ GA4 event" },
+    { title: "Monthly Marketing Summary", detail: "à¸ªà¸£à¸¸à¸›à¹à¸„à¸¡à¹€à¸›à¸ à¸‡à¸š à¹à¸¥à¸°à¸£à¸²à¸¢à¹„à¸”à¹‰à¸ˆà¸²à¸à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆ", status: "à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸šà¸²à¸‡à¸ªà¹ˆà¸§à¸™" },
+    { title: "Channel Performance", detail: "à¹€à¸›à¸£à¸µà¸¢à¸šà¹€à¸—à¸µà¸¢à¸š LINE, Ads, Organic, Blog", status: "à¸£à¸­ source tracking" },
+    { title: "Content Conversion", detail: "à¸”à¸¹à¸šà¸—à¸„à¸§à¸²à¸¡/à¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£à¸—à¸µà¹ˆà¸žà¸²à¹„à¸›à¸ªà¸¹à¹ˆ lead", status: "à¸£à¸­ GA4 event" },
   ];
   const insightCards = [
-    "ควรใช้ LINE เป็น CTA หลัก เพราะเป็นช่องทางที่ลูกค้าส่งไฟล์และถามราคาได้เร็ว",
-    "ทุกแคมเปญ Ads ควรใช้ UTM เพื่อแยกผลระหว่าง Facebook, LINE และ Blog",
-    "หลังต่อ GA4/Pixel แล้วควรวัด Lead ไม่ใช่แค่วัด Traffic",
-    "หน้าบริการควรมี CTA เดียวที่ชัด: ปรึกษาทาง LINE หรือขอใบเสนอราคา",
+    "à¸„à¸§à¸£à¹ƒà¸Šà¹‰ LINE à¹€à¸›à¹‡à¸™ CTA à¸«à¸¥à¸±à¸ à¹€à¸žà¸£à¸²à¸°à¹€à¸›à¹‡à¸™à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸¥à¸¹à¸à¸„à¹‰à¸²à¸ªà¹ˆà¸‡à¹„à¸Ÿà¸¥à¹Œà¹à¸¥à¸°à¸–à¸²à¸¡à¸£à¸²à¸„à¸²à¹„à¸”à¹‰à¹€à¸£à¹‡à¸§",
+    "à¸—à¸¸à¸à¹à¸„à¸¡à¹€à¸›à¸ Ads à¸„à¸§à¸£à¹ƒà¸Šà¹‰ UTM à¹€à¸žà¸·à¹ˆà¸­à¹à¸¢à¸à¸œà¸¥à¸£à¸°à¸«à¸§à¹ˆà¸²à¸‡ Facebook, LINE à¹à¸¥à¸° Blog",
+    "à¸«à¸¥à¸±à¸‡à¸•à¹ˆà¸­ GA4/Pixel à¹à¸¥à¹‰à¸§à¸„à¸§à¸£à¸§à¸±à¸” Lead à¹„à¸¡à¹ˆà¹ƒà¸Šà¹ˆà¹à¸„à¹ˆà¸§à¸±à¸” Traffic",
+    "à¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£à¸„à¸§à¸£à¸¡à¸µ CTA à¹€à¸”à¸µà¸¢à¸§à¸—à¸µà¹ˆà¸Šà¸±à¸”: à¸›à¸£à¸¶à¸à¸©à¸²à¸—à¸²à¸‡ LINE à¸«à¸£à¸·à¸­à¸‚à¸­à¹ƒà¸šà¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²",
   ];
   const card = (extra = {}) => ({ background: "rgba(20,26,36,0.82)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, ...extra });
   const lightCard = (extra = {}) => ({ background: "linear-gradient(180deg, rgba(20,26,36,0.96), rgba(12,17,26,0.96))", border: "1px solid rgba(255,107,0,0.16)", borderRadius: 18, boxShadow: "0 18px 50px rgba(0,0,0,0.22)", color: "#F8FAFC", ...extra });
@@ -4020,8 +4020,8 @@ function MarketingPage({ documents, showToast }: any) {
           <div style={{ marginTop: "auto", borderRadius: 18, padding: 18, background: "linear-gradient(180deg,rgba(255,107,0,0.14),rgba(255,107,0,0.04))", border: "1px solid rgba(255,107,0,0.28)" }}>
             <div style={{ fontSize: 26, marginBottom: 8, color: "#FF6B00", fontWeight: 950 }}>KPI</div>
             <div style={{ fontWeight: 900, color: "#F8FAFC" }}>DWM Growth Control</div>
-            <p style={{ margin: "8px 0 14px", color: "#A8B0C0", fontSize: 12, lineHeight: 1.6 }}>ติดตามผลแคมเปญ แหล่งที่มาของ lead และยอดจากเอกสารจริงในจุดเดียว</p>
-            <button onClick={() => showToast("Marketing dashboard พร้อมใช้งาน")} style={{ width: "100%", border: 0, borderRadius: 12, padding: "10px 12px", color: "#fff", fontWeight: 900, background: "linear-gradient(135deg,#FF6B00,#EA580C)" }}>Check Setup</button>
+            <p style={{ margin: "8px 0 14px", color: "#A8B0C0", fontSize: 12, lineHeight: 1.6 }}>à¸•à¸´à¸”à¸•à¸²à¸¡à¸œà¸¥à¹à¸„à¸¡à¹€à¸›à¸ à¹à¸«à¸¥à¹ˆà¸‡à¸—à¸µà¹ˆà¸¡à¸²à¸‚à¸­à¸‡ lead à¹à¸¥à¸°à¸¢à¸­à¸”à¸ˆà¸²à¸à¹€à¸­à¸à¸ªà¸²à¸£à¸ˆà¸£à¸´à¸‡à¹ƒà¸™à¸ˆà¸¸à¸”à¹€à¸”à¸µà¸¢à¸§</p>
+            <button type="button" onClick={() => showToast("Marketing dashboard à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™")} style={{ width: "100%", border: 0, borderRadius: 12, padding: "10px 12px", color: "#fff", fontWeight: 900, background: "linear-gradient(135deg,#FF6B00,#EA580C)" }}>Check Setup</button>
           </div>
         </aside>
 
@@ -4030,26 +4030,26 @@ function MarketingPage({ documents, showToast }: any) {
             <div>
               <div style={{ fontSize: 11, color: "#FF6B00", fontWeight: 900, letterSpacing: 2.4, textTransform: "uppercase", marginBottom: 6 }}>MARKETING COMMAND CENTER</div>
               <h1 style={{ margin: 0, fontSize: 26, fontWeight: 950, color: "#F8FAFC" }}>Display Works Media Marketing KPI Dashboard</h1>
-              <p style={{ margin: "5px 0 0", color: "#A8B0C0", fontSize: 13 }}>ภาพรวมประสิทธิภาพการตลาดของ Display Works Media</p>
+              <p style={{ margin: "5px 0 0", color: "#A8B0C0", fontSize: 13 }}>à¸ à¸²à¸žà¸£à¸§à¸¡à¸›à¸£à¸°à¸ªà¸´à¸—à¸˜à¸´à¸ à¸²à¸žà¸à¸²à¸£à¸•à¸¥à¸²à¸”à¸‚à¸­à¸‡ Display Works Media</p>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <select style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 14px", fontWeight: 700 }}>
                 <option>Last 30 days</option><option>This month</option><option>Last 7 days</option>
               </select>
-              <button onClick={() => showToast("Export report ยังเป็นขั้นถัดไป")} style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 14px", fontWeight: 800 }}>Export</button>
+              <button type="button" onClick={() => showToast("Export report à¸¢à¸±à¸‡à¹€à¸›à¹‡à¸™à¸‚à¸±à¹‰à¸™à¸–à¸±à¸”à¹„à¸›")} style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 14px", fontWeight: 800 }}>Export</button>
               <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#EEF4FF", display: "grid", placeItems: "center", color: "#FF6B00", fontWeight: 900 }}>A</div>
             </div>
           </header>
 
           <section id="marketing-dashboard" className="marketing-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 14, marginBottom: 18 }}>
             {[
-              { label: "Campaign Revenue", value: `฿${fmtMoney(revenue)}`, sub: "From receipts only", formula: "Revenue = receipt totals", icon: "฿", color: "#10B981" },
+              { label: "Campaign Revenue", value: `à¸¿${fmtMoney(revenue)}`, sub: "From receipts only", formula: "Revenue = receipt totals", icon: "à¸¿", color: "#10B981" },
               { label: "Total Leads", value: totalLeads.toLocaleString(), sub: "Manual CRM / Ads", formula: "Total Leads = max(CRM leads, API leads)", icon: "L", color: "#FF6B00" },
               { label: "Lead to Customer Conversion Rate", value: `${conversionRate.toFixed(2)}%`, sub: "Closed Jobs / Total Leads", formula: "Close Rate = Closed Jobs / Total Leads x 100", icon: "%", color: "#8B5CF6" },
               { label: "Closed Jobs", value: closedJobs.toLocaleString(), sub: "Receipts in ERP", formula: "Closed Jobs = valid receipts", icon: "J", color: "#22C55E" },
-              { label: "Marketing Spend", value: `฿${fmtMoney(marketingSpend)}`, sub: metaAds.connected ? "Meta Ads" : "Waiting Meta API", formula: "Spend from connected ad source", icon: "S", color: "#EC4899" },
-              { label: "Cost per Lead", value: cpl ? `฿${fmtMoney(cpl)}` : "-", sub: "CPL", formula: "CPL = Spend / Leads", icon: "C", color: "#EAB308" },
-              { label: "Gross Profit", value: `฿${fmtMoney(grossProfit)}`, sub: "Revenue - Cost", formula: "Gross Profit = Revenue - item cost", icon: "P", color: "#14B8A6" },
+              { label: "Marketing Spend", value: `à¸¿${fmtMoney(marketingSpend)}`, sub: metaAds.connected ? "Meta Ads" : "Waiting Meta API", formula: "Spend from connected ad source", icon: "S", color: "#EC4899" },
+              { label: "Cost per Lead", value: cpl ? `à¸¿${fmtMoney(cpl)}` : "-", sub: "CPL", formula: "CPL = Spend / Leads", icon: "C", color: "#EAB308" },
+              { label: "Gross Profit", value: `à¸¿${fmtMoney(grossProfit)}`, sub: "Revenue - Cost", formula: "Gross Profit = Revenue - item cost", icon: "P", color: "#14B8A6" },
               { label: "ROAS", value: roas ? roas.toFixed(2) : "-", sub: "Revenue / Spend", formula: "ROAS = Revenue / Spend", icon: "R", color: "#F97316" },
             ].map((item) => (
               <div key={item.label} title={item.formula || item.sub} style={{ ...lightCard(), padding: 18 }}>
@@ -4080,7 +4080,7 @@ function MarketingPage({ documents, showToast }: any) {
               <div style={{ display: "grid", gridTemplateColumns: "190px 1fr", gap: 22, alignItems: "center" }}>
                 <div style={{ width: 184, height: 184, borderRadius: "50%", background: "conic-gradient(#1877F2 0 42%, #06C755 42% 58%, #F59E0B 58% 82%, #8B5CF6 82% 100%)", display: "grid", placeItems: "center" }}>
                   <div style={{ width: 108, height: 108, borderRadius: "50%", background: "#101722", display: "grid", placeItems: "center", textAlign: "center" }}>
-                    <strong style={{ color: "#F8FAFC", fontSize: 19 }}>฿{fmtMoney(revenue)}</strong><span style={{ color: "#7A8599", fontSize: 11 }}>Revenue</span>
+                    <strong style={{ color: "#F8FAFC", fontSize: 19 }}>à¸¿{fmtMoney(revenue)}</strong><span style={{ color: "#7A8599", fontSize: 11 }}>Revenue</span>
                   </div>
                 </div>
                 <div style={{ display: "grid", gap: 10 }}>
@@ -4108,10 +4108,10 @@ function MarketingPage({ documents, showToast }: any) {
                     <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)", fontWeight: 800, color: "#F8FAFC" }}>{row.name}</td>
                     <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{row.channel}</td>
                     <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}><span style={pill(row.status === "Active" || row.status === "active" ? "#ECFDF3" : "#FFF7ED", row.status === "Active" || row.status === "active" ? "#039855" : "#F97316")}>{row.status}</span></td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>฿{fmtMoney(row.spend)}</td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>à¸¿{fmtMoney(row.spend)}</td>
                     <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{Number(row.leads || 0).toLocaleString()}</td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{row.cpl ? `฿${fmtMoney(row.cpl)}` : "-"}</td>
-                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>฿{fmtMoney(row.revenue)}</td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{row.cpl ? `à¸¿${fmtMoney(row.cpl)}` : "-"}</td>
+                    <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>à¸¿{fmtMoney(row.revenue)}</td>
                     <td style={{ padding: "13px 10px", borderBottom: "1px solid rgba(255,255,255,0.07)", color: row.roas >= 1 ? "#039855" : "#D92D20", fontWeight: 900 }}>{row.roas ? row.roas.toFixed(2) : "-"}</td>
                   </tr>
                 ))}</tbody>
@@ -4199,7 +4199,7 @@ function MarketingPage({ documents, showToast }: any) {
                         <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)", color: score >= 70 ? "#22C55E" : score >= 40 ? "#F59E0B" : "#EF4444", fontWeight: 950 }}>{score}</td>
                         <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}><span style={pill(temp === "Hot" ? "rgba(34,197,94,0.14)" : temp === "Warm" ? "rgba(245,158,11,0.14)" : "rgba(239,68,68,0.14)", temp === "Hot" ? "#22C55E" : temp === "Warm" ? "#F59E0B" : "#EF4444")}>{temp}</span></td>
                         <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>{fmtDate(lead.nextFollowUpDate)}</td>
-                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}><button onClick={() => editLead(lead)} style={{ marginRight: 6, color: "#FF6B00", background: "transparent", border: 0, cursor: "pointer", fontWeight: 900 }}>Edit</button><button onClick={() => removeLead(lead.id)} style={{ color: "#EF4444", background: "transparent", border: 0, cursor: "pointer", fontWeight: 900 }}>Delete</button></td>
+                        <td style={{ padding: "11px 8px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}><button type="button" onClick={() => editLead(lead)} style={{ marginRight: 6, color: "#FF6B00", background: "transparent", border: 0, cursor: "pointer", fontWeight: 900 }}>Edit</button><button type="button" onClick={() => removeLead(lead.id)} style={{ color: "#EF4444", background: "transparent", border: 0, cursor: "pointer", fontWeight: 900 }}>Delete</button></td>
                       </tr>
                     );
                   })}</tbody>
@@ -4224,14 +4224,14 @@ function MarketingPage({ documents, showToast }: any) {
           <section id="marketing-ai-insight" style={{ ...lightCard({ background: "linear-gradient(90deg,rgba(255,107,0,0.12),rgba(20,26,36,0.96))" }), padding: 20, marginBottom: 18 }}>
             <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 12 }}>
               <div style={{ width: 64, height: 64, borderRadius: 24, display: "grid", placeItems: "center", background: "rgba(255,107,0,0.12)", color: "#FF6B00", fontSize: 32 }}>AI</div>
-              <div><h2 style={{ margin: 0, color: "#F8FAFC", fontSize: 19 }}>Insight</h2><p style={{ margin: "4px 0 0", color: "#A8B0C0" }}>สรุปการวิเคราะห์และข้อแนะนำจากข้อมูลที่เชื่อมต่อ</p></div>
+              <div><h2 style={{ margin: 0, color: "#F8FAFC", fontSize: 19 }}>Insight</h2><p style={{ margin: "4px 0 0", color: "#A8B0C0" }}>à¸ªà¸£à¸¸à¸›à¸à¸²à¸£à¸§à¸´à¹€à¸„à¸£à¸²à¸°à¸«à¹Œà¹à¸¥à¸°à¸‚à¹‰à¸­à¹à¸™à¸°à¸™à¸³à¸ˆà¸²à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­</p></div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 12 }}>
               {[
-                "LINE ยังควรเป็น CTA หลัก เพราะเหมาะกับการส่งไฟล์และถามราคา",
-                metaAds.connected ? "Meta Ads พร้อมอ่าน Spend/CPC/CTR แล้ว" : "Meta Ads ยังรอ Token ใน Vercel",
-                ga4.connected ? "GA4 พร้อมอ่าน Visitor และ Top Pages แล้ว" : "GA4 ยังรอ Env หรือ Redeploy",
-                "ควรเก็บ UTM ทุกแคมเปญเพื่อแยกแหล่งที่มาของ Lead",
+                "LINE à¸¢à¸±à¸‡à¸„à¸§à¸£à¹€à¸›à¹‡à¸™ CTA à¸«à¸¥à¸±à¸ à¹€à¸žà¸£à¸²à¸°à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¸à¸²à¸£à¸ªà¹ˆà¸‡à¹„à¸Ÿà¸¥à¹Œà¹à¸¥à¸°à¸–à¸²à¸¡à¸£à¸²à¸„à¸²",
+                metaAds.connected ? "Meta Ads à¸žà¸£à¹‰à¸­à¸¡à¸­à¹ˆà¸²à¸™ Spend/CPC/CTR à¹à¸¥à¹‰à¸§" : "Meta Ads à¸¢à¸±à¸‡à¸£à¸­ Token à¹ƒà¸™ Vercel",
+                ga4.connected ? "GA4 à¸žà¸£à¹‰à¸­à¸¡à¸­à¹ˆà¸²à¸™ Visitor à¹à¸¥à¸° Top Pages à¹à¸¥à¹‰à¸§" : "GA4 à¸¢à¸±à¸‡à¸£à¸­ Env à¸«à¸£à¸·à¸­ Redeploy",
+                "à¸„à¸§à¸£à¹€à¸à¹‡à¸š UTM à¸—à¸¸à¸à¹à¸„à¸¡à¹€à¸›à¸à¹€à¸žà¸·à¹ˆà¸­à¹à¸¢à¸à¹à¸«à¸¥à¹ˆà¸‡à¸—à¸µà¹ˆà¸¡à¸²à¸‚à¸­à¸‡ Lead",
               ].map((text) => <div key={text} style={{ borderRadius: 16, padding: 14, background: "#101722", border: "1px solid rgba(255,255,255,0.08)", color: "#CBD5E1", fontSize: 12, lineHeight: 1.65 }}>{text}</div>)}
             </div>
           </section>
@@ -4243,7 +4243,7 @@ function MarketingPage({ documents, showToast }: any) {
                 <div key={source.name} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 15 }}>
                   <strong style={{ color: "#F8FAFC" }}>{source.name}</strong>
                   <div style={{ marginTop: 8, color: "#A8B0C0", fontSize: 12, lineHeight: 1.6 }}>{source.detail}</div>
-                  <div style={{ marginTop: 12 }}><span style={pill(source.state === "Connected" || source.state === "พร้อมใช้" ? "#ECFDF3" : source.state === "Error" ? "#FEF3F2" : "#FFF7ED", source.state === "Connected" || source.state === "พร้อมใช้" ? "#039855" : source.state === "Error" ? "#D92D20" : "#F97316")}>{source.state}</span></div>
+                  <div style={{ marginTop: 12 }}><span style={pill(source.state === "Connected" || source.state === "à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰" ? "#ECFDF3" : source.state === "Error" ? "#FEF3F2" : "#FFF7ED", source.state === "Connected" || source.state === "à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰" ? "#039855" : source.state === "Error" ? "#D92D20" : "#F97316")}>{source.state}</span></div>
                 </div>
               ))}
             </div>
@@ -4254,35 +4254,35 @@ function MarketingPage({ documents, showToast }: any) {
   );
 }
 
-// ─── ERP COMPONENTS ───────────────────────────────────────────────────────────
+// â”€â”€â”€ ERP COMPONENTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SIDEBAR
 // ============================================================
 function ErpSidebar({ page, setPage, docCounts }: any) {
   const navItems = [
-    { id: "dashboard", icon: "⊞", label: "ภาพรวม" },
-    { id: "customers", icon: "👥", label: "ลูกค้า" },
-    { id: "products", icon: "📦", label: "สินค้า/บริการ" },
-    { id: "suppliers", icon: "🏭", label: "Supplier" },
+    { id: "dashboard", icon: "âŠž", label: "à¸ à¸²à¸žà¸£à¸§à¸¡" },
+    { id: "customers", icon: "ðŸ‘¥", label: "à¸¥à¸¹à¸à¸„à¹‰à¸²" },
+    { id: "products", icon: "ðŸ“¦", label: "à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£" },
+    { id: "suppliers", icon: "ðŸ­", label: "Supplier" },
     null,
-    { id: "quote", icon: "📋", label: "ใบเสนอราคา", count: docCounts.quote, color: DOC_TYPES.quote.color },
-    { id: "bill", icon: "📄", label: "ใบวางบิล", count: docCounts.bill, color: DOC_TYPES.bill.color },
-    { id: "invoice", icon: "🧾", label: "ใบแจ้งหนี้", count: docCounts.invoice, color: DOC_TYPES.invoice.color },
-    { id: "receipt", icon: "✅", label: "ใบเสร็จรับเงิน", count: docCounts.receipt, color: DOC_TYPES.receipt.color },
+    { id: "quote", icon: "ðŸ“‹", label: "à¹ƒà¸šà¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²", count: docCounts.quote, color: DOC_TYPES.quote.color },
+    { id: "bill", icon: "ðŸ“„", label: "à¹ƒà¸šà¸§à¸²à¸‡à¸šà¸´à¸¥", count: docCounts.bill, color: DOC_TYPES.bill.color },
+    { id: "invoice", icon: "ðŸ§¾", label: "à¹ƒà¸šà¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰", count: docCounts.invoice, color: DOC_TYPES.invoice.color },
+    { id: "receipt", icon: "âœ…", label: "à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸£à¸±à¸šà¹€à¸‡à¸´à¸™", count: docCounts.receipt, color: DOC_TYPES.receipt.color },
     null,
-    { id: "company", icon: "🏢", label: "ข้อมูลบริษัท" },
+    { id: "company", icon: "ðŸ¢", label: "à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸šà¸£à¸´à¸©à¸±à¸—" },
   ];
   return (
     <div style={{ width: 220, background: "#0d1120", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", flexShrink: 0 }}>
       <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#FF6B00" }}>Display Works</div>
-        <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>ระบบจัดการเอกสารขาย</div>
+        <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>à¸£à¸°à¸šà¸šà¸ˆà¸±à¸”à¸à¸²à¸£à¹€à¸­à¸à¸ªà¸²à¸£à¸‚à¸²à¸¢</div>
       </div>
       <nav style={{ flex: 1, padding: "12px 10px", display: "flex", flexDirection: "column", gap: 2 }}>
         {navItems.map((item, i) =>
           item === null ? (
             <div key={i} style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "8px 6px" }} />
           ) : (
-            <button key={item.id} onClick={() => setPage(item.id)} style={{
+            <button type="button" key={item.id} onClick={() => setPage(item.id)} style={{
               display: "flex", alignItems: "center", gap: 10, padding: "9px 12px",
               borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13,
               background: page === item.id ? "rgba(255,107,0,0.15)" : "transparent",
@@ -4306,7 +4306,7 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
 }
 
 // ============================================================
-// DASHBOARD — เพิ่มกำไร/ขาดทุน
+// DASHBOARD â€” à¹€à¸žà¸´à¹ˆà¸¡à¸à¸³à¹„à¸£/à¸‚à¸²à¸”à¸—à¸¸à¸™
 // ============================================================
 function Dashboard({ documents, customers, products, totalRevenue, totalCost, totalProfit, docCounts, setPage }: any) {
   const [chartRange, setChartRange] = useState<"7d"|"30d"|"12m">("30d");
@@ -4327,7 +4327,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
     };
   });
 
-  // ─── คำนวณข้อมูลหลัก ───────────────────────────────────────────
+  // â”€â”€â”€ à¸„à¸³à¸™à¸§à¸“à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸«à¸¥à¸±à¸ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const now = new Date();
   const reportDocs = reportingDocuments(documents);
 
@@ -4384,7 +4384,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const profitMarginAll = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : "0";
   const profitMarginPct = Math.max(0, Math.min(100, Number(profitMarginAll)));
 
-  // ─── Pending & alerts ─────────────────────────────────────────
+  // â”€â”€â”€ Pending & alerts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const pendingDocs = documents.filter((d: any) => ["draft","sent"].includes(d.status));
   const overdueCount = pendingDocs.filter((d: any) => {
     const due = new Date(d.dueDate || d.date);
@@ -4392,7 +4392,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
     return due < now;
   }).length;
 
-  // ─── Top Products by profit ───────────────────────────────────
+  // â”€â”€â”€ Top Products by profit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const productProfit: Record<string, { revenue: number; cost: number }> = {};
   reportDocs.forEach((d: any) => {
     d.items.forEach((i: any) => {
@@ -4405,7 +4405,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
     .map(([name, { revenue, cost }]) => ({ name, profit: revenue - cost, margin: revenue > 0 ? ((revenue-cost)/revenue)*100 : 0 }))
     .sort((a, b) => b.profit - a.profit).slice(0, 5);
 
-  // ─── Chart data ────────────────────────────────────────────────
+  // â”€â”€â”€ Chart data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const chartData = (() => {
     const points: { label: string; rev: number; cost: number; profit: number }[] = [];
     if (dateFilterMode === "day") {
@@ -4460,14 +4460,14 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const maxVal = Math.max(...chartData.map(p => Math.max(p.rev, p.cost, 1)));
   const recentDocs = [...documents].sort((a: any, b: any) => b.createdAt - a.createdAt).slice(0, 5);
 
-  // ─── Alerts ───────────────────────────────────────────────────
+  // â”€â”€â”€ Alerts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const alerts: { type: "warn"|"error"|"info"; text: string }[] = [];
-  if (overdueCount > 0) alerts.push({ type: "error", text: `มีเอกสารค้างชำระเกินกำหนด ${overdueCount} รายการ` });
-  if (revChange !== null && revChange < -10) alerts.push({ type: "warn", text: `ยอดขายเดือนนี้ลดลง ${Math.abs(revChange).toFixed(1)}% จากเดือนก่อน` });
-  if (+profitMarginAll < 20 && totalRevenue > 0) alerts.push({ type: "warn", text: `Margin รวม ${profitMarginAll}% ต่ำกว่าเกณฑ์ (20%)` });
-  if (pendingDocs.length > 5) alerts.push({ type: "info", text: `มีเอกสารรอดำเนินการ ${pendingDocs.length} รายการ` });
+  if (overdueCount > 0) alerts.push({ type: "error", text: `à¸¡à¸µà¹€à¸­à¸à¸ªà¸²à¸£à¸„à¹‰à¸²à¸‡à¸Šà¸³à¸£à¸°à¹€à¸à¸´à¸™à¸à¸³à¸«à¸™à¸” ${overdueCount} à¸£à¸²à¸¢à¸à¸²à¸£` });
+  if (revChange !== null && revChange < -10) alerts.push({ type: "warn", text: `à¸¢à¸­à¸”à¸‚à¸²à¸¢à¹€à¸”à¸·à¸­à¸™à¸™à¸µà¹‰à¸¥à¸”à¸¥à¸‡ ${Math.abs(revChange).toFixed(1)}% à¸ˆà¸²à¸à¹€à¸”à¸·à¸­à¸™à¸à¹ˆà¸­à¸™` });
+  if (+profitMarginAll < 20 && totalRevenue > 0) alerts.push({ type: "warn", text: `Margin à¸£à¸§à¸¡ ${profitMarginAll}% à¸•à¹ˆà¸³à¸à¸§à¹ˆà¸²à¹€à¸à¸“à¸‘à¹Œ (20%)` });
+  if (pendingDocs.length > 5) alerts.push({ type: "info", text: `à¸¡à¸µà¹€à¸­à¸à¸ªà¸²à¸£à¸£à¸­à¸”à¸³à¹€à¸™à¸´à¸™à¸à¸²à¸£ ${pendingDocs.length} à¸£à¸²à¸¢à¸à¸²à¸£` });
 
-  // ─── Styles ───────────────────────────────────────────────────
+  // â”€â”€â”€ Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const card = (extra = {}) => ({ background: "rgba(20,26,36,0.8)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, ...extra });
   const fmtB = (n: number) => n >= 1000000 ? `${(n/1000000).toFixed(2)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : fmtMoney(n);
   const filterInputStyle = {
@@ -4487,18 +4487,18 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   return (
     <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
 
-      {/* ── HEADER ──────────────────────────────────────────────── */}
+      {/* â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="erp-dashboard-header" style={{ marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 3, color: "#FF6B00", textTransform: "uppercase", marginBottom: 6 }}>BUSINESS COMMAND CENTER</div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1.2 }}>ภาพรวมธุรกิจ</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1.2 }}>à¸ à¸²à¸žà¸£à¸§à¸¡à¸˜à¸¸à¸£à¸à¸´à¸ˆ</h1>
           <p style={{ fontSize: 13, color: "#4B5563", marginTop: 4 }}>
             {now.toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
         <div className="erp-date-controls" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-          {[{k:"7d",l:"7 วัน"},{k:"30d",l:"30 วัน"},{k:"12m",l:"12 เดือน"}].map(({k,l}) => (
-            <button key={k} onClick={() => { setChartRange(k as any); setDateFilterMode("quick"); }} style={{
+          {[{k:"7d",l:"7 à¸§à¸±à¸™"},{k:"30d",l:"30 à¸§à¸±à¸™"},{k:"12m",l:"12 à¹€à¸”à¸·à¸­à¸™"}].map(({k,l}) => (
+            <button type="button" key={k} onClick={() => { setChartRange(k as any); setDateFilterMode("quick"); }} style={{
               padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)",
               background: dateFilterMode === "quick" && chartRange === k ? "#FF6B00" : "transparent",
               color: dateFilterMode === "quick" && chartRange === k ? "#fff" : "#6B7280", fontSize: 12, fontWeight: 600,
@@ -4506,7 +4506,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             }}>{l}</button>
           ))}
           <input
-            aria-label="เลือกวัน"
+            aria-label="à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™"
             type="date"
             value={dateFilter.day}
             onFocus={() => setDateFilterMode("day")}
@@ -4514,7 +4514,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             style={{ ...filterInputStyle, borderColor: dateFilterMode === "day" ? "#FF6B00" : "rgba(255,255,255,0.08)" }}
           />
           <input
-            aria-label="เลือกเดือน"
+            aria-label="à¹€à¸¥à¸·à¸­à¸à¹€à¸”à¸·à¸­à¸™"
             type="month"
             value={dateFilter.month}
             onFocus={() => setDateFilterMode("month")}
@@ -4522,7 +4522,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             style={{ ...filterInputStyle, borderColor: dateFilterMode === "month" ? "#FF6B00" : "rgba(255,255,255,0.08)" }}
           />
           <input
-            aria-label="เลือกปี"
+            aria-label="à¹€à¸¥à¸·à¸­à¸à¸›à¸µ"
             type="number"
             min="2000"
             max="2100"
@@ -4534,17 +4534,17 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         </div>
       </div>
 
-      {/* ── HERO KPI ─────────────────────────────────────────────── */}
+      {/* â”€â”€ HERO KPI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
         {/* Revenue */}
         <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #10B981", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>฿</div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#10B981", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>REVENUE / เดือนนี้</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>฿{fmtB(revThisMonth)}</div>
+          <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>à¸¿</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#10B981", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>REVENUE / à¹€à¸”à¸·à¸­à¸™à¸™à¸µà¹‰</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>à¸¿{fmtB(revThisMonth)}</div>
           {revChange !== null && (
             <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, fontSize: 12 }}>
-              <span style={{ color: revChange >= 0 ? "#10B981" : "#EF4444", fontWeight: 700 }}>{revChange >= 0 ? "▲" : "▼"} {Math.abs(revChange).toFixed(1)}%</span>
-              <span style={{ color: "#4B5563" }}>vs เดือนก่อน</span>
+              <span style={{ color: revChange >= 0 ? "#10B981" : "#EF4444", fontWeight: 700 }}>{revChange >= 0 ? "â–²" : "â–¼"} {Math.abs(revChange).toFixed(1)}%</span>
+              <span style={{ color: "#4B5563" }}>vs à¹€à¸”à¸·à¸­à¸™à¸à¹ˆà¸­à¸™</span>
             </div>
           )}
         </div>
@@ -4553,16 +4553,16 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         <div style={{ ...card(), padding: "22px 24px", borderTop: `2px solid ${profitThis >= 0 ? "#10B981" : "#EF4444"}`, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>P</div>
           <div style={{ fontSize: 11, fontWeight: 600, color: profitThis >= 0 ? "#10B981" : "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>NET PROFIT</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: profitThis >= 0 ? "#10B981" : "#EF4444", lineHeight: 1 }}>฿{fmtB(profitThis)}</div>
-          <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>Margin เดือนนี้ <span style={{ color: "#fff", fontWeight: 700 }}>{marginThis.toFixed(1)}%</span></div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: profitThis >= 0 ? "#10B981" : "#EF4444", lineHeight: 1 }}>à¸¿{fmtB(profitThis)}</div>
+          <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>Margin à¹€à¸”à¸·à¸­à¸™à¸™à¸µà¹‰ <span style={{ color: "#fff", fontWeight: 700 }}>{marginThis.toFixed(1)}%</span></div>
         </div>
 
         {/* Expense */}
         <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #EF4444", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>E</div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>EXPENSE / ต้นทุน</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>฿{fmtB(costThisMonth)}</div>
-          <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>รวมทั้งหมด <span style={{ color: "#EF4444", fontWeight: 700 }}>฿{fmtB(totalCost)}</span></div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>EXPENSE / à¸•à¹‰à¸™à¸—à¸¸à¸™</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>à¸¿{fmtB(costThisMonth)}</div>
+          <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>à¸£à¸§à¸¡à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸” <span style={{ color: "#EF4444", fontWeight: 700 }}>à¸¿{fmtB(totalCost)}</span></div>
         </div>
 
         {/* Margin All-time */}
@@ -4578,7 +4578,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         </div>
       </div>
 
-      {/* ── CHART + ALERTS ────────────────────────────────────────── */}
+      {/* â”€â”€ CHART + ALERTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="chart-panel" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 14, marginBottom: 20 }}>
 
         {/* Revenue Chart */}
@@ -4586,7 +4586,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Revenue vs Expense vs Profit</div>
-              <div style={{ fontSize: 11, color: "#4B5563", marginTop: 2 }}>ยอดขาย · ต้นทุน · กำไร</div>
+              <div style={{ fontSize: 11, color: "#4B5563", marginTop: 2 }}>à¸¢à¸­à¸”à¸‚à¸²à¸¢ Â· à¸•à¹‰à¸™à¸—à¸¸à¸™ Â· à¸à¸³à¹„à¸£</div>
             </div>
             <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
               {[{c:"#10B981",l:"Revenue"},{c:"#EF4444",l:"Expense"},{c:"#3B82F6",l:"Profit"}].map(({c,l}) => (
@@ -4603,18 +4603,18 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             {/* Y-axis lines */}
             {[0,25,50,75,100].map(p => (
               <div key={p} style={{ position: "absolute", left: 0, right: 0, bottom: 24 + (p/100)*(160-24), borderTop: "1px dashed rgba(255,255,255,0.04)", fontSize: 9, color: "#4B5563" }}>
-                {p > 0 && <span style={{ position: "absolute", right: "100%", paddingRight: 4 }}>฿{fmtB(maxVal * p/100)}</span>}
+                {p > 0 && <span style={{ position: "absolute", right: "100%", paddingRight: 4 }}>à¸¿{fmtB(maxVal * p/100)}</span>}
               </div>
             ))}
             {chartData.map((pt, i) => (
               <div key={i} style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 1, position: "relative" }}>
-                <div title={`Revenue: ฿${fmtMoney(pt.rev)}`} style={{ flex: 1, height: `${maxVal > 0 ? (pt.rev/maxVal)*100 : 0}%`, background: "rgba(16,185,129,0.7)", borderRadius: "3px 3px 0 0", minHeight: pt.rev > 0 ? 2 : 0, transition: "height 0.4s ease", cursor: "pointer" }}
+                <div title={`Revenue: à¸¿${fmtMoney(pt.rev)}`} style={{ flex: 1, height: `${maxVal > 0 ? (pt.rev/maxVal)*100 : 0}%`, background: "rgba(16,185,129,0.7)", borderRadius: "3px 3px 0 0", minHeight: pt.rev > 0 ? 2 : 0, transition: "height 0.4s ease", cursor: "pointer" }}
                   onMouseEnter={e => { (e.currentTarget as any).style.background = "#10B981"; }}
                   onMouseLeave={e => { (e.currentTarget as any).style.background = "rgba(16,185,129,0.7)"; }} />
-                <div title={`Expense: ฿${fmtMoney(pt.cost)}`} style={{ flex: 1, height: `${maxVal > 0 ? (pt.cost/maxVal)*100 : 0}%`, background: "rgba(239,68,68,0.6)", borderRadius: "3px 3px 0 0", minHeight: pt.cost > 0 ? 2 : 0, transition: "height 0.4s ease", cursor: "pointer" }}
+                <div title={`Expense: à¸¿${fmtMoney(pt.cost)}`} style={{ flex: 1, height: `${maxVal > 0 ? (pt.cost/maxVal)*100 : 0}%`, background: "rgba(239,68,68,0.6)", borderRadius: "3px 3px 0 0", minHeight: pt.cost > 0 ? 2 : 0, transition: "height 0.4s ease", cursor: "pointer" }}
                   onMouseEnter={e => { (e.currentTarget as any).style.background = "#EF4444"; }}
                   onMouseLeave={e => { (e.currentTarget as any).style.background = "rgba(239,68,68,0.6)"; }} />
-                <div title={`Profit: ฿${fmtMoney(pt.profit)}`} style={{ flex: 1, height: `${maxVal > 0 ? (Math.max(pt.profit,0)/maxVal)*100 : 0}%`, background: "rgba(59,130,246,0.7)", borderRadius: "3px 3px 0 0", minHeight: pt.profit > 0 ? 2 : 0, transition: "height 0.4s ease", cursor: "pointer" }}
+                <div title={`Profit: à¸¿${fmtMoney(pt.profit)}`} style={{ flex: 1, height: `${maxVal > 0 ? (Math.max(pt.profit,0)/maxVal)*100 : 0}%`, background: "rgba(59,130,246,0.7)", borderRadius: "3px 3px 0 0", minHeight: pt.profit > 0 ? 2 : 0, transition: "height 0.4s ease", cursor: "pointer" }}
                   onMouseEnter={e => { (e.currentTarget as any).style.background = "#3B82F6"; }}
                   onMouseLeave={e => { (e.currentTarget as any).style.background = "rgba(59,130,246,0.7)"; }} />
                 {pt.label && (
@@ -4627,11 +4627,11 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
 
         {/* Alerts Panel */}
         <div style={{ ...card(), padding: "22px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 4 }}>⚡ Business Alerts</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 4 }}>âš¡ Business Alerts</div>
           {alerts.length === 0 ? (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              <div style={{ fontSize: 32 }}>✅</div>
-              <div style={{ fontSize: 12, color: "#4B5563", textAlign: "center" }}>ธุรกิจดำเนินไปปกติ ไม่มีสัญญาณเตือน</div>
+              <div style={{ fontSize: 32 }}>âœ…</div>
+              <div style={{ fontSize: 12, color: "#4B5563", textAlign: "center" }}>à¸˜à¸¸à¸£à¸à¸´à¸ˆà¸”à¸³à¹€à¸™à¸´à¸™à¹„à¸›à¸›à¸à¸•à¸´ à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸±à¸à¸à¸²à¸“à¹€à¸•à¸·à¸­à¸™</div>
             </div>
           ) : (
             alerts.map((a, i) => (
@@ -4641,7 +4641,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
                 border: `1px solid ${a.type === "error" ? "rgba(239,68,68,0.2)" : a.type === "warn" ? "rgba(245,158,11,0.2)" : "rgba(59,130,246,0.2)"}`,
                 color: a.type === "error" ? "#FCA5A5" : a.type === "warn" ? "#FCD34D" : "#93C5FD",
               }}>
-                {a.type === "error" ? "🔴" : a.type === "warn" ? "🟡" : "🔵"} {a.text}
+                {a.type === "error" ? "ðŸ”´" : a.type === "warn" ? "ðŸŸ¡" : "ðŸ”µ"} {a.text}
               </div>
             ))
           )}
@@ -4649,8 +4649,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
           {/* Quick stats */}
           <div style={{ marginTop: "auto", paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 8 }}>
             {[
-              { l: "รอดำเนินการ", v: pendingDocs.length + " รายการ", c: "#F59E0B" },
-              { l: "ลูกค้าทั้งหมด", v: customers.length + " ราย", c: "#3B82F6" },
+              { l: "à¸£à¸­à¸”à¸³à¹€à¸™à¸´à¸™à¸à¸²à¸£", v: pendingDocs.length + " à¸£à¸²à¸¢à¸à¸²à¸£", c: "#F59E0B" },
+              { l: "à¸¥à¸¹à¸à¸„à¹‰à¸²à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”", v: customers.length + " à¸£à¸²à¸¢", c: "#3B82F6" },
             ].map(({ l, v, c }) => (
               <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                 <span style={{ color: "#4B5563" }}>{l}</span>
@@ -4661,14 +4661,14 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         </div>
       </div>
 
-      {/* ── INSIGHTS ROW ──────────────────────────────────────────── */}
+      {/* â”€â”€ INSIGHTS ROW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="insights-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
 
         {/* Top Products */}
         <div style={{ ...card(), padding: "22px 24px" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 16 }}>🏆 Top Products by Profit</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 16 }}>ðŸ† Top Products by Profit</div>
           {topProducts.length === 0 ? (
-            <div style={{ textAlign: "center", color: "#4B5563", fontSize: 12, padding: "20px 0" }}>ยังไม่มีข้อมูล</div>
+            <div style={{ textAlign: "center", color: "#4B5563", fontSize: 12, padding: "20px 0" }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {topProducts.map((p, i) => (
@@ -4679,7 +4679,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
                       <span style={{ fontSize: 13, color: "#E2E8F0" }}>{p.name}</span>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>฿{fmtB(p.profit)}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>à¸¿{fmtB(p.profit)}</div>
                       <div style={{ fontSize: 10, color: "#4B5563" }}>{p.margin.toFixed(1)}% margin</div>
                     </div>
                   </div>
@@ -4694,10 +4694,10 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
 
         {/* Document Shortcuts */}
         <div style={{ ...card(), padding: "22px 24px" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 16 }}>📁 เอกสาร</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 16 }}>ðŸ“ à¹€à¸­à¸à¸ªà¸²à¸£</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
             {Object.entries(DOC_TYPES).map(([key, dt]: [string, any]) => (
-              <button key={key} onClick={() => setPage(key)} style={{
+              <button type="button" key={key} onClick={() => setPage(key)} style={{
                 padding: "14px 16px", borderRadius: 12, textAlign: "left", cursor: "pointer", fontFamily: "inherit",
                 background: "rgba(255,255,255,0.02)", border: `1px solid ${dt.color}20`,
                 transition: "all 0.2s", color: "#fff",
@@ -4714,7 +4714,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
           {totalRevenue > 0 && (
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#4B5563", marginBottom: 5 }}>
-                <span>สัดส่วนกำไร / ต้นทุน</span>
+                <span>à¸ªà¸±à¸”à¸ªà¹ˆà¸§à¸™à¸à¸³à¹„à¸£ / à¸•à¹‰à¸™à¸—à¸¸à¸™</span>
                 <span style={{ color: "#10B981", fontWeight: 700 }}>{profitMarginAll}%</span>
               </div>
               <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
@@ -4724,28 +4724,28 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#4B5563", marginTop: 4 }}>
-                <span style={{ color: "#EF4444" }}>ต้นทุน ฿{fmtB(totalCost)}</span>
-                <span style={{ color: "#10B981" }}>กำไร ฿{fmtB(totalProfit)}</span>
+                <span style={{ color: "#EF4444" }}>à¸•à¹‰à¸™à¸—à¸¸à¸™ à¸¿{fmtB(totalCost)}</span>
+                <span style={{ color: "#10B981" }}>à¸à¸³à¹„à¸£ à¸¿{fmtB(totalProfit)}</span>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* ── LATEST ORDERS ─────────────────────────────────────────── */}
+      {/* â”€â”€ LATEST ORDERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="erp-latest-panel" style={{ ...card(), overflow: "hidden" }}>
         <div style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>🕐 Latest Orders</div>
-          <span style={{ fontSize: 11, color: "#4B5563" }}>5 รายการล่าสุด</span>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>ðŸ• Latest Orders</div>
+          <span style={{ fontSize: 11, color: "#4B5563" }}>5 à¸£à¸²à¸¢à¸à¸²à¸£à¸¥à¹ˆà¸²à¸ªà¸¸à¸”</span>
         </div>
         {recentDocs.length === 0 ? (
-          <div style={{ padding: "32px", textAlign: "center", color: "#4B5563", fontSize: 13 }}>ยังไม่มีเอกสาร</div>
+          <div style={{ padding: "32px", textAlign: "center", color: "#4B5563", fontSize: 13 }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¹€à¸­à¸à¸ªà¸²à¸£</div>
         ) : (
           <>
           <table className="erp-latest-table" style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "rgba(255,255,255,0.02)" }}>
-                {["เลขที่","ประเภท","ลูกค้า","วันที่","ยอดรวม","สถานะ"].map(h => (
+                {["à¹€à¸¥à¸‚à¸—à¸µà¹ˆ","à¸›à¸£à¸°à¹€à¸ à¸—","à¸¥à¸¹à¸à¸„à¹‰à¸²","à¸§à¸±à¸™à¸—à¸µà¹ˆ","à¸¢à¸­à¸”à¸£à¸§à¸¡","à¸ªà¸–à¸²à¸™à¸°"].map(h => (
                   <th key={h} style={{ padding: "10px 20px", textAlign: "left", fontSize: 11, color: "#4B5563", fontWeight: 600, letterSpacing: 0.5 }}>{h}</th>
                 ))}
               </tr>
@@ -4766,8 +4766,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
                     <td style={{ padding: "12px 20px", fontSize: 13, color: "#CBD5E1" }}>{doc.customerName || "-"}</td>
                     <td style={{ padding: "12px 20px", fontSize: 12, color: "#6B7280" }}>{fmtDate(doc.date)}</td>
                     <td style={{ padding: "12px 20px", fontSize: 13, fontWeight: 700, color: "#fff" }}>
-                      <div>฿{fmtMoney(total)}</div>
-                      {depositPaid > 0 && balanceDue > 0 && <div style={{ marginTop: 3, color: "#F59E0B", fontSize: 11 }}>ค้างชำระ ฿{fmtMoney(balanceDue)}</div>}
+                      <div>à¸¿{fmtMoney(total)}</div>
+                      {depositPaid > 0 && balanceDue > 0 && <div style={{ marginTop: 3, color: "#F59E0B", fontSize: 11 }}>à¸„à¹‰à¸²à¸‡à¸Šà¸³à¸£à¸° à¸¿{fmtMoney(balanceDue)}</div>}
                     </td>
                     <td style={{ padding: "12px 20px" }}>
                       <span style={{ background: (STATUS_COLORS as any)[doc.status] + "20", color: (STATUS_COLORS as any)[doc.status], fontSize: 11, padding: "3px 10px", borderRadius: 99, fontWeight: 600 }}>
@@ -4791,7 +4791,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
                       <span>{doc.customerName || "-"}</span>
                     </div>
                     <div>
-                      <b>฿{fmtMoney(total)}</b>
+                      <b>à¸¿{fmtMoney(total)}</b>
                       <span>{fmtDate(doc.date)}</span>
                     </div>
                   </div>
@@ -4800,7 +4800,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
                     <span style={{ background: `${(STATUS_COLORS as any)[doc.status] || "#64748B"}20`, color: (STATUS_COLORS as any)[doc.status] || "#CBD5E1" }}>{(STATUS_LABELS as any)[doc.status] || doc.status}</span>
                   </div>
                   {depositPaid > 0 && balanceDue > 0 && (
-                    <div className="erp-latest-balance">ค้างชำระ ฿{fmtMoney(balanceDue)}</div>
+                    <div className="erp-latest-balance">à¸„à¹‰à¸²à¸‡à¸Šà¸³à¸£à¸° à¸¿{fmtMoney(balanceDue)}</div>
                   )}
                 </button>
               );
@@ -4839,7 +4839,7 @@ function CustomerInsightDashboard({ customers = [], documents = [], products = [
   const summarize = (rows: any[], labelFn: (row: any) => string, valueFn: (row: any) => number = () => 1) => {
     const map = new Map<string, number>();
     rows.forEach((row: any) => {
-      const label = String(labelFn(row) || "ไม่ระบุ").trim() || "ไม่ระบุ";
+      const label = String(labelFn(row) || "à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸").trim() || "à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸";
       map.set(label, (map.get(label) || 0) + valueFn(row));
     });
     return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
@@ -4847,7 +4847,7 @@ function CustomerInsightDashboard({ customers = [], documents = [], products = [
   const sourceRows = (() => {
     const map = new Map<string, { label: string; customers: Set<string>; docs: number; revenue: number }>();
     activeDocs.forEach((doc: any) => {
-      const label = doc.leadSource || "ไม่ระบุ";
+      const label = doc.leadSource || "à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸";
       const entry = map.get(label) || { label, customers: new Set<string>(), docs: 0, revenue: 0 };
       if (customerKey(doc)) entry.customers.add(customerKey(doc));
       entry.docs += 1;
@@ -4858,13 +4858,13 @@ function CustomerInsightDashboard({ customers = [], documents = [], products = [
       .map((entry) => ({ label: entry.label, customers: entry.customers.size, docs: entry.docs, revenue: entry.revenue }))
       .sort((a, b) => b.customers - a.customers || b.revenue - a.revenue);
   })();
-  const segmentRows = summarize(customers, (customer: any) => customer.customerSegment || "ไม่ระบุ");
-  const businessRows = summarize(customers, (customer: any) => customer.businessType || "ไม่ระบุ").slice(0, 7);
+  const segmentRows = summarize(customers, (customer: any) => customer.customerSegment || "à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸");
+  const businessRows = summarize(customers, (customer: any) => customer.businessType || "à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸").slice(0, 7);
   const productRows = (() => {
     const map = new Map<string, { label: string; docs: Set<string>; qty: number; revenue: number; profit: number }>();
     receiptDocs.forEach((doc: any) => {
       (doc.items || []).forEach((item: any) => {
-        const label = item.name || "ไม่ระบุสินค้า/บริการ";
+        const label = item.name || "à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£";
         const entry = map.get(label) || { label, docs: new Set<string>(), qty: 0, revenue: 0, profit: 0 };
         const revenue = lineAmount(item);
         const cost = lineCost(item, fallbackItemCost(products, item));
@@ -4919,35 +4919,35 @@ function CustomerInsightDashboard({ customers = [], documents = [], products = [
       <div style={{ ...cardStyle, display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", flexWrap: "wrap", background: "linear-gradient(135deg,#151B26 0%,#121720 56%,rgba(255,107,0,0.14) 100%)" }}>
         <div>
           <div style={{ color: "#FF6B00", fontSize: 11, fontWeight: 900, letterSpacing: 2 }}>CUSTOMER INTELLIGENCE</div>
-          <h3 style={{ fontSize: 24, fontWeight: 900, marginTop: 6 }}>Dashboard วิเคราะห์ลูกค้า</h3>
-          <p style={{ color: "#9CA3AF", fontSize: 13, marginTop: 4 }}>ดึงจาก ERP โดยตรง: ลูกค้า, เอกสาร, ใบเสร็จ และรายการสินค้า/บริการ</p>
+          <h2 style={{ fontSize: 24, fontWeight: 900, marginTop: 6 }}>Dashboard à¸§à¸´à¹€à¸„à¸£à¸²à¸°à¸«à¹Œà¸¥à¸¹à¸à¸„à¹‰à¸²</h2>
+          <p style={{ color: "#9CA3AF", fontSize: 13, marginTop: 4 }}>à¸”à¸¶à¸‡à¸ˆà¸²à¸ ERP à¹‚à¸”à¸¢à¸•à¸£à¸‡: à¸¥à¸¹à¸à¸„à¹‰à¸², à¹€à¸­à¸à¸ªà¸²à¸£, à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆ à¹à¸¥à¸°à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£</p>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <div style={miniCard}><div style={{ color: "#8B95A7", fontSize: 11 }}>ลูกค้า</div><div style={{ fontSize: 24, fontWeight: 900 }}>{customers.length}</div></div>
-          <div style={miniCard}><div style={{ color: "#8B95A7", fontSize: 11 }}>เอกสาร ERP</div><div style={{ fontSize: 24, fontWeight: 900 }}>{activeDocs.length}</div></div>
-          <div style={miniCard}><div style={{ color: "#8B95A7", fontSize: 11 }}>ใบเสร็จ</div><div style={{ fontSize: 24, fontWeight: 900, color: "#10B981" }}>{receiptDocs.length}</div></div>
+          <div style={miniCard}><div style={{ color: "#8B95A7", fontSize: 11 }}>à¸¥à¸¹à¸à¸„à¹‰à¸²</div><div style={{ fontSize: 24, fontWeight: 900 }}>{customers.length}</div></div>
+          <div style={miniCard}><div style={{ color: "#8B95A7", fontSize: 11 }}>à¹€à¸­à¸à¸ªà¸²à¸£ ERP</div><div style={{ fontSize: 24, fontWeight: 900 }}>{activeDocs.length}</div></div>
+          <div style={miniCard}><div style={{ color: "#8B95A7", fontSize: 11 }}>à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆ</div><div style={{ fontSize: 24, fontWeight: 900, color: "#10B981" }}>{receiptDocs.length}</div></div>
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 12 }}>
-        <div style={miniCard}><div style={{ color: "#9CA3AF", fontSize: 12 }}>ยอดขายจริงจากใบเสร็จ</div><div style={{ color: "#F8FAFC", fontSize: 24, fontWeight: 900 }}>฿{fmtMoney(receiptRevenue)}</div><div style={{ color: "#64748B", fontSize: 11, marginTop: 3 }}>นับเฉพาะ Receipt ใน ERP</div></div>
-        <div style={miniCard}><div style={{ color: "#9CA3AF", fontSize: 12 }}>กำไรโดยประมาณ</div><div style={{ color: "#10B981", fontSize: 24, fontWeight: 900 }}>฿{fmtMoney(receiptProfit)}</div><div style={{ color: "#64748B", fontSize: 11, marginTop: 3 }}>ยอดขาย - ต้นทุนรายการ</div></div>
-        <div style={miniCard}><div style={{ color: "#9CA3AF", fontSize: 12 }}>ลูกค้าสั่งซ้ำ</div><div style={{ color: "#FFB000", fontSize: 24, fontWeight: 900 }}>{repeatCustomers}</div><div style={{ color: "#64748B", fontSize: 11, marginTop: 3 }}>มีเอกสารมากกว่า 1 ใบ</div></div>
-        <div style={miniCard}><div style={{ color: "#9CA3AF", fontSize: 12 }}>ช่องทางที่มีข้อมูล</div><div style={{ color: "#F8FAFC", fontSize: 24, fontWeight: 900 }}>{sourceRows.filter((row) => row.label !== "ไม่ระบุ").length}</div><div style={{ color: "#64748B", fontSize: 11, marginTop: 3 }}>จาก Lead Source ในเอกสาร</div></div>
+        <div style={miniCard}><div style={{ color: "#9CA3AF", fontSize: 12 }}>à¸¢à¸­à¸”à¸‚à¸²à¸¢à¸ˆà¸£à¸´à¸‡à¸ˆà¸²à¸à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆ</div><div style={{ color: "#F8FAFC", fontSize: 24, fontWeight: 900 }}>à¸¿{fmtMoney(receiptRevenue)}</div><div style={{ color: "#64748B", fontSize: 11, marginTop: 3 }}>à¸™à¸±à¸šà¹€à¸‰à¸žà¸²à¸° Receipt à¹ƒà¸™ ERP</div></div>
+        <div style={miniCard}><div style={{ color: "#9CA3AF", fontSize: 12 }}>à¸à¸³à¹„à¸£à¹‚à¸”à¸¢à¸›à¸£à¸°à¸¡à¸²à¸“</div><div style={{ color: "#10B981", fontSize: 24, fontWeight: 900 }}>à¸¿{fmtMoney(receiptProfit)}</div><div style={{ color: "#64748B", fontSize: 11, marginTop: 3 }}>à¸¢à¸­à¸”à¸‚à¸²à¸¢ - à¸•à¹‰à¸™à¸—à¸¸à¸™à¸£à¸²à¸¢à¸à¸²à¸£</div></div>
+        <div style={miniCard}><div style={{ color: "#9CA3AF", fontSize: 12 }}>à¸¥à¸¹à¸à¸„à¹‰à¸²à¸ªà¸±à¹ˆà¸‡à¸‹à¹‰à¸³</div><div style={{ color: "#FFB000", fontSize: 24, fontWeight: 900 }}>{repeatCustomers}</div><div style={{ color: "#64748B", fontSize: 11, marginTop: 3 }}>à¸¡à¸µà¹€à¸­à¸à¸ªà¸²à¸£à¸¡à¸²à¸à¸à¸§à¹ˆà¸² 1 à¹ƒà¸š</div></div>
+        <div style={miniCard}><div style={{ color: "#9CA3AF", fontSize: 12 }}>à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥</div><div style={{ color: "#F8FAFC", fontSize: 24, fontWeight: 900 }}>{sourceRows.filter((row) => row.label !== "à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸").length}</div><div style={{ color: "#64748B", fontSize: 11, marginTop: 3 }}>à¸ˆà¸²à¸ Lead Source à¹ƒà¸™à¹€à¸­à¸à¸ªà¸²à¸£</div></div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 16 }}>
         <div style={cardStyle}>
-          <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>ลูกค้าเจอเราจากไหน</h3>
-          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 12 }}>ดูว่าช่องทางไหนพาลูกค้ามาและสร้างใบเสร็จจริง</p>
+          <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>à¸¥à¸¹à¸à¸„à¹‰à¸²à¹€à¸ˆà¸­à¹€à¸£à¸²à¸ˆà¸²à¸à¹„à¸«à¸™</h2>
+          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 12 }}>à¸”à¸¹à¸§à¹ˆà¸²à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¹„à¸«à¸™à¸žà¸²à¸¥à¸¹à¸à¸„à¹‰à¸²à¸¡à¸²à¹à¸¥à¸°à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸ˆà¸£à¸´à¸‡</p>
           <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 16, alignItems: "center" }}>
             <Donut rows={sourceRows.map((row) => ({ label: row.label, value: row.customers || row.docs }))} centerLabel="Channels" centerValue={sourceRows.length} />
             <div>
-              {sourceRows.length === 0 ? <div style={{ color: "#6B7280", fontSize: 13 }}>ยังไม่มีข้อมูล Lead Source ใน ERP</div> : sourceRows.slice(0, 6).map((row, index) => (
+              {sourceRows.length === 0 ? <div style={{ color: "#6B7280", fontSize: 13 }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥ Lead Source à¹ƒà¸™ ERP</div> : sourceRows.slice(0, 6).map((row, index) => (
                 <div key={row.label} style={{ marginBottom: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontWeight: 800 }}>
-                    <span><span style={{ color: colors[index % colors.length] }}>●</span> {row.label}</span>
-                    <span>{row.customers || row.docs} ราย</span>
+                    <span><span style={{ color: colors[index % colors.length] }}>â—</span> {row.label}</span>
+                    <span>{row.customers || row.docs} à¸£à¸²à¸¢</span>
                   </div>
-                  <div style={{ color: "#94A3B8", fontSize: 12, marginTop: 3 }}>เอกสาร {row.docs} ใบ · ยอดขายใบเสร็จ ฿{fmtMoney(row.revenue)}</div>
+                  <div style={{ color: "#94A3B8", fontSize: 12, marginTop: 3 }}>à¹€à¸­à¸à¸ªà¸²à¸£ {row.docs} à¹ƒà¸š Â· à¸¢à¸­à¸”à¸‚à¸²à¸¢à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆ à¸¿{fmtMoney(row.revenue)}</div>
                   <Bar pct={(row.customers || row.docs) / maxValue(sourceRows, "customers") * 100} color={colors[index % colors.length]} />
                 </div>
               ))}
@@ -4955,12 +4955,12 @@ function CustomerInsightDashboard({ customers = [], documents = [], products = [
           </div>
         </div>
         <div style={cardStyle}>
-          <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>B2B / B2C</h3>
-          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 12 }}>ดึงจากข้อมูลลูกค้าใน ERP</p>
+          <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>B2B / B2C</h2>
+          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 12 }}>à¸”à¸¶à¸‡à¸ˆà¸²à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¸¹à¸à¸„à¹‰à¸²à¹ƒà¸™ ERP</p>
           <Donut rows={segmentRows} centerLabel="Customers" centerValue={customers.length} />
           {segmentRows.map((row, index) => (
             <div key={row.label} style={{ marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800 }}><span><span style={{ color: colors[index % colors.length] }}>●</span> {row.label}</span><span>{row.value} ราย</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800 }}><span><span style={{ color: colors[index % colors.length] }}>â—</span> {row.label}</span><span>{row.value} à¸£à¸²à¸¢</span></div>
               <Bar pct={row.value / maxValue(segmentRows) * 100} color={colors[index % colors.length]} />
             </div>
           ))}
@@ -4968,39 +4968,39 @@ function CustomerInsightDashboard({ customers = [], documents = [], products = [
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 16 }}>
         <div style={cardStyle}>
-          <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>ประเภทธุรกิจลูกค้า</h3>
-          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 14 }}>ช่วยเห็นว่าธุรกิจแบบไหนใช้บริการเรามากที่สุด</p>
-          {businessRows.length === 0 ? <div style={{ color: "#6B7280", fontSize: 13 }}>ยังไม่มีข้อมูลประเภทธุรกิจใน ERP</div> : businessRows.map((row, index) => (
+          <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>à¸›à¸£à¸°à¹€à¸ à¸—à¸˜à¸¸à¸£à¸à¸´à¸ˆà¸¥à¸¹à¸à¸„à¹‰à¸²</h2>
+          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 14 }}>à¸Šà¹ˆà¸§à¸¢à¹€à¸«à¹‡à¸™à¸§à¹ˆà¸²à¸˜à¸¸à¸£à¸à¸´à¸ˆà¹à¸šà¸šà¹„à¸«à¸™à¹ƒà¸Šà¹‰à¸šà¸£à¸´à¸à¸²à¸£à¹€à¸£à¸²à¸¡à¸²à¸à¸—à¸µà¹ˆà¸ªà¸¸à¸”</p>
+          {businessRows.length === 0 ? <div style={{ color: "#6B7280", fontSize: 13 }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸›à¸£à¸°à¹€à¸ à¸—à¸˜à¸¸à¸£à¸à¸´à¸ˆà¹ƒà¸™ ERP</div> : businessRows.map((row, index) => (
             <div key={row.label} style={{ marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 800 }}><span>{index + 1}. {row.label}</span><span>{row.value} ราย</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 800 }}><span>{index + 1}. {row.label}</span><span>{row.value} à¸£à¸²à¸¢</span></div>
               <Bar pct={row.value / maxValue(businessRows) * 100} color={colors[index % colors.length]} height={10} />
             </div>
           ))}
         </div>
         <div style={cardStyle}>
-          <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>สินค้า / บริการยอดนิยม</h3>
-          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 14 }}>นับจากรายการในใบเสร็จ เพื่อดูงานที่ขายจริง</p>
-          {productRows.length === 0 ? <div style={{ color: "#6B7280", fontSize: 13 }}>ยังไม่มีรายการสินค้า/บริการจากใบเสร็จใน ERP</div> : productRows.map((row, index) => (
+          <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>à¸ªà¸´à¸™à¸„à¹‰à¸² / à¸šà¸£à¸´à¸à¸²à¸£à¸¢à¸­à¸”à¸™à¸´à¸¢à¸¡</h2>
+          <p style={{ color: "#8B95A7", fontSize: 12, marginBottom: 14 }}>à¸™à¸±à¸šà¸ˆà¸²à¸à¸£à¸²à¸¢à¸à¸²à¸£à¹ƒà¸™à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆ à¹€à¸žà¸·à¹ˆà¸­à¸”à¸¹à¸‡à¸²à¸™à¸—à¸µà¹ˆà¸‚à¸²à¸¢à¸ˆà¸£à¸´à¸‡</p>
+          {productRows.length === 0 ? <div style={{ color: "#6B7280", fontSize: 13 }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£à¸ˆà¸²à¸à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¹ƒà¸™ ERP</div> : productRows.map((row, index) => (
             <div key={row.label} style={{ display: "grid", gridTemplateColumns: "30px minmax(0,1fr) auto", gap: 10, alignItems: "center", padding: "11px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div style={{ color: index === 0 ? "#FFB000" : "#8B95A7", fontWeight: 900 }}>#{index + 1}</div>
               <div>
                 <div style={{ fontWeight: 800 }}>{row.label}</div>
-                <div style={{ color: "#94A3B8", fontSize: 12 }}>ยอดขาย ฿{fmtMoney(row.revenue)} · กำไร ฿{fmtMoney(row.profit)} · จำนวน {fmtMoney(row.qty)}</div>
+                <div style={{ color: "#94A3B8", fontSize: 12 }}>à¸¢à¸­à¸”à¸‚à¸²à¸¢ à¸¿{fmtMoney(row.revenue)} Â· à¸à¸³à¹„à¸£ à¸¿{fmtMoney(row.profit)} Â· à¸ˆà¸³à¸™à¸§à¸™ {fmtMoney(row.qty)}</div>
                 <Bar pct={row.jobs / maxValue(productRows, "jobs") * 100} color="#FFB000" height={10} />
               </div>
-              <div style={{ color: "#FF6B00", fontWeight: 900 }}>{row.jobs} งาน</div>
+              <div style={{ color: "#FF6B00", fontWeight: 900 }}>{row.jobs} à¸‡à¸²à¸™</div>
             </div>
           ))}
         </div>
       </div>
       <div style={{ ...cardStyle, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14 }}>
         <div>
-          <div style={{ color: "#FF6B00", fontSize: 12, fontWeight: 900, marginBottom: 6 }}>อ่าน Dashboard นี้ยังไง</div>
-          <p style={{ color: "#CBD5E1", fontSize: 13, lineHeight: 1.8 }}>ถ้าช่องทางไหนมีลูกค้าเยอะ แต่ยอดใบเสร็จน้อย ควรปรับการคัดกรอง Lead หรือข้อความโฆษณาให้ชัดขึ้น</p>
+          <div style={{ color: "#FF6B00", fontSize: 12, fontWeight: 900, marginBottom: 6 }}>à¸­à¹ˆà¸²à¸™ Dashboard à¸™à¸µà¹‰à¸¢à¸±à¸‡à¹„à¸‡</div>
+          <p style={{ color: "#CBD5E1", fontSize: 13, lineHeight: 1.8 }}>à¸–à¹‰à¸²à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¹„à¸«à¸™à¸¡à¸µà¸¥à¸¹à¸à¸„à¹‰à¸²à¹€à¸¢à¸­à¸° à¹à¸•à¹ˆà¸¢à¸­à¸”à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸™à¹‰à¸­à¸¢ à¸„à¸§à¸£à¸›à¸£à¸±à¸šà¸à¸²à¸£à¸„à¸±à¸”à¸à¸£à¸­à¸‡ Lead à¸«à¸£à¸·à¸­à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¹‚à¸†à¸©à¸“à¸²à¹ƒà¸«à¹‰à¸Šà¸±à¸”à¸‚à¸¶à¹‰à¸™</p>
         </div>
         <div>
-          <div style={{ color: "#FF6B00", fontSize: 12, fontWeight: 900, marginBottom: 6 }}>ข้อมูลที่ควรกรอกให้ครบ</div>
-          <p style={{ color: "#CBD5E1", fontSize: 13, lineHeight: 1.8 }}>ในหน้าลูกค้าให้กรอก B2B/B2C และประเภทธุรกิจ ส่วนในเอกสารให้กรอกช่องทางที่ลูกค้ามา</p>
+          <div style={{ color: "#FF6B00", fontSize: 12, fontWeight: 900, marginBottom: 6 }}>à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸„à¸§à¸£à¸à¸£à¸­à¸à¹ƒà¸«à¹‰à¸„à¸£à¸š</div>
+          <p style={{ color: "#CBD5E1", fontSize: 13, lineHeight: 1.8 }}>à¹ƒà¸™à¸«à¸™à¹‰à¸²à¸¥à¸¹à¸à¸„à¹‰à¸²à¹ƒà¸«à¹‰à¸à¸£à¸­à¸ B2B/B2C à¹à¸¥à¸°à¸›à¸£à¸°à¹€à¸ à¸—à¸˜à¸¸à¸£à¸à¸´à¸ˆ à¸ªà¹ˆà¸§à¸™à¹ƒà¸™à¹€à¸­à¸à¸ªà¸²à¸£à¹ƒà¸«à¹‰à¸à¸£à¸­à¸à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸¥à¸¹à¸à¸„à¹‰à¸²à¸¡à¸²</p>
         </div>
       </div>
     </div>
@@ -5015,9 +5015,9 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
     [c.name, c.contact, c.phone, c.customerSegment, c.businessType].some((value) => String(value || "").includes(search))
   );
   const save = async (form) => {
-    if (!form.name.trim()) return showToast("กรุณาใส่ชื่อลูกค้า", "error");
+    if (!form.name.trim()) return showToast("à¸à¸£à¸¸à¸“à¸²à¹ƒà¸ªà¹ˆà¸Šà¸·à¹ˆà¸­à¸¥à¸¹à¸à¸„à¹‰à¸²", "error");
     if (form.taxId && !/^\d{13}$/.test(form.taxId.replace(/-/g, "")))
-      return showToast("เลขผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก", "error");
+      return showToast("à¹€à¸¥à¸‚à¸œà¸¹à¹‰à¹€à¸ªà¸µà¸¢à¸ à¸²à¸©à¸µà¸•à¹‰à¸­à¸‡à¹€à¸›à¹‡à¸™à¸•à¸±à¸§à¹€à¸¥à¸‚ 13 à¸«à¸¥à¸±à¸", "error");
     const row = {
       name: form.name,
       contact: form.contact,
@@ -5030,31 +5030,31 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
     };
     if (form.id) {
       const { error } = await supabase.from("erp_customers").update(row).eq("id", form.id);
-      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
       setCustomers(prev => prev.map(c => c.id === form.id ? form : c));
-      showToast("แก้ไขข้อมูลลูกค้าแล้ว");
+      showToast("à¹à¸à¹‰à¹„à¸‚à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¸¹à¸à¸„à¹‰à¸²à¹à¸¥à¹‰à¸§");
     } else {
       const { data, error } = await supabase.from("erp_customers").insert(row).select().single();
-      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
       setCustomers(prev => [...prev, { ...form, id: data.id }]);
-      showToast("เพิ่มลูกค้าใหม่แล้ว");
+      showToast("à¹€à¸žà¸´à¹ˆà¸¡à¸¥à¸¹à¸à¸„à¹‰à¸²à¹ƒà¸«à¸¡à¹ˆà¹à¸¥à¹‰à¸§");
     }
     setEditing(null);
   };
   const del = async (id) => {
-    if (!confirm("ลบลูกค้านี้?")) return;
+    if (!confirm("à¸¥à¸šà¸¥à¸¹à¸à¸„à¹‰à¸²à¸™à¸µà¹‰?")) return;
     const { error } = await supabase.from("erp_customers").delete().eq("id", id);
-    if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+    if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
     setCustomers(prev => prev.filter(c => c.id !== id));
-    showToast("ลบลูกค้าแล้ว");
+    showToast("à¸¥à¸šà¸¥à¸¹à¸à¸„à¹‰à¸²à¹à¸¥à¹‰à¸§");
   };
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div className="erp-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>ลูกค้า</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{customers.length} ราย</p></div>
+        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>à¸¥à¸¹à¸à¸„à¹‰à¸²</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{customers.length} à¸£à¸²à¸¢</p></div>
         <div className="erp-page-actions" style={{ display: "flex", gap: 10 }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 220 }} />
-          <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มลูกค้า</Btn>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ðŸ” à¸„à¹‰à¸™à¸«à¸²..." style={{ width: 220 }} />
+          <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ à¹€à¸žà¸´à¹ˆà¸¡à¸¥à¸¹à¸à¸„à¹‰à¸²</Btn>
         </div>
       </div>
       <div className="erp-card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
@@ -5063,8 +5063,8 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
               <div><div style={{ fontWeight: 600, fontSize: 15 }}>{c.name}</div>{c.contact && <div style={{ fontSize: 12, color: "#A8B0C0" }}>{c.contact}</div>}</div>
               <div className="erp-card-actions" style={{ display: "flex", gap: 6 }}>
-                <IconBtn onClick={() => setEditing({ ...c })} title="แก้ไข">✏️</IconBtn>
-                <IconBtn onClick={() => del(c.id)} title="ลบ" danger>🗑️</IconBtn>
+                <IconBtn onClick={() => setEditing({ ...c })} title="à¹à¸à¹‰à¹„à¸‚">âœï¸</IconBtn>
+                <IconBtn onClick={() => del(c.id)} title="à¸¥à¸š" danger>ðŸ—‘ï¸</IconBtn>
               </div>
             </div>
             <div style={{ fontSize: 12, color: "#888", lineHeight: 2 }}>
@@ -5074,59 +5074,59 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
                   {c.businessType && <span style={{ color: "#A7F3D0", border: "1px solid rgba(16,185,129,0.28)", background: "rgba(16,185,129,0.10)", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>{c.businessType}</span>}
                 </div>
               )}
-              {c.phone && <div>📞 {c.phone}</div>}{c.email && <div>✉️ {c.email}</div>}
-              {c.address && <div>📍 {c.address}</div>}{c.taxId && <div>🪪 {c.taxId}</div>}
+              {c.phone && <div>ðŸ“ž {c.phone}</div>}{c.email && <div>âœ‰ï¸ {c.email}</div>}
+              {c.address && <div>ðŸ“ {c.address}</div>}{c.taxId && <div>ðŸªª {c.taxId}</div>}
             </div>
           </div>
         ))}
       </div>
-      {editing && <Modal title={editing.id ? "แก้ไขลูกค้า" : "เพิ่มลูกค้า"} onClose={() => setEditing(null)} width={500}><CustomerForm data={editing} onSave={save} onCancel={() => setEditing(null)} /></Modal>}
+      {editing && <Modal title={editing.id ? "à¹à¸à¹‰à¹„à¸‚à¸¥à¸¹à¸à¸„à¹‰à¸²" : "à¹€à¸žà¸´à¹ˆà¸¡à¸¥à¸¹à¸à¸„à¹‰à¸²"} onClose={() => setEditing(null)} width={500}><CustomerForm data={editing} onSave={save} onCancel={() => setEditing(null)} /></Modal>}
     </div>
   );
 }
 function CustomerForm({ data, onSave, onCancel }: any) {
   const [f, setF] = useState(data);
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
-  const businessTypes = ["ร้านค้า", "ร้านอาหาร", "คาเฟ่/เครื่องดื่ม", "คลินิก/ความงาม", "อีเวนต์/ออกบูธ", "แบรนด์สินค้า", "องค์กร/บริษัท", "โรงเรียน/สถาบัน", "อื่น ๆ"];
+  const businessTypes = ["à¸£à¹‰à¸²à¸™à¸„à¹‰à¸²", "à¸£à¹‰à¸²à¸™à¸­à¸²à¸«à¸²à¸£", "à¸„à¸²à¹€à¸Ÿà¹ˆ/à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸”à¸·à¹ˆà¸¡", "à¸„à¸¥à¸´à¸™à¸´à¸/à¸„à¸§à¸²à¸¡à¸‡à¸²à¸¡", "à¸­à¸µà¹€à¸§à¸™à¸•à¹Œ/à¸­à¸­à¸à¸šà¸¹à¸˜", "à¹à¸šà¸£à¸™à¸”à¹Œà¸ªà¸´à¸™à¸„à¹‰à¸²", "à¸­à¸‡à¸„à¹Œà¸à¸£/à¸šà¸£à¸´à¸©à¸±à¸—", "à¹‚à¸£à¸‡à¹€à¸£à¸µà¸¢à¸™/à¸ªà¸–à¸²à¸šà¸±à¸™", "à¸­à¸·à¹ˆà¸™ à¹†"];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <Field label="ชื่อบริษัท/ลูกค้า *"><input value={f.name} onChange={set("name")} /></Field>
-      <Field label="ชื่อผู้ติดต่อ"><input value={f.contact} onChange={set("contact")} /></Field>
+      <Field label="à¸Šà¸·à¹ˆà¸­à¸šà¸£à¸´à¸©à¸±à¸—/à¸¥à¸¹à¸à¸„à¹‰à¸² *"><input value={f.name} onChange={set("name")} /></Field>
+      <Field label="à¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¸•à¸´à¸”à¸•à¹ˆà¸­"><input value={f.contact} onChange={set("contact")} /></Field>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <Field label="ประเภทลูกค้า">
+        <Field label="à¸›à¸£à¸°à¹€à¸ à¸—à¸¥à¸¹à¸à¸„à¹‰à¸²">
           <select value={f.customerSegment || "B2B"} onChange={set("customerSegment")}>
-            <option value="B2B">B2B - ธุรกิจ/องค์กร</option>
-            <option value="B2C">B2C - ลูกค้าทั่วไป</option>
+            <option value="B2B">B2B - à¸˜à¸¸à¸£à¸à¸´à¸ˆ/à¸­à¸‡à¸„à¹Œà¸à¸£</option>
+            <option value="B2C">B2C - à¸¥à¸¹à¸à¸„à¹‰à¸²à¸—à¸±à¹ˆà¸§à¹„à¸›</option>
           </select>
         </Field>
-        <Field label="ประเภทธุรกิจ">
-          <input list="customer-business-types" value={f.businessType || ""} onChange={set("businessType")} placeholder="เช่น ร้านอาหาร, คาเฟ่, คลินิก" />
+        <Field label="à¸›à¸£à¸°à¹€à¸ à¸—à¸˜à¸¸à¸£à¸à¸´à¸ˆ">
+          <input list="customer-business-types" value={f.businessType || ""} onChange={set("businessType")} placeholder="à¹€à¸Šà¹ˆà¸™ à¸£à¹‰à¸²à¸™à¸­à¸²à¸«à¸²à¸£, à¸„à¸²à¹€à¸Ÿà¹ˆ, à¸„à¸¥à¸´à¸™à¸´à¸" />
           <datalist id="customer-business-types">
             {businessTypes.map((type) => <option key={type} value={type} />)}
           </datalist>
         </Field>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <Field label="โทรศัพท์"><input value={f.phone} onChange={set("phone")} /></Field>
-        <Field label="อีเมล"><input value={f.email} onChange={set("email")} /></Field>
+        <Field label="à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œ"><input value={f.phone} onChange={set("phone")} /></Field>
+        <Field label="à¸­à¸µà¹€à¸¡à¸¥"><input value={f.email} onChange={set("email")} /></Field>
       </div>
-      <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
-      <Field label="เลขประจำตัวผู้เสียภาษี"><input value={f.taxId} onChange={set("taxId")} /></Field>
+      <Field label="à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆ"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
+      <Field label="à¹€à¸¥à¸‚à¸›à¸£à¸°à¸ˆà¸³à¸•à¸±à¸§à¸œà¸¹à¹‰à¹€à¸ªà¸µà¸¢à¸ à¸²à¸©à¸µ"><input value={f.taxId} onChange={set("taxId")} /></Field>
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-        <Btn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
-        <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+        <Btn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>à¸šà¸±à¸™à¸—à¸¶à¸</Btn>
+        <Btn onClick={onCancel} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</Btn>
       </div>
     </div>
   );
 }
 
 // ============================================================
-// PRODUCT PAGE — แก้ไข/ลบได้
+// PRODUCT PAGE â€” à¹à¸à¹‰à¹„à¸‚/à¸¥à¸šà¹„à¸”à¹‰
 // ============================================================
 function ProductPage({ products, setProducts, suppliers = [], showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const blank = { id: "", name: "", supplierName: "", unit: "ชิ้น", cost: "", price: "", costUnit: "piece", priceUnit: "piece" };
+  const blank = { id: "", name: "", supplierName: "", unit: "à¸Šà¸´à¹‰à¸™", cost: "", price: "", costUnit: "piece", priceUnit: "piece" };
   const catalogProducts = [...products, ...supplierCatalogProducts(suppliers)];
   const filtered = catalogProducts.filter(p =>
     [p.name, p.supplierName].some((value) => String(value || "").toLowerCase().includes(search.toLowerCase()))
@@ -5134,7 +5134,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
   const isLegacyProductColumnError = (error: any) =>
     error?.code === "42703" || /cost_unit|price_unit|column/i.test(error?.message || "");
   const save = async (f) => {
-    if (!f.name.trim()) return showToast("กรุณาใส่ชื่อสินค้า", "error");
+    if (!f.name.trim()) return showToast("à¸à¸£à¸¸à¸“à¸²à¹ƒà¸ªà¹ˆà¸Šà¸·à¹ˆà¸­à¸ªà¸´à¸™à¸„à¹‰à¸²", "error");
     const row = {
       name: f.name,
       supplier_name: f.supplierName || "",
@@ -5150,41 +5150,41 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
       if (error && isLegacyProductColumnError(error)) {
         ({ error } = await supabase.from("erp_products").update(legacyRow).eq("id", f.id));
       }
-      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
       setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...legacyRow, supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit } : p));
-      showToast("แก้ไขสินค้าแล้ว");
+      showToast("à¹à¸à¹‰à¹„à¸‚à¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸¥à¹‰à¸§");
     } else {
       let { data, error } = await supabase.from("erp_products").insert(row).select().single();
       if (error && isLegacyProductColumnError(error)) {
         ({ data, error } = await supabase.from("erp_products").insert(legacyRow).select().single());
       }
-      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
       setProducts(prev => [...prev, { ...f, id: data.id, ...legacyRow, supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit }]);
-      showToast("เพิ่มสินค้าใหม่แล้ว");
+      showToast("à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²à¹ƒà¸«à¸¡à¹ˆà¹à¸¥à¹‰à¸§");
     }
     setEditing(null);
   };
   const del = async (id) => {
-    if (!confirm("ลบสินค้านี้?")) return;
+    if (!confirm("à¸¥à¸šà¸ªà¸´à¸™à¸„à¹‰à¸²à¸™à¸µà¹‰?")) return;
     const { error } = await supabase.from("erp_products").delete().eq("id", id);
-    if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+    if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
     setProducts(prev => prev.filter(p => p.id !== id));
-    showToast("ลบสินค้าแล้ว");
+    showToast("à¸¥à¸šà¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸¥à¹‰à¸§");
   };
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div className="erp-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>สินค้า/บริการ</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{catalogProducts.length} รายการ</p></div>
+        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{catalogProducts.length} à¸£à¸²à¸¢à¸à¸²à¸£</p></div>
         <div className="erp-page-actions" style={{ display: "flex", gap: 10 }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
-          <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มสินค้า</Btn>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ðŸ” à¸„à¹‰à¸™à¸«à¸²..." style={{ width: 200 }} />
+          <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²</Btn>
         </div>
       </div>
       <div className="erp-desktop-table" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#1A2233" }}>
-              {["ชื่อสินค้า/บริการ", "Supplier", "หน่วย", "ต้นทุน", "ราคาขาย", "กำไร", "จัดการ"].map(h => (
+              {["à¸Šà¸·à¹ˆà¸­à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£", "Supplier", "à¸«à¸™à¹ˆà¸§à¸¢", "à¸•à¹‰à¸™à¸—à¸¸à¸™", "à¸£à¸²à¸„à¸²à¸‚à¸²à¸¢", "à¸à¸³à¹„à¸£", "à¸ˆà¸±à¸”à¸à¸²à¸£"].map(h => (
                 <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, color: "#A8B0C0", fontWeight: 500 }}>{h}</th>
               ))}
             </tr>
@@ -5201,20 +5201,20 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
                   </td>
                   <td style={{ padding: "12px 16px", fontSize: 12, color: "#A8B0C0" }}>{p.supplierName || "-"}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#A8B0C0" }}>{p.unit}</td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#ef4444" }}>฿{fmtMoney(p.cost)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.costUnit)}</span></td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 600 }}>฿{fmtMoney(p.price)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.priceUnit)}</span></td>
+                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#ef4444" }}>à¸¿{fmtMoney(p.cost)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.costUnit)}</span></td>
+                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 600 }}>à¸¿{fmtMoney(p.price)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.priceUnit)}</span></td>
                   <td style={{ padding: "12px 16px", fontSize: 13 }}>
-                    <span style={{ color: margin > 0 ? "#10b981" : "#ef4444" }}>฿{fmtMoney(margin)}</span>
+                    <span style={{ color: margin > 0 ? "#10b981" : "#ef4444" }}>à¸¿{fmtMoney(margin)}</span>
                     <span style={{ fontSize: 11, color: "#555", marginLeft: 6 }}>({pct}%)</span>
                   </td>
                   <td style={{ padding: "12px 16px" }}>
                     <div style={{ display: "flex", gap: 6 }}>
                       {p.fromSupplierCatalog ? (
-                        <span style={{ fontSize: 11, color: "#6B7280" }}>แก้ไขที่เมนู Supplier</span>
+                        <span style={{ fontSize: 11, color: "#6B7280" }}>à¹à¸à¹‰à¹„à¸‚à¸—à¸µà¹ˆà¹€à¸¡à¸™à¸¹ Supplier</span>
                       ) : (
                         <>
-                          <IconBtn onClick={() => setEditing({ ...p })} title="แก้ไข">✏️</IconBtn>
-                          <IconBtn onClick={() => del(p.id)} title="ลบ" danger>🗑️</IconBtn>
+                          <IconBtn onClick={() => setEditing({ ...p })} title="à¹à¸à¹‰à¹„à¸‚">âœï¸</IconBtn>
+                          <IconBtn onClick={() => del(p.id)} title="à¸¥à¸š" danger>ðŸ—‘ï¸</IconBtn>
                         </>
                       )}
                     </div>
@@ -5240,24 +5240,24 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
                   </div>
                 </div>
                 <div style={{ color: margin > 0 ? "#10b981" : "#ef4444", fontSize: 14, fontWeight: 800, whiteSpace: "nowrap" }}>
-                  ฿{fmtMoney(margin)}
+                  à¸¿{fmtMoney(margin)}
                 </div>
               </div>
               <div className="erp-mobile-stats">
                 <div className="erp-mobile-stat"><span>Unit</span><strong>{p.unit}</strong></div>
                 <div className="erp-mobile-stat"><span>Margin</span><strong>{pct}%</strong></div>
-                <div className="erp-mobile-stat"><span>Cost</span><strong style={{ color: "#ef4444" }}>฿{fmtMoney(p.cost)} {priceBasisLabel(p.costUnit)}</strong></div>
-                <div className="erp-mobile-stat"><span>Sale</span><strong style={{ color: "#10b981" }}>฿{fmtMoney(p.price)} {priceBasisLabel(p.priceUnit)}</strong></div>
+                <div className="erp-mobile-stat"><span>Cost</span><strong style={{ color: "#ef4444" }}>à¸¿{fmtMoney(p.cost)} {priceBasisLabel(p.costUnit)}</strong></div>
+                <div className="erp-mobile-stat"><span>Sale</span><strong style={{ color: "#10b981" }}>à¸¿{fmtMoney(p.price)} {priceBasisLabel(p.priceUnit)}</strong></div>
               </div>
               <div className="erp-mobile-actions">
                 {p.fromSupplierCatalog ? (
-                  <button disabled style={{ gridColumn: "1 / -1", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#94A3B8", borderRadius: 10, fontSize: 12, fontFamily: "inherit" }}>
-                    แก้ไขที่เมนู Supplier
+                  <button type="button" disabled style={{ gridColumn: "1 / -1", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#94A3B8", borderRadius: 10, fontSize: 12, fontFamily: "inherit" }}>
+                    à¹à¸à¹‰à¹„à¸‚à¸—à¸µà¹ˆà¹€à¸¡à¸™à¸¹ Supplier
                   </button>
                 ) : (
                   <>
-                    <button onClick={() => setEditing({ ...p })} style={{ background: "rgba(255,107,0,0.14)", border: "1px solid rgba(255,107,0,0.35)", color: "#FFB076", borderRadius: 10, fontWeight: 700, fontFamily: "inherit" }}>แก้ไข</button>
-                    <button onClick={() => del(p.id)} style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.28)", color: "#FCA5A5", borderRadius: 10, fontWeight: 700, fontFamily: "inherit" }}>ลบ</button>
+                    <button type="button" onClick={() => setEditing({ ...p })} style={{ background: "rgba(255,107,0,0.14)", border: "1px solid rgba(255,107,0,0.35)", color: "#FFB076", borderRadius: 10, fontWeight: 700, fontFamily: "inherit" }}>à¹à¸à¹‰à¹„à¸‚</button>
+                    <button type="button" onClick={() => del(p.id)} style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.28)", color: "#FCA5A5", borderRadius: 10, fontWeight: 700, fontFamily: "inherit" }}>à¸¥à¸š</button>
                   </>
                 )}
               </div>
@@ -5266,7 +5266,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
         })}
       </div>
       {editing && (
-        <Modal title={editing.id ? "แก้ไขสินค้า" : "เพิ่มสินค้า"} onClose={() => setEditing(null)} width={420}>
+        <Modal title={editing.id ? "à¹à¸à¹‰à¹„à¸‚à¸ªà¸´à¸™à¸„à¹‰à¸²" : "à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²"} onClose={() => setEditing(null)} width={420}>
           <ProductForm data={editing} suppliers={suppliers} onSave={save} onCancel={() => setEditing(null)} />
         </Modal>
       )}
@@ -5294,7 +5294,7 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
     setF(prev => ({
       ...prev,
       name: item.name || prev.name,
-      unit: item.unit || (basis === "sqm" ? "ตร.ม." : prev.unit),
+      unit: item.unit || (basis === "sqm" ? "à¸•à¸£.à¸¡." : prev.unit),
       cost: Number(item.supplierPrice || 0),
       price: Number(item.salePrice || 0),
       costUnit: basis,
@@ -5303,38 +5303,38 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
   };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <Field label="ชื่อสินค้า/บริการ *"><input value={f.name} onChange={set("name")} /></Field>
+      <Field label="à¸Šà¸·à¹ˆà¸­à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£ *"><input value={f.name} onChange={set("name")} /></Field>
       <Field label="Supplier">
-        <input value={f.supplierName} onChange={set("supplierName")} list="supplier-list" placeholder="เลือกหรือพิมพ์ชื่อ Supplier" />
+        <input value={f.supplierName} onChange={set("supplierName")} list="supplier-list" placeholder="à¹€à¸¥à¸·à¸­à¸à¸«à¸£à¸·à¸­à¸žà¸´à¸¡à¸žà¹Œà¸Šà¸·à¹ˆà¸­ Supplier" />
         <datalist id="supplier-list">{suppliers.map((supplier: any) => <option key={supplier.id || supplier.name} value={supplier.name} />)}</datalist>
       </Field>
       {supplierItems.length > 0 && (
-        <Field label="รายการจาก Supplier">
+        <Field label="à¸£à¸²à¸¢à¸à¸²à¸£à¸ˆà¸²à¸ Supplier">
           <select onChange={pickSupplierItem} defaultValue="">
-            <option value="">-- เลือกรายการเพื่อเติมข้อมูลสินค้า --</option>
+            <option value="">-- à¹€à¸¥à¸·à¸­à¸à¸£à¸²à¸¢à¸à¸²à¸£à¹€à¸žà¸·à¹ˆà¸­à¹€à¸•à¸´à¸¡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸´à¸™à¸„à¹‰à¸² --</option>
             {supplierItems.map((item: any) => (
               <option key={item.id} value={item.id}>
-                {item.name} · ทุน ฿{fmtMoney(item.supplierPrice)} · ขาย ฿{fmtMoney(item.salePrice)}
+                {item.name} Â· à¸—à¸¸à¸™ à¸¿{fmtMoney(item.supplierPrice)} Â· à¸‚à¸²à¸¢ à¸¿{fmtMoney(item.salePrice)}
               </option>
             ))}
           </select>
         </Field>
       )}
-      <Field label="หน่วย">
+      <Field label="à¸«à¸™à¹ˆà¸§à¸¢">
         <input value={f.unit} onChange={set("unit")} list="unit-list" />
-        <datalist id="unit-list">{["ชิ้น","อัน","ตร.ม.","เมตร","แผ่น","ชุด","งาน","ครั้ง","100 ชิ้น"].map(u => <option key={u} value={u} />)}</datalist>
+        <datalist id="unit-list">{["à¸Šà¸´à¹‰à¸™","à¸­à¸±à¸™","à¸•à¸£.à¸¡.","à¹€à¸¡à¸•à¸£","à¹à¸œà¹ˆà¸™","à¸Šà¸¸à¸”","à¸‡à¸²à¸™","à¸„à¸£à¸±à¹‰à¸‡","100 à¸Šà¸´à¹‰à¸™"].map(u => <option key={u} value={u} />)}</datalist>
       </Field>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <Field label="ต้นทุน (บาท)"><input type="number" value={f.cost} onChange={set("cost")} min="0" /></Field>
-        <Field label="ราคาขาย (บาท)"><input type="number" value={f.price} onChange={set("price")} min="0" /></Field>
+        <Field label="à¸•à¹‰à¸™à¸—à¸¸à¸™ (à¸šà¸²à¸—)"><input type="number" value={f.cost} onChange={set("cost")} min="0" /></Field>
+        <Field label="à¸£à¸²à¸„à¸²à¸‚à¸²à¸¢ (à¸šà¸²à¸—)"><input type="number" value={f.price} onChange={set("price")} min="0" /></Field>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <Field label="คิดต้นทุนแบบ">
+        <Field label="à¸„à¸´à¸”à¸•à¹‰à¸™à¸—à¸¸à¸™à¹à¸šà¸š">
           <select value={f.costUnit} onChange={set("costUnit")}>
             {PRICE_BASIS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </Field>
-        <Field label="คิดราคาขายแบบ">
+        <Field label="à¸„à¸´à¸”à¸£à¸²à¸„à¸²à¸‚à¸²à¸¢à¹à¸šà¸š">
           <select value={f.priceUnit} onChange={set("priceUnit")}>
             {PRICE_BASIS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
@@ -5342,12 +5342,12 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
       </div>
       {f.price && f.cost && (
         <div style={{ background: "#1A2233", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: margin > 0 ? "#10b981" : "#ef4444" }}>
-          กำไร: ฿{fmtMoney(margin)} ({pct}%)
+          à¸à¸³à¹„à¸£: à¸¿{fmtMoney(margin)} ({pct}%)
         </div>
       )}
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-        <Btn onClick={() => onSave({ ...f, cost: parseFloat(f.cost) || 0, price: parseFloat(f.price) || 0 })} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
-        <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+        <Btn onClick={() => onSave({ ...f, cost: parseFloat(f.cost) || 0, price: parseFloat(f.price) || 0 })} color="#FF6B00" style={{ flex: 1 }}>à¸šà¸±à¸™à¸—à¸¶à¸</Btn>
+        <Btn onClick={onCancel} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</Btn>
       </div>
     </div>
   );
@@ -5377,8 +5377,8 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
     items: (supplier.items || []).map((item: any) => ({
       id: item.id || genId(),
       name: item.name || "",
-      category: item.category || "สินค้า",
-      unit: item.unit || "ชิ้น",
+      category: item.category || "à¸ªà¸´à¸™à¸„à¹‰à¸²",
+      unit: item.unit || "à¸Šà¸´à¹‰à¸™",
       pricingBasis: item.pricingBasis || item.priceBasis || "piece",
       widthM: Number(item.widthM || 0),
       heightM: Number(item.heightM || 0),
@@ -5403,7 +5403,7 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
     setSuppliers(next);
   };
   const save = async (form: any) => {
-    if (!String(form.name || "").trim()) return showToast("กรุณาใส่ชื่อ Supplier", "error");
+    if (!String(form.name || "").trim()) return showToast("à¸à¸£à¸¸à¸“à¸²à¹ƒà¸ªà¹ˆà¸Šà¸·à¹ˆà¸­ Supplier", "error");
     const clean = normalizeSupplier(form);
     const row = toRow(clean);
     try {
@@ -5418,10 +5418,10 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
         if (error) throw error;
       } catch (error) {
         console.warn("Supplier update fallback:", error);
-        return showToast("บันทึก Supplier ลง database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
+        return showToast("à¸šà¸±à¸™à¸—à¸¶à¸ Supplier à¸¥à¸‡ database à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: " + ((error as any)?.message || error), "error");
       }
       commitLocal(suppliers.map((supplier: any) => supplier.id === form.id ? clean : supplier));
-      showToast(savedRemote ? "แก้ไข Supplier แล้ว" : "แก้ไข Supplier แล้ว (บันทึกสำรองในเครื่อง)");
+      showToast(savedRemote ? "à¹à¸à¹‰à¹„à¸‚ Supplier à¹à¸¥à¹‰à¸§" : "à¹à¸à¹‰à¹„à¸‚ Supplier à¹à¸¥à¹‰à¸§ (à¸šà¸±à¸™à¸—à¸¶à¸à¸ªà¸³à¸£à¸­à¸‡à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡)");
     } else {
       let saved = clean;
       let savedRemote = true;
@@ -5431,15 +5431,15 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
         saved = normalizeSupplier(clean, data.id);
       } catch (error) {
         console.warn("Supplier insert fallback:", error);
-        return showToast("บันทึก Supplier ลง database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
+        return showToast("à¸šà¸±à¸™à¸—à¸¶à¸ Supplier à¸¥à¸‡ database à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: " + ((error as any)?.message || error), "error");
       }
       commitLocal([...suppliers, saved]);
-      showToast(savedRemote ? "เพิ่ม Supplier ใหม่แล้ว" : "เพิ่ม Supplier ใหม่แล้ว (บันทึกสำรองในเครื่อง)");
+      showToast(savedRemote ? "à¹€à¸žà¸´à¹ˆà¸¡ Supplier à¹ƒà¸«à¸¡à¹ˆà¹à¸¥à¹‰à¸§" : "à¹€à¸žà¸´à¹ˆà¸¡ Supplier à¹ƒà¸«à¸¡à¹ˆà¹à¸¥à¹‰à¸§ (à¸šà¸±à¸™à¸—à¸¶à¸à¸ªà¸³à¸£à¸­à¸‡à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡)");
     }
     setEditing(null);
   };
   const del = async (id: string) => {
-    if (!confirm("ลบ Supplier นี้?")) return;
+    if (!confirm("à¸¥à¸š Supplier à¸™à¸µà¹‰?")) return;
     try {
       await requireErpSession();
     } catch (error) {
@@ -5451,10 +5451,10 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
       if (error) throw error;
     } catch (error) {
       console.warn("Supplier delete fallback:", error);
-      return showToast("ลบ Supplier จาก database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
+      return showToast("à¸¥à¸š Supplier à¸ˆà¸²à¸ database à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: " + ((error as any)?.message || error), "error");
     }
     commitLocal(suppliers.filter((supplier: any) => supplier.id !== id));
-    showToast(savedRemote ? "ลบ Supplier แล้ว" : "ลบ Supplier แล้ว (บันทึกสำรองในเครื่อง)");
+    showToast(savedRemote ? "à¸¥à¸š Supplier à¹à¸¥à¹‰à¸§" : "à¸¥à¸š Supplier à¹à¸¥à¹‰à¸§ (à¸šà¸±à¸™à¸—à¸¶à¸à¸ªà¸³à¸£à¸­à¸‡à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡)");
   };
 
   return (
@@ -5462,11 +5462,11 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>Supplier</h2>
-          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{suppliers.length} รายการ</p>
+          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{suppliers.length} à¸£à¸²à¸¢à¸à¸²à¸£</p>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ค้นหา Supplier..." style={{ width: 220 }} />
-          <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่ม Supplier</Btn>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="à¸„à¹‰à¸™à¸«à¸² Supplier..." style={{ width: 220 }} />
+          <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ à¹€à¸žà¸´à¹ˆà¸¡ Supplier</Btn>
         </div>
       </div>
 
@@ -5479,21 +5479,21 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>{supplier.name}</div>
-                  <div style={{ fontSize: 12, color: "#A8B0C0", marginTop: 4 }}>{supplier.contact || supplier.phone || "ยังไม่มีข้อมูลติดต่อ"}</div>
+                  <div style={{ fontSize: 12, color: "#A8B0C0", marginTop: 4 }}>{supplier.contact || supplier.phone || "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸•à¸´à¸”à¸•à¹ˆà¸­"}</div>
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
-                  <IconBtn onClick={() => setEditing({ ...supplier, items: supplier.items || [] })} title="แก้ไข">✏️</IconBtn>
-                  <IconBtn onClick={() => del(supplier.id)} title="ลบ" danger>🗑️</IconBtn>
+                  <IconBtn onClick={() => setEditing({ ...supplier, items: supplier.items || [] })} title="à¹à¸à¹‰à¹„à¸‚">âœï¸</IconBtn>
+                  <IconBtn onClick={() => del(supplier.id)} title="à¸¥à¸š" danger>ðŸ—‘ï¸</IconBtn>
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
                 <div style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
-                  <div style={{ fontSize: 11, color: "#6B7280" }}>สินค้า/บริการ</div>
+                  <div style={{ fontSize: 11, color: "#6B7280" }}>à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£</div>
                   <div style={{ fontSize: 18, color: "#FF6B00", fontWeight: 800 }}>{itemCount}</div>
                 </div>
                 <div style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
-                  <div style={{ fontSize: 11, color: "#6B7280" }}>ราคา Supplier เริ่มต้น</div>
-                  <div style={{ fontSize: 18, color: "#10b981", fontWeight: 800 }}>฿{fmtMoney(minSupplierPrice)}</div>
+                  <div style={{ fontSize: 11, color: "#6B7280" }}>à¸£à¸²à¸„à¸² Supplier à¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™</div>
+                  <div style={{ fontSize: 18, color: "#10b981", fontWeight: 800 }}>à¸¿{fmtMoney(minSupplierPrice)}</div>
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -5501,12 +5501,12 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
                   <div key={item.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#CBD5E1", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>
                     <span>{item.name}</span>
                     <span style={{ color: "#A8B0C0" }}>
-                      ฿{fmtMoney(item.supplierPrice)} → ฿{fmtMoney(item.salePrice)}
-                      {item.pricingBasis === "sqm" ? ` / ${fmtMoney(item.totalSqm)} ตร.ม.` : ""}
+                      à¸¿{fmtMoney(item.supplierPrice)} â†’ à¸¿{fmtMoney(item.salePrice)}
+                      {item.pricingBasis === "sqm" ? ` / ${fmtMoney(item.totalSqm)} à¸•à¸£.à¸¡.` : ""}
                     </span>
                   </div>
                 ))}
-                {itemCount === 0 && <div style={{ fontSize: 12, color: "#6B7280", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>ยังไม่มีรายการสินค้า/บริการ</div>}
+                {itemCount === 0 && <div style={{ fontSize: 12, color: "#6B7280", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£</div>}
               </div>
             </div>
           );
@@ -5514,7 +5514,7 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
       </div>
 
       {editing && (
-        <Modal title={editing.id ? "แก้ไข Supplier" : "เพิ่ม Supplier"} onClose={() => setEditing(null)} width={860}>
+        <Modal title={editing.id ? "à¹à¸à¹‰à¹„à¸‚ Supplier" : "à¹€à¸žà¸´à¹ˆà¸¡ Supplier"} onClose={() => setEditing(null)} width={860}>
           <SupplierForm data={editing} onSave={save} onCancel={() => setEditing(null)} />
         </Modal>
       )}
@@ -5534,7 +5534,7 @@ function SupplierForm({ data, onSave, onCancel }: any) {
   const addItem = () => {
     setF((prev: any) => ({
       ...prev,
-      items: [...prev.items, { id: genId(), name: "", category: "สินค้า", unit: "ชิ้น", pricingBasis: "piece", widthM: "", heightM: "", quantity: 1, supplierPrice: "", salePrice: "", note: "" }],
+      items: [...prev.items, { id: genId(), name: "", category: "à¸ªà¸´à¸™à¸„à¹‰à¸²", unit: "à¸Šà¸´à¹‰à¸™", pricingBasis: "piece", widthM: "", heightM: "", quantity: 1, supplierPrice: "", salePrice: "", note: "" }],
     }));
   };
   const removeItem = (id: string) => {
@@ -5544,23 +5544,23 @@ function SupplierForm({ data, onSave, onCancel }: any) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 12 }}>
-        <Field label="ชื่อ Supplier *"><input value={f.name} onChange={set("name")} /></Field>
-        <Field label="ผู้ติดต่อ"><input value={f.contact} onChange={set("contact")} /></Field>
+        <Field label="à¸Šà¸·à¹ˆà¸­ Supplier *"><input value={f.name} onChange={set("name")} /></Field>
+        <Field label="à¸œà¸¹à¹‰à¸•à¸´à¸”à¸•à¹ˆà¸­"><input value={f.contact} onChange={set("contact")} /></Field>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-        <Field label="โทรศัพท์"><input value={f.phone} onChange={set("phone")} /></Field>
-        <Field label="อีเมล"><input value={f.email} onChange={set("email")} /></Field>
-        <Field label="เลขผู้เสียภาษี"><input value={f.taxId} onChange={set("taxId")} /></Field>
+        <Field label="à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œ"><input value={f.phone} onChange={set("phone")} /></Field>
+        <Field label="à¸­à¸µà¹€à¸¡à¸¥"><input value={f.email} onChange={set("email")} /></Field>
+        <Field label="à¹€à¸¥à¸‚à¸œà¸¹à¹‰à¹€à¸ªà¸µà¸¢à¸ à¸²à¸©à¸µ"><input value={f.taxId} onChange={set("taxId")} /></Field>
       </div>
-      <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
+      <Field label="à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆ"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
 
       <div style={{ background: "#0F1420", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 10 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>รายการสินค้า/บริการที่ Supplier จำหน่าย</div>
-            <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>ใส่ราคาจาก Supplier และราคาขายของเรา</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£à¸—à¸µà¹ˆ Supplier à¸ˆà¸³à¸«à¸™à¹ˆà¸²à¸¢</div>
+            <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>à¹ƒà¸ªà¹ˆà¸£à¸²à¸„à¸²à¸ˆà¸²à¸ Supplier à¹à¸¥à¸°à¸£à¸²à¸„à¸²à¸‚à¸²à¸¢à¸‚à¸­à¸‡à¹€à¸£à¸²</div>
           </div>
-          <Btn onClick={addItem} color="#2563eb">+ เพิ่มรายการ</Btn>
+          <Btn onClick={addItem} color="#2563eb">+ à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£</Btn>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {f.items.map((item: any) => {
@@ -5571,36 +5571,36 @@ function SupplierForm({ data, onSave, onCancel }: any) {
             return (
               <div key={item.id} style={{ background: "#141A24", borderRadius: 10, padding: 10 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1.4fr .8fr .8fr .8fr .8fr .7fr auto", gap: 8, alignItems: "end" }}>
-                  <Field label="ชื่อรายการ"><input value={item.name} onChange={(e) => setItem(item.id, "name", e.target.value)} /></Field>
-                  <Field label="ประเภท">
+                  <Field label="à¸Šà¸·à¹ˆà¸­à¸£à¸²à¸¢à¸à¸²à¸£"><input value={item.name} onChange={(e) => setItem(item.id, "name", e.target.value)} /></Field>
+                  <Field label="à¸›à¸£à¸°à¹€à¸ à¸—">
                     <select value={item.category} onChange={(e) => setItem(item.id, "category", e.target.value)}>
-                      <option value="สินค้า">สินค้า</option>
-                      <option value="บริการ">บริการ</option>
+                      <option value="à¸ªà¸´à¸™à¸„à¹‰à¸²">à¸ªà¸´à¸™à¸„à¹‰à¸²</option>
+                      <option value="à¸šà¸£à¸´à¸à¸²à¸£">à¸šà¸£à¸´à¸à¸²à¸£</option>
                     </select>
                   </Field>
-                  <Field label="คิดราคา">
+                  <Field label="à¸„à¸´à¸”à¸£à¸²à¸„à¸²">
                     <select value={pricingBasis} onChange={(e) => {
                       setItem(item.id, "pricingBasis", e.target.value);
-                      setItem(item.id, "unit", e.target.value === "sqm" ? "ตร.ม." : "ชิ้น");
+                      setItem(item.id, "unit", e.target.value === "sqm" ? "à¸•à¸£.à¸¡." : "à¸Šà¸´à¹‰à¸™");
                     }}>
-                      <option value="piece">ต่อชิ้น</option>
-                      <option value="sqm">ต่อตารางเมตร</option>
+                      <option value="piece">à¸•à¹ˆà¸­à¸Šà¸´à¹‰à¸™</option>
+                      <option value="sqm">à¸•à¹ˆà¸­à¸•à¸²à¸£à¸²à¸‡à¹€à¸¡à¸•à¸£</option>
                     </select>
                   </Field>
-                  <Field label="ราคา Supplier"><input type="number" min="0" value={item.supplierPrice} onChange={(e) => setItem(item.id, "supplierPrice", e.target.value)} /></Field>
-                  <Field label="ราคาขาย"><input type="number" min="0" value={item.salePrice} onChange={(e) => setItem(item.id, "salePrice", e.target.value)} /></Field>
+                  <Field label="à¸£à¸²à¸„à¸² Supplier"><input type="number" min="0" value={item.supplierPrice} onChange={(e) => setItem(item.id, "supplierPrice", e.target.value)} /></Field>
+                  <Field label="à¸£à¸²à¸„à¸²à¸‚à¸²à¸¢"><input type="number" min="0" value={item.salePrice} onChange={(e) => setItem(item.id, "salePrice", e.target.value)} /></Field>
                   <div style={{ paddingBottom: 9, fontSize: 12, color: margin >= 0 ? "#10b981" : "#ef4444", fontWeight: 800 }}>
-                    ฿{fmtMoney(margin)}
+                    à¸¿{fmtMoney(margin)}
                   </div>
-                  <IconBtn onClick={() => removeItem(item.id)} title="ลบรายการ" danger>🗑️</IconBtn>
+                  <IconBtn onClick={() => removeItem(item.id)} title="à¸¥à¸šà¸£à¸²à¸¢à¸à¸²à¸£" danger>ðŸ—‘ï¸</IconBtn>
                 </div>
                 {pricingBasis === "sqm" && (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                    <Field label="กว้าง (เมตร)"><input type="number" min="0" step="0.01" value={item.widthM} onChange={(e) => setItem(item.id, "widthM", e.target.value)} /></Field>
-                    <Field label="สูง (เมตร)"><input type="number" min="0" step="0.01" value={item.heightM} onChange={(e) => setItem(item.id, "heightM", e.target.value)} /></Field>
-                    <Field label="จำนวนชิ้น"><input type="number" min="1" step="1" value={item.quantity} onChange={(e) => setItem(item.id, "quantity", e.target.value)} /></Field>
-                    <Field label="พื้นที่รวม">
-                      <input value={`${fmtMoney(totalSqm)} ตร.ม.`} readOnly style={{ color: "#10b981", fontWeight: 800 }} />
+                    <Field label="à¸à¸§à¹‰à¸²à¸‡ (à¹€à¸¡à¸•à¸£)"><input type="number" min="0" step="0.01" value={item.widthM} onChange={(e) => setItem(item.id, "widthM", e.target.value)} /></Field>
+                    <Field label="à¸ªà¸¹à¸‡ (à¹€à¸¡à¸•à¸£)"><input type="number" min="0" step="0.01" value={item.heightM} onChange={(e) => setItem(item.id, "heightM", e.target.value)} /></Field>
+                    <Field label="à¸ˆà¸³à¸™à¸§à¸™à¸Šà¸´à¹‰à¸™"><input type="number" min="1" step="1" value={item.quantity} onChange={(e) => setItem(item.id, "quantity", e.target.value)} /></Field>
+                    <Field label="à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸£à¸§à¸¡">
+                      <input value={`${fmtMoney(totalSqm)} à¸•à¸£.à¸¡.`} readOnly style={{ color: "#10b981", fontWeight: 800 }} />
                     </Field>
                   </div>
                 )}
@@ -5609,16 +5609,16 @@ function SupplierForm({ data, onSave, onCancel }: any) {
           })}
           {f.items.length === 0 && (
             <div style={{ border: "1px dashed rgba(255,255,255,0.12)", borderRadius: 10, padding: 18, textAlign: "center", color: "#6B7280", fontSize: 13 }}>
-              ยังไม่มีรายการ กดเพิ่มรายการเพื่อบันทึกสินค้า/บริการของ Supplier
+              à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£ à¸à¸”à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£à¹€à¸žà¸·à¹ˆà¸­à¸šà¸±à¸™à¸—à¸¶à¸à¸ªà¸´à¸™à¸„à¹‰à¸²/à¸šà¸£à¸´à¸à¸²à¸£à¸‚à¸­à¸‡ Supplier
             </div>
           )}
         </div>
       </div>
 
-      <Field label="หมายเหตุ"><textarea value={f.note} onChange={set("note")} rows={2} style={{ resize: "vertical" }} /></Field>
+      <Field label="à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸"><textarea value={f.note} onChange={set("note")} rows={2} style={{ resize: "vertical" }} /></Field>
       <div style={{ display: "flex", gap: 10, marginTop: 2 }}>
-        <Btn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
-        <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+        <Btn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>à¸šà¸±à¸™à¸—à¸¶à¸</Btn>
+        <Btn onClick={onCancel} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</Btn>
       </div>
     </div>
   );
@@ -5628,7 +5628,7 @@ function SupplierForm({ data, onSave, onCancel }: any) {
 // COMPANY PAGE
 // ============================================================
 function CompanyPage({ company, setCompany, showToast }: any) {
-  const [f, setF] = useState({ bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", salesPerson: "", ...company });
+  const [f, setF] = useState({ bankName: "", bankBranch: "", bankAccount: "", bankType: "à¸­à¸­à¸¡à¸—à¸£à¸±à¸žà¸¢à¹Œ", salesPerson: "", ...company });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const save = async () => {
     let savedCompany = { ...f };
@@ -5641,15 +5641,15 @@ function CompanyPage({ company, setCompany, showToast }: any) {
     };
     if (f.id) {
       const { error } = await supabase.from("erp_company").update(row).eq("id", f.id);
-      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
     } else {
       const { data, error } = await supabase.from("erp_company").insert(row).select().single();
-      if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+      if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
       savedCompany = { ...f, id: data.id };
       setF(savedCompany);
     }
     setCompany(savedCompany);
-    showToast("บันทึกข้อมูลบริษัทแล้ว");
+    showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸šà¸£à¸´à¸©à¸±à¸—à¹à¸¥à¹‰à¸§");
   };
   const secStyle = { background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 24, display: "flex" as const, flexDirection: "column" as const, gap: 14 };
   const barStyle = (color: string) => ({ width: 4, height: 20, background: color, borderRadius: 2, marginRight: 8, display: "inline-block", flexShrink: 0 });
@@ -5660,41 +5660,41 @@ function CompanyPage({ company, setCompany, showToast }: any) {
   );
   return (
     <div style={{ maxWidth: 580, animation: "fadeIn 0.3s ease", display: "flex", flexDirection: "column", gap: 20 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700 }}>⚙️ ตั้งค่าบริษัท</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700 }}>âš™ï¸ à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¸šà¸£à¸´à¸©à¸±à¸—</h2>
 
-      {/* Section 1: บริษัท */}
+      {/* Section 1: à¸šà¸£à¸´à¸©à¸±à¸— */}
       <div style={secStyle}>
-        {secTitle("🏢", "ข้อมูลบริษัทผู้เสนอราคา")}
-        <Field label="ชื่อบริษัท / ร้านค้า"><input value={f.name} onChange={set("name")} /></Field>
-        <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={3} style={{ resize: "vertical" }} /></Field>
+        {secTitle("ðŸ¢", "à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸šà¸£à¸´à¸©à¸±à¸—à¸œà¸¹à¹‰à¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸²")}
+        <Field label="à¸Šà¸·à¹ˆà¸­à¸šà¸£à¸´à¸©à¸±à¸— / à¸£à¹‰à¸²à¸™à¸„à¹‰à¸²"><input value={f.name} onChange={set("name")} /></Field>
+        <Field label="à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆ"><textarea value={f.address} onChange={set("address")} rows={3} style={{ resize: "vertical" }} /></Field>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="โทรศัพท์"><input value={f.phone || ""} onChange={set("phone")} placeholder="02-xxx-xxxx" /></Field>
-          <Field label="อีเมล"><input value={f.email || ""} onChange={set("email")} placeholder="info@company.com" /></Field>
+          <Field label="à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œ"><input value={f.phone || ""} onChange={set("phone")} placeholder="02-xxx-xxxx" /></Field>
+          <Field label="à¸­à¸µà¹€à¸¡à¸¥"><input value={f.email || ""} onChange={set("email")} placeholder="info@company.com" /></Field>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="เลขผู้เสียภาษี"><input value={f.taxId || ""} onChange={set("taxId")} placeholder="0105550000000" /></Field>
-          <Field label="พนักงานขาย (Default)"><input value={f.salesPerson || ""} onChange={set("salesPerson")} placeholder="ชื่อพนักงาน" /></Field>
+          <Field label="à¹€à¸¥à¸‚à¸œà¸¹à¹‰à¹€à¸ªà¸µà¸¢à¸ à¸²à¸©à¸µ"><input value={f.taxId || ""} onChange={set("taxId")} placeholder="0105550000000" /></Field>
+          <Field label="à¸žà¸™à¸±à¸à¸‡à¸²à¸™à¸‚à¸²à¸¢ (Default)"><input value={f.salesPerson || ""} onChange={set("salesPerson")} placeholder="à¸Šà¸·à¹ˆà¸­à¸žà¸™à¸±à¸à¸‡à¸²à¸™" /></Field>
         </div>
       </div>
 
-      {/* Section 2: ธนาคาร */}
+      {/* Section 2: à¸˜à¸™à¸²à¸„à¸²à¸£ */}
       <div style={secStyle}>
-        {secTitle("🏦", "ข้อมูลบัญชีรับชำระเงิน", "#3B82F6")}
-        <Field label="ชื่อบัญชีรับเงิน"><input value={f.bankName || ""} onChange={set("bankName")} placeholder="ชื่อบัญชีธนาคาร" /></Field>
-        <Field label="ธนาคาร & สาขา"><input value={f.bankBranch || ""} onChange={set("bankBranch")} placeholder="เช่น ธนาคารกสิกรไทย สาขาบางบัวทอง" /></Field>
+        {secTitle("ðŸ¦", "à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸šà¸±à¸à¸Šà¸µà¸£à¸±à¸šà¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™", "#3B82F6")}
+        <Field label="à¸Šà¸·à¹ˆà¸­à¸šà¸±à¸à¸Šà¸µà¸£à¸±à¸šà¹€à¸‡à¸´à¸™"><input value={f.bankName || ""} onChange={set("bankName")} placeholder="à¸Šà¸·à¹ˆà¸­à¸šà¸±à¸à¸Šà¸µà¸˜à¸™à¸²à¸„à¸²à¸£" /></Field>
+        <Field label="à¸˜à¸™à¸²à¸„à¸²à¸£ & à¸ªà¸²à¸‚à¸²"><input value={f.bankBranch || ""} onChange={set("bankBranch")} placeholder="à¹€à¸Šà¹ˆà¸™ à¸˜à¸™à¸²à¸„à¸²à¸£à¸à¸ªà¸´à¸à¸£à¹„à¸—à¸¢ à¸ªà¸²à¸‚à¸²à¸šà¸²à¸‡à¸šà¸±à¸§à¸—à¸­à¸‡" /></Field>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="เลขที่บัญชี"><input value={f.bankAccount || ""} onChange={set("bankAccount")} placeholder="xxx-x-xxxxx-x" /></Field>
-          <Field label="ประเภทบัญชี"><input value={f.bankType || ""} onChange={set("bankType")} placeholder="ออมทรัพย์ / กระแสรายวัน" /></Field>
+          <Field label="à¹€à¸¥à¸‚à¸—à¸µà¹ˆà¸šà¸±à¸à¸Šà¸µ"><input value={f.bankAccount || ""} onChange={set("bankAccount")} placeholder="xxx-x-xxxxx-x" /></Field>
+          <Field label="à¸›à¸£à¸°à¹€à¸ à¸—à¸šà¸±à¸à¸Šà¸µ"><input value={f.bankType || ""} onChange={set("bankType")} placeholder="à¸­à¸­à¸¡à¸—à¸£à¸±à¸žà¸¢à¹Œ / à¸à¸£à¸°à¹à¸ªà¸£à¸²à¸¢à¸§à¸±à¸™" /></Field>
         </div>
         <div>
-          <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>QR Code ชำระเงิน (Default สำหรับเอกสารใหม่)</label>
+          <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>QR Code à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™ (Default à¸ªà¸³à¸«à¸£à¸±à¸šà¹€à¸­à¸à¸ªà¸²à¸£à¹ƒà¸«à¸¡à¹ˆ)</label>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ width: 72, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
-              {f.qrImage ? <img src={f.qrImage} alt="QR" style={{ width: 64, height: 64, objectFit: "contain" }} /> : <span style={{ fontSize: 28 }}>📷</span>}
+              {f.qrImage ? <img src={f.qrImage} alt="QR" style={{ width: 64, height: 64, objectFit: "contain" }} /> : <span style={{ fontSize: 28 }}>ðŸ“·</span>}
             </div>
             <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, flex: 1 }}>
               <label style={{ cursor: "pointer", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.3)", color: "#3B82F6", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, textAlign: "center" as const, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                <span>📁</span> เลือกไฟล์รูปภาพ QR Code
+                <span>ðŸ“</span> à¹€à¸¥à¸·à¸­à¸à¹„à¸Ÿà¸¥à¹Œà¸£à¸¹à¸›à¸ à¸²à¸ž QR Code
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
                   const file = e.target.files?.[0];
                   if (!file) return;
@@ -5704,27 +5704,27 @@ function CompanyPage({ company, setCompany, showToast }: any) {
                 }} />
               </label>
               {f.qrImage && (
-                <button onClick={() => setF(prev => ({ ...prev, qrImage: "" }))}
+                <button type="button" onClick={() => setF(prev => ({ ...prev, qrImage: "" }))}
                   style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
-                  🗑 ลบรูป QR Code
+                  ðŸ—‘ à¸¥à¸šà¸£à¸¹à¸› QR Code
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        {/* ── ลายเซ็นผู้เสนอราคา ── */}
+        {/* â”€â”€ à¸¥à¸²à¸¢à¹€à¸‹à¹‡à¸™à¸œà¸¹à¹‰à¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸² â”€â”€ */}
         <div>
-          <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>✍️ ลายเซ็นผู้เสนอราคา (แสดงในเอกสาร)</label>
+          <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>âœï¸ à¸¥à¸²à¸¢à¹€à¸‹à¹‡à¸™à¸œà¸¹à¹‰à¹€à¸ªà¸™à¸­à¸£à¸²à¸„à¸² (à¹à¸ªà¸”à¸‡à¹ƒà¸™à¹€à¸­à¸à¸ªà¸²à¸£)</label>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ width: 140, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
               {f.signatureImage
-                ? <img src={f.signatureImage} alt="ลายเซ็น" style={{ maxWidth: 132, maxHeight: 64, objectFit: "contain" }} />
-                : <span style={{ fontSize: 12, color: "#555" }}>ยังไม่มีลายเซ็น</span>}
+                ? <img src={f.signatureImage} alt="à¸¥à¸²à¸¢à¹€à¸‹à¹‡à¸™" style={{ maxWidth: 132, maxHeight: 64, objectFit: "contain" }} />
+                : <span style={{ fontSize: 12, color: "#555" }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸¥à¸²à¸¢à¹€à¸‹à¹‡à¸™</span>}
             </div>
             <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, flex: 1 }}>
               <label style={{ cursor: "pointer", background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: "#10B981", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, textAlign: "center" as const, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                <span>✍️</span> เลือกไฟล์รูปภาพลายเซ็น
+                <span>âœï¸</span> à¹€à¸¥à¸·à¸­à¸à¹„à¸Ÿà¸¥à¹Œà¸£à¸¹à¸›à¸ à¸²à¸žà¸¥à¸²à¸¢à¹€à¸‹à¹‡à¸™
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
                   const file = e.target.files?.[0];
                   if (!file) return;
@@ -5733,11 +5733,11 @@ function CompanyPage({ company, setCompany, showToast }: any) {
                   reader.readAsDataURL(file);
                 }} />
               </label>
-              <p style={{ fontSize: 11, color: "#555", margin: 0 }}>แนะนำ: รูปพื้นหลังโปร่งใส (PNG) หรือรูปที่เห็นลายเซ็นชัดเจน</p>
+              <p style={{ fontSize: 11, color: "#555", margin: 0 }}>à¹à¸™à¸°à¸™à¸³: à¸£à¸¹à¸›à¸žà¸·à¹‰à¸™à¸«à¸¥à¸±à¸‡à¹‚à¸›à¸£à¹ˆà¸‡à¹ƒà¸ª (PNG) à¸«à¸£à¸·à¸­à¸£à¸¹à¸›à¸—à¸µà¹ˆà¹€à¸«à¹‡à¸™à¸¥à¸²à¸¢à¹€à¸‹à¹‡à¸™à¸Šà¸±à¸”à¹€à¸ˆà¸™</p>
               {f.signatureImage && (
-                <button onClick={() => setF(prev => ({ ...prev, signatureImage: "" }))}
+                <button type="button" onClick={() => setF(prev => ({ ...prev, signatureImage: "" }))}
                   style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
-                  🗑 ลบรูปลายเซ็น
+                  ðŸ—‘ à¸¥à¸šà¸£à¸¹à¸›à¸¥à¸²à¸¢à¹€à¸‹à¹‡à¸™
                 </button>
               )}
             </div>
@@ -5745,7 +5745,7 @@ function CompanyPage({ company, setCompany, showToast }: any) {
         </div>
       </div>
 
-      <Btn onClick={save} color="#FF6B00">💾 บันทึกข้อมูลทั้งหมด</Btn>
+      <Btn onClick={save} color="#FF6B00">ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</Btn>
     </div>
   );
 }
@@ -5767,7 +5767,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     const year = new Date().getFullYear() + 543;
     const targetDt = DOC_TYPES[targetType] || dt;
     const prefix = `${targetDt.prefix}${year}-`;
-    // หา running number สูงสุดที่มีอยู่แล้วในปีนี้ แทนการนับ .length
+    // à¸«à¸² running number à¸ªà¸¹à¸‡à¸ªà¸¸à¸”à¸—à¸µà¹ˆà¸¡à¸µà¸­à¸¢à¸¹à¹ˆà¹à¸¥à¹‰à¸§à¹ƒà¸™à¸›à¸µà¸™à¸µà¹‰ à¹à¸—à¸™à¸à¸²à¸£à¸™à¸±à¸š .length
     const maxSeq = allDocuments
       .filter(d => d.type === targetType && d.docNo?.startsWith(prefix))
       .reduce((max, d) => {
@@ -5778,14 +5778,14 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
   const nextDocNo = () => nextDocNoForType(type);
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: type === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: type === "receipt" ? today() : "", paymentNote: "", items: [], discount: 0, discountType: "percent", vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
+    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: type === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: type === "receipt" ? today() : "", paymentNote: "", items: [], discount: 0, discountType: "percent", vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "à¸­à¸­à¸¡à¸—à¸£à¸±à¸žà¸¢à¹Œ", qrImage: company?.qrImage || "" });
   };
   const save = async (doc) => {
-    if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
-    if (doc.items.length === 0) return showToast("กรุณาเพิ่มรายการสินค้า", "error");
+    if (!doc.customerId) return showToast("à¸à¸£à¸¸à¸“à¸²à¹€à¸¥à¸·à¸­à¸à¸¥à¸¹à¸à¸„à¹‰à¸²", "error");
+    if (doc.items.length === 0) return showToast("à¸à¸£à¸¸à¸“à¸²à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²", "error");
     if (doc.items.some(i => i.qty < 0 || i.price < 0))
-      return showToast("จำนวนและราคาต้องไม่ติดลบ", "error");
-    if (!doc.docNo?.trim()) return showToast("กรุณาระบุเลขที่เอกสาร", "error");
+      return showToast("à¸ˆà¸³à¸™à¸§à¸™à¹à¸¥à¸°à¸£à¸²à¸„à¸²à¸•à¹‰à¸­à¸‡à¹„à¸¡à¹ˆà¸•à¸´à¸”à¸¥à¸š", "error");
+    if (!doc.docNo?.trim()) return showToast("à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¹€à¸¥à¸‚à¸—à¸µà¹ˆà¹€à¸­à¸à¸ªà¸²à¸£", "error");
     const itemsWithCost = doc.items.map(item => {
       const prod = findProductForItem(products, item);
       const costedItem = {
@@ -5836,7 +5836,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       || (doc.discountType || "percent") !== "percent"
       || Number(doc.depositPaid || doc.paymentAmount || 0) > 0
       || Boolean(doc.depositDate || doc.depositNote || doc.paymentType || doc.paymentDate || doc.paymentNote);
-    const persistentFieldError = "ฐานข้อมูลยังไม่มีคอลัมน์สำหรับ VAT/Marketing/มัดจำ กรุณารัน supabase/erp-persistent-document-fields.sql ใน Supabase Production แล้วบันทึกเอกสารอีกครั้ง";
+    const persistentFieldError = "à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¸­à¸¥à¸±à¸¡à¸™à¹Œà¸ªà¸³à¸«à¸£à¸±à¸š VAT/Marketing/à¸¡à¸±à¸”à¸ˆà¸³ à¸à¸£à¸¸à¸“à¸²à¸£à¸±à¸™ supabase/erp-persistent-document-fields.sql à¹ƒà¸™ Supabase Production à¹à¸¥à¹‰à¸§à¸šà¸±à¸™à¸—à¸¶à¸à¹€à¸­à¸à¸ªà¸²à¸£à¸­à¸µà¸à¸„à¸£à¸±à¹‰à¸‡";
     try {
       let docId = doc.id;
       if (doc.id) {
@@ -5847,7 +5847,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           const { error: legacyError } = await supabase.from("erp_documents").update(legacyDocRow).eq("id", doc.id);
           if (legacyError) throw legacyError;
         }
-        // ลบ items เก่า แล้วใส่ใหม่
+        // à¸¥à¸š items à¹€à¸à¹ˆà¸² à¹à¸¥à¹‰à¸§à¹ƒà¸ªà¹ˆà¹ƒà¸«à¸¡à¹ˆ
       } else {
         const { data, error } = await supabase.from("erp_documents").insert(docRow).select().single();
         if (error) {
@@ -5860,7 +5860,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           docId = data.id;
         }
       }
-      // insert items ใหม่
+      // insert items à¹ƒà¸«à¸¡à¹ˆ
       if (itemsWithCost.length > 0) {
         const itemRows = itemsWithCost.map((item, idx) => ({
           document_id: docId, sort_order: idx,
@@ -5919,69 +5919,69 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       saveErpDocumentShadow(docId, saved);
       if (doc.id) setDocuments(prev => prev.map(d => d.id === doc.id ? saved : d));
       else setDocuments(prev => [...prev, saved]);
-      showToast(doc.id ? "บันทึกเอกสารแล้ว" : "สร้างเอกสารใหม่แล้ว");
+      showToast(doc.id ? "à¸šà¸±à¸™à¸—à¸¶à¸à¹€à¸­à¸à¸ªà¸²à¸£à¹à¸¥à¹‰à¸§" : "à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£à¹ƒà¸«à¸¡à¹ˆà¹à¸¥à¹‰à¸§");
       setEditing(null);
     } catch (err: any) {
-      showToast("เกิดข้อผิดพลาด: " + err.message, "error");
+      showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + err.message, "error");
     }
   };
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const del = (id) => {
     const doc = documents.find(d => d.id === id);
-    if (doc?.status === "approved") return showToast("ไม่สามารถลบเอกสารที่อนุมัติแล้ว — ยกเลิกการอนุมัติก่อน", "error");
+    if (doc?.status === "approved") return showToast("à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸¥à¸šà¹€à¸­à¸à¸ªà¸²à¸£à¸—à¸µà¹ˆà¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¹à¸¥à¹‰à¸§ â€” à¸¢à¸à¹€à¸¥à¸´à¸à¸à¸²à¸£à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¸à¹ˆà¸­à¸™", "error");
     setDeleteConfirm(id);
   };
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
     const { error } = await supabase.from("erp_documents").update({ deleted: true, status: "cancelled" }).eq("id", deleteConfirm);
-    if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+    if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
     setDocuments(prev => prev.map(d => d.id === deleteConfirm ? { ...d, deleted: true, status: "cancelled" } : d));
     setDeleteConfirm(null);
-    showToast("ลบเอกสารแล้ว");
+    showToast("à¸¥à¸šà¹€à¸­à¸à¸ªà¸²à¸£à¹à¸¥à¹‰à¸§");
   };
   const changeStatus = async (id, status) => {
     const { error } = await supabase.from("erp_documents").update({ status }).eq("id", id);
-    if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
+    if (error) return showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error");
     setDocuments(prev => prev.map(d => d.id === id ? { ...d, status } : d));
-    showToast(`อัปเดตสถานะเป็น "${STATUS_LABELS[status]}"`);
+    showToast(`à¸­à¸±à¸›à¹€à¸”à¸•à¸ªà¸–à¸²à¸™à¸°à¹€à¸›à¹‡à¸™ "${STATUS_LABELS[status]}"`);
   };
 
-  // ── Email Modal ────────────────────────────────────────────
+  // â”€â”€ Email Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const copyDocumentSummary = async (doc) => {
     const { netPay } = calcDocTotal(doc);
     const text = [
-      `${DOC_TYPES[doc.type]?.label || "เอกสาร"} ${doc.docNo}`,
-      `ลูกค้า: ${doc.customerName || "-"}`,
-      `วันที่: ${fmtDate(doc.date)}`,
-      `ครบกำหนด: ${fmtDate(doc.dueDate)}`,
-      `ยอดสุทธิ: ฿${fmtMoney(netPay)}`,
-      `สถานะ: ${STATUS_LABELS[doc.status] || doc.status}`,
+      `${DOC_TYPES[doc.type]?.label || "à¹€à¸­à¸à¸ªà¸²à¸£"} ${doc.docNo}`,
+      `à¸¥à¸¹à¸à¸„à¹‰à¸²: ${doc.customerName || "-"}`,
+      `à¸§à¸±à¸™à¸—à¸µà¹ˆ: ${fmtDate(doc.date)}`,
+      `à¸„à¸£à¸šà¸à¸³à¸«à¸™à¸”: ${fmtDate(doc.dueDate)}`,
+      `à¸¢à¸­à¸”à¸ªà¸¸à¸—à¸˜à¸´: à¸¿${fmtMoney(netPay)}`,
+      `à¸ªà¸–à¸²à¸™à¸°: ${STATUS_LABELS[doc.status] || doc.status}`,
     ].join("\n");
     try {
       await navigator.clipboard.writeText(text);
-      showToast("คัดลอกข้อมูลเอกสารแล้ว");
+      showToast("à¸„à¸±à¸”à¸¥à¸­à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹€à¸­à¸à¸ªà¸²à¸£à¹à¸¥à¹‰à¸§");
     } catch {
-      showToast("ไม่สามารถคัดลอกได้", "error");
+      showToast("à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸„à¸±à¸”à¸¥à¸­à¸à¹„à¸”à¹‰", "error");
     }
   };
 
   const shareDocumentLink = async (doc) => {
     if (!doc?.id) {
-      showToast("กรุณาบันทึกเอกสารก่อนแชร์", "error");
+      showToast("à¸à¸£à¸¸à¸“à¸²à¸šà¸±à¸™à¸—à¸¶à¸à¹€à¸­à¸à¸ªà¸²à¸£à¸à¹ˆà¸­à¸™à¹à¸Šà¸£à¹Œ", "error");
       return;
     }
-    const title = `${DOC_TYPES[doc.type]?.label || "เอกสาร"} ${doc.docNo}`;
+    const title = `${DOC_TYPES[doc.type]?.label || "à¹€à¸­à¸à¸ªà¸²à¸£"} ${doc.docNo}`;
     const url = publicDocumentUrl(doc.id, doc.updatedAt || Date.now());
     try {
       if (navigator.share) {
         await navigator.share({ title, text: title, url });
-        showToast("แชร์ลิงก์เอกสารแล้ว");
+        showToast("à¹à¸Šà¸£à¹Œà¸¥à¸´à¸‡à¸à¹Œà¹€à¸­à¸à¸ªà¸²à¸£à¹à¸¥à¹‰à¸§");
         return;
       }
       await navigator.clipboard.writeText(url);
-      showToast("คัดลอกลิงก์เอกสารแล้ว");
+      showToast("à¸„à¸±à¸”à¸¥à¸­à¸à¸¥à¸´à¸‡à¸à¹Œà¹€à¸­à¸à¸ªà¸²à¸£à¹à¸¥à¹‰à¸§");
     } catch {
-      showToast("ไม่สามารถแชร์ลิงก์เอกสารได้", "error");
+      showToast("à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹à¸Šà¸£à¹Œà¸¥à¸´à¸‡à¸à¹Œà¹€à¸­à¸à¸ªà¸²à¸£à¹„à¸”à¹‰", "error");
     }
   };
 
@@ -5990,19 +5990,19 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
 
   const [emailModal, setEmailModal] = useState<any>(null);
-  // ── Split Modal ─────────────────────────────────────────────
+  // â”€â”€ Split Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [splitModal, setSplitModal] = useState<any>(null);
 
-  // ── สร้างเอกสารต่อ ─────────────────────────────────────────
+  // â”€â”€ à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£à¸•à¹ˆà¸­ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const DOC_NEXT: Record<string, { type: string; label: string; split?: boolean }[]> = {
     quote:   [
-      { type: "bill",    label: "สร้างใบวางบิล / ใบส่งสินค้า" },
-      { type: "bill",    label: "สร้างใบวางบิล / ใบส่งสินค้า (แบ่งจ่าย)", split: true },
-      { type: "invoice", label: "สร้างใบแจ้งหนี้" },
-      { type: "invoice", label: "สร้างใบแจ้งหนี้ (แบ่งจ่าย)", split: true },
+      { type: "bill",    label: "à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸šà¸§à¸²à¸‡à¸šà¸´à¸¥ / à¹ƒà¸šà¸ªà¹ˆà¸‡à¸ªà¸´à¸™à¸„à¹‰à¸²" },
+      { type: "bill",    label: "à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸šà¸§à¸²à¸‡à¸šà¸´à¸¥ / à¹ƒà¸šà¸ªà¹ˆà¸‡à¸ªà¸´à¸™à¸„à¹‰à¸² (à¹à¸šà¹ˆà¸‡à¸ˆà¹ˆà¸²à¸¢)", split: true },
+      { type: "invoice", label: "à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸šà¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰" },
+      { type: "invoice", label: "à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸šà¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰ (à¹à¸šà¹ˆà¸‡à¸ˆà¹ˆà¸²à¸¢)", split: true },
     ],
-    bill:    [{ type: "invoice", label: "สร้างใบแจ้งหนี้" }, { type: "receipt", label: "สร้างใบเสร็จรับเงิน" }],
-    invoice: [{ type: "receipt", label: "สร้างใบเสร็จรับเงิน" }],
+    bill:    [{ type: "invoice", label: "à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸šà¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰" }, { type: "receipt", label: "à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸£à¸±à¸šà¹€à¸‡à¸´à¸™" }],
+    invoice: [{ type: "receipt", label: "à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸£à¸±à¸šà¹€à¸‡à¸´à¸™" }],
     receipt: [],
   };
 
@@ -6021,7 +6021,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       depositPaid: inheritedDeposit.depositPaid,
       depositDate: inheritedDeposit.depositDate,
       depositNote: inheritedDeposit.depositNote,
-      notes: split ? (srcDoc.notes ? srcDoc.notes + "\n(แบ่งจ่าย)" : "(แบ่งจ่าย)") : srcDoc.notes,
+      notes: split ? (srcDoc.notes ? srcDoc.notes + "\n(à¹à¸šà¹ˆà¸‡à¸ˆà¹ˆà¸²à¸¢)" : "(à¹à¸šà¹ˆà¸‡à¸ˆà¹ˆà¸²à¸¢)") : srcDoc.notes,
       createdAt: undefined,
       updatedAt: undefined,
     };
@@ -6029,19 +6029,19 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       setSplitModal({ srcDoc, newDoc });
     } else {
       setEditing(newDoc);
-      showToast(`สร้าง${DOC_TYPES[targetType]?.label}จาก ${srcDoc.docNo}`);
+      showToast(`à¸ªà¸£à¹‰à¸²à¸‡${DOC_TYPES[targetType]?.label}à¸ˆà¸²à¸ ${srcDoc.docNo}`);
     }
   };
 
-  // ── Dropdown state ──────────────────────────────────────────
+  // â”€â”€ Dropdown state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [openStatus, setOpenStatus] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; right: number; mobile?: boolean } | null>(null);
   const closeAll = useCallback(() => { setOpenMenu(null); setOpenStatus(null); setMenuPos(null); }, []);
 
-  // ── Fix: ใช้ data-attribute แทน ref เพราะ menuRef/statusRef single ref
-  // แต่ render ทั้ง desktop table และ mobile cards พร้อมกัน ทำให้ ref ชี้ไปที่อันสุดท้ายที่ render
-  // ส่งผลให้ click ใน desktop menu ไม่ถูก detect ว่า "inMenu" -> closeAll() ยิงก่อน onClick
+  // â”€â”€ Fix: à¹ƒà¸Šà¹‰ data-attribute à¹à¸—à¸™ ref à¹€à¸žà¸£à¸²à¸° menuRef/statusRef single ref
+  // à¹à¸•à¹ˆ render à¸—à¸±à¹‰à¸‡ desktop table à¹à¸¥à¸° mobile cards à¸žà¸£à¹‰à¸­à¸¡à¸à¸±à¸™ à¸—à¸³à¹ƒà¸«à¹‰ ref à¸Šà¸µà¹‰à¹„à¸›à¸—à¸µà¹ˆà¸­à¸±à¸™à¸ªà¸¸à¸”à¸—à¹‰à¸²à¸¢à¸—à¸µà¹ˆ render
+  // à¸ªà¹ˆà¸‡à¸œà¸¥à¹ƒà¸«à¹‰ click à¹ƒà¸™ desktop menu à¹„à¸¡à¹ˆà¸–à¸¹à¸ detect à¸§à¹ˆà¸² "inMenu" -> closeAll() à¸¢à¸´à¸‡à¸à¹ˆà¸­à¸™ onClick
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -6061,30 +6061,30 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           <h2 style={{ fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ background: dt.color + "22", color: dt.color, fontSize: 12, padding: "3px 10px", borderRadius: 99 }}>{dt.short}</span>{dt.label}
           </h2>
-          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{documents.length} ฉบับ</p>
+          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{documents.length} à¸‰à¸šà¸±à¸š</p>
         </div>
         <div className="doc-header-actions" style={{ display: "flex", gap: 10 }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 180 }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ðŸ” à¸„à¹‰à¸™à¸«à¸²..." style={{ width: 180 }} />
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width: 130 }}>
-            <option value="all">ทุกสถานะ</option>
+            <option value="all">à¸—à¸¸à¸à¸ªà¸–à¸²à¸™à¸°</option>
             {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
-          <Btn onClick={newDoc} color={dt.color}>+ สร้างเอกสาร</Btn>
+          <Btn onClick={newDoc} color={dt.color}>+ à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£</Btn>
         </div>
       </div>
       <div className="doc-list-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "visible" }}>
         {filtered.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center", color: "#555" }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>📄</div>
-            <div>ยังไม่มีเอกสาร</div>
-            <Btn onClick={newDoc} color={dt.color} style={{ marginTop: 16 }}>+ สร้างเอกสารแรก</Btn>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>ðŸ“„</div>
+            <div>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¹€à¸­à¸à¸ªà¸²à¸£</div>
+            <Btn onClick={newDoc} color={dt.color} style={{ marginTop: 16 }}>+ à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£à¹à¸£à¸</Btn>
           </div>
         ) : (<>
-          {/* ── Desktop Table ── */}
+          {/* â”€â”€ Desktop Table â”€â”€ */}
           <table className="doc-table" style={{ width: "100%", borderCollapse: "collapse", borderRadius: 12, overflow: "visible" }}>
             <thead>
               <tr style={{ background: "#1A2233" }}>
-                {["เลขที่เอกสาร", "ลูกค้า", "วันที่", "วันครบกำหนด", "ยอดรวม", "สถานะ", "จัดการ"].map((h, i, arr) => (
+                {["à¹€à¸¥à¸‚à¸—à¸µà¹ˆà¹€à¸­à¸à¸ªà¸²à¸£", "à¸¥à¸¹à¸à¸„à¹‰à¸²", "à¸§à¸±à¸™à¸—à¸µà¹ˆ", "à¸§à¸±à¸™à¸„à¸£à¸šà¸à¸³à¸«à¸™à¸”", "à¸¢à¸­à¸”à¸£à¸§à¸¡", "à¸ªà¸–à¸²à¸™à¸°", "à¸ˆà¸±à¸”à¸à¸²à¸£"].map((h, i, arr) => (
                   <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, color: "#A8B0C0", fontWeight: 500,
                     borderRadius: i === 0 ? "12px 0 0 0" : i === arr.length - 1 ? "0 12px 0 0" : 0 }}>{h}</th>
                 ))}
@@ -6100,13 +6100,13 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     <td style={{ padding: "12px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.date)}</td>
                     <td style={{ padding: "12px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.dueDate)}</td>
                     <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 600 }}>
-                      <div>฿{fmtMoney(total)}</div>
-                      {depositPaid > 0 && balanceDue > 0 && <div style={{ marginTop: 3, color: "#F59E0B", fontSize: 11 }}>ค้างชำระ ฿{fmtMoney(balanceDue)}</div>}
+                      <div>à¸¿{fmtMoney(total)}</div>
+                      {depositPaid > 0 && balanceDue > 0 && <div style={{ marginTop: 3, color: "#F59E0B", fontSize: 11 }}>à¸„à¹‰à¸²à¸‡à¸Šà¸³à¸£à¸° à¸¿{fmtMoney(balanceDue)}</div>}
                     </td>
                     <td style={{ padding: "12px 16px" }}>
-                      {/* ── Status Badge + Dropdown ── */}
+                      {/* â”€â”€ Status Badge + Dropdown â”€â”€ */}
                       <div style={{ position: "relative", display: "inline-block" }} data-status-dropdown="">
-                        <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
+                        <button type="button" onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
                           style={{ display: "flex", alignItems: "center", gap: 6, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "5px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                           {STATUS_LABELS[doc.status]}
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5l3 3 3-3"/></svg>
@@ -6114,7 +6114,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         {openStatus === doc.id && (
                           <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 140, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
                             {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                              <button key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
+                              <button type="button" key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
                                 style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: doc.status === k ? STATUS_COLORS[k] + "22" : "transparent", color: doc.status === k ? STATUS_COLORS[k] : "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left" }}>
                                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[k], flexShrink: 0, display: "inline-block" }} />
                                 {v}
@@ -6125,23 +6125,23 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       </div>
                     </td>
                     <td style={{ padding: "12px 16px" }}>
-                      {/* ── Action Menu ── */}
+                      {/* â”€â”€ Action Menu â”€â”€ */}
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                          {/* ✅ อนุมัติ */}
+                          {/* âœ… à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´ */}
                           {doc.status !== "approved" && doc.status !== "cancelled" && (
-                            <button onClick={() => { changeStatus(doc.id, "approved"); }} title="อนุมัติ"
+                            <button type="button" onClick={() => { changeStatus(doc.id, "approved"); }} title="à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´"
                               style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10B981", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
-                              ✅ อนุมัติ
+                              âœ… à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´
                             </button>
                           )}
-                          {/* แก้ไข */}
-                          <button onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }} title="แก้ไข"
+                          {/* à¹à¸à¹‰à¹„à¸‚ */}
+                          <button type="button" onClick={() => { if (doc.status === "approved") return showToast("à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹à¸à¹‰à¹„à¸‚à¹€à¸­à¸à¸ªà¸²à¸£à¸—à¸µà¹ˆà¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¹à¸¥à¹‰à¸§", "error"); setEditing({ ...doc }); }} title="à¹à¸à¹‰à¹„à¸‚"
                             style={{ background: doc.status === "approved" ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#444" : "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
-                            แก้ไข
+                            à¹à¸à¹‰à¹„à¸‚
                           </button>
-                          {/* ⋮ More */}
-                          <button onClick={(e) => {
+                          {/* â‹® More */}
+                          <button type="button" onClick={(e) => {
                             if (openMenu === doc.id) { closeAll(); return; }
                             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                             const menuWidth = Math.min(260, window.innerWidth - 24);
@@ -6151,38 +6151,38 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             setOpenMenu(doc.id); setOpenStatus(null);
                           }}
                             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "5px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit", lineHeight: 1 }}>
-                            ⋮
+                            â‹®
                           </button>
                         </div>
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
-                            {/* พิมพ์ */}
-                            <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
-                            <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); }} />
-                            {/* แชร์ลิงค์ */}
-                            <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
-                            {/* ดาวน์โหลด */}
-                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
-                            {/* อีเมล */}
-                            <MenuBtn icon="✉️" label="อีเมล" onClick={() => {
+                            {/* à¸žà¸´à¸¡à¸žà¹Œ */}
+                            <MenuBtn icon="ðŸ‘ï¸" label="à¸”à¸¹à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡ PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
+                            <MenuBtn icon="ðŸ–¨ï¸" label="à¸žà¸´à¸¡à¸žà¹Œ" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); }} />
+                            {/* à¹à¸Šà¸£à¹Œà¸¥à¸´à¸‡à¸„à¹Œ */}
+                            <MenuBtn icon="ðŸ”—" label="à¹à¸Šà¸£à¹Œ" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
+                            {/* à¸”à¸²à¸§à¸™à¹Œà¹‚à¸«à¸¥à¸” */}
+                            <MenuBtn icon="â¬‡ï¸" label="à¸”à¸²à¸§à¸™à¹Œà¹‚à¸«à¸¥à¸”" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("à¹€à¸›à¸´à¸”à¸«à¸™à¹‰à¸²à¸•à¹ˆà¸²à¸‡ â€” à¸à¸” Save as PDF"); }} />
+                            {/* à¸­à¸µà¹€à¸¡à¸¥ */}
+                            <MenuBtn icon="âœ‰ï¸" label="à¸­à¸µà¹€à¸¡à¸¥" onClick={() => {
                               const cust = customers.find(c => c.id === doc.customerId);
-                              setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` });
+                              setEmailModal({ doc, toEmail: cust?.email || "", subject: `à¹€à¸­à¸à¸ªà¸²à¸£ ${doc.docNo} - ${cust?.name || ""}`, body: `à¹€à¸£à¸µà¸¢à¸™à¸„à¸¸à¸“ ${cust?.contact || cust?.name || "à¸¥à¸¹à¸à¸„à¹‰à¸²"},\n\nà¸à¸£à¸¸à¸“à¸²à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¹€à¸­à¸à¸ªà¸²à¸£ ${doc.docNo} à¸—à¸µà¹ˆà¹à¸™à¸šà¸¡à¸²à¸”à¹‰à¸§à¸¢à¸™à¸µà¹‰\n\nà¸‚à¸­à¸šà¸„à¸¸à¸“à¸„à¸£à¸±à¸š` });
                               closeAll();
                             }} />
-                            {/* สร้างซ้ำ */}
-                            <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => {
+                            {/* à¸ªà¸£à¹‰à¸²à¸‡à¸‹à¹‰à¸³ */}
+                            <MenuBtn icon="ðŸ“‹" label="à¸ªà¸£à¹‰à¸²à¸‡à¸‹à¹‰à¸³" onClick={() => {
                               setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" });
                               closeAll();
                             }} />
 
-                            {/* สร้างเอกสารต่อ */}
+                            {/* à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£à¸•à¹ˆà¸­ */}
                             {(DOC_NEXT[doc.type] || []).length > 0 && (
                               <>
                                 <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
-                                <div style={{ padding: "4px 14px 4px", fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>สร้างเอกสารต่อ</div>
+                                <div style={{ padding: "4px 14px 4px", fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£à¸•à¹ˆà¸­</div>
                                 {(DOC_NEXT[doc.type] || []).map((next, ni) => (
                                   <MenuBtn key={ni}
-                                    icon={next.split ? "✂️" : DOC_TYPES[next.type]?.short === "BL" ? "📋" : DOC_TYPES[next.type]?.short === "IV" ? "📑" : "🧾"}
+                                    icon={next.split ? "âœ‚ï¸" : DOC_TYPES[next.type]?.short === "BL" ? "ðŸ“‹" : DOC_TYPES[next.type]?.short === "IV" ? "ðŸ“‘" : "ðŸ§¾"}
                                     label={next.label}
                                     color={DOC_TYPES[next.type]?.color}
                                     onClick={() => { createFrom(doc, next.type, next.split); closeAll(); }}
@@ -6191,9 +6191,9 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                               </>
                             )}
 
-                            {/* ลบ */}
+                            {/* à¸¥à¸š */}
                             <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
-                            <MenuBtn icon="🗑️" label="ลบ" danger onClick={() => { del(doc.id); closeAll(); }} />
+                            <MenuBtn icon="ðŸ—‘ï¸" label="à¸¥à¸š" danger onClick={() => { del(doc.id); closeAll(); }} />
                           </div>
                         )}
                       </div>
@@ -6204,7 +6204,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
             </tbody>
           </table>
 
-          {/* ── Mobile Cards ── */}
+          {/* â”€â”€ Mobile Cards â”€â”€ */}
           <div className="doc-cards" style={{ display: "none", flexDirection: "column" as const }}>
             {filtered.map(doc => {
               const { total, depositPaid, balanceDue } = calcDocTotal(doc, allDocuments);
@@ -6214,17 +6214,17 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     <div>
                       <div style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 700, color: dt.color }}>{doc.docNo}</div>
                       <div style={{ fontSize: 13, color: "#e2e8f0", marginTop: 2 }}>{doc.customerName || "-"}</div>
-                      <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>ครบกำหนด {fmtDate(doc.dueDate)}</div>
+                      <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>à¸„à¸£à¸šà¸à¸³à¸«à¸™à¸” {fmtDate(doc.dueDate)}</div>
                     </div>
                     <div style={{ textAlign: "right" as const }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>฿{fmtMoney(total)}</div>
-                      {depositPaid > 0 && balanceDue > 0 && <div style={{ marginTop: 3, color: "#F59E0B", fontSize: 11 }}>ค้างชำระ ฿{fmtMoney(balanceDue)}</div>}
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>à¸¿{fmtMoney(total)}</div>
+                      {depositPaid > 0 && balanceDue > 0 && <div style={{ marginTop: 3, color: "#F59E0B", fontSize: 11 }}>à¸„à¹‰à¸²à¸‡à¸Šà¸³à¸£à¸° à¸¿{fmtMoney(balanceDue)}</div>}
                       <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{fmtDate(doc.date)}</div>
                     </div>
                   </div>
                   <div className="doc-mobile-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                     <div className="doc-mobile-status" style={{ position: "relative", display: "inline-block" }} data-status-dropdown="">
-                      <button onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
+                      <button type="button" onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
                         style={{ display: "flex", alignItems: "center", gap: 5, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                         {STATUS_LABELS[doc.status]}
                         <svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5l3 3 3-3"/></svg>
@@ -6232,7 +6232,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       {openStatus === doc.id && (
                         <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 140, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
                           {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                            <button key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
+                            <button type="button" key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
                               style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: doc.status === k ? STATUS_COLORS[k] + "22" : "transparent", color: doc.status === k ? STATUS_COLORS[k] : "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left" as const }}>
                               <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[k], flexShrink: 0, display: "inline-block" }} />{v}
                             </button>
@@ -6242,15 +6242,15 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     </div>
                     <div className="doc-mobile-actions" style={{ display: "flex", gap: 6 }}>
                       {doc.status !== "approved" && doc.status !== "cancelled" && (
-                        <button onClick={() => changeStatus(doc.id, "approved")}
-                          style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10B981", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>✅ อนุมัติ</button>
+                        <button type="button" onClick={() => changeStatus(doc.id, "approved")}
+                          style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10B981", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>âœ… à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´</button>
                       )}
-                      <button onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }}
-                        style={{ background: doc.status === "approved" ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#444" : "#ccc", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit" }}>แก้ไข</button>
-                      <button onClick={() => printDocument(doc, customers, company, { allDocuments })}
-                        style={{ background: "rgba(255,107,0,0.15)", border: "1px solid rgba(255,107,0,0.3)", color: "#FF6B00", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>🖨️</button>
+                      <button type="button" onClick={() => { if (doc.status === "approved") return showToast("à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹à¸à¹‰à¹„à¸‚à¹€à¸­à¸à¸ªà¸²à¸£à¸—à¸µà¹ˆà¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¹à¸¥à¹‰à¸§", "error"); setEditing({ ...doc }); }}
+                        style={{ background: doc.status === "approved" ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#444" : "#ccc", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit" }}>à¹à¸à¹‰à¹„à¸‚</button>
+                      <button type="button" onClick={() => printDocument(doc, customers, company, { allDocuments })}
+                        style={{ background: "rgba(255,107,0,0.15)", border: "1px solid rgba(255,107,0,0.3)", color: "#FF6B00", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>ðŸ–¨ï¸</button>
                       <div style={{ position: "relative" }}>
-                        <button onClick={(e) => {
+                        <button type="button" onClick={(e) => {
                           if (openMenu === doc.id) { closeAll(); return; }
                           const isMobileMenu = window.matchMedia("(max-width: 768px)").matches;
                           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -6260,24 +6260,24 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           setMenuPos(isMobileMenu ? { top: 0, right: 0, mobile: true } : { top, right });
                           setOpenMenu(doc.id); setOpenStatus(null);
                         }}
-                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>⋮</button>
+                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ccc", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>â‹®</button>
                         {openMenu === doc.id && menuPos && (
                           <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.mobile ? "auto" : menuPos.top, right: menuPos.mobile ? 12 : menuPos.right, bottom: menuPos.mobile ? "calc(76px + env(safe-area-inset-bottom, 0px))" : "auto", left: menuPos.mobile ? 12 : "auto", zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: menuPos.mobile ? 16 : 10, padding: "6px 0", minWidth: menuPos.mobile ? 0 : 240, width: menuPos.mobile ? "auto" : undefined, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: menuPos.mobile ? "46dvh" : "60dvh", overflowY: "auto" }}>
-                            <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
-                            <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); }} />
-                            <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
-                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
-                            <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` }); closeAll(); }} />
-                            <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" }); closeAll(); }} />
+                            <MenuBtn icon="ðŸ‘ï¸" label="à¸”à¸¹à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡ PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
+                            <MenuBtn icon="ðŸ–¨ï¸" label="à¸žà¸´à¸¡à¸žà¹Œ" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); }} />
+                            <MenuBtn icon="ðŸ”—" label="à¹à¸Šà¸£à¹Œ" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
+                            <MenuBtn icon="â¬‡ï¸" label="à¸”à¸²à¸§à¸™à¹Œà¹‚à¸«à¸¥à¸”" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("à¹€à¸›à¸´à¸”à¸«à¸™à¹‰à¸²à¸•à¹ˆà¸²à¸‡ â€” à¸à¸” Save as PDF"); }} />
+                            <MenuBtn icon="âœ‰ï¸" label="à¸­à¸µà¹€à¸¡à¸¥" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `à¹€à¸­à¸à¸ªà¸²à¸£ ${doc.docNo} - ${cust?.name || ""}`, body: `à¹€à¸£à¸µà¸¢à¸™à¸„à¸¸à¸“ ${cust?.contact || cust?.name || "à¸¥à¸¹à¸à¸„à¹‰à¸²"},\n\nà¸à¸£à¸¸à¸“à¸²à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¹€à¸­à¸à¸ªà¸²à¸£ ${doc.docNo} à¸—à¸µà¹ˆà¹à¸™à¸šà¸¡à¸²à¸”à¹‰à¸§à¸¢à¸™à¸µà¹‰\n\nà¸‚à¸­à¸šà¸„à¸¸à¸“à¸„à¸£à¸±à¸š` }); closeAll(); }} />
+                            <MenuBtn icon="ðŸ“‹" label="à¸ªà¸£à¹‰à¸²à¸‡à¸‹à¹‰à¸³" onClick={() => { setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" }); closeAll(); }} />
                             {(DOC_NEXT[doc.type] || []).length > 0 && <>
                               <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
-                              <div style={{ padding: "4px 14px", fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase" as const }}>สร้างเอกสารต่อ</div>
+                              <div style={{ padding: "4px 14px", fontSize: 10, color: "#555", fontWeight: 700, textTransform: "uppercase" as const }}>à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£à¸•à¹ˆà¸­</div>
                               {(DOC_NEXT[doc.type] || []).map((next, ni) => (
-                                <MenuBtn key={ni} icon={next.split ? "✂️" : "📑"} label={next.label} color={DOC_TYPES[next.type]?.color} onClick={() => { createFrom(doc, next.type, next.split); closeAll(); }} />
+                                <MenuBtn key={ni} icon={next.split ? "âœ‚ï¸" : "ðŸ“‘"} label={next.label} color={DOC_TYPES[next.type]?.color} onClick={() => { createFrom(doc, next.type, next.split); closeAll(); }} />
                               ))}
                             </>}
                             <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
-                            <MenuBtn icon="🗑️" label="ลบ" danger onClick={() => { del(doc.id); closeAll(); }} />
+                            <MenuBtn icon="ðŸ—‘ï¸" label="à¸¥à¸š" danger onClick={() => { del(doc.id); closeAll(); }} />
                           </div>
                         )}
                       </div>
@@ -6290,63 +6290,63 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
         </>)}
       </div>
       {editing && (
-        <Modal title={`${editing.id ? "แก้ไข" : "สร้าง"}${dt.label}`} onClose={() => setEditing(null)} width={760}>
+        <Modal title={`${editing.id ? "à¹à¸à¹‰à¹„à¸‚" : "à¸ªà¸£à¹‰à¸²à¸‡"}${dt.label}`} onClose={() => setEditing(null)} width={760}>
           <DocForm doc={editing} type={type} customers={customers} products={products} onSave={save} onCancel={() => setEditing(null)} allDocuments={allDocuments} />
         </Modal>
       )}
 
-      {/* ── Delete Confirmation Modal ── */}
+      {/* â”€â”€ Delete Confirmation Modal â”€â”€ */}
       {deleteConfirm && (
-        <Modal title="ยืนยันการลบเอกสาร" onClose={() => setDeleteConfirm(null)} width={420}>
+        <Modal title="à¸¢à¸·à¸™à¸¢à¸±à¸™à¸à¸²à¸£à¸¥à¸šà¹€à¸­à¸à¸ªà¸²à¸£" onClose={() => setDeleteConfirm(null)} width={420}>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 20 }}>
             <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "16px 18px", display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <span style={{ fontSize: 24, flexShrink: 0 }}>🗑️</span>
+              <span style={{ fontSize: 24, flexShrink: 0 }}>ðŸ—‘ï¸</span>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#ef4444", marginBottom: 6 }}>คุณแน่ใจหรือไม่?</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#ef4444", marginBottom: 6 }}>à¸„à¸¸à¸“à¹à¸™à¹ˆà¹ƒà¸ˆà¸«à¸£à¸·à¸­à¹„à¸¡à¹ˆ?</div>
                 <div style={{ fontSize: 13, color: "#A8B0C0", lineHeight: 1.6 }}>
-                  เอกสาร <span style={{ fontFamily: "monospace", color: "#fff", fontWeight: 700 }}>{documents.find(d => d.id === deleteConfirm)?.docNo}</span> จะถูกยกเลิก<br/>
-                  ข้อมูลจะยังคงอยู่ในระบบแต่ไม่แสดงผล
+                  à¹€à¸­à¸à¸ªà¸²à¸£ <span style={{ fontFamily: "monospace", color: "#fff", fontWeight: 700 }}>{documents.find(d => d.id === deleteConfirm)?.docNo}</span> à¸ˆà¸°à¸–à¸¹à¸à¸¢à¸à¹€à¸¥à¸´à¸<br/>
+                  à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ˆà¸°à¸¢à¸±à¸‡à¸„à¸‡à¸­à¸¢à¸¹à¹ˆà¹ƒà¸™à¸£à¸°à¸šà¸šà¹à¸•à¹ˆà¹„à¸¡à¹ˆà¹à¸ªà¸”à¸‡à¸œà¸¥
                 </div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <Btn onClick={confirmDelete} style={{ flex: 1, background: "#ef4444", border: "1px solid #ef4444", color: "#fff" }}>🗑️ ยืนยันลบ</Btn>
-              <Btn onClick={() => setDeleteConfirm(null)} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+              <Btn onClick={confirmDelete} style={{ flex: 1, background: "#ef4444", border: "1px solid #ef4444", color: "#fff" }}>ðŸ—‘ï¸ à¸¢à¸·à¸™à¸¢à¸±à¸™à¸¥à¸š</Btn>
+              <Btn onClick={() => setDeleteConfirm(null)} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</Btn>
             </div>
           </div>
         </Modal>
       )}
 
-      {/* ── Email Modal ── */}
+      {/* â”€â”€ Email Modal â”€â”€ */}
       {emailModal && (
-        <Modal title="ส่งเอกสารทางอีเมล" onClose={() => setEmailModal(null)} width={500}>
+        <Modal title="à¸ªà¹ˆà¸‡à¹€à¸­à¸à¸ªà¸²à¸£à¸—à¸²à¸‡à¸­à¸µà¹€à¸¡à¸¥" onClose={() => setEmailModal(null)} width={500}>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
-            <Field label="📧 ถึง (To)">
+            <Field label="ðŸ“§ à¸–à¸¶à¸‡ (To)">
               <input value={emailModal.toEmail} onChange={e => setEmailModal(p => ({ ...p, toEmail: e.target.value }))} placeholder="email@example.com" />
             </Field>
-            <Field label="หัวข้อ (Subject)">
+            <Field label="à¸«à¸±à¸§à¸‚à¹‰à¸­ (Subject)">
               <input value={emailModal.subject} onChange={e => setEmailModal(p => ({ ...p, subject: e.target.value }))} />
             </Field>
-            <Field label="ข้อความ (Body)">
+            <Field label="à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡ (Body)">
               <textarea value={emailModal.body} onChange={e => setEmailModal(p => ({ ...p, body: e.target.value }))} rows={5} style={{ resize: "vertical", fontFamily: "inherit" }} />
             </Field>
             <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#888" }}>
-              📎 ไฟล์แนบ: {emailModal.doc.docNo}.pdf (สร้างจากระบบ)
+              ðŸ“Ž à¹„à¸Ÿà¸¥à¹Œà¹à¸™à¸š: {emailModal.doc.docNo}.pdf (à¸ªà¸£à¹‰à¸²à¸‡à¸ˆà¸²à¸à¸£à¸°à¸šà¸š)
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <Btn onClick={() => {
-                if (!emailModal.toEmail) return showToast("กรุณาใส่อีเมลผู้รับ", "error");
+                if (!emailModal.toEmail) return showToast("à¸à¸£à¸¸à¸“à¸²à¹ƒà¸ªà¹ˆà¸­à¸µà¹€à¸¡à¸¥à¸œà¸¹à¹‰à¸£à¸±à¸š", "error");
                 window.open(`mailto:${emailModal.toEmail}?subject=${encodeURIComponent(emailModal.subject)}&body=${encodeURIComponent(emailModal.body)}`);
-                showToast("เปิดโปรแกรมอีเมลแล้ว");
+                showToast("à¹€à¸›à¸´à¸”à¹‚à¸›à¸£à¹à¸à¸£à¸¡à¸­à¸µà¹€à¸¡à¸¥à¹à¸¥à¹‰à¸§");
                 setEmailModal(null);
-              }} color="#3B82F6" style={{ flex: 1 }}>✉️ ส่งอีเมล</Btn>
-              <Btn onClick={() => setEmailModal(null)} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+              }} color="#3B82F6" style={{ flex: 1 }}>âœ‰ï¸ à¸ªà¹ˆà¸‡à¸­à¸µà¹€à¸¡à¸¥</Btn>
+              <Btn onClick={() => setEmailModal(null)} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</Btn>
             </div>
           </div>
         </Modal>
       )}
 
-      {/* ── Split Modal ── */}
+      {/* â”€â”€ Split Modal â”€â”€ */}
       {splitModal && (
         <SplitModal
           srcDoc={splitModal.srcDoc}
@@ -6354,7 +6354,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           onConfirm={(finalDoc) => {
             setEditing(finalDoc);
             setSplitModal(null);
-            showToast(`สร้าง${DOC_TYPES[finalDoc.type]?.label}แบบแบ่งจ่ายจาก ${splitModal.srcDoc.docNo}`);
+            showToast(`à¸ªà¸£à¹‰à¸²à¸‡${DOC_TYPES[finalDoc.type]?.label}à¹à¸šà¸šà¹à¸šà¹ˆà¸‡à¸ˆà¹ˆà¸²à¸¢à¸ˆà¸²à¸ ${splitModal.srcDoc.docNo}`);
           }}
           onClose={() => setSplitModal(null)}
         />
@@ -6364,11 +6364,11 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
 }
 
 // ============================================================
-// SPLIT MODAL — เลือกรายการ/ยอดแบ่งจ่าย
+// SPLIT MODAL â€” à¹€à¸¥à¸·à¸­à¸à¸£à¸²à¸¢à¸à¸²à¸£/à¸¢à¸­à¸”à¹à¸šà¹ˆà¸‡à¸ˆà¹ˆà¸²à¸¢
 // ============================================================
 function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
   const dt = DOC_TYPES[newDoc.type];
-  // เริ่มต้น: เลือกทุกรายการ เต็มจำนวน
+  // à¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™: à¹€à¸¥à¸·à¸­à¸à¸—à¸¸à¸à¸£à¸²à¸¢à¸à¸²à¸£ à¹€à¸•à¹‡à¸¡à¸ˆà¸³à¸™à¸§à¸™
   const [items, setItems] = useState(
     srcDoc.items.map(i => ({ ...i, selectedQty: i.qty, selected: true }))
   );
@@ -6391,9 +6391,9 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
   };
 
   return (
-    <Modal title={`สร้าง${dt?.label} (แบ่งจ่าย)`} onClose={onClose} width={600}>
+    <Modal title={`à¸ªà¸£à¹‰à¸²à¸‡${dt?.label} (à¹à¸šà¹ˆà¸‡à¸ˆà¹ˆà¸²à¸¢)`} onClose={onClose} width={600}>
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 16 }}>
-        <div style={{ fontSize: 13, color: "#A8B0C0" }}>เลือกรายการที่ต้องการวางบิล/แจ้งหนี้ในรอบนี้</div>
+        <div style={{ fontSize: 13, color: "#A8B0C0" }}>à¹€à¸¥à¸·à¸­à¸à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸§à¸²à¸‡à¸šà¸´à¸¥/à¹à¸ˆà¹‰à¸‡à¸«à¸™à¸µà¹‰à¹ƒà¸™à¸£à¸­à¸šà¸™à¸µà¹‰</div>
 
         <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
           {items.map(item => (
@@ -6405,30 +6405,30 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
                 {item.subTitle && <div style={{ fontSize: 11, color: "#888" }}>{item.subTitle}</div>}
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-                <div style={{ fontSize: 11, color: "#888" }}>จาก {fmtMoney(item.qty)} {item.unit}</div>
+                <div style={{ fontSize: 11, color: "#888" }}>à¸ˆà¸²à¸ {fmtMoney(item.qty)} {item.unit}</div>
                 <input type="number" value={item.selectedQty} min={0} max={item.qty} step={0.01}
                   onClick={e => e.stopPropagation()}
                   onChange={e => { setQty(item.id, e.target.value); if (!item.selected) toggleItem(item.id); }}
                   style={{ width: 70, textAlign: "right", fontSize: 13, padding: "4px 8px" }} />
                 <div style={{ fontSize: 11, color: "#888", width: 30 }}>{item.unit}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#FF6B00", width: 90, textAlign: "right" }}>฿{fmtMoney(lineAmount({ ...item, qty: item.selectedQty }))}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#FF6B00", width: 90, textAlign: "right" }}>à¸¿{fmtMoney(lineAmount({ ...item, qty: item.selectedQty }))}</div>
               </div>
             </div>
           ))}
         </div>
 
-        <Field label="หมายเหตุการแบ่งจ่าย">
-          <input value={splitNote} onChange={e => setSplitNote(e.target.value)} placeholder="เช่น งวดที่ 1/2" />
+        <Field label="à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¸à¸²à¸£à¹à¸šà¹ˆà¸‡à¸ˆà¹ˆà¸²à¸¢">
+          <input value={splitNote} onChange={e => setSplitNote(e.target.value)} placeholder="à¹€à¸Šà¹ˆà¸™ à¸‡à¸§à¸”à¸—à¸µà¹ˆ 1/2" />
         </Field>
 
         <div style={{ background: "#0B0F19", borderRadius: 8, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 13, color: "#A8B0C0" }}>ยอดรวมที่เลือก ({selectedItems.length} รายการ)</span>
-          <span style={{ fontSize: 18, fontWeight: 800, color: dt?.color }}>฿{fmtMoney(subTotal)}</span>
+          <span style={{ fontSize: 13, color: "#A8B0C0" }}>à¸¢à¸­à¸”à¸£à¸§à¸¡à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸ ({selectedItems.length} à¸£à¸²à¸¢à¸à¸²à¸£)</span>
+          <span style={{ fontSize: 18, fontWeight: 800, color: dt?.color }}>à¸¿{fmtMoney(subTotal)}</span>
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>
-          <Btn onClick={confirm} color={dt?.color} style={{ flex: 1 }} disabled={selectedItems.length === 0}>✅ สร้างเอกสาร</Btn>
-          <Btn onClick={onClose} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+          <Btn onClick={confirm} color={dt?.color} style={{ flex: 1 }} disabled={selectedItems.length === 0}>âœ… à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£</Btn>
+          <Btn onClick={onClose} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</Btn>
         </div>
       </div>
     </Modal>
@@ -6445,14 +6445,14 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   const setBool = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.checked }));
   const dt = DOC_TYPES[type];
 
-  // ── ลูกค้า ──────────────────────────────────────────────
+  // â”€â”€ à¸¥à¸¹à¸à¸„à¹‰à¸² â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const setCust = (id) => {
     const c = customers.find(c => c.id === id);
     setF(prev => ({ ...prev, customerId: id, customerName: c?.name || "" }));
   };
 
-  // ── รายการสินค้า ─────────────────────────────────────────
-  const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0, costUnit: "piece", priceUnit: "piece", widthM: 1, heightM: 1, pieces: 1 }] }));
+  // â”€â”€ à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸² â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", subTitle: "", detail: "", unit: "à¸Šà¸´à¹‰à¸™", qty: 1, price: 0, costUnit: "piece", priceUnit: "piece", widthM: 1, heightM: 1, pieces: 1 }] }));
   const removeItem = (id) => setF(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
   const setItem = (id, k, v) => setF(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, [k]: (["qty", "price", "costSnapshot"].includes(k)) ? parseFloat(v) || 0 : v } : i) }));
   const setItemDimension = (id, key, value) => setF(prev => ({
@@ -6480,7 +6480,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
       return {
         ...i,
         name: p.name,
-        unit: isSqm ? "ตร.ม." : p.unit,
+        unit: isSqm ? "à¸•à¸£.à¸¡." : p.unit,
         price: p.price,
         costSnapshot: p.cost || 0,
         costUnit,
@@ -6494,13 +6494,13 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
     }) }));
   };
 
-  // ── คำนวณ ────────────────────────────────────────────────
+  // â”€â”€ à¸„à¸³à¸™à¸§à¸“ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const { subtotal, discountAmt: discAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue } = calcDocTotal(f, allDocuments);
 
-  // ── เอกสารอ้างอิง (Order linking) ─────────────────────────
+  // â”€â”€ à¹€à¸­à¸à¸ªà¸²à¸£à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡ (Order linking) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const relatedOrders = (allDocuments || []).filter(d => d.id !== doc.id && d.customerId === f.customerId);
 
-  // ── Styles ───────────────────────────────────────────────
+  // â”€â”€ Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const card = { background: "#1A2233", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "18px 20px", display: "flex" as const, flexDirection: "column" as const, gap: 14 };
   const sectionBar = (color: string) => ({ width: 4, height: 20, background: color, borderRadius: 2, display: "inline-block", marginRight: 8, flexShrink: 0 });
   const secHead = (num: string, text: string, color = "#FF6B00") => (
@@ -6514,17 +6514,17 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-      {/* ── SECTION 1: ข้อมูลเอกสาร ── */}
+      {/* â”€â”€ SECTION 1: à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹€à¸­à¸à¸ªà¸²à¸£ â”€â”€ */}
       <div style={card}>
-        {secHead("1", "ข้อมูลเอกสาร")}
+        {secHead("1", "à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹€à¸­à¸à¸ªà¸²à¸£")}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-          <Field label="เลขที่เอกสาร *"><input value={f.docNo} onChange={set("docNo")} /></Field>
-          <Field label="วันที่ออกเอกสาร"><input type="date" value={f.date} onChange={set("date")} /></Field>
-          <Field label={DOC_TYPES[type]?.prefix === "QT" ? "ยืนยันราคาถึงวันที่" : "วันครบกำหนด"}><input type="date" value={f.dueDate} onChange={set("dueDate")} /></Field>
+          <Field label="à¹€à¸¥à¸‚à¸—à¸µà¹ˆà¹€à¸­à¸à¸ªà¸²à¸£ *"><input value={f.docNo} onChange={set("docNo")} /></Field>
+          <Field label="à¸§à¸±à¸™à¸—à¸µà¹ˆà¸­à¸­à¸à¹€à¸­à¸à¸ªà¸²à¸£"><input type="date" value={f.date} onChange={set("date")} /></Field>
+          <Field label={DOC_TYPES[type]?.prefix === "QT" ? "à¸¢à¸·à¸™à¸¢à¸±à¸™à¸£à¸²à¸„à¸²à¸–à¸¶à¸‡à¸§à¸±à¸™à¸—à¸µà¹ˆ" : "à¸§à¸±à¸™à¸„à¸£à¸šà¸à¸³à¸«à¸™à¸”"}><input type="date" value={f.dueDate} onChange={set("dueDate")} /></Field>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="พนักงานขาย"><input value={f.salesPerson || ""} onChange={set("salesPerson")} placeholder="ชื่อพนักงาน" /></Field>
-          <Field label="โครงการ / ชื่องาน"><input value={f.projectName || ""} onChange={set("projectName")} placeholder="ระบุชื่อโครงการ" /></Field>
+          <Field label="à¸žà¸™à¸±à¸à¸‡à¸²à¸™à¸‚à¸²à¸¢"><input value={f.salesPerson || ""} onChange={set("salesPerson")} placeholder="à¸Šà¸·à¹ˆà¸­à¸žà¸™à¸±à¸à¸‡à¸²à¸™" /></Field>
+          <Field label="à¹‚à¸„à¸£à¸‡à¸à¸²à¸£ / à¸Šà¸·à¹ˆà¸­à¸‡à¸²à¸™"><input value={f.projectName || ""} onChange={set("projectName")} placeholder="à¸£à¸°à¸šà¸¸à¸Šà¸·à¹ˆà¸­à¹‚à¸„à¸£à¸‡à¸à¸²à¸£" /></Field>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Field label="Lead Source (internal only)">
@@ -6540,7 +6540,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
             </select>
           </Field>
           <Field label="Campaign (internal only)">
-            <input value={f.marketingCampaign || ""} onChange={set("marketingCampaign")} placeholder="เช่น EN_MSN_Vinyl" />
+            <input value={f.marketingCampaign || ""} onChange={set("marketingCampaign")} placeholder="à¹€à¸Šà¹ˆà¸™ EN_MSN_Vinyl" />
           </Field>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -6555,12 +6555,12 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
           Internal marketing fields are used for KPI attribution only and will not appear in shared or printed PDF documents.
         </div>
         {/* Order Reference Linking */}
-        <Field label="🔗 อ้างอิงเอกสาร (Order เดียวกัน)">
+        <Field label="ðŸ”— à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¹€à¸­à¸à¸ªà¸²à¸£ (Order à¹€à¸”à¸µà¸¢à¸§à¸à¸±à¸™)">
           <select value={f.orderId || ""} onChange={set("orderId")}>
-            <option value="">-- ไม่อ้างอิง --</option>
+            <option value="">-- à¹„à¸¡à¹ˆà¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡ --</option>
             {relatedOrders.map(d => (
               <option key={d.id} value={d.id}>
-                {d.docNo} · {DOC_TYPES[d.type]?.label} · {d.customerName} ({STATUS_LABELS[d.status]})
+                {d.docNo} Â· {DOC_TYPES[d.type]?.label} Â· {d.customerName} ({STATUS_LABELS[d.status]})
               </option>
             ))}
           </select>
@@ -6571,10 +6571,10 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
           const linkedDocs = (allDocuments || []).filter(d => d.orderId === f.orderId || d.id === f.orderId);
           return (
             <div style={{ background: "#0B0F19", borderRadius: 8, padding: "10px 14px", fontSize: 12, display: "flex", flexDirection: "column" as const, gap: 6 }}>
-              <div style={{ color: "#FF6B00", fontWeight: 700, fontSize: 11, marginBottom: 4 }}>📋 เอกสารในชุดเดียวกัน</div>
+              <div style={{ color: "#FF6B00", fontWeight: 700, fontSize: 11, marginBottom: 4 }}>ðŸ“‹ à¹€à¸­à¸à¸ªà¸²à¸£à¹ƒà¸™à¸Šà¸¸à¸”à¹€à¸”à¸µà¸¢à¸§à¸à¸±à¸™</div>
               {linkedDocs.map(d => (
                 <div key={d.id} style={{ display: "flex", justifyContent: "space-between", color: d.id === f.orderId ? "#fff" : "#A8B0C0" }}>
-                  <span>{DOC_TYPES[d.type]?.label} — <span style={{ fontFamily: "monospace", color: DOC_TYPES[d.type]?.color }}>{d.docNo}</span></span>
+                  <span>{DOC_TYPES[d.type]?.label} â€” <span style={{ fontFamily: "monospace", color: DOC_TYPES[d.type]?.color }}>{d.docNo}</span></span>
                   <span style={{ background: STATUS_COLORS[d.status] + "22", color: STATUS_COLORS[d.status], padding: "1px 8px", borderRadius: 99, fontSize: 10 }}>{STATUS_LABELS[d.status]}</span>
                 </div>
               ))}
@@ -6583,12 +6583,12 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         })()}
       </div>
 
-      {/* ── SECTION 2: ลูกค้า ── */}
+      {/* â”€â”€ SECTION 2: à¸¥à¸¹à¸à¸„à¹‰à¸² â”€â”€ */}
       <div style={card}>
-        {secHead("2", "ข้อมูลลูกค้า", "#3B82F6")}
-        <Field label="ลูกค้า *">
+        {secHead("2", "à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¸¹à¸à¸„à¹‰à¸²", "#3B82F6")}
+        <Field label="à¸¥à¸¹à¸à¸„à¹‰à¸² *">
           <select value={f.customerId} onChange={e => setCust(e.target.value)}>
-            <option value="">-- เลือกลูกค้า --</option>
+            <option value="">-- à¹€à¸¥à¸·à¸­à¸à¸¥à¸¹à¸à¸„à¹‰à¸² --</option>
             {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </Field>
@@ -6598,21 +6598,21 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
           return (
             <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
               <div style={{ background: "#0B0F19", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#A8B0C0", display: "flex", flexDirection: "column" as const, gap: 4 }}>
-                {c.phone && <div>📞 {c.phone}</div>}
-                {c.taxId && <div>🪪 เลขผู้เสียภาษี: {c.taxId}</div>}
+                {c.phone && <div>ðŸ“ž {c.phone}</div>}
+                {c.taxId && <div>ðŸªª à¹€à¸¥à¸‚à¸œà¸¹à¹‰à¹€à¸ªà¸µà¸¢à¸ à¸²à¸©à¸µ: {c.taxId}</div>}
               </div>
-              <Field label="📍 ที่อยู่ในเอกสาร (แก้ไขได้เฉพาะเอกสารนี้)">
+              <Field label="ðŸ“ à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆà¹ƒà¸™à¹€à¸­à¸à¸ªà¸²à¸£ (à¹à¸à¹‰à¹„à¸‚à¹„à¸”à¹‰à¹€à¸‰à¸žà¸²à¸°à¹€à¸­à¸à¸ªà¸²à¸£à¸™à¸µà¹‰)">
                 <textarea
                   value={f.overrideAddress !== undefined && f.overrideAddress !== "" ? f.overrideAddress : (c.address || "")}
                   onChange={e => setF(prev => ({ ...prev, overrideAddress: e.target.value }))}
                   rows={3}
-                  placeholder={c.address || "ระบุที่อยู่..."}
+                  placeholder={c.address || "à¸£à¸°à¸šà¸¸à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆ..."}
                   style={{ resize: "vertical", fontFamily: "inherit", fontSize: 12 }}
                 />
                 {f.overrideAddress && f.overrideAddress !== c.address && (
-                  <button onClick={() => setF(prev => ({ ...prev, overrideAddress: "" }))}
+                  <button type="button" onClick={() => setF(prev => ({ ...prev, overrideAddress: "" }))}
                     style={{ marginTop: 4, background: "transparent", border: "none", color: "#6B7280", fontSize: 11, cursor: "pointer", padding: 0, fontFamily: "inherit", textAlign: "left" as const }}>
-                    ↩ คืนค่าที่อยู่เดิมของลูกค้า
+                    â†© à¸„à¸·à¸™à¸„à¹ˆà¸²à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆà¹€à¸”à¸´à¸¡à¸‚à¸­à¸‡à¸¥à¸¹à¸à¸„à¹‰à¸²
                   </button>
                 )}
               </Field>
@@ -6621,15 +6621,15 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         })()}
       </div>
 
-      {/* ── SECTION 3: รายการสินค้า ── */}
+      {/* â”€â”€ SECTION 3: à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸² â”€â”€ */}
       <div style={card}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          {secHead("3", "รายการสินค้าและบริการ", "#10B981")}
-          <Btn onClick={addItem} color={dt.color} small>+ เพิ่มรายการ</Btn>
+          {secHead("3", "à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸¥à¸°à¸šà¸£à¸´à¸à¸²à¸£", "#10B981")}
+          <Btn onClick={addItem} color={dt.color} small>+ à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£</Btn>
         </div>
 
         {f.items.length === 0 && (
-          <div style={{ padding: "20px", textAlign: "center", color: "#555", fontSize: 13 }}>กด "+ เพิ่มรายการ" เพื่อเพิ่มสินค้า</div>
+          <div style={{ padding: "20px", textAlign: "center", color: "#555", fontSize: 13 }}>à¸à¸” "+ à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£" à¹€à¸žà¸·à¹ˆà¸­à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²</div>
         )}
 
         {f.items.map((item, idx) => (
@@ -6646,50 +6646,50 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
               return (
                 <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: dt.color }}>รายการ #{String(idx + 1).padStart(2, "0")}</span>
-              <IconBtn onClick={() => removeItem(item.id)} danger small>🗑 ลบออก</IconBtn>
+              <span style={{ fontSize: 12, fontWeight: 700, color: dt.color }}>à¸£à¸²à¸¢à¸à¸²à¸£ #{String(idx + 1).padStart(2, "0")}</span>
+              <IconBtn onClick={() => removeItem(item.id)} danger small>ðŸ—‘ à¸¥à¸šà¸­à¸­à¸</IconBtn>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field label="รายการหลัก (EN)">
+              <Field label="à¸£à¸²à¸¢à¸à¸²à¸£à¸«à¸¥à¸±à¸ (EN)">
                 <div style={{ display: "flex", gap: 6 }}>
                   <select onChange={e => pickProduct(item.id, e.target.value)} style={{ width: 100, fontSize: 11, padding: "4px 6px" }} defaultValue="">
-                    <option value="">เลือก</option>
-                    {products.map(p => <option key={p.id} value={p.id}>{p.supplierName ? `${p.name} — ${p.supplierName}` : p.name}</option>)}
+                    <option value="">à¹€à¸¥à¸·à¸­à¸</option>
+                    {products.map(p => <option key={p.id} value={p.id}>{p.supplierName ? `${p.name} â€” ${p.supplierName}` : p.name}</option>)}
                   </select>
-                  <input value={item.name} onChange={e => setItem(item.id, "name", e.target.value)} placeholder="ชื่อรายการ" style={{ flex: 1 }} />
+                  <input value={item.name} onChange={e => setItem(item.id, "name", e.target.value)} placeholder="à¸Šà¸·à¹ˆà¸­à¸£à¸²à¸¢à¸à¸²à¸£" style={{ flex: 1 }} />
                 </div>
               </Field>
-              <Field label="รายการรอง (TH)">
-                <input value={item.subTitle || ""} onChange={e => setItem(item.id, "subTitle", e.target.value)} placeholder="ชื่อภาษาไทย" />
+              <Field label="à¸£à¸²à¸¢à¸à¸²à¸£à¸£à¸­à¸‡ (TH)">
+                <input value={item.subTitle || ""} onChange={e => setItem(item.id, "subTitle", e.target.value)} placeholder="à¸Šà¸·à¹ˆà¸­à¸ à¸²à¸©à¸²à¹„à¸—à¸¢" />
               </Field>
             </div>
-            <Field label="รายละเอียดทางเทคนิค (พิมพ์บรรทัดละหัวข้อ)">
-              <textarea value={item.detail || ""} onChange={e => setItem(item.id, "detail", e.target.value)} rows={3} style={{ resize: "vertical", fontFamily: "inherit" }} placeholder={"ขนาด 120 x 300 cm.\nโครงสร้างอลูมิเนียม\nติดตั้งหน้างาน"} />
+            <Field label="à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¸—à¸²à¸‡à¹€à¸—à¸„à¸™à¸´à¸„ (à¸žà¸´à¸¡à¸žà¹Œà¸šà¸£à¸£à¸—à¸±à¸”à¸¥à¸°à¸«à¸±à¸§à¸‚à¹‰à¸­)">
+              <textarea value={item.detail || ""} onChange={e => setItem(item.id, "detail", e.target.value)} rows={3} style={{ resize: "vertical", fontFamily: "inherit" }} placeholder={"à¸‚à¸™à¸²à¸” 120 x 300 cm.\nà¹‚à¸„à¸£à¸‡à¸ªà¸£à¹‰à¸²à¸‡à¸­à¸¥à¸¹à¸¡à¸´à¹€à¸™à¸µà¸¢à¸¡\nà¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¸«à¸™à¹‰à¸²à¸‡à¸²à¸™"} />
             </Field>
             {isSqm && (
               <div style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: 10, padding: 12 }}>
-                <div style={{ color: "#10B981", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>คำนวณพื้นที่งานพิมพ์</div>
+                <div style={{ color: "#10B981", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>à¸„à¸³à¸™à¸§à¸“à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œ</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1.2fr", gap: 10 }}>
-                  <Field label="กว้าง (เมตร)"><input type="number" value={item.widthM ?? 1} onChange={e => setItemDimension(item.id, "widthM", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
-                  <Field label="สูง (เมตร)"><input type="number" value={item.heightM ?? 1} onChange={e => setItemDimension(item.id, "heightM", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
-                  <Field label="จำนวนชิ้น"><input type="number" value={item.pieces ?? 1} onChange={e => setItemDimension(item.id, "pieces", e.target.value)} min="0" step="1" style={{ textAlign: "center" }} /></Field>
-                  <Field label="พื้นที่รวม (ตร.ม.)"><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center", color: "#10B981", fontWeight: 700 }} /></Field>
+                  <Field label="à¸à¸§à¹‰à¸²à¸‡ (à¹€à¸¡à¸•à¸£)"><input type="number" value={item.widthM ?? 1} onChange={e => setItemDimension(item.id, "widthM", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
+                  <Field label="à¸ªà¸¹à¸‡ (à¹€à¸¡à¸•à¸£)"><input type="number" value={item.heightM ?? 1} onChange={e => setItemDimension(item.id, "heightM", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
+                  <Field label="à¸ˆà¸³à¸™à¸§à¸™à¸Šà¸´à¹‰à¸™"><input type="number" value={item.pieces ?? 1} onChange={e => setItemDimension(item.id, "pieces", e.target.value)} min="0" step="1" style={{ textAlign: "center" }} /></Field>
+                  <Field label="à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸£à¸§à¸¡ (à¸•à¸£.à¸¡.)"><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center", color: "#10B981", fontWeight: 700 }} /></Field>
                 </div>
                 <div style={{ marginTop: 8, fontSize: 12, color: "#A8B0C0" }}>
-                  {fmtMoney(widthM)} x {fmtMoney(heightM)} x {fmtMoney(pieces)} = <strong style={{ color: "#10B981" }}>{fmtMoney(area)} ตร.ม.</strong>
+                  {fmtMoney(widthM)} x {fmtMoney(heightM)} x {fmtMoney(pieces)} = <strong style={{ color: "#10B981" }}>{fmtMoney(area)} à¸•à¸£.à¸¡.</strong>
                 </div>
               </div>
             )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10 }}>
-              <Field label={isSqm ? "จำนวนที่คิดเงิน" : "จำนวน"}><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
-              <Field label="หน่วย"><input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} style={{ textAlign: "center" }} /></Field>
-              <Field label={`ต้นทุน (${priceBasisLabel(item.costUnit)})`}>
+              <Field label={isSqm ? "à¸ˆà¸³à¸™à¸§à¸™à¸—à¸µà¹ˆà¸„à¸´à¸”à¹€à¸‡à¸´à¸™" : "à¸ˆà¸³à¸™à¸§à¸™"}><input type="number" value={item.qty} onChange={e => setItem(item.id, "qty", e.target.value)} min="0" step="0.01" style={{ textAlign: "center" }} /></Field>
+              <Field label="à¸«à¸™à¹ˆà¸§à¸¢"><input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} style={{ textAlign: "center" }} /></Field>
+              <Field label={`à¸•à¹‰à¸™à¸—à¸¸à¸™ (${priceBasisLabel(item.costUnit)})`}>
                 <div style={{ position: "relative" }}>
                   <input type="number" value={item.costSnapshot || 0} onChange={e => setItem(item.id, "costSnapshot", e.target.value)} min="0" step="0.01" style={{ textAlign: "right", paddingRight: 36, color: "#ef4444", fontWeight: 700 }} />
                   <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#555" }}>THB</span>
                 </div>
               </Field>
-              <Field label={`ราคาขาย (${priceBasisLabel(item.priceUnit)})`}>
+              <Field label={`à¸£à¸²à¸„à¸²à¸‚à¸²à¸¢ (${priceBasisLabel(item.priceUnit)})`}>
                 <div style={{ position: "relative" }}>
                   <input type="number" value={item.price} onChange={e => setItem(item.id, "price", e.target.value)} min="0" step="0.01" style={{ textAlign: "right", paddingRight: 36 }} />
                   <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#555" }}>THB</span>
@@ -6697,15 +6697,15 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
               </Field>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 14, fontSize: 12, fontWeight: 600, color: "#8B95A7", flexWrap: "wrap" }}>
-              <span>จำนวนคิดต้นทุน: {fmtMoney(costCalcQty)} {isSqmBasis(item.costUnit) ? "ตร.ม." : "ชิ้น"}</span>
-              <span>จำนวนคิดขาย: {fmtMoney(priceCalcQty)} {isSqmBasis(item.priceUnit) ? "ตร.ม." : "ชิ้น"}</span>
+              <span>à¸ˆà¸³à¸™à¸§à¸™à¸„à¸´à¸”à¸•à¹‰à¸™à¸—à¸¸à¸™: {fmtMoney(costCalcQty)} {isSqmBasis(item.costUnit) ? "à¸•à¸£.à¸¡." : "à¸Šà¸´à¹‰à¸™"}</span>
+              <span>à¸ˆà¸³à¸™à¸§à¸™à¸„à¸´à¸”à¸‚à¸²à¸¢: {fmtMoney(priceCalcQty)} {isSqmBasis(item.priceUnit) ? "à¸•à¸£.à¸¡." : "à¸Šà¸´à¹‰à¸™"}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 14, fontSize: 13, fontWeight: 700 }}>
               {(item.supplierName || findProductForItem(products, item)?.supplierName) && (
                 <span style={{ color: "#F97316" }}>Supplier: {item.supplierName || findProductForItem(products, item)?.supplierName}</span>
               )}
-              <span style={{ color: "#ef4444" }}>ต้นทุน: ฿{fmtMoney(lineCost(item))}</span>
-              <span style={{ color: dt.color }}>รวม: ฿{fmtMoney(lineAmount(item))}</span>
+              <span style={{ color: "#ef4444" }}>à¸•à¹‰à¸™à¸—à¸¸à¸™: à¸¿{fmtMoney(lineCost(item))}</span>
+              <span style={{ color: dt.color }}>à¸£à¸§à¸¡: à¸¿{fmtMoney(lineAmount(item))}</span>
             </div>
                 </>
               );
@@ -6713,56 +6713,56 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
           </div>
         ))}
 
-        {/* ส่วนลด */}
+        {/* à¸ªà¹ˆà¸§à¸™à¸¥à¸” */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 12 }}>
-          <Field label="ประเภทส่วนลด">
+          <Field label="à¸›à¸£à¸°à¹€à¸ à¸—à¸ªà¹ˆà¸§à¸™à¸¥à¸”">
             <select value={f.discountType || "percent"} onChange={(e) => setF(prev => ({ ...prev, discountType: e.target.value, discount: 0 }))} style={{ borderColor: "#FF6B0044", color: "#FF6B00", fontWeight: 700 }}>
-              <option value="percent">ลดเป็น %</option>
-              <option value="amount">ลดเป็นจำนวนเงิน</option>
+              <option value="percent">à¸¥à¸”à¹€à¸›à¹‡à¸™ %</option>
+              <option value="amount">à¸¥à¸”à¹€à¸›à¹‡à¸™à¸ˆà¸³à¸™à¸§à¸™à¹€à¸‡à¸´à¸™</option>
             </select>
           </Field>
-          <Field label="จำนวนส่วนลด (%)">
-            <input type="number" value={f.discount} onChange={setN("discount")} min="0" max={(f.discountType || "percent") === "amount" ? undefined : "100"} step="0.01" placeholder={(f.discountType || "percent") === "amount" ? "เช่น 500" : "เช่น 10"} style={{ borderColor: "#FF6B0044", color: "#FF6B00", fontWeight: 700 }} />
+          <Field label="à¸ˆà¸³à¸™à¸§à¸™à¸ªà¹ˆà¸§à¸™à¸¥à¸” (%)">
+            <input type="number" value={f.discount} onChange={setN("discount")} min="0" max={(f.discountType || "percent") === "amount" ? undefined : "100"} step="0.01" placeholder={(f.discountType || "percent") === "amount" ? "à¹€à¸Šà¹ˆà¸™ 500" : "à¹€à¸Šà¹ˆà¸™ 10"} style={{ borderColor: "#FF6B0044", color: "#FF6B00", fontWeight: 700 }} />
           </Field>
         </div>
       </div>
 
-      {/* ── SECTION 4: ชำระเงิน & หมายเหตุ ── */}
+      {/* â”€â”€ SECTION 4: à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™ & à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸ â”€â”€ */}
       <div style={card}>
-        {secHead("4", "ข้อมูลชำระเงิน & หมายเหตุ", "#8B5CF6")}
+        {secHead("4", "à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™ & à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸", "#8B5CF6")}
 
-        {/* ข้อมูลบัญชี */}
-        <Field label="ชื่อบัญชีรับเงิน">
-          <input value={f.bankName ?? ""} onChange={set("bankName")} placeholder="ชื่อบัญชีธนาคาร" />
+        {/* à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸šà¸±à¸à¸Šà¸µ */}
+        <Field label="à¸Šà¸·à¹ˆà¸­à¸šà¸±à¸à¸Šà¸µà¸£à¸±à¸šà¹€à¸‡à¸´à¸™">
+          <input value={f.bankName ?? ""} onChange={set("bankName")} placeholder="à¸Šà¸·à¹ˆà¸­à¸šà¸±à¸à¸Šà¸µà¸˜à¸™à¸²à¸„à¸²à¸£" />
         </Field>
-        <Field label="ธนาคาร & สาขา">
-          <input value={f.bankBranch ?? ""} onChange={set("bankBranch")} placeholder="เช่น ธนาคารกสิกรไทย สาขาบางบัวทอง" />
+        <Field label="à¸˜à¸™à¸²à¸„à¸²à¸£ & à¸ªà¸²à¸‚à¸²">
+          <input value={f.bankBranch ?? ""} onChange={set("bankBranch")} placeholder="à¹€à¸Šà¹ˆà¸™ à¸˜à¸™à¸²à¸„à¸²à¸£à¸à¸ªà¸´à¸à¸£à¹„à¸—à¸¢ à¸ªà¸²à¸‚à¸²à¸šà¸²à¸‡à¸šà¸±à¸§à¸—à¸­à¸‡" />
         </Field>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="เลขที่บัญชี">
+          <Field label="à¹€à¸¥à¸‚à¸—à¸µà¹ˆà¸šà¸±à¸à¸Šà¸µ">
             <input value={f.bankAccount ?? ""} onChange={set("bankAccount")} placeholder="xxx-x-xxxxx-x" />
           </Field>
-          <Field label="ประเภทบัญชี">
-            <input value={f.bankType ?? ""} onChange={set("bankType")} placeholder="ออมทรัพย์" />
+          <Field label="à¸›à¸£à¸°à¹€à¸ à¸—à¸šà¸±à¸à¸Šà¸µ">
+            <input value={f.bankType ?? ""} onChange={set("bankType")} placeholder="à¸­à¸­à¸¡à¸—à¸£à¸±à¸žà¸¢à¹Œ" />
           </Field>
         </div>
 
-        {/* QR Code อัปโหลด */}
+        {/* QR Code à¸­à¸±à¸›à¹‚à¸«à¸¥à¸” */}
         <div>
           <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>
-            อัปโหลดรูปภาพ QR CODE ชำระเงิน
+            à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›à¸ à¸²à¸ž QR CODE à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™
           </label>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {/* Preview */}
             <div style={{ width: 72, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
               {f.qrImage
                 ? <img src={f.qrImage} alt="QR" style={{ width: 64, height: 64, objectFit: "contain" }} />
-                : <span style={{ fontSize: 28 }}>📷</span>
+                : <span style={{ fontSize: 28 }}>ðŸ“·</span>
               }
             </div>
             <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, flex: 1 }}>
               <label style={{ cursor: "pointer", background: "rgba(255,107,0,0.1)", border: "1px solid rgba(255,107,0,0.3)", color: "#FF6B00", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, textAlign: "center" as const, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                <span>📁</span> เลือกไฟล์รูปภาพ QR Code
+                <span>ðŸ“</span> à¹€à¸¥à¸·à¸­à¸à¹„à¸Ÿà¸¥à¹Œà¸£à¸¹à¸›à¸ à¸²à¸ž QR Code
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
                   const file = e.target.files?.[0];
                   if (!file) return;
@@ -6772,9 +6772,9 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
                 }} />
               </label>
               {f.qrImage && (
-                <button onClick={() => setF(prev => ({ ...prev, qrImage: "" }))}
+                <button type="button" onClick={() => setF(prev => ({ ...prev, qrImage: "" }))}
                   style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
-                  🗑 ลบรูป QR Code
+                  ðŸ—‘ à¸¥à¸šà¸£à¸¹à¸› QR Code
                 </button>
               )}
             </div>
@@ -6784,7 +6784,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         {/* VAT / WHT */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 14, display: "flex", gap: 16, flexWrap: "wrap" as const }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
-            <input type="checkbox" checked={f.vat} onChange={setBool("vat")} style={{ width: "auto" }} />คิด VAT
+            <input type="checkbox" checked={f.vat} onChange={setBool("vat")} style={{ width: "auto" }} />à¸„à¸´à¸” VAT
           </label>
           {f.vat && (
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -6793,7 +6793,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
             </div>
           )}
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: "#ccc" }}>
-            <input type="checkbox" checked={f.wht} onChange={setBool("wht")} style={{ width: "auto" }} />หัก ณ ที่จ่าย
+            <input type="checkbox" checked={f.wht} onChange={setBool("wht")} style={{ width: "auto" }} />à¸«à¸±à¸ à¸“ à¸—à¸µà¹ˆà¸ˆà¹ˆà¸²à¸¢
           </label>
           {f.wht && (
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -6805,95 +6805,95 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
 
         {type === "receipt" && (
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <Field label="ประเภทการรับชำระ">
+            <Field label="à¸›à¸£à¸°à¹€à¸ à¸—à¸à¸²à¸£à¸£à¸±à¸šà¸Šà¸³à¸£à¸°">
               <select value={f.paymentType || "deposit"} onChange={set("paymentType")}>
-                <option value="deposit">รับมัดจำ / เงินก้อนแรก</option>
-                <option value="partial">รับชำระบางส่วน</option>
-                <option value="final">รับชำระปิดยอด</option>
-                <option value="full">รับชำระเต็มจำนวน</option>
+                <option value="deposit">à¸£à¸±à¸šà¸¡à¸±à¸”à¸ˆà¸³ / à¹€à¸‡à¸´à¸™à¸à¹‰à¸­à¸™à¹à¸£à¸</option>
+                <option value="partial">à¸£à¸±à¸šà¸Šà¸³à¸£à¸°à¸šà¸²à¸‡à¸ªà¹ˆà¸§à¸™</option>
+                <option value="final">à¸£à¸±à¸šà¸Šà¸³à¸£à¸°à¸›à¸´à¸”à¸¢à¸­à¸”</option>
+                <option value="full">à¸£à¸±à¸šà¸Šà¸³à¸£à¸°à¹€à¸•à¹‡à¸¡à¸ˆà¸³à¸™à¸§à¸™</option>
               </select>
             </Field>
-            <Field label="ยอดที่รับชำระในใบเสร็จนี้">
+            <Field label="à¸¢à¸­à¸”à¸—à¸µà¹ˆà¸£à¸±à¸šà¸Šà¸³à¸£à¸°à¹ƒà¸™à¹ƒà¸šà¹€à¸ªà¸£à¹‡à¸ˆà¸™à¸µà¹‰">
               <input type="number" value={f.paymentAmount || ""} onChange={(e) => {
                 const value = Math.max(0, Number(e.target.value || 0) || 0);
                 setF(prev => ({ ...prev, paymentAmount: value, depositPaid: value }));
               }} min="0" step="0.01" placeholder="0.00" />
             </Field>
-            <Field label="วันที่รับชำระ">
+            <Field label="à¸§à¸±à¸™à¸—à¸µà¹ˆà¸£à¸±à¸šà¸Šà¸³à¸£à¸°">
               <input type="date" value={f.paymentDate || f.depositDate || ""} onChange={(e) => {
                 setF(prev => ({ ...prev, paymentDate: e.target.value, depositDate: e.target.value }));
               }} />
             </Field>
-            <Field label="หมายเหตุการรับชำระ">
+            <Field label="à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¸à¸²à¸£à¸£à¸±à¸šà¸Šà¸³à¸£à¸°">
               <input value={f.paymentNote || ""} onChange={(e) => {
                 setF(prev => ({ ...prev, paymentNote: e.target.value, depositNote: e.target.value }));
-              }} placeholder="เช่น รับมัดจำ 50% / รับชำระงวดที่ 1" />
+              }} placeholder="à¹€à¸Šà¹ˆà¸™ à¸£à¸±à¸šà¸¡à¸±à¸”à¸ˆà¸³ 50% / à¸£à¸±à¸šà¸Šà¸³à¸£à¸°à¸‡à¸§à¸”à¸—à¸µà¹ˆ 1" />
             </Field>
             <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button type="button" onClick={() => setF(prev => ({ ...prev, paymentType: "deposit", paymentAmount: Number((netPay * 0.5).toFixed(2)), depositPaid: Number((netPay * 0.5).toFixed(2)), paymentDate: prev.paymentDate || today(), depositDate: prev.depositDate || today(), paymentNote: prev.paymentNote || "รับมัดจำ 50%", depositNote: prev.depositNote || "รับมัดจำ 50%" }))}
+              <button type="button" onClick={() => setF(prev => ({ ...prev, paymentType: "deposit", paymentAmount: Number((netPay * 0.5).toFixed(2)), depositPaid: Number((netPay * 0.5).toFixed(2)), paymentDate: prev.paymentDate || today(), depositDate: prev.depositDate || today(), paymentNote: prev.paymentNote || "à¸£à¸±à¸šà¸¡à¸±à¸”à¸ˆà¸³ 50%", depositNote: prev.depositNote || "à¸£à¸±à¸šà¸¡à¸±à¸”à¸ˆà¸³ 50%" }))}
                 style={{ background: "rgba(16,185,129,0.12)", color: "#10B981", border: "1px solid rgba(16,185,129,0.25)", borderRadius: 8, padding: "8px 12px", fontFamily: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                ตั้งมัดจำ 50%
+                à¸•à¸±à¹‰à¸‡à¸¡à¸±à¸”à¸ˆà¸³ 50%
               </button>
-              <button type="button" onClick={() => setF(prev => ({ ...prev, paymentType: "full", paymentAmount: Number(netPay.toFixed(2)), depositPaid: Number(netPay.toFixed(2)), paymentDate: prev.paymentDate || today(), depositDate: prev.depositDate || today(), paymentNote: prev.paymentNote || "รับชำระเต็มจำนวน", depositNote: prev.depositNote || "รับชำระเต็มจำนวน" }))}
+              <button type="button" onClick={() => setF(prev => ({ ...prev, paymentType: "full", paymentAmount: Number(netPay.toFixed(2)), depositPaid: Number(netPay.toFixed(2)), paymentDate: prev.paymentDate || today(), depositDate: prev.depositDate || today(), paymentNote: prev.paymentNote || "à¸£à¸±à¸šà¸Šà¸³à¸£à¸°à¹€à¸•à¹‡à¸¡à¸ˆà¸³à¸™à¸§à¸™", depositNote: prev.depositNote || "à¸£à¸±à¸šà¸Šà¸³à¸£à¸°à¹€à¸•à¹‡à¸¡à¸ˆà¸³à¸™à¸§à¸™" }))}
                 style={{ background: "rgba(255,107,0,0.12)", color: "#FF6B00", border: "1px solid rgba(255,107,0,0.25)", borderRadius: 8, padding: "8px 12px", fontFamily: "inherit", fontWeight: 700, cursor: "pointer" }}>
-                ตั้งชำระเต็มจำนวน
+                à¸•à¸±à¹‰à¸‡à¸Šà¸³à¸£à¸°à¹€à¸•à¹‡à¸¡à¸ˆà¸³à¸™à¸§à¸™
               </button>
               <div style={{ color: "#A8B0C0", fontSize: 12, lineHeight: 1.6, alignSelf: "center" }}>
-                ใช้สำหรับ ERP และยอดค้างชำระ ไม่แสดงชื่อ source หรือข้อมูลภายในบน PDF
+                à¹ƒà¸Šà¹‰à¸ªà¸³à¸«à¸£à¸±à¸š ERP à¹à¸¥à¸°à¸¢à¸­à¸”à¸„à¹‰à¸²à¸‡à¸Šà¸³à¸£à¸° à¹„à¸¡à¹ˆà¹à¸ªà¸”à¸‡à¸Šà¸·à¹ˆà¸­ source à¸«à¸£à¸·à¸­à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ à¸²à¸¢à¹ƒà¸™à¸šà¸™ PDF
               </div>
             </div>
           </div>
         )}
 
-        {/* เงินมัดจำ */}
+        {/* à¹€à¸‡à¸´à¸™à¸¡à¸±à¸”à¸ˆà¸³ */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="เงินมัดจำที่ลูกค้าชำระแล้ว">
+          <Field label="à¹€à¸‡à¸´à¸™à¸¡à¸±à¸”à¸ˆà¸³à¸—à¸µà¹ˆà¸¥à¸¹à¸à¸„à¹‰à¸²à¸Šà¸³à¸£à¸°à¹à¸¥à¹‰à¸§">
             <input type="number" value={f.depositPaid || 0} onChange={setN("depositPaid")} min="0" step="0.01" placeholder="0.00" />
           </Field>
-          <Field label="วันที่รับมัดจำ">
+          <Field label="à¸§à¸±à¸™à¸—à¸µà¹ˆà¸£à¸±à¸šà¸¡à¸±à¸”à¸ˆà¸³">
             <input type="date" value={f.depositDate || ""} onChange={set("depositDate")} />
           </Field>
           <div style={{ gridColumn: "1 / -1" }}>
-            <Field label="หมายเหตุมัดจำ">
-              <input value={f.depositNote || ""} onChange={set("depositNote")} placeholder="เช่น รับมัดจำ 50% ก่อนเริ่มผลิต / โอนผ่านธนาคาร" />
+            <Field label="à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¸¡à¸±à¸”à¸ˆà¸³">
+              <input value={f.depositNote || ""} onChange={set("depositNote")} placeholder="à¹€à¸Šà¹ˆà¸™ à¸£à¸±à¸šà¸¡à¸±à¸”à¸ˆà¸³ 50% à¸à¹ˆà¸­à¸™à¹€à¸£à¸´à¹ˆà¸¡à¸œà¸¥à¸´à¸• / à¹‚à¸­à¸™à¸œà¹ˆà¸²à¸™à¸˜à¸™à¸²à¸„à¸²à¸£" />
             </Field>
           </div>
         </div>
 
-        {/* หมายเหตุ */}
-        <Field label="หมายเหตุ / เงื่อนไข (ใส่ข้อละ 1 บรรทัด)">
+        {/* à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸ */}
+        <Field label="à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸ / à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚ (à¹ƒà¸ªà¹ˆà¸‚à¹‰à¸­à¸¥à¸° 1 à¸šà¸£à¸£à¸—à¸±à¸”)">
           <textarea value={f.notes} onChange={set("notes")} rows={4} style={{ resize: "vertical", fontFamily: "inherit" }}
-            placeholder={"ราคานี้รวมภาษีมูลค่าเพิ่ม 7% แล้ว\nระยะเวลาดำเนินงาน 7-14 วันทำการ\nมัดจำ 50% ก่อนเริ่มงาน"} />
+            placeholder={"à¸£à¸²à¸„à¸²à¸™à¸µà¹‰à¸£à¸§à¸¡à¸ à¸²à¸©à¸µà¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¹€à¸žà¸´à¹ˆà¸¡ 7% à¹à¸¥à¹‰à¸§\nà¸£à¸°à¸¢à¸°à¹€à¸§à¸¥à¸²à¸”à¸³à¹€à¸™à¸´à¸™à¸‡à¸²à¸™ 7-14 à¸§à¸±à¸™à¸—à¸³à¸à¸²à¸£\nà¸¡à¸±à¸”à¸ˆà¸³ 50% à¸à¹ˆà¸­à¸™à¹€à¸£à¸´à¹ˆà¸¡à¸‡à¸²à¸™"} />
         </Field>
       </div>
 
-      {/* ── Summary ── */}
+      {/* â”€â”€ Summary â”€â”€ */}
       <div style={{ background: "#1A2233", borderRadius: 12, padding: "16px 20px", display: "flex", flexDirection: "column" as const, gap: 8 }}>
-        <SumRow label="มูลค่ารวม (Subtotal)" value={subtotal} />
-        {f.discount > 0 && <SumRow label={(f.discountType || "percent") === "amount" ? "ส่วนลด" : `ส่วนลด ${f.discount}%`} value={-discAmt} />}
-        {f.discount > 0 && <SumRow label="หลังหักส่วนลด" value={afterDisc} />}
+        <SumRow label="à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸£à¸§à¸¡ (Subtotal)" value={subtotal} />
+        {f.discount > 0 && <SumRow label={(f.discountType || "percent") === "amount" ? "à¸ªà¹ˆà¸§à¸™à¸¥à¸”" : `à¸ªà¹ˆà¸§à¸™à¸¥à¸” ${f.discount}%`} value={-discAmt} />}
+        {f.discount > 0 && <SumRow label="à¸«à¸¥à¸±à¸‡à¸«à¸±à¸à¸ªà¹ˆà¸§à¸™à¸¥à¸”" value={afterDisc} />}
         {f.vat && <SumRow label={`VAT ${fmtMoney(docVatRate(f))}%`} value={vatAmt} />}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 4, paddingTop: 8 }}>
-          <SumRow label="ยอดรวมสุทธิ" value={total} bold color={dt.color} big />
+          <SumRow label="à¸¢à¸­à¸”à¸£à¸§à¸¡à¸ªà¸¸à¸—à¸˜à¸´" value={total} bold color={dt.color} big />
         </div>
-        {f.wht && <SumRow label={`หัก ณ ที่จ่าย ${f.whtRate}%`} value={-whtAmt} />}
-        {f.wht && <SumRow label="ยอดที่ต้องชำระ" value={netPay} bold color="#10b981" />}
-        {depositPaid > 0 && <SumRow label="มัดจำที่ชำระแล้ว" value={-depositPaid} bold color="#10b981" />}
-        {depositPaid > 0 && <SumRow label="ยอดคงเหลือที่ต้องชำระ" value={balanceDue} bold color="#FF6B00" big />}
+        {f.wht && <SumRow label={`à¸«à¸±à¸ à¸“ à¸—à¸µà¹ˆà¸ˆà¹ˆà¸²à¸¢ ${f.whtRate}%`} value={-whtAmt} />}
+        {f.wht && <SumRow label="à¸¢à¸­à¸”à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸Šà¸³à¸£à¸°" value={netPay} bold color="#10b981" />}
+        {depositPaid > 0 && <SumRow label="à¸¡à¸±à¸”à¸ˆà¸³à¸—à¸µà¹ˆà¸Šà¸³à¸£à¸°à¹à¸¥à¹‰à¸§" value={-depositPaid} bold color="#10b981" />}
+        {depositPaid > 0 && <SumRow label="à¸¢à¸­à¸”à¸„à¸‡à¹€à¸«à¸¥à¸·à¸­à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸Šà¸³à¸£à¸°" value={balanceDue} bold color="#FF6B00" big />}
       </div>
 
-      {/* ── Actions ── */}
+      {/* â”€â”€ Actions â”€â”€ */}
       <div style={{ display: "flex", gap: 10 }}>
-        <Btn onClick={() => onSave(f)} color={dt.color} style={{ flex: 1 }}>💾 บันทึกเอกสาร</Btn>
-        <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
+        <Btn onClick={() => onSave(f)} color={dt.color} style={{ flex: 1 }}>ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¹€à¸­à¸à¸ªà¸²à¸£</Btn>
+        <Btn onClick={onCancel} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</Btn>
       </div>
     </div>
   );
 }
 
-function MenuBtn({ icon, label, onClick, danger = false, color = "" }: any) {
+function MenuBtn({ icon, label, onClick, danger = false, color = "", type = "button", ...rest }: any) {
   return (
-    <button onClick={onClick}
+    <button type={type} onClick={onClick} {...rest}
       style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "12px 16px", background: "transparent", color: danger ? "#ef4444" : color || "#e2e8f0", border: "none", cursor: "pointer", fontSize: 14, fontFamily: "inherit", textAlign: "left" as const, minHeight: 46,
         transition: "background 0.15s" }}
       onMouseEnter={e => (e.currentTarget.style.background = danger ? "rgba(239,68,68,0.1)" : color ? color + "18" : "rgba(255,255,255,0.06)")}
@@ -6909,7 +6909,7 @@ function SumRow({ label, value, bold, color, big }: any) {
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <span style={{ fontSize: big ? 14 : 13, color: "#A8B0C0" }}>{label}</span>
       <span style={{ fontSize: big ? 18 : 13, fontWeight: bold ? 700 : 400, color: color || (value < 0 ? "#ef4444" : "#fff") }}>
-        {value < 0 ? "-" : ""}฿{fmtMoney(Math.abs(value))}
+        {value < 0 ? "-" : ""}à¸¿{fmtMoney(Math.abs(value))}
       </span>
     </div>
   );
@@ -6917,11 +6917,12 @@ function SumRow({ label, value, bold, color, big }: any) {
 
 function Field({ label, children }: any) { return <div><label>{label}</label>{children}</div>; }
 
-function Btn({ onClick, children, color, outline, small, style }: any) {
+function Btn({ onClick, children, color, outline, small, style, type = "button", ...rest }: any) {
+  const buttonColor = color === "#FF6B00" || color === "#FF7A00" || !color ? "#C2410C" : color;
   return (
-    <button onClick={onClick} style={{
-      background: outline ? "transparent" : (color || "#FF6B00"),
-      border: `1px solid ${outline ? "rgba(255,255,255,0.15)" : (color || "#FF6B00")}`,
+    <button type={type} onClick={onClick} {...rest} style={{
+      background: outline ? "transparent" : buttonColor,
+      border: `1px solid ${outline ? "rgba(255,255,255,0.15)" : buttonColor}`,
       color: outline ? "#A8B0C0" : "#fff",
       padding: small ? "8px 14px" : "11px 20px",
       borderRadius: 10, fontSize: small ? 13 : 14, fontWeight: 600,
@@ -6933,15 +6934,15 @@ function Btn({ onClick, children, color, outline, small, style }: any) {
   );
 }
 
-function IconBtn({ onClick, children, danger, small }: any) {
+function IconBtn({ onClick, children, danger, small, type = "button", ...rest }: any) {
   return (
-    <button onClick={onClick} style={{
+    <button type={type} onClick={onClick} {...rest} style={{
       background: danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
       border: `1px solid ${danger ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)"}`,
       color: danger ? "#ef4444" : "#A8B0C0",
       padding: small ? "6px 10px" : "8px 12px", borderRadius: 8,
       cursor: "pointer", fontSize: small ? 12 : 14, lineHeight: 1, fontFamily: "inherit",
-      minHeight: 36, display: "inline-flex", alignItems: "center",
+      minHeight: 44, minWidth: 44, display: "inline-flex", alignItems: "center", justifyContent: "center",
     }}>
       {children}
     </button>
@@ -6955,7 +6956,7 @@ function Modal({ title, onClose, children, width = 500 }: any) {
         <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
-          <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>âœ•</button>
         </div>
         <div style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
       </div>
@@ -6966,7 +6967,7 @@ function Modal({ title, onClose, children, width = 500 }: any) {
 
 
 
-// ─── LOGOUT BUTTON ───────────────────────────────────────────────────────────
+// â”€â”€â”€ LOGOUT BUTTON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function LogoutButton() {
   const router = useRouter();
   const handleLogout = async () => {
@@ -6976,7 +6977,7 @@ function LogoutButton() {
   };
   return (
     <button
-      className="admin-logout-btn"
+      type="button" className="admin-logout-btn"
       onClick={handleLogout}
       style={{
         background: "rgba(239,68,68,0.1)",
@@ -6998,18 +6999,18 @@ function LogoutButton() {
       onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.25)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.5)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)"; }}
     >
-      <span>🚪</span> <span className="admin-logout-text">ออกจากระบบ</span>
+      <span>ðŸšª</span> <span className="admin-logout-text">à¸­à¸­à¸à¸ˆà¸²à¸à¸£à¸°à¸šà¸š</span>
     </button>
   );
 }
 
-// ─── RICH TEXT EDITOR ────────────────────────────────────────────────────────
+// â”€â”€â”€ RICH TEXT EDITOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function RichEditor({ value, onChange, showToast }: { value: string; onChange: (v: string) => void; showToast: any }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  // sync ค่าเข้า editor เมื่อเปิดครั้งแรก
+  // sync à¸„à¹ˆà¸²à¹€à¸‚à¹‰à¸² editor à¹€à¸¡à¸·à¹ˆà¸­à¹€à¸›à¸´à¸”à¸„à¸£à¸±à¹‰à¸‡à¹à¸£à¸
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value || "";
@@ -7034,18 +7035,18 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
       const path = `blog/content-${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("cms-media").upload(path, file, { contentType: file.type });
-      if (uploadError) { showToast("อัปโหลดไม่ได้: " + uploadError.message, "error"); return; }
+      if (uploadError) { showToast("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + uploadError.message, "error"); return; }
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       const url = urlData?.publicUrl;
-      if (!url) { showToast("URL ไม่ถูกต้อง", "error"); return; }
+      if (!url) { showToast("URL à¹„à¸¡à¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡", "error"); return; }
       editorRef.current?.focus();
       document.execCommand("insertHTML", false,
-        `<figure style="margin:24px 0;text-align:center"><img src="${url}" alt="" style="max-width:100%;height:auto;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.15)" /><figcaption style="font-size:13px;color:#888;margin-top:8px">คำบรรยายรูปภาพ (แก้ได้)</figcaption></figure>`
+        `<figure style="margin:24px 0;text-align:center"><img src="${url}" alt="ภาพประกอบบทความ Display Works Media" style="max-width:100%;height:auto;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.15)" /><figcaption style="font-size:13px;color:#888;margin-top:8px">à¸„à¸³à¸šà¸£à¸£à¸¢à¸²à¸¢à¸£à¸¹à¸›à¸ à¸²à¸ž (à¹à¸à¹‰à¹„à¸”à¹‰)</figcaption></figure>`
       );
       sync();
-      showToast("แทรกรูปสำเร็จ ✓");
+      showToast("à¹à¸—à¸£à¸à¸£à¸¹à¸›à¸ªà¸³à¹€à¸£à¹‡à¸ˆ âœ“");
     } catch (err: any) {
-      showToast("เกิดข้อผิดพลาด: " + err?.message, "error");
+      showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + err?.message, "error");
     }
     setUploading(false);
   };
@@ -7062,30 +7063,29 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
 
   return (
     <div style={{ border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, overflow: "hidden", background: "#1A2233" }}>
-      {/* ─── TOOLBAR ─── */}
+      {/* â”€â”€â”€ TOOLBAR â”€â”€â”€ */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141A24", alignItems: "center" }}>
         {/* Heading */}
-        <select onChange={e => exec("formatBlock", e.target.value)} defaultValue=""
+        <select aria-label="Article heading style" onChange={e => exec("formatBlock", e.target.value)} defaultValue=""
           style={{ padding: "4px 6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", background: "#1A2233", color: "#ccc", fontSize: 12, cursor: "pointer", height: 28 }}>
-          <option value="">ย่อหน้า</option>
-          <option value="h1">หัวข้อ 1</option>
-          <option value="h2">หัวข้อ 2</option>
-          <option value="h3">หัวข้อ 3</option>
-          <option value="h4">หัวข้อ 4</option>
-          <option value="blockquote">อ้างอิง</option>
+          <option value="">à¸¢à¹ˆà¸­à¸«à¸™à¹‰à¸²</option>
+          <option value="h2">à¸«à¸±à¸§à¸‚à¹‰à¸­ 2</option>
+          <option value="h3">à¸«à¸±à¸§à¸‚à¹‰à¸­ 3</option>
+          <option value="h4">à¸«à¸±à¸§à¸‚à¹‰à¸­ 4</option>
+          <option value="blockquote">à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡</option>
         </select>
         <div style={divider} />
         {/* Font size */}
-        <select onChange={e => exec("fontSize", e.target.value)} defaultValue="3"
+        <select aria-label="Article font size" onChange={e => exec("fontSize", e.target.value)} defaultValue="3"
           style={{ padding: "4px 6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", background: "#1A2233", color: "#ccc", fontSize: 12, cursor: "pointer", height: 28, width: 60 }}>
           {["1","2","3","4","5","6","7"].map(s => <option key={s} value={s}>{[10,12,14,16,18,24,32][+s-1]}px</option>)}
         </select>
         <div style={divider} />
         {/* Text style */}
-        <button style={btnStyle()} onClick={() => exec("bold")} title="หนา"><b>B</b></button>
-        <button style={btnStyle()} onClick={() => exec("italic")} title="เอียง"><i>I</i></button>
-        <button style={btnStyle()} onClick={() => exec("underline")} title="ขีดเส้นใต้"><u>U</u></button>
-        <button style={btnStyle()} onClick={() => exec("strikeThrough")} title="ขีดทับ"><s>S</s></button>
+        <button type="button" aria-label="Bold" style={btnStyle()} onClick={() => exec("bold")} title="à¸«à¸™à¸²"><b>B</b></button>
+        <button type="button" aria-label="Italic" style={btnStyle()} onClick={() => exec("italic")} title="à¹€à¸­à¸µà¸¢à¸‡"><i>I</i></button>
+        <button type="button" aria-label="Underline" style={btnStyle()} onClick={() => exec("underline")} title="à¸‚à¸µà¸”à¹€à¸ªà¹‰à¸™à¹ƒà¸•à¹‰"><u>U</u></button>
+        <button type="button" aria-label="Strikethrough" style={btnStyle()} onClick={() => exec("strikeThrough")} title="à¸‚à¸µà¸”à¸—à¸±à¸š"><s>S</s></button>
         <div style={divider} />
         {/* Color */}
         <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#ccc", fontSize: 12, marginBottom: 0 }}>
@@ -7100,38 +7100,38 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
         </label>
         <div style={divider} />
         {/* Align */}
-        <button style={btnStyle()} onClick={() => exec("justifyLeft")} title="ชิดซ้าย">⬅</button>
-        <button style={btnStyle()} onClick={() => exec("justifyCenter")} title="กึ่งกลาง">≡</button>
-        <button style={btnStyle()} onClick={() => exec("justifyRight")} title="ชิดขวา">➡</button>
+        <button type="button" aria-label="Align left" style={btnStyle()} onClick={() => exec("justifyLeft")} title="à¸Šà¸´à¸”à¸‹à¹‰à¸²à¸¢">â¬…</button>
+        <button type="button" aria-label="Align center" style={btnStyle()} onClick={() => exec("justifyCenter")} title="à¸à¸¶à¹ˆà¸‡à¸à¸¥à¸²à¸‡">â‰¡</button>
+        <button type="button" aria-label="Align right" style={btnStyle()} onClick={() => exec("justifyRight")} title="à¸Šà¸´à¸”à¸‚à¸§à¸²">âž¡</button>
         <div style={divider} />
         {/* List */}
-        <button style={btnStyle()} onClick={() => exec("insertUnorderedList")} title="รายการ">• ≡</button>
-        <button style={btnStyle()} onClick={() => exec("insertOrderedList")} title="รายการตัวเลข">1. ≡</button>
+        <button type="button" aria-label="Bulleted list" style={btnStyle()} onClick={() => exec("insertUnorderedList")} title="à¸£à¸²à¸¢à¸à¸²à¸£">â€¢ â‰¡</button>
+        <button type="button" aria-label="Numbered list" style={btnStyle()} onClick={() => exec("insertOrderedList")} title="à¸£à¸²à¸¢à¸à¸²à¸£à¸•à¸±à¸§à¹€à¸¥à¸‚">1. â‰¡</button>
         <div style={divider} />
         {/* Link */}
-        <button style={btnStyle()} onClick={() => {
-          const url = prompt("URL ลิงก์:", "https://");
+        <button type="button" aria-label="Insert link" style={btnStyle()} onClick={() => {
+          const url = prompt("URL à¸¥à¸´à¸‡à¸à¹Œ:", "https://");
           if (url) exec("createLink", url);
-        }} title="แทรกลิงก์">🔗</button>
-        <button style={btnStyle()} onClick={() => exec("unlink")} title="ลบลิงก์">🚫</button>
+        }} title="à¹à¸—à¸£à¸à¸¥à¸´à¸‡à¸à¹Œ">ðŸ”—</button>
+        <button type="button" aria-label="Remove link" style={btnStyle()} onClick={() => exec("unlink")} title="à¸¥à¸šà¸¥à¸´à¸‡à¸à¹Œ">ðŸš«</button>
         <div style={divider} />
         {/* Image */}
-        <input ref={imgRef} type="file" accept="image/*" style={{ display: "none" }}
+        <input ref={imgRef} type="file" accept="image/*" aria-label="Upload article image" style={{ display: "none" }}
           onChange={e => e.target.files?.[0] && insertImage(e.target.files[0])} />
-        <button style={{ ...btnStyle(), color: uploading ? "#888" : "#60A5FA", display: "flex", alignItems: "center", gap: 4 }}
-          onClick={() => imgRef.current?.click()} disabled={uploading} title="แทรกรูปภาพ">
-          {uploading ? "⏳" : "🖼️"} <span style={{ fontSize: 11 }}>แทรกรูป</span>
+        <button type="button" aria-label="Insert image" style={{ ...btnStyle(), color: uploading ? "#888" : "#60A5FA", display: "flex", alignItems: "center", gap: 4 }}
+          onClick={() => imgRef.current?.click()} disabled={uploading} title="à¹à¸—à¸£à¸à¸£à¸¹à¸›à¸ à¸²à¸ž">
+          {uploading ? "â³" : "ðŸ–¼ï¸"} <span style={{ fontSize: 11 }}>à¹à¸—à¸£à¸à¸£à¸¹à¸›</span>
         </button>
         <div style={divider} />
         {/* Undo/Redo */}
-        <button style={btnStyle()} onClick={() => exec("undo")} title="ย้อนกลับ">↩</button>
-        <button style={btnStyle()} onClick={() => exec("redo")} title="ทำซ้ำ">↪</button>
-        <button style={{ ...btnStyle(), marginLeft: "auto", color: "#ef4444" }}
-          onClick={() => { if (confirm("ล้างเนื้อหาทั้งหมด?")) { if(editorRef.current) editorRef.current.innerHTML = ""; sync(); } }}
-          title="ล้างทั้งหมด">🗑️</button>
+        <button type="button" aria-label="Undo" style={btnStyle()} onClick={() => exec("undo")} title="à¸¢à¹‰à¸­à¸™à¸à¸¥à¸±à¸š">â†©</button>
+        <button type="button" aria-label="Redo" style={btnStyle()} onClick={() => exec("redo")} title="à¸—à¸³à¸‹à¹‰à¸³">â†ª</button>
+        <button type="button" aria-label="Clear article content" style={{ ...btnStyle(), marginLeft: "auto", color: "#ef4444" }}
+          onClick={() => { if (confirm("à¸¥à¹‰à¸²à¸‡à¹€à¸™à¸·à¹‰à¸­à¸«à¸²à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”?")) { if(editorRef.current) editorRef.current.innerHTML = ""; sync(); } }}
+          title="à¸¥à¹‰à¸²à¸‡à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”">ðŸ—‘ï¸</button>
       </div>
 
-      {/* ─── EDITOR AREA ─── */}
+      {/* â”€â”€â”€ EDITOR AREA â”€â”€â”€ */}
       <div
         ref={editorRef}
         contentEditable
@@ -7145,7 +7145,7 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
         }}
       />
 
-      {/* ─── EDITOR STYLES ─── */}
+      {/* â”€â”€â”€ EDITOR STYLES â”€â”€â”€ */}
       <style>{`
         [contenteditable] h1 { font-size: 2em; font-weight: 800; margin: 1em 0 0.5em; color: #fff; }
         [contenteditable] h2 { font-size: 1.5em; font-weight: 700; margin: 1em 0 0.5em; color: #fff; border-bottom: 2px solid rgba(255,107,0,0.3); padding-bottom: 4px; }
@@ -7159,7 +7159,7 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
         [contenteditable] figure { margin: 24px 0; text-align: center; }
         [contenteditable] figure img { max-width: 100%; border-radius: 10px; }
         [contenteditable] figcaption { font-size: 13px; color: #888; margin-top: 8px; }
-        [contenteditable]:empty:before { content: "เริ่มพิมพ์เนื้อหาบทความที่นี่... รองรับการจัดรูปแบบ หัวข้อ รูปภาพ ลิงก์"; color: #444; }
+        [contenteditable]:empty:before { content: "à¹€à¸£à¸´à¹ˆà¸¡à¸žà¸´à¸¡à¸žà¹Œà¹€à¸™à¸·à¹‰à¸­à¸«à¸²à¸šà¸—à¸„à¸§à¸²à¸¡à¸—à¸µà¹ˆà¸™à¸µà¹ˆ... à¸£à¸­à¸‡à¸£à¸±à¸šà¸à¸²à¸£à¸ˆà¸±à¸”à¸£à¸¹à¸›à¹à¸šà¸š à¸«à¸±à¸§à¸‚à¹‰à¸­ à¸£à¸¹à¸›à¸ à¸²à¸ž à¸¥à¸´à¸‡à¸à¹Œ"; color: #444; }
       `}</style>
     </div>
   );
@@ -7171,7 +7171,7 @@ function BlogManager({ showToast }: any) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // โหลดบทความจาก Supabase
+  // à¹‚à¸«à¸¥à¸”à¸šà¸—à¸„à¸§à¸²à¸¡à¸ˆà¸²à¸ Supabase
   const fetchPosts = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -7185,7 +7185,7 @@ function BlogManager({ showToast }: any) {
   useEffect(() => { fetchPosts(); }, []);
 
   const save = async (p) => {
-    // แปลง tags จาก string "a,b,c" → array ["a","b","c"]
+    // à¹à¸›à¸¥à¸‡ tags à¸ˆà¸²à¸ string "a,b,c" â†’ array ["a","b","c"]
     const tagsArray = Array.isArray(p.tags)
       ? p.tags
       : (p.tags || "").split(",").map((t: string) => t.trim()).filter(Boolean);
@@ -7204,16 +7204,16 @@ function BlogManager({ showToast }: any) {
     };
 
     if (p.id) {
-      // อัปเดต
+      // à¸­à¸±à¸›à¹€à¸”à¸•
       const { error } = await supabase.from("posts").update(postData).eq("id", p.id);
-      if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
-      showToast("บันทึกบทความแล้ว");
+      if (error) { showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error"); return; }
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸šà¸—à¸„à¸§à¸²à¸¡à¹à¸¥à¹‰à¸§");
       await revalidateBlog(p.slug);
     } else {
-      // เพิ่มใหม่
+      // à¹€à¸žà¸´à¹ˆà¸¡à¹ƒà¸«à¸¡à¹ˆ
       const { error } = await supabase.from("posts").insert(postData);
-      if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
-      showToast("เพิ่มบทความใหม่แล้ว");
+      if (error) { showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + error.message, "error"); return; }
+      showToast("à¹€à¸žà¸´à¹ˆà¸¡à¸šà¸—à¸„à¸§à¸²à¸¡à¹ƒà¸«à¸¡à¹ˆà¹à¸¥à¹‰à¸§");
       await revalidateBlog(p.slug);
     }
     setEditing(null);
@@ -7221,7 +7221,7 @@ function BlogManager({ showToast }: any) {
   };
 
 
-  // ── revalidate เว็บทันทีหลัง save/delete ──
+  // â”€â”€ revalidate à¹€à¸§à¹‡à¸šà¸—à¸±à¸™à¸—à¸µà¸«à¸¥à¸±à¸‡ save/delete â”€â”€
   const revalidateBlog = async (slug?: string) => {
     try {
       await fetch("/api/revalidate", {
@@ -7230,15 +7230,15 @@ function BlogManager({ showToast }: any) {
         body: JSON.stringify({ slug, secret: process.env.NEXT_PUBLIC_REVALIDATE_SECRET || "" }),
       });
     } catch {
-      // revalidate ล้มเหลวไม่ให้ block UX
+      // revalidate à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§à¹„à¸¡à¹ˆà¹ƒà¸«à¹‰ block UX
     }
   };
   const del = async (id) => {
-    if (!confirm("ลบบทความนี้?")) return;
+    if (!confirm("à¸¥à¸šà¸šà¸—à¸„à¸§à¸²à¸¡à¸™à¸µà¹‰?")) return;
     const postToDelete = posts.find(p => p.id === id);
     const { error } = await supabase.from("posts").delete().eq("id", id);
-    if (error) { showToast("ลบไม่สำเร็จ", "error"); return; }
-    showToast("ลบบทความแล้ว");
+    if (error) { showToast("à¸¥à¸šà¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ", "error"); return; }
+    showToast("à¸¥à¸šà¸šà¸—à¸„à¸§à¸²à¸¡à¹à¸¥à¹‰à¸§");
     await revalidateBlog(postToDelete?.slug);
     fetchPosts();
   };
@@ -7251,12 +7251,12 @@ function BlogManager({ showToast }: any) {
     <div className="cms-blog-manager" style={{ animation: "fadeIn 0.3s ease" }}>
       <div className="cms-page-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>จัดการบทความ</h2>
-          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{posts.length} บทความ</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800 }}>à¸ˆà¸±à¸”à¸à¸²à¸£à¸šà¸—à¸„à¸§à¸²à¸¡</h1>
+          <p style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>{posts.length} à¸šà¸—à¸„à¸§à¸²à¸¡</p>
         </div>
         <div className="cms-page-tools" style={{ display: "flex", gap: 10 }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
-          <CBtn onClick={() => setEditing({ id: "", title: "", excerpt: "", category: "", date: new Date().toISOString().slice(0,10), slug: "", cover: "", cover_alt: "", published: true, body: "", seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media", last_updated: "", tags: "", ai_summary: "", key_takeaways: "", faqs: [], related_services: [] })} color="#FF6B00">+ เพิ่มบทความ</CBtn>
+          <input value={search} onChange={e => setSearch(e.target.value)} aria-label="Search CMS articles" placeholder="ðŸ” à¸„à¹‰à¸™à¸«à¸²..." style={{ width: 200 }} />
+          <CBtn onClick={() => setEditing({ id: "", title: "", excerpt: "", category: "", date: new Date().toISOString().slice(0,10), slug: "", cover: "", cover_alt: "", published: true, body: "", seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media", last_updated: "", tags: "", ai_summary: "", key_takeaways: "", faqs: [], related_services: [] })} color="#FF6B00">+ à¹€à¸žà¸´à¹ˆà¸¡à¸šà¸—à¸„à¸§à¸²à¸¡</CBtn>
         </div>
       </div>
 
@@ -7265,29 +7265,29 @@ function BlogManager({ showToast }: any) {
           <div key={p.id} className="cms-blog-row" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
             {/* Cover */}
             <div className="cms-blog-cover" style={{ width: 80, height: 60, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#1A2233", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {p.cover ? <img src={p.cover} alt={p.cover_alt || p.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 24 }}>📄</span>}
+              {p.cover ? <img src={p.cover} alt={p.cover_alt || p.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 24 }}>ðŸ“„</span>}
             </div>
             <div className="cms-blog-copy" style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                 <span style={{ fontWeight: 600, fontSize: 14 }}>{p.title}</span>
                 <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: p.published ? "rgba(16,185,129,0.15)" : "rgba(107,114,128,0.2)", color: p.published ? "#10b981" : "#6b7280" }}>
-                  {p.published ? "เผยแพร่แล้ว" : "ฉบับร่าง"}
+                  {p.published ? "à¹€à¸œà¸¢à¹à¸žà¸£à¹ˆà¹à¸¥à¹‰à¸§" : "à¸‰à¸šà¸±à¸šà¸£à¹ˆà¸²à¸‡"}
                 </span>
               </div>
-              <div style={{ fontSize: 12, color: "#555" }}>{p.category} · {fmtDate(p.date)}</div>
-              <div style={{ fontSize: 12, color: "#888", marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.excerpt}</div>
+              <div style={{ fontSize: 12, color: "#94A3B8" }}>{p.category} Â· {fmtDate(p.date)}</div>
+              <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.excerpt}</div>
             </div>
             <div className="cms-blog-actions" style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-              <CIconBtn onClick={() => setEditing({ ...p })}>✏️</CIconBtn>
-              <CIconBtn onClick={() => del(p.id)} danger>🗑️</CIconBtn>
+              <CIconBtn aria-label={`Edit article: ${p.title}`} onClick={() => setEditing({ ...p })}>âœï¸</CIconBtn>
+              <CIconBtn aria-label={`Delete article: ${p.title}`} onClick={() => del(p.id)} danger>ðŸ—‘ï¸</CIconBtn>
             </div>
           </div>
         ))}
-        {filtered.length === 0 && <EmptyState icon="📝" text="ยังไม่มีบทความ" />}
+        {filtered.length === 0 && <EmptyState icon="ðŸ“" text="à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸šà¸—à¸„à¸§à¸²à¸¡" />}
       </div>
 
       {editing && (
-        <CModal title={editing.id ? "แก้ไขบทความ" : "เพิ่มบทความใหม่"} onClose={() => setEditing(null)} width={700}>
+        <CModal title={editing.id ? "à¹à¸à¹‰à¹„à¸‚à¸šà¸—à¸„à¸§à¸²à¸¡" : "à¹€à¸žà¸´à¹ˆà¸¡à¸šà¸—à¸„à¸§à¸²à¸¡à¹ƒà¸«à¸¡à¹ˆ"} onClose={() => setEditing(null)} width={700}>
           <BlogForm data={editing} onSave={save} onCancel={() => setEditing(null)} showToast={showToast} />
         </CModal>
       )}
@@ -7309,14 +7309,14 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
   const set = k => e => setF(p => ({ ...p, [k]: e.target.value }));
 
   const SERVICE_OPTIONS = [
-    { value: "vinyl-banner", label: "รับทำป้ายไวนิล" },
-    { value: "roll-up", label: "รับทำ Roll Up" },
-    { value: "backdrop", label: "รับทำ Backdrop" },
-    { value: "sticker", label: "รับทำสติ๊กเกอร์" },
-    { value: "pp-board", label: "รับทำ PP Board" },
-    { value: "label-sticker", label: "รับทำฉลากสินค้า" },
-    { value: "x-stand", label: "รับทำ X-Stand" },
-    { value: "standee", label: "รับทำ Standee" },
+    { value: "vinyl-banner", label: "à¸£à¸±à¸šà¸—à¸³à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥" },
+    { value: "roll-up", label: "à¸£à¸±à¸šà¸—à¸³ Roll Up" },
+    { value: "backdrop", label: "à¸£à¸±à¸šà¸—à¸³ Backdrop" },
+    { value: "sticker", label: "à¸£à¸±à¸šà¸—à¸³à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ" },
+    { value: "pp-board", label: "à¸£à¸±à¸šà¸—à¸³ PP Board" },
+    { value: "label-sticker", label: "à¸£à¸±à¸šà¸—à¸³à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²" },
+    { value: "x-stand", label: "à¸£à¸±à¸šà¸—à¸³ X-Stand" },
+    { value: "standee", label: "à¸£à¸±à¸šà¸—à¸³ Standee" },
   ];
 
   const AUTHOR_OPTIONS = ["Display Works Media", "Editorial Team", "Tadthep Sukthum"];
@@ -7329,17 +7329,17 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
       const path = `blog/${Date.now()}.${ext}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("cms-media").upload(path, file, { contentType: file.type });
-      if (uploadError) { showToast("อัปโหลดไม่ได้: " + uploadError.message, "error"); setUploading(false); return; }
+      if (uploadError) { showToast("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + uploadError.message, "error"); setUploading(false); return; }
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
-      if (!urlData?.publicUrl) { showToast("ได้รูปแล้วแต่ URL ไม่ถูกต้อง", "error"); setUploading(false); return; }
+      if (!urlData?.publicUrl) { showToast("à¹„à¸”à¹‰à¸£à¸¹à¸›à¹à¸¥à¹‰à¸§à¹à¸•à¹ˆ URL à¹„à¸¡à¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡", "error"); setUploading(false); return; }
       setF(p => ({ ...p, cover: urlData.publicUrl }));
-      showToast("อัปโหลดรูปสำเร็จ ✓");
-    } catch (err: any) { showToast("เกิดข้อผิดพลาด: " + (err?.message || err), "error"); }
+      showToast("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›à¸ªà¸³à¹€à¸£à¹‡à¸ˆ âœ“");
+    } catch (err: any) { showToast("à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”: " + (err?.message || err), "error"); }
     setUploading(false);
   };
 
   const genSlug = () => {
-    const slug = f.title.toLowerCase().replace(/[^a-z0-9ก-๙\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
+    const slug = f.title.toLowerCase().replace(/[^a-z0-9à¸-à¹™\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
     setF(p => ({ ...p, slug }));
   };
 
@@ -7360,27 +7360,27 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
   const seoScore = (() => {
     let score = 0;
     const checks = [
-      { ok: !!f.seo_title, label: "มี SEO Title" },
-      { ok: !!f.meta_desc, label: "มี Meta Description" },
-      { ok: !!f.focus_keyword, label: "มี Focus Keyword" },
-      { ok: Array.isArray(f.faqs) && f.faqs.length > 0, label: "มี FAQ" },
-      { ok: Array.isArray(f.related_services) && f.related_services.length > 0, label: "มี Internal Links" },
-      { ok: !!f.ai_summary, label: "มี AI Summary" },
-      { ok: !!f.cover, label: "มีรูป Cover" },
-      { ok: !!f.cover_alt, label: "มี Alt Text รูป Cover" },
-      { ok: !!f.excerpt, label: "มี Excerpt" },
-      { ok: !!f.tags, label: "มี Tags" },
-      { ok: !!f.author, label: "มี Author" },
+      { ok: !!f.seo_title, label: "à¸¡à¸µ SEO Title" },
+      { ok: !!f.meta_desc, label: "à¸¡à¸µ Meta Description" },
+      { ok: !!f.focus_keyword, label: "à¸¡à¸µ Focus Keyword" },
+      { ok: Array.isArray(f.faqs) && f.faqs.length > 0, label: "à¸¡à¸µ FAQ" },
+      { ok: Array.isArray(f.related_services) && f.related_services.length > 0, label: "à¸¡à¸µ Internal Links" },
+      { ok: !!f.ai_summary, label: "à¸¡à¸µ AI Summary" },
+      { ok: !!f.cover, label: "à¸¡à¸µà¸£à¸¹à¸› Cover" },
+      { ok: !!f.cover_alt, label: "à¸¡à¸µ Alt Text à¸£à¸¹à¸› Cover" },
+      { ok: !!f.excerpt, label: "à¸¡à¸µ Excerpt" },
+      { ok: !!f.tags, label: "à¸¡à¸µ Tags" },
+      { ok: !!f.author, label: "à¸¡à¸µ Author" },
     ];
     checks.forEach(c => { if (c.ok) score += 10; });
     return { score: Math.min(score, 100), checks };
   })();
 
   const tabs = [
-    { id: "general", label: "📝 ทั่วไป" },
-    { id: "seo", label: "🔍 SEO" },
-    { id: "ai", label: "🤖 AI Search" },
-    { id: "publish", label: "🚀 เผยแพร่" },
+    { id: "general", label: "ðŸ“ à¸—à¸±à¹ˆà¸§à¹„à¸›" },
+    { id: "seo", label: "ðŸ” SEO" },
+    { id: "ai", label: "ðŸ¤– AI Search" },
+    { id: "publish", label: "ðŸš€ à¹€à¸œà¸¢à¹à¸žà¸£à¹ˆ" },
   ];
 
   const inputStyle = { width: "100%", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 12px", color: "#fff", fontSize: 13, fontFamily: "inherit", boxSizing: "border-box" as const };
@@ -7393,7 +7393,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
       {/* Sidebar Tabs */}
       <div style={{ width: 130, background: "#0D1320", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px", flexShrink: 0 }}>
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ background: activeTab === t.id ? "rgba(255,107,0,0.15)" : "transparent", border: activeTab === t.id ? "1px solid rgba(255,107,0,0.3)" : "1px solid transparent", borderRadius: 8, padding: "10px 8px", color: activeTab === t.id ? "#FF6B00" : "#888", fontSize: 12, cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.15s" }}>
+          <button type="button" key={t.id} onClick={() => setActiveTab(t.id)} style={{ background: activeTab === t.id ? "rgba(255,107,0,0.15)" : "transparent", border: activeTab === t.id ? "1px solid rgba(255,107,0,0.3)" : "1px solid transparent", borderRadius: 8, padding: "10px 8px", color: activeTab === t.id ? "#FF6B00" : "#888", fontSize: 12, cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.15s" }}>
             {t.label}
           </button>
         ))}
@@ -7412,68 +7412,68 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
       {/* Tab Content */}
       <div style={{ flex: 1, padding: "20px 24px", overflowY: "auto", maxHeight: 580 }}>
 
-        {/* ── TAB: GENERAL ── */}
+        {/* â”€â”€ TAB: GENERAL â”€â”€ */}
         {activeTab === "general" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Cover */}
             <div style={fieldStyle}>
-              <label style={labelStyle}>รูป Cover บทความ</label>
+              <label style={labelStyle}>à¸£à¸¹à¸› Cover à¸šà¸—à¸„à¸§à¸²à¸¡</label>
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <div style={{ width: 140, height: 88, borderRadius: 8, overflow: "hidden", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  {f.cover ? <img src={f.cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 28, opacity: 0.4 }}>🖼️</span>}
+                  {f.cover ? <img src={f.cover} alt="ภาพปกบทความที่เลือก" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 28, opacity: 0.4 }}>ðŸ–¼ï¸</span>}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
                   <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadCover(e.target.files?.[0])} />
-                  <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ ...inputStyle, width: "auto", padding: "8px 14px", cursor: "pointer", background: "#3B82F6", border: "none", fontWeight: 600 }}>
-                    {uploading ? "⏳ กำลังอัปโหลด..." : "📁 เลือกรูปภาพ"}
+                  <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{ ...inputStyle, width: "auto", padding: "8px 14px", cursor: "pointer", background: "#3B82F6", border: "none", fontWeight: 600 }}>
+                    {uploading ? "â³ à¸à¸³à¸¥à¸±à¸‡à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”..." : "ðŸ“ à¹€à¸¥à¸·à¸­à¸à¸£à¸¹à¸›à¸ à¸²à¸ž"}
                   </button>
-                  <input value={f.cover} onChange={set("cover")} placeholder="หรือวาง URL รูปภาพ" style={{ ...inputStyle, fontSize: 12 }} />
-                  <input value={f.cover_alt} onChange={set("cover_alt")} placeholder="Alt Text รูป Cover เช่น ป้ายไวนิลหน้าร้านอาหาร Display Works Media" style={{ ...inputStyle, fontSize: 12 }} />
+                  <input value={f.cover} onChange={set("cover")} placeholder="à¸«à¸£à¸·à¸­à¸§à¸²à¸‡ URL à¸£à¸¹à¸›à¸ à¸²à¸ž" style={{ ...inputStyle, fontSize: 12 }} />
+                  <input value={f.cover_alt} onChange={set("cover_alt")} placeholder="Alt Text à¸£à¸¹à¸› Cover à¹€à¸Šà¹ˆà¸™ à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™à¸­à¸²à¸«à¸²à¸£ Display Works Media" style={{ ...inputStyle, fontSize: 12 }} />
                   <div style={{ fontSize: 11, color: "#6B7280", lineHeight: 1.5 }}>
-                    ใช้อธิบายรูปให้ Google และผู้ใช้ที่ใช้ Screen Reader เห็นความหมายของภาพ
+                    à¹ƒà¸Šà¹‰à¸­à¸˜à¸´à¸šà¸²à¸¢à¸£à¸¹à¸›à¹ƒà¸«à¹‰ Google à¹à¸¥à¸°à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¸—à¸µà¹ˆà¹ƒà¸Šà¹‰ Screen Reader à¹€à¸«à¹‡à¸™à¸„à¸§à¸²à¸¡à¸«à¸¡à¸²à¸¢à¸‚à¸­à¸‡à¸ à¸²à¸ž
                   </div>
                 </div>
               </div>
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>หัวข้อบทความ *</label>
-              <input value={f.title} onChange={set("title")} onBlur={genSlug} placeholder="หัวข้อบทความ" style={inputStyle} />
+              <label style={labelStyle}>à¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸—à¸„à¸§à¸²à¸¡ *</label>
+              <input value={f.title} onChange={set("title")} onBlur={genSlug} placeholder="à¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸—à¸„à¸§à¸²à¸¡" style={inputStyle} />
             </div>
 
             <div style={fieldStyle}>
               <label style={labelStyle}>Slug (URL)</label>
               <div style={{ display: "flex", gap: 8 }}>
                 <input value={f.slug} onChange={set("slug")} placeholder="url-slug" style={{ ...inputStyle, flex: 1 }} />
-                <button onClick={genSlug} style={{ ...inputStyle, width: "auto", padding: "8px 14px", cursor: "pointer", background: "#374151", border: "none", flexShrink: 0 }}>สร้างอัตโนมัติ</button>
+                <button type="button" onClick={genSlug} style={{ ...inputStyle, width: "auto", padding: "8px 14px", cursor: "pointer", background: "#374151", border: "none", flexShrink: 0 }}>à¸ªà¸£à¹‰à¸²à¸‡à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´</button>
               </div>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div style={fieldStyle}>
-                <label style={labelStyle}>หมวดหมู่</label>
-                <input value={f.category} onChange={set("category")} list="cat-list" placeholder="เช่น ป้ายไวนิล" style={inputStyle} />
-                <datalist id="cat-list">{Array.from(new Set([...blogCategories.map(c => c.name), "ป้ายไวนิล","สติ๊กเกอร์","Roll Up","Backdrop","PP Board","ฉลากสินค้า","ทั่วไป"])).map(c => <option key={c} value={c} />)}</datalist>
+                <label style={labelStyle}>à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</label>
+                <input value={f.category} onChange={set("category")} list="cat-list" placeholder="à¹€à¸Šà¹ˆà¸™ à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥" style={inputStyle} />
+                <datalist id="cat-list">{Array.from(new Set([...blogCategories.map(c => c.name), "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥","à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ","Roll Up","Backdrop","PP Board","à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²","à¸—à¸±à¹ˆà¸§à¹„à¸›"])).map(c => <option key={c} value={c} />)}</datalist>
               </div>
               <div style={fieldStyle}>
-                <label style={labelStyle}>วันที่เผยแพร่</label>
+                <label style={labelStyle}>à¸§à¸±à¸™à¸—à¸µà¹ˆà¹€à¸œà¸¢à¹à¸žà¸£à¹ˆ</label>
                 <input type="date" value={f.date} onChange={set("date")} style={inputStyle} />
               </div>
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>บทสรุป (Excerpt)</label>
-              <textarea value={f.excerpt} onChange={set("excerpt")} rows={3} placeholder="อธิบายสั้นๆ ว่าบทความนี้เกี่ยวกับอะไร..." style={{ ...inputStyle, resize: "vertical" }} />
+              <label style={labelStyle}>à¸šà¸—à¸ªà¸£à¸¸à¸› (Excerpt)</label>
+              <textarea value={f.excerpt} onChange={set("excerpt")} rows={3} placeholder="à¸­à¸˜à¸´à¸šà¸²à¸¢à¸ªà¸±à¹‰à¸™à¹† à¸§à¹ˆà¸²à¸šà¸—à¸„à¸§à¸²à¸¡à¸™à¸µà¹‰à¹€à¸à¸µà¹ˆà¸¢à¸§à¸à¸±à¸šà¸­à¸°à¹„à¸£..." style={{ ...inputStyle, resize: "vertical" }} />
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>เนื้อหาบทความ</label>
+              <label style={labelStyle}>à¹€à¸™à¸·à¹‰à¸­à¸«à¸²à¸šà¸—à¸„à¸§à¸²à¸¡</label>
               <RichEditor value={f.body} onChange={val => setF(p => ({ ...p, body: val }))} showToast={showToast} />
             </div>
           </div>
         )}
 
-        {/* ── TAB: SEO ── */}
+        {/* â”€â”€ TAB: SEO â”€â”€ */}
         {activeTab === "seo" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* SEO Score Checklist */}
@@ -7482,27 +7482,27 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {seoScore.checks.map((c, i) => (
                   <div key={i} style={{ fontSize: 12, color: c.ok ? "#10b981" : "#6B7280", display: "flex", gap: 6, alignItems: "center" }}>
-                    <span>{c.ok ? "✅" : "❌"}</span> {c.label}
+                    <span>{c.ok ? "âœ…" : "âŒ"}</span> {c.label}
                   </div>
                 ))}
               </div>
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>SEO Title <span style={{ color: "#6B7280", fontWeight: 400 }}>(แสดงบน Google)</span></label>
-              <input value={f.seo_title} onChange={set("seo_title")} placeholder="ป้ายไวนิลคืออะไร? | Display Works Media" style={inputStyle} maxLength={70} />
-              <div style={charCountStyle((f.seo_title || "").length, 60)}>{(f.seo_title || "").length}/60 ตัวอักษร</div>
+              <label style={labelStyle}>SEO Title <span style={{ color: "#6B7280", fontWeight: 400 }}>(à¹à¸ªà¸”à¸‡à¸šà¸™ Google)</span></label>
+              <input value={f.seo_title} onChange={set("seo_title")} placeholder="à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¸„à¸·à¸­à¸­à¸°à¹„à¸£? | Display Works Media" style={inputStyle} maxLength={70} />
+              <div style={charCountStyle((f.seo_title || "").length, 60)}>{(f.seo_title || "").length}/60 à¸•à¸±à¸§à¸­à¸±à¸à¸©à¸£</div>
             </div>
 
             <div style={fieldStyle}>
               <label style={labelStyle}>Meta Description</label>
-              <textarea value={f.meta_desc} onChange={set("meta_desc")} rows={3} placeholder="คำอธิบายที่แสดงใน Google Search..." style={{ ...inputStyle, resize: "vertical" }} maxLength={170} />
-              <div style={charCountStyle((f.meta_desc || "").length, 160)}>{(f.meta_desc || "").length}/160 ตัวอักษร</div>
+              <textarea value={f.meta_desc} onChange={set("meta_desc")} rows={3} placeholder="à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸—à¸µà¹ˆà¹à¸ªà¸”à¸‡à¹ƒà¸™ Google Search..." style={{ ...inputStyle, resize: "vertical" }} maxLength={170} />
+              <div style={charCountStyle((f.meta_desc || "").length, 160)}>{(f.meta_desc || "").length}/160 à¸•à¸±à¸§à¸­à¸±à¸à¸©à¸£</div>
             </div>
 
             <div style={fieldStyle}>
               <label style={labelStyle}>Focus Keyword</label>
-              <input value={f.focus_keyword} onChange={set("focus_keyword")} placeholder="เช่น รับทำป้ายไวนิล" style={inputStyle} />
+              <input value={f.focus_keyword} onChange={set("focus_keyword")} placeholder="à¹€à¸Šà¹ˆà¸™ à¸£à¸±à¸šà¸—à¸³à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥" style={inputStyle} />
             </div>
 
             <div style={fieldStyle}>
@@ -7513,8 +7513,8 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>Tags <span style={{ color: "#6B7280", fontWeight: 400 }}>(คั่นด้วยจุลภาค)</span></label>
-              <input value={f.tags} onChange={set("tags")} placeholder="ป้ายไวนิล, SME, ร้านอาหาร, โฆษณา" style={inputStyle} />
+              <label style={labelStyle}>Tags <span style={{ color: "#6B7280", fontWeight: 400 }}>(à¸„à¸±à¹ˆà¸™à¸”à¹‰à¸§à¸¢à¸ˆà¸¸à¸¥à¸ à¸²à¸„)</span></label>
+              <input value={f.tags} onChange={set("tags")} placeholder="à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥, SME, à¸£à¹‰à¸²à¸™à¸­à¸²à¸«à¸²à¸£, à¹‚à¸†à¸©à¸“à¸²" style={inputStyle} />
             </div>
 
             <div style={fieldStyle}>
@@ -7526,7 +7526,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
                   return (
                     <label key={s.value} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, padding: "6px 12px", borderRadius: 99, border: `1px solid ${checked ? "#FF6B00" : "rgba(255,255,255,0.1)"}`, background: checked ? "rgba(255,107,0,0.1)" : "transparent", color: checked ? "#FF6B00" : "#888", transition: "all 0.15s" }}>
                       <input type="checkbox" checked={checked} onChange={() => toggleService(s.value)} style={{ display: "none" }} />
-                      {checked ? "☑" : "☐"} {s.label}
+                      {checked ? "â˜‘" : "â˜"} {s.label}
                     </label>
                   );
                 })}
@@ -7535,70 +7535,70 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
           </div>
         )}
 
-        {/* ── TAB: AI SEARCH ── */}
+        {/* â”€â”€ TAB: AI SEARCH â”€â”€ */}
         {activeTab === "ai" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 10, padding: 12, fontSize: 12, color: "#a5b4fc" }}>
-              🤖 ฟิลด์เหล่านี้ช่วยให้ Google AI Overview, ChatGPT, Gemini และ Perplexity อ้างอิงบทความของคุณได้
+              ðŸ¤– à¸Ÿà¸´à¸¥à¸”à¹Œà¹€à¸«à¸¥à¹ˆà¸²à¸™à¸µà¹‰à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰ Google AI Overview, ChatGPT, Gemini à¹à¸¥à¸° Perplexity à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¸šà¸—à¸„à¸§à¸²à¸¡à¸‚à¸­à¸‡à¸„à¸¸à¸“à¹„à¸”à¹‰
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>AI Summary <span style={{ color: "#6B7280", fontWeight: 400 }}>(50-150 คำ)</span></label>
-              <textarea value={f.ai_summary} onChange={set("ai_summary")} rows={5} placeholder="สรุปบทความสำหรับ AI เช่น: ป้ายไวนิลเป็นสื่อโฆษณาที่ได้รับความนิยมสำหรับธุรกิจ SME..." style={{ ...inputStyle, resize: "vertical" }} />
-              <div style={charCountStyle(0, 0)}>{(f.ai_summary || "").split(/\s+/).filter(Boolean).length} คำ</div>
+              <label style={labelStyle}>AI Summary <span style={{ color: "#6B7280", fontWeight: 400 }}>(50-150 à¸„à¸³)</span></label>
+              <textarea value={f.ai_summary} onChange={set("ai_summary")} rows={5} placeholder="à¸ªà¸£à¸¸à¸›à¸šà¸—à¸„à¸§à¸²à¸¡à¸ªà¸³à¸«à¸£à¸±à¸š AI à¹€à¸Šà¹ˆà¸™: à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¹€à¸›à¹‡à¸™à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²à¸—à¸µà¹ˆà¹„à¸”à¹‰à¸£à¸±à¸šà¸„à¸§à¸²à¸¡à¸™à¸´à¸¢à¸¡à¸ªà¸³à¸«à¸£à¸±à¸šà¸˜à¸¸à¸£à¸à¸´à¸ˆ SME..." style={{ ...inputStyle, resize: "vertical" }} />
+              <div style={charCountStyle(0, 0)}>{(f.ai_summary || "").split(/\s+/).filter(Boolean).length} à¸„à¸³</div>
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>Key Takeaways <span style={{ color: "#6B7280", fontWeight: 400 }}>(แต่ละบรรทัด = 1 ประเด็น)</span></label>
-              <textarea value={f.key_takeaways} onChange={set("key_takeaways")} rows={4} placeholder={"ป้ายไวนิลเหมาะกับงานกลางแจ้ง\nควรเลือกความหนาตามลักษณะการใช้งาน\nไวนิล 400 แกรมทนทานกว่า 360 แกรม"} style={{ ...inputStyle, resize: "vertical" }} />
+              <label style={labelStyle}>Key Takeaways <span style={{ color: "#6B7280", fontWeight: 400 }}>(à¹à¸•à¹ˆà¸¥à¸°à¸šà¸£à¸£à¸—à¸±à¸” = 1 à¸›à¸£à¸°à¹€à¸”à¹‡à¸™)</span></label>
+              <textarea value={f.key_takeaways} onChange={set("key_takeaways")} rows={4} placeholder={"à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¸‡à¸²à¸™à¸à¸¥à¸²à¸‡à¹à¸ˆà¹‰à¸‡\nà¸„à¸§à¸£à¹€à¸¥à¸·à¸­à¸à¸„à¸§à¸²à¸¡à¸«à¸™à¸²à¸•à¸²à¸¡à¸¥à¸±à¸à¸©à¸“à¸°à¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸²à¸™\nà¹„à¸§à¸™à¸´à¸¥ 400 à¹à¸à¸£à¸¡à¸—à¸™à¸—à¸²à¸™à¸à¸§à¹ˆà¸² 360 à¹à¸à¸£à¸¡"} style={{ ...inputStyle, resize: "vertical" }} />
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>FAQ Builder <span style={{ color: "#6B7280", fontWeight: 400 }}>(สร้าง FAQ Schema อัตโนมัติ)</span></label>
+              <label style={labelStyle}>FAQ Builder <span style={{ color: "#6B7280", fontWeight: 400 }}>(à¸ªà¸£à¹‰à¸²à¸‡ FAQ Schema à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´)</span></label>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {(Array.isArray(f.faqs) ? f.faqs : []).map((faq: any, i: number) => (
                   <div key={i} style={{ background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: 11, color: "#6B7280", fontWeight: 700 }}>FAQ #{i + 1}</span>
-                      <button onClick={() => removeFaq(i)} style={{ background: "rgba(239,68,68,0.15)", border: "none", color: "#ef4444", borderRadius: 4, padding: "2px 8px", cursor: "pointer", fontSize: 11 }}>ลบ</button>
+                      <button type="button" onClick={() => removeFaq(i)} style={{ background: "rgba(239,68,68,0.15)", border: "none", color: "#ef4444", borderRadius: 4, padding: "2px 8px", cursor: "pointer", fontSize: 11 }}>à¸¥à¸š</button>
                     </div>
-                    <input value={faq.q} onChange={e => setFaq(i, "q", e.target.value)} placeholder="คำถาม เช่น สั่งขั้นต่ำเท่าไหร่?" style={{ ...inputStyle, fontSize: 12 }} />
-                    <textarea value={faq.a} onChange={e => setFaq(i, "a", e.target.value)} rows={2} placeholder="คำตอบ..." style={{ ...inputStyle, fontSize: 12, resize: "vertical" }} />
+                    <input value={faq.q} onChange={e => setFaq(i, "q", e.target.value)} placeholder="à¸„à¸³à¸–à¸²à¸¡ à¹€à¸Šà¹ˆà¸™ à¸ªà¸±à¹ˆà¸‡à¸‚à¸±à¹‰à¸™à¸•à¹ˆà¸³à¹€à¸—à¹ˆà¸²à¹„à¸«à¸£à¹ˆ?" style={{ ...inputStyle, fontSize: 12 }} />
+                    <textarea value={faq.a} onChange={e => setFaq(i, "a", e.target.value)} rows={2} placeholder="à¸„à¸³à¸•à¸­à¸š..." style={{ ...inputStyle, fontSize: 12, resize: "vertical" }} />
                   </div>
                 ))}
-                <button onClick={addFaq} style={{ ...inputStyle, width: "auto", padding: "10px", cursor: "pointer", background: "rgba(99,102,241,0.1)", border: "1px dashed rgba(99,102,241,0.3)", color: "#a5b4fc", textAlign: "center" as const }}>
-                  + เพิ่มคำถาม FAQ
+                <button type="button" onClick={addFaq} style={{ ...inputStyle, width: "auto", padding: "10px", cursor: "pointer", background: "rgba(99,102,241,0.1)", border: "1px dashed rgba(99,102,241,0.3)", color: "#a5b4fc", textAlign: "center" as const }}>
+                  + à¹€à¸žà¸´à¹ˆà¸¡à¸„à¸³à¸–à¸²à¸¡ FAQ
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* ── TAB: PUBLISH ── */}
+        {/* â”€â”€ TAB: PUBLISH â”€â”€ */}
         {activeTab === "publish" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: 16 }}>
               <input type="checkbox" id="published" checked={f.published} onChange={e => setF(p => ({ ...p, published: e.target.checked }))} style={{ width: 18, height: 18, cursor: "pointer" }} />
               <div>
-                <label htmlFor="published" style={{ fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#fff" }}>เผยแพร่บทความนี้</label>
-                <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>บทความจะแสดงบนเว็บไซต์ทันทีหลังบันทึก</div>
+                <label htmlFor="published" style={{ fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#fff" }}>à¹€à¸œà¸¢à¹à¸žà¸£à¹ˆà¸šà¸—à¸„à¸§à¸²à¸¡à¸™à¸µà¹‰</label>
+                <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>à¸šà¸—à¸„à¸§à¸²à¸¡à¸ˆà¸°à¹à¸ªà¸”à¸‡à¸šà¸™à¹€à¸§à¹‡à¸šà¹„à¸‹à¸•à¹Œà¸—à¸±à¸™à¸—à¸µà¸«à¸¥à¸±à¸‡à¸šà¸±à¸™à¸—à¸¶à¸</div>
               </div>
               <span style={{ marginLeft: "auto", padding: "4px 12px", borderRadius: 99, fontSize: 12, fontWeight: 600, background: f.published ? "rgba(16,185,129,0.15)" : "rgba(107,114,128,0.2)", color: f.published ? "#10b981" : "#6b7280" }}>
-                {f.published ? "เผยแพร่แล้ว" : "ฉบับร่าง"}
+                {f.published ? "à¹€à¸œà¸¢à¹à¸žà¸£à¹ˆà¹à¸¥à¹‰à¸§" : "à¸‰à¸šà¸±à¸šà¸£à¹ˆà¸²à¸‡"}
               </span>
             </div>
 
             <div style={{ background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>📊 สรุปก่อนบันทึก</div>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>ðŸ“Š à¸ªà¸£à¸¸à¸›à¸à¹ˆà¸­à¸™à¸šà¸±à¸™à¸—à¸¶à¸</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {[
-                  { label: "หัวข้อ", value: f.title || "-" },
+                  { label: "à¸«à¸±à¸§à¸‚à¹‰à¸­", value: f.title || "-" },
                   { label: "Slug", value: f.slug || "-" },
-                  { label: "SEO Title", value: f.seo_title || <span style={{ color: "#ef4444" }}>ยังไม่กรอก</span> },
-                  { label: "Meta Desc", value: f.meta_desc ? `${(f.meta_desc).slice(0, 50)}...` : <span style={{ color: "#ef4444" }}>ยังไม่กรอก</span> },
-                  { label: "Cover Alt", value: f.cover_alt || <span style={{ color: "#f59e0b" }}>ยังไม่กรอก</span> },
-                  { label: "Focus KW", value: f.focus_keyword || <span style={{ color: "#f59e0b" }}>ยังไม่กรอก</span> },
-                  { label: "FAQ", value: `${Array.isArray(f.faqs) ? f.faqs.length : 0} ข้อ` },
+                  { label: "SEO Title", value: f.seo_title || <span style={{ color: "#ef4444" }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸à¸£à¸­à¸</span> },
+                  { label: "Meta Desc", value: f.meta_desc ? `${(f.meta_desc).slice(0, 50)}...` : <span style={{ color: "#ef4444" }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸à¸£à¸­à¸</span> },
+                  { label: "Cover Alt", value: f.cover_alt || <span style={{ color: "#f59e0b" }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸à¸£à¸­à¸</span> },
+                  { label: "Focus KW", value: f.focus_keyword || <span style={{ color: "#f59e0b" }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸à¸£à¸­à¸</span> },
+                  { label: "FAQ", value: `${Array.isArray(f.faqs) ? f.faqs.length : 0} à¸‚à¹‰à¸­` },
                   { label: "SEO Score", value: `${seoScore.score}/100` },
                 ].map((row, i) => (
                   <div key={i} style={{ display: "flex", gap: 8, fontSize: 12 }}>
@@ -7610,8 +7610,8 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => onSave(f)} style={{ flex: 1, padding: "12px", background: "#FF6B00", border: "none", borderRadius: 8, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>💾 บันทึก</button>
-              <button onClick={onCancel} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "#888", fontSize: 14, cursor: "pointer" }}>ยกเลิก</button>
+              <button type="button" onClick={() => onSave(f)} style={{ flex: 1, padding: "12px", background: "#C2410C", border: "none", borderRadius: 8, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸</button>
+              <button type="button" onClick={onCancel} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "#888", fontSize: 14, cursor: "pointer" }}>à¸¢à¸à¹€à¸¥à¸´à¸</button>
             </div>
           </div>
         )}
@@ -7625,11 +7625,11 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
 // ============================================================
 function HeroManager({ showToast }: any) {
   const [hero, setHero] = useState(() => loadLocal("hero", {
-    headline1: "ผลิตสื่อโฆษณา",
-    headlineHighlight: "ครบวงจร",
+    headline1: "à¸œà¸¥à¸´à¸•à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²",
+    headlineHighlight: "à¸„à¸£à¸šà¸§à¸‡à¸ˆà¸£",
     headline2: "",
-    subtitle: "ออกแบบ ผลิต ติดตั้ง งานป้าย ร้านค้า และสื่อโฆษณาทุกประเภท พร้อมทีมงานมืออาชีพดูแลตลอดกระบวนการ",
-    trustPoints: ["ออกแบบ ผลิต ติดตั้ง ครบจบในที่เดียว", "บริการหลังการขายครบวงจร", "จัดส่งทั่วประเทศ พร้อมแจ้งเลขพัสดุ"],
+    subtitle: "à¸­à¸­à¸à¹à¸šà¸š à¸œà¸¥à¸´à¸• à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡ à¸‡à¸²à¸™à¸›à¹‰à¸²à¸¢ à¸£à¹‰à¸²à¸™à¸„à¹‰à¸² à¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²à¸—à¸¸à¸à¸›à¸£à¸°à¹€à¸ à¸— à¸žà¸£à¹‰à¸­à¸¡à¸—à¸µà¸¡à¸‡à¸²à¸™à¸¡à¸·à¸­à¸­à¸²à¸Šà¸µà¸žà¸”à¸¹à¹à¸¥à¸•à¸¥à¸­à¸”à¸à¸£à¸°à¸šà¸§à¸™à¸à¸²à¸£",
+    trustPoints: ["à¸­à¸­à¸à¹à¸šà¸š à¸œà¸¥à¸´à¸• à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡ à¸„à¸£à¸šà¸ˆà¸šà¹ƒà¸™à¸—à¸µà¹ˆà¹€à¸”à¸µà¸¢à¸§", "à¸šà¸£à¸´à¸à¸²à¸£à¸«à¸¥à¸±à¸‡à¸à¸²à¸£à¸‚à¸²à¸¢à¸„à¸£à¸šà¸§à¸‡à¸ˆà¸£", "à¸ˆà¸±à¸”à¸ªà¹ˆà¸‡à¸—à¸±à¹ˆà¸§à¸›à¸£à¸°à¹€à¸—à¸¨ à¸žà¸£à¹‰à¸­à¸¡à¹à¸ˆà¹‰à¸‡à¹€à¸¥à¸‚à¸žà¸±à¸ªà¸”à¸¸"],
     phone: "065-916-1539",
     lineUrl: "https://lin.ee/O0nPl03",
     bgImage: "/images/hero-bg.jpg",
@@ -7655,9 +7655,9 @@ function HeroManager({ showToast }: any) {
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       setHero(p => ({ ...p, bgImage: urlData.publicUrl }));
-      showToast("อัปโหลดรูปพื้นหลังสำเร็จ");
+      showToast("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›à¸žà¸·à¹‰à¸™à¸«à¸¥à¸±à¸‡à¸ªà¸³à¹€à¸£à¹‡à¸ˆ");
     } catch {
-      showToast("ตรวจสอบ Supabase Storage bucket ชื่อ cms-media", "error");
+      showToast("à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š Supabase Storage bucket à¸Šà¸·à¹ˆà¸­ cms-media", "error");
     }
     setUploading(false);
   };
@@ -7673,59 +7673,59 @@ function HeroManager({ showToast }: any) {
   const save = async () => {
     try {
       await saveCmsSetting("hero", hero);
-      showToast("บันทึก Hero Section แล้ว");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸ Hero Section à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     }
   };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 680 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>แก้ไข Hero Section</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>à¹à¸à¹‰à¹„à¸‚ Hero Section</h2>
       <Card>
-        <SectionTitle>รูปพื้นหลัง</SectionTitle>
+        <SectionTitle>à¸£à¸¹à¸›à¸žà¸·à¹‰à¸™à¸«à¸¥à¸±à¸‡</SectionTitle>
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 16 }}>
           <div style={{ width: 200, height: 110, borderRadius: 10, overflow: "hidden", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0, position: "relative" }}>
-            {hero.bgImage && <img src={hero.bgImage.startsWith("/") ? hero.bgImage : hero.bgImage} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => (e.target as HTMLImageElement).style.display="none"} />}
+            {hero.bgImage && <img src={hero.bgImage.startsWith("/") ? hero.bgImage : hero.bgImage} alt="ภาพพื้นหลัง Hero Section" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => (e.target as HTMLImageElement).style.display="none"} />}
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 28, opacity: 0.3 }}>🖼️</span>
+              <span style={{ fontSize: 28, opacity: 0.3 }}>ðŸ–¼ï¸</span>
             </div>
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadBg(e.target.files?.[0])} />
             <CBtn onClick={() => fileRef.current?.click()} color="#3B82F6" small disabled={uploading}>
-              {uploading ? "⏳ กำลังอัปโหลด..." : "📁 เปลี่ยนรูปพื้นหลัง"}
+              {uploading ? "â³ à¸à¸³à¸¥à¸±à¸‡à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”..." : "ðŸ“ à¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™à¸£à¸¹à¸›à¸žà¸·à¹‰à¸™à¸«à¸¥à¸±à¸‡"}
             </CBtn>
-            <input value={hero.bgImage} onChange={set("bgImage")} placeholder="หรือวาง URL รูปภาพ" />
+            <input value={hero.bgImage} onChange={set("bgImage")} placeholder="à¸«à¸£à¸·à¸­à¸§à¸²à¸‡ URL à¸£à¸¹à¸›à¸ à¸²à¸ž" />
           </div>
         </div>
 
-        <SectionTitle>ข้อความหลัก</SectionTitle>
+        <SectionTitle>à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸«à¸¥à¸±à¸</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-          <CField label="บรรทัดที่ 1"><input value={hero.headline1} onChange={set("headline1")} /></CField>
-          <CField label="ข้อความสีส้ม (highlight)"><input value={hero.headlineHighlight} onChange={set("headlineHighlight")} /></CField>
-          <CField label="บรรทัดที่ 3 (ไม่บังคับ)"><input value={hero.headline2} onChange={set("headline2")} /></CField>
-          <CField label="คำอธิบาย (subtitle)"><textarea value={hero.subtitle} onChange={set("subtitle")} rows={3} /></CField>
+          <CField label="à¸šà¸£à¸£à¸—à¸±à¸”à¸—à¸µà¹ˆ 1"><input value={hero.headline1} onChange={set("headline1")} /></CField>
+          <CField label="à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸ªà¸µà¸ªà¹‰à¸¡ (highlight)"><input value={hero.headlineHighlight} onChange={set("headlineHighlight")} /></CField>
+          <CField label="à¸šà¸£à¸£à¸—à¸±à¸”à¸—à¸µà¹ˆ 3 (à¹„à¸¡à¹ˆà¸šà¸±à¸‡à¸„à¸±à¸š)"><input value={hero.headline2} onChange={set("headline2")} /></CField>
+          <CField label="à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢ (subtitle)"><textarea value={hero.subtitle} onChange={set("subtitle")} rows={3} /></CField>
         </div>
 
-        <SectionTitle>จุดเด่น (Trust Points)</SectionTitle>
+        <SectionTitle>à¸ˆà¸¸à¸”à¹€à¸”à¹ˆà¸™ (Trust Points)</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
           {hero.trustPoints.map((tp, i) => (
             <div key={i} style={{ display: "flex", gap: 8 }}>
               <input value={tp} onChange={e => setTrust(i, e.target.value)} style={{ flex: 1 }} />
-              <CIconBtn onClick={() => delTrust(i)} danger small>✕</CIconBtn>
+              <CIconBtn onClick={() => delTrust(i)} danger small>âœ•</CIconBtn>
             </div>
           ))}
-          <CBtn onClick={addTrust} small outline>+ เพิ่มจุดเด่น</CBtn>
+          <CBtn onClick={addTrust} small outline>+ à¹€à¸žà¸´à¹ˆà¸¡à¸ˆà¸¸à¸”à¹€à¸”à¹ˆà¸™</CBtn>
         </div>
 
-        <SectionTitle>ข้อมูลติดต่อ (Hero)</SectionTitle>
+        <SectionTitle>à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸•à¸´à¸”à¸•à¹ˆà¸­ (Hero)</SectionTitle>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-          <CField label="เบอร์โทร"><input value={hero.phone} onChange={set("phone")} /></CField>
+          <CField label="à¹€à¸šà¸­à¸£à¹Œà¹‚à¸—à¸£"><input value={hero.phone} onChange={set("phone")} /></CField>
           <CField label="LINE URL"><input value={hero.lineUrl} onChange={set("lineUrl")} /></CField>
         </div>
 
-        <CBtn onClick={save} color="#FF6B00">💾 บันทึก Hero Section</CBtn>
+        <CBtn onClick={save} color="#FF6B00">ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸ Hero Section</CBtn>
       </Card>
     </div>
   );
@@ -7736,12 +7736,12 @@ function HeroManager({ showToast }: any) {
 // ============================================================
 function ServicesManager({ showToast }: any) {
   const [services, setServices] = useState(() => loadLocal("services", [
-    { id: "1", name: "ป้ายไวนิล", icon: "🪟", desc: "พิมพ์งานคุณภาพสูง ทนต่อแสงและฝน เหมาะสำหรับป้ายหน้าร้าน ป้ายโฆษณา ขนาดใหญ่", price: "ตร.ม.ละ 200฿", url: "/services/vinyl-banner" },
-    { id: "2", name: "สติ๊กเกอร์", icon: "🏷️", desc: "สติ๊กเกอร์กันน้ำ indoor/outdoor พิมพ์สี 4 สี คมชัด ติดทนนาน", price: "ตร.ม.ละ 350฿", url: "/services/label-sticker" },
-    { id: "3", name: "PP Board", icon: "📋", desc: "ป้ายพีพีบอร์ดน้ำหนักเบา พกพาง่าย เหมาะสำหรับงาน Event และป้ายชั่วคราว", price: "แผ่นละ 400฿", url: "/services/pp-board" },
-    { id: "4", name: "Roll Up", icon: "🎪", desc: "ป้าย Roll Up สำหรับงานนิทรรศการ ประชุม และงานกิจกรรมต่างๆ", price: "ชิ้นละ 2,200฿", url: "/services/roll-up" },
-    { id: "5", name: "Backdrop", icon: "🖼", desc: "ป้าย Backdrop ขนาดใหญ่สำหรับงานอีเวนต์ ถ่ายรูป และงานแถลงข่าว", price: "ชุดละ 3,500฿", url: "/services/backdrop" },
-    { id: "6", name: "ฉลากสินค้า", icon: "🏷", desc: "พิมพ์ฉลากสินค้าคุณภาพสูง ทั้งแบบม้วนและแผ่น รองรับทุกขนาด", price: "100 ชิ้นละ 400฿", url: "/services/label-sticker" },
+    { id: "1", name: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥", icon: "ðŸªŸ", desc: "à¸žà¸´à¸¡à¸žà¹Œà¸‡à¸²à¸™à¸„à¸¸à¸“à¸ à¸²à¸žà¸ªà¸¹à¸‡ à¸—à¸™à¸•à¹ˆà¸­à¹à¸ªà¸‡à¹à¸¥à¸°à¸à¸™ à¹€à¸«à¸¡à¸²à¸°à¸ªà¸³à¸«à¸£à¸±à¸šà¸›à¹‰à¸²à¸¢à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™ à¸›à¹‰à¸²à¸¢à¹‚à¸†à¸©à¸“à¸² à¸‚à¸™à¸²à¸”à¹ƒà¸«à¸à¹ˆ", price: "à¸•à¸£.à¸¡.à¸¥à¸° 200à¸¿", url: "/services/vinyl-banner" },
+    { id: "2", name: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ", icon: "ðŸ·ï¸", desc: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œà¸à¸±à¸™à¸™à¹‰à¸³ indoor/outdoor à¸žà¸´à¸¡à¸žà¹Œà¸ªà¸µ 4 à¸ªà¸µ à¸„à¸¡à¸Šà¸±à¸” à¸•à¸´à¸”à¸—à¸™à¸™à¸²à¸™", price: "à¸•à¸£.à¸¡.à¸¥à¸° 350à¸¿", url: "/services/label-sticker" },
+    { id: "3", name: "PP Board", icon: "ðŸ“‹", desc: "à¸›à¹‰à¸²à¸¢à¸žà¸µà¸žà¸µà¸šà¸­à¸£à¹Œà¸”à¸™à¹‰à¸³à¸«à¸™à¸±à¸à¹€à¸šà¸² à¸žà¸à¸žà¸²à¸‡à¹ˆà¸²à¸¢ à¹€à¸«à¸¡à¸²à¸°à¸ªà¸³à¸«à¸£à¸±à¸šà¸‡à¸²à¸™ Event à¹à¸¥à¸°à¸›à¹‰à¸²à¸¢à¸Šà¸±à¹ˆà¸§à¸„à¸£à¸²à¸§", price: "à¹à¸œà¹ˆà¸™à¸¥à¸° 400à¸¿", url: "/services/pp-board" },
+    { id: "4", name: "Roll Up", icon: "ðŸŽª", desc: "à¸›à¹‰à¸²à¸¢ Roll Up à¸ªà¸³à¸«à¸£à¸±à¸šà¸‡à¸²à¸™à¸™à¸´à¸—à¸£à¸£à¸¨à¸à¸²à¸£ à¸›à¸£à¸°à¸Šà¸¸à¸¡ à¹à¸¥à¸°à¸‡à¸²à¸™à¸à¸´à¸ˆà¸à¸£à¸£à¸¡à¸•à¹ˆà¸²à¸‡à¹†", price: "à¸Šà¸´à¹‰à¸™à¸¥à¸° 2,200à¸¿", url: "/services/roll-up" },
+    { id: "5", name: "Backdrop", icon: "ðŸ–¼", desc: "à¸›à¹‰à¸²à¸¢ Backdrop à¸‚à¸™à¸²à¸”à¹ƒà¸«à¸à¹ˆà¸ªà¸³à¸«à¸£à¸±à¸šà¸‡à¸²à¸™à¸­à¸µà¹€à¸§à¸™à¸•à¹Œ à¸–à¹ˆà¸²à¸¢à¸£à¸¹à¸› à¹à¸¥à¸°à¸‡à¸²à¸™à¹à¸–à¸¥à¸‡à¸‚à¹ˆà¸²à¸§", price: "à¸Šà¸¸à¸”à¸¥à¸° 3,500à¸¿", url: "/services/backdrop" },
+    { id: "6", name: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²", icon: "ðŸ·", desc: "à¸žà¸´à¸¡à¸žà¹Œà¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²à¸„à¸¸à¸“à¸ à¸²à¸žà¸ªà¸¹à¸‡ à¸—à¸±à¹‰à¸‡à¹à¸šà¸šà¸¡à¹‰à¸§à¸™à¹à¸¥à¸°à¹à¸œà¹ˆà¸™ à¸£à¸­à¸‡à¸£à¸±à¸šà¸—à¸¸à¸à¸‚à¸™à¸²à¸”", price: "100 à¸Šà¸´à¹‰à¸™à¸¥à¸° 400à¸¿", url: "/services/label-sticker" },
   ]));
   const [editing, setEditing] = useState<any>(null);
   const [pageContent, setPageContent] = useState<any>(defaultPageContent);
@@ -7765,8 +7765,8 @@ function ServicesManager({ showToast }: any) {
     if (id === "3" || url.includes("pp-board") || url.includes("ppboard") || name.includes("pp")) return "ppboard";
     if (id === "4" || url.includes("roll") || url.includes("x-stand")) return "rollup";
     if (id === "5" || url.includes("backdrop")) return "backdrop";
-    if (id === "6" || name.includes("ฉลาก") || url.includes("label")) return "label";
-    if (id === "2" || url.includes("sticker") || name.includes("sticker") || name.includes("สติ๊ก")) return "sticker";
+    if (id === "6" || name.includes("à¸‰à¸¥à¸²à¸") || url.includes("label")) return "label";
+    if (id === "2" || url.includes("sticker") || name.includes("sticker") || name.includes("à¸ªà¸•à¸´à¹Šà¸")) return "sticker";
     return "";
   };
 
@@ -7794,7 +7794,7 @@ function ServicesManager({ showToast }: any) {
   };
 
   const addServicePortfolioItem = (serviceKey: string, service: any) => {
-    const category = service?.name || "ผลงานบริการ";
+    const category = service?.name || "à¸œà¸¥à¸‡à¸²à¸™à¸šà¸£à¸´à¸à¸²à¸£";
     const currentItems = servicePortfolioItems(serviceKey);
     setPageContent((current: any) => ({
       ...current,
@@ -7804,7 +7804,7 @@ function ServicesManager({ showToast }: any) {
           ...(current.servicesDetail?.[serviceKey] || {}),
           portfolioItems: [
             ...currentItems,
-            { title: "ผลงานใหม่", category, image: "", alt: "", meta: "", href: service?.url || "" },
+            { title: "à¸œà¸¥à¸‡à¸²à¸™à¹ƒà¸«à¸¡à¹ˆ", category, image: "", alt: "", meta: "", href: service?.url || "" },
           ],
         },
       },
@@ -7836,9 +7836,9 @@ function ServicesManager({ showToast }: any) {
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       updateServicePortfolioItem(serviceKey, index, "image", urlData.publicUrl);
-      showToast("อัปโหลดรูปผลงานสำเร็จ");
+      showToast("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›à¸œà¸¥à¸‡à¸²à¸™à¸ªà¸³à¹€à¸£à¹‡à¸ˆ");
     } catch (error: any) {
-      showToast("อัปโหลดรูปไม่ได้: " + (error?.message || "ตรวจสอบ Supabase Storage"), "error");
+      showToast("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + (error?.message || "à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š Supabase Storage"), "error");
     } finally {
       setServicePortfolioUploading("");
     }
@@ -7850,29 +7850,29 @@ function ServicesManager({ showToast }: any) {
     try {
       await saveCmsSetting("services", newSvc);
       await saveCmsSetting("page_content", pageContent);
-      showToast("บันทึกบริการแล้ว");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸šà¸£à¸´à¸à¸²à¸£à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     }
     setEditing(null);
   };
   const del = async (id) => {
-    if (!confirm("ลบบริการนี้?")) return;
+    if (!confirm("à¸¥à¸šà¸šà¸£à¸´à¸à¸²à¸£à¸™à¸µà¹‰?")) return;
     const ns = services.filter(s => s.id !== id);
     setServices(ns);
     try {
       await saveCmsSetting("services", ns);
-      showToast("ลบบริการแล้ว");
+      showToast("à¸¥à¸šà¸šà¸£à¸´à¸à¸²à¸£à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("ลบแล้วแต่บันทึกฐานข้อมูลไม่ได้: " + error.message, "error");
+      showToast("à¸¥à¸šà¹à¸¥à¹‰à¸§à¹à¸•à¹ˆà¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     }
   };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700 }}>จัดการบริการ</h2>
-        <CBtn onClick={() => setEditing({ id: "", name: "", icon: "🛠️", desc: "", price: "", url: "" })} color="#FF6B00">+ เพิ่มบริการ</CBtn>
+        <h2 style={{ fontSize: 20, fontWeight: 700 }}>à¸ˆà¸±à¸”à¸à¸²à¸£à¸šà¸£à¸´à¸à¸²à¸£</h2>
+        <CBtn onClick={() => setEditing({ id: "", name: "", icon: "ðŸ› ï¸", desc: "", price: "", url: "" })} color="#FF6B00">+ à¹€à¸žà¸´à¹ˆà¸¡à¸šà¸£à¸´à¸à¸²à¸£</CBtn>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
         {services.map(s => (
@@ -7880,26 +7880,26 @@ function ServicesManager({ showToast }: any) {
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
               <div style={{ fontSize: 28 }}>{s.icon}</div>
               <div style={{ display: "flex", gap: 6 }}>
-                <CIconBtn onClick={() => setEditing({ ...s })}>✏️</CIconBtn>
-                <CIconBtn onClick={() => del(s.id)} danger>🗑️</CIconBtn>
+                <CIconBtn onClick={() => setEditing({ ...s })}>âœï¸</CIconBtn>
+                <CIconBtn onClick={() => del(s.id)} danger>ðŸ—‘ï¸</CIconBtn>
               </div>
             </div>
             <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 6 }}>{s.name}</div>
             <div style={{ fontSize: 12, color: "#888", lineHeight: 1.7, marginBottom: 8 }}>{s.desc}</div>
-            <div style={{ fontSize: 12, color: "#FF6B00", fontWeight: 600 }}>เริ่มต้น {s.price}</div>
+            <div style={{ fontSize: 12, color: "#FF6B00", fontWeight: 600 }}>à¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™ {s.price}</div>
           </div>
         ))}
       </div>
       {editing && (
-        <CModal title={editing.id ? "แก้ไขบริการ" : "เพิ่มบริการ"} onClose={() => setEditing(null)} width={760}>
+        <CModal title={editing.id ? "à¹à¸à¹‰à¹„à¸‚à¸šà¸£à¸´à¸à¸²à¸£" : "à¹€à¸žà¸´à¹ˆà¸¡à¸šà¸£à¸´à¸à¸²à¸£"} onClose={() => setEditing(null)} width={760}>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 12 }}>
-              <CField label="ไอคอน"><input value={editing.icon} onChange={e => setEditing(p => ({ ...p, icon: e.target.value }))} style={{ textAlign: "center", fontSize: 24 }} /></CField>
-              <CField label="ชื่อบริการ *"><input value={editing.name} onChange={e => setEditing(p => ({ ...p, name: e.target.value }))} /></CField>
+              <CField label="à¹„à¸­à¸„à¸­à¸™"><input value={editing.icon} onChange={e => setEditing(p => ({ ...p, icon: e.target.value }))} style={{ textAlign: "center", fontSize: 24 }} /></CField>
+              <CField label="à¸Šà¸·à¹ˆà¸­à¸šà¸£à¸´à¸à¸²à¸£ *"><input value={editing.name} onChange={e => setEditing(p => ({ ...p, name: e.target.value }))} /></CField>
             </div>
-            <CField label="คำอธิบาย"><textarea value={editing.desc} onChange={e => setEditing(p => ({ ...p, desc: e.target.value }))} rows={3} /></CField>
-            <CField label="ราคาเริ่มต้น"><input value={editing.price} onChange={e => setEditing(p => ({ ...p, price: e.target.value }))} placeholder="เช่น ตร.ม.ละ 200฿" /></CField>
-            <CField label="URL หน้าบริการ"><input value={editing.url} onChange={e => setEditing(p => ({ ...p, url: e.target.value }))} placeholder="/services/vinyl-banner" /></CField>
+            <CField label="à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢"><textarea value={editing.desc} onChange={e => setEditing(p => ({ ...p, desc: e.target.value }))} rows={3} /></CField>
+            <CField label="à¸£à¸²à¸„à¸²à¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™"><input value={editing.price} onChange={e => setEditing(p => ({ ...p, price: e.target.value }))} placeholder="à¹€à¸Šà¹ˆà¸™ à¸•à¸£.à¸¡.à¸¥à¸° 200à¸¿" /></CField>
+            <CField label="URL à¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£"><input value={editing.url} onChange={e => setEditing(p => ({ ...p, url: e.target.value }))} placeholder="/services/vinyl-banner" /></CField>
             {(() => {
               const serviceKey = serviceKeyFromService(editing);
               const items = servicePortfolioItems(serviceKey);
@@ -7907,16 +7907,16 @@ function ServicesManager({ showToast }: any) {
                 <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 14, marginTop: 2 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 10 }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 800 }}>รูปผลงานของบริการนี้</div>
+                      <div style={{ fontSize: 14, fontWeight: 800 }}>à¸£à¸¹à¸›à¸œà¸¥à¸‡à¸²à¸™à¸‚à¸­à¸‡à¸šà¸£à¸´à¸à¸²à¸£à¸™à¸µà¹‰</div>
                       <div style={{ fontSize: 11, color: "#8A94A6", marginTop: 3 }}>
-                        รูปชุดนี้จะใช้ในหน้าบริการ หน้าแรก และหน้าผลงาน
+                        à¸£à¸¹à¸›à¸Šà¸¸à¸”à¸™à¸µà¹‰à¸ˆà¸°à¹ƒà¸Šà¹‰à¹ƒà¸™à¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£ à¸«à¸™à¹‰à¸²à¹à¸£à¸ à¹à¸¥à¸°à¸«à¸™à¹‰à¸²à¸œà¸¥à¸‡à¸²à¸™
                       </div>
                     </div>
-                    {serviceKey && <CBtn onClick={() => addServicePortfolioItem(serviceKey, editing)} small color="#3B82F6">+ เพิ่มรูป</CBtn>}
+                    {serviceKey && <CBtn onClick={() => addServicePortfolioItem(serviceKey, editing)} small color="#3B82F6">+ à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸¹à¸›</CBtn>}
                   </div>
                   {!serviceKey ? (
                     <div style={{ padding: 12, border: "1px dashed rgba(255,107,0,0.35)", borderRadius: 10, color: "#F59E0B", fontSize: 12, lineHeight: 1.7 }}>
-                      ยังไม่พบหน้าบริการที่เชื่อมกับรายการนี้ กรุณาใส่ URL ให้ตรงกับหน้าบริการ เช่น /services/vinyl-banner, /services/sticker, /services/pp-board, /services/roll-up, /services/backdrop หรือ /services/label-sticker
+                      à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸žà¸šà¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸à¸±à¸šà¸£à¸²à¸¢à¸à¸²à¸£à¸™à¸µà¹‰ à¸à¸£à¸¸à¸“à¸²à¹ƒà¸ªà¹ˆ URL à¹ƒà¸«à¹‰à¸•à¸£à¸‡à¸à¸±à¸šà¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£ à¹€à¸Šà¹ˆà¸™ /services/vinyl-banner, /services/sticker, /services/pp-board, /services/roll-up, /services/backdrop à¸«à¸£à¸·à¸­ /services/label-sticker
                     </div>
                   ) : (
                     <div className="service-portfolio-editor-grid" style={{ display: "grid", gap: 12 }}>
@@ -7928,28 +7928,28 @@ function ServicesManager({ showToast }: any) {
                                 {item.image ? (
                                   <img src={item.image} alt={item.alt || item.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                 ) : (
-                                  <div style={{ height: "100%", display: "grid", placeItems: "center", color: "#4B5563", fontSize: 11 }}>ยังไม่มีรูป</div>
+                                  <div style={{ height: "100%", display: "grid", placeItems: "center", color: "#4B5563", fontSize: 11 }}>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸¹à¸›</div>
                                 )}
                               </div>
-                              <CBtn onClick={() => deleteServicePortfolioItem(serviceKey, index)} small outline style={{ width: "100%", marginTop: 8, color: "#EF4444", borderColor: "rgba(239,68,68,0.35)" }}>ลบรูป</CBtn>
+                              <CBtn onClick={() => deleteServicePortfolioItem(serviceKey, index)} small outline style={{ width: "100%", marginTop: 8, color: "#EF4444", borderColor: "rgba(239,68,68,0.35)" }}>à¸¥à¸šà¸£à¸¹à¸›</CBtn>
                             </div>
                             <div className="service-portfolio-fields" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                              <CField label="ชื่อผลงาน"><input value={item.title || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "title", e.target.value)} /></CField>
-                              <CField label="หมวดหมู่"><input value={item.category || editing.name || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "category", e.target.value)} /></CField>
-                              <CField label="URL รูป"><input value={item.image || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "image", e.target.value)} placeholder="/images/portfolio/example.jpg" /></CField>
-                              <CField label="อัปโหลดรูป">
+                              <CField label="à¸Šà¸·à¹ˆà¸­à¸œà¸¥à¸‡à¸²à¸™"><input value={item.title || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "title", e.target.value)} /></CField>
+                              <CField label="à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ"><input value={item.category || editing.name || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "category", e.target.value)} /></CField>
+                              <CField label="URL à¸£à¸¹à¸›"><input value={item.image || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "image", e.target.value)} placeholder="/images/portfolio/example.jpg" /></CField>
+                              <CField label="à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›">
                                 <input
                                   type="file"
                                   accept="image/*"
                                   onChange={(e) => uploadServicePortfolioImage(serviceKey, index, e.target.files?.[0])}
                                 />
                                 {servicePortfolioUploading === `${serviceKey}-${index}` && (
-                                  <div style={{ fontSize: 11, color: "#60A5FA", marginTop: 5 }}>กำลังอัปโหลด...</div>
+                                  <div style={{ fontSize: 11, color: "#60A5FA", marginTop: 5 }}>à¸à¸³à¸¥à¸±à¸‡à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”...</div>
                                 )}
                               </CField>
                               <CField label="Alt Text"><input value={item.alt || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "alt", e.target.value)} /></CField>
-                              <CField label="ลิงก์เมื่อกด"><input value={item.href || editing.url || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "href", e.target.value)} /></CField>
-                              <CField label="คำอธิบายสั้น" style={{ gridColumn: "1 / -1" }}>
+                              <CField label="à¸¥à¸´à¸‡à¸à¹Œà¹€à¸¡à¸·à¹ˆà¸­à¸à¸”"><input value={item.href || editing.url || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "href", e.target.value)} /></CField>
+                              <CField label="à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸ªà¸±à¹‰à¸™" style={{ gridColumn: "1 / -1" }}>
                                 <textarea value={item.meta || ""} onChange={(e) => updateServicePortfolioItem(serviceKey, index, "meta", e.target.value)} rows={2} />
                               </CField>
                             </div>
@@ -7962,8 +7962,8 @@ function ServicesManager({ showToast }: any) {
               );
             })()}
             <div style={{ display: "flex", gap: 10 }}>
-              <CBtn onClick={() => save(editing)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</CBtn>
-              <CBtn onClick={() => setEditing(null)} outline style={{ flex: 1 }}>ยกเลิก</CBtn>
+              <CBtn onClick={() => save(editing)} color="#FF6B00" style={{ flex: 1 }}>à¸šà¸±à¸™à¸—à¸¶à¸</CBtn>
+              <CBtn onClick={() => setEditing(null)} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</CBtn>
             </div>
           </div>
         </CModal>
@@ -7977,9 +7977,9 @@ function ServicesManager({ showToast }: any) {
 // ============================================================
 function ReviewsManager({ showToast }: any) {
   const [reviews, setReviews] = useState(() => loadLocal("reviews", [
-    { id: "1", name: "คุณสมชาย", company: "ร้านอาหารครัวบ้าน", stars: 5, text: "บริการดีมาก งานออกมาสวยงาม ส่งตรงเวลา ราคาเป็นธรรม" },
-    { id: "2", name: "คุณนงนุช", company: "ร้านเสื้อผ้า Fashion Plus", stars: 5, text: "ทำป้ายหน้าร้านสวยมากค่ะ ลูกค้าเห็นแล้วชอบกันเยอะเลย" },
-    { id: "3", name: "คุณวิชัย", company: "บริษัทออแกนิก", stars: 4, text: "งานคุณภาพดี ทีมงานให้คำปรึกษาเรื่องขนาดและวัสดุได้ดีมาก" },
+    { id: "1", name: "à¸„à¸¸à¸“à¸ªà¸¡à¸Šà¸²à¸¢", company: "à¸£à¹‰à¸²à¸™à¸­à¸²à¸«à¸²à¸£à¸„à¸£à¸±à¸§à¸šà¹‰à¸²à¸™", stars: 5, text: "à¸šà¸£à¸´à¸à¸²à¸£à¸”à¸µà¸¡à¸²à¸ à¸‡à¸²à¸™à¸­à¸­à¸à¸¡à¸²à¸ªà¸§à¸¢à¸‡à¸²à¸¡ à¸ªà¹ˆà¸‡à¸•à¸£à¸‡à¹€à¸§à¸¥à¸² à¸£à¸²à¸„à¸²à¹€à¸›à¹‡à¸™à¸˜à¸£à¸£à¸¡" },
+    { id: "2", name: "à¸„à¸¸à¸“à¸™à¸‡à¸™à¸¸à¸Š", company: "à¸£à¹‰à¸²à¸™à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸² Fashion Plus", stars: 5, text: "à¸—à¸³à¸›à¹‰à¸²à¸¢à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™à¸ªà¸§à¸¢à¸¡à¸²à¸à¸„à¹ˆà¸° à¸¥à¸¹à¸à¸„à¹‰à¸²à¹€à¸«à¹‡à¸™à¹à¸¥à¹‰à¸§à¸Šà¸­à¸šà¸à¸±à¸™à¹€à¸¢à¸­à¸°à¹€à¸¥à¸¢" },
+    { id: "3", name: "à¸„à¸¸à¸“à¸§à¸´à¸Šà¸±à¸¢", company: "à¸šà¸£à¸´à¸©à¸±à¸—à¸­à¸­à¹à¸à¸™à¸´à¸", stars: 4, text: "à¸‡à¸²à¸™à¸„à¸¸à¸“à¸ à¸²à¸žà¸”à¸µ à¸—à¸µà¸¡à¸‡à¸²à¸™à¹ƒà¸«à¹‰à¸„à¸³à¸›à¸£à¸¶à¸à¸©à¸²à¹€à¸£à¸·à¹ˆà¸­à¸‡à¸‚à¸™à¸²à¸”à¹à¸¥à¸°à¸§à¸±à¸ªà¸”à¸¸à¹„à¸”à¹‰à¸”à¸µà¸¡à¸²à¸" },
   ]));
   const [editing, setEditing] = useState<any>(null);
   useEffect(() => {
@@ -7995,29 +7995,29 @@ function ReviewsManager({ showToast }: any) {
     setReviews(nr);
     try {
       await saveCmsSetting("reviews", nr);
-      showToast(r.id ? "บันทึกรีวิวแล้ว" : "เพิ่มรีวิวแล้ว");
+      showToast(r.id ? "à¸šà¸±à¸™à¸—à¸¶à¸à¸£à¸µà¸§à¸´à¸§à¹à¸¥à¹‰à¸§" : "à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸µà¸§à¸´à¸§à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     }
     setEditing(null);
   };
   const del = async (id) => {
-    if (!confirm("ลบรีวิวนี้?")) return;
+    if (!confirm("à¸¥à¸šà¸£à¸µà¸§à¸´à¸§à¸™à¸µà¹‰?")) return;
     const nr = reviews.filter(r => r.id !== id);
     setReviews(nr);
     try {
       await saveCmsSetting("reviews", nr);
-      showToast("ลบรีวิวแล้ว");
+      showToast("à¸¥à¸šà¸£à¸µà¸§à¸´à¸§à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("ลบแล้วแต่บันทึกฐานข้อมูลไม่ได้: " + error.message, "error");
+      showToast("à¸¥à¸šà¹à¸¥à¹‰à¸§à¹à¸•à¹ˆà¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     }
   };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700 }}>จัดการรีวิว</h2>
-        <CBtn onClick={() => setEditing({ id: "", name: "", company: "", stars: 5, text: "" })} color="#FF6B00">+ เพิ่มรีวิว</CBtn>
+        <h2 style={{ fontSize: 20, fontWeight: 700 }}>à¸ˆà¸±à¸”à¸à¸²à¸£à¸£à¸µà¸§à¸´à¸§</h2>
+        <CBtn onClick={() => setEditing({ id: "", name: "", company: "", stars: 5, text: "" })} color="#FF6B00">+ à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸µà¸§à¸´à¸§</CBtn>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {reviews.map(r => (
@@ -8026,35 +8026,35 @@ function ReviewsManager({ showToast }: any) {
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                 <span style={{ fontWeight: 600 }}>{r.name}</span>
                 <span style={{ fontSize: 12, color: "#555" }}>{r.company}</span>
-                <span style={{ color: "#F59E0B" }}>{"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}</span>
+                <span style={{ color: "#F59E0B" }}>{"â˜…".repeat(r.stars)}{"â˜†".repeat(5 - r.stars)}</span>
               </div>
               <div style={{ fontSize: 13, color: "#888" }}>{r.text}</div>
             </div>
             <div style={{ display: "flex", gap: 6 }}>
-              <CIconBtn onClick={() => setEditing({ ...r })}>✏️</CIconBtn>
-              <CIconBtn onClick={() => del(r.id)} danger>🗑️</CIconBtn>
+              <CIconBtn onClick={() => setEditing({ ...r })}>âœï¸</CIconBtn>
+              <CIconBtn onClick={() => del(r.id)} danger>ðŸ—‘ï¸</CIconBtn>
             </div>
           </div>
         ))}
       </div>
       {editing && (
-        <CModal title={editing.id ? "แก้ไขรีวิว" : "เพิ่มรีวิว"} onClose={() => setEditing(null)} width={480}>
+        <CModal title={editing.id ? "à¹à¸à¹‰à¹„à¸‚à¸£à¸µà¸§à¸´à¸§" : "à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸µà¸§à¸´à¸§"} onClose={() => setEditing(null)} width={480}>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <CField label="ชื่อผู้รีวิว"><input value={editing.name} onChange={e => setEditing(p => ({ ...p, name: e.target.value }))} /></CField>
-              <CField label="บริษัท/ร้านค้า"><input value={editing.company} onChange={e => setEditing(p => ({ ...p, company: e.target.value }))} /></CField>
+              <CField label="à¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¸£à¸µà¸§à¸´à¸§"><input value={editing.name} onChange={e => setEditing(p => ({ ...p, name: e.target.value }))} /></CField>
+              <CField label="à¸šà¸£à¸´à¸©à¸±à¸—/à¸£à¹‰à¸²à¸™à¸„à¹‰à¸²"><input value={editing.company} onChange={e => setEditing(p => ({ ...p, company: e.target.value }))} /></CField>
             </div>
-            <CField label="ดาว (1-5)">
+            <CField label="à¸”à¸²à¸§ (1-5)">
               <div style={{ display: "flex", gap: 6 }}>
                 {[1,2,3,4,5].map(s => (
-                  <button key={s} onClick={() => setEditing(p => ({ ...p, stars: s }))} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 24, color: s <= editing.stars ? "#F59E0B" : "#333" }}>★</button>
+                  <button type="button" key={s} onClick={() => setEditing(p => ({ ...p, stars: s }))} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 24, color: s <= editing.stars ? "#F59E0B" : "#333" }}>â˜…</button>
                 ))}
               </div>
             </CField>
-            <CField label="ข้อความรีวิว"><textarea value={editing.text} onChange={e => setEditing(p => ({ ...p, text: e.target.value }))} rows={4} /></CField>
+            <CField label="à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸£à¸µà¸§à¸´à¸§"><textarea value={editing.text} onChange={e => setEditing(p => ({ ...p, text: e.target.value }))} rows={4} /></CField>
             <div style={{ display: "flex", gap: 10 }}>
-              <CBtn onClick={() => save(editing)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</CBtn>
-              <CBtn onClick={() => setEditing(null)} outline style={{ flex: 1 }}>ยกเลิก</CBtn>
+              <CBtn onClick={() => save(editing)} color="#FF6B00" style={{ flex: 1 }}>à¸šà¸±à¸™à¸—à¸¶à¸</CBtn>
+              <CBtn onClick={() => setEditing(null)} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</CBtn>
             </div>
           </div>
         </CModal>
@@ -8069,50 +8069,50 @@ function ReviewsManager({ showToast }: any) {
 const defaultPortfolioItems = [
   {
     id: "default-work-01",
-    title: "ป้ายไวนิลหน้าร้านอาหาร",
-    category: "ป้ายไวนิล",
-    meta: "ช่วยให้เมนูและโปรโมชันอ่านง่ายจากหน้าร้าน",
-    alt: "ป้ายไวนิลหน้าร้านอาหาร Display Works Media",
+    title: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™à¸­à¸²à¸«à¸²à¸£",
+    category: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥",
+    meta: "à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¹€à¸¡à¸™à¸¹à¹à¸¥à¸°à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¸™à¸­à¹ˆà¸²à¸™à¸‡à¹ˆà¸²à¸¢à¸ˆà¸²à¸à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™",
+    alt: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™à¸­à¸²à¸«à¸²à¸£ Display Works Media",
     href: "/portfolio",
     image: "/images/portfolio/work-01.webp",
     img: "/images/portfolio/work-01.webp",
   },
   {
     id: "default-work-02",
-    title: "บูธและสื่อแสดงสินค้า",
+    title: "à¸šà¸¹à¸˜à¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¹à¸ªà¸”à¸‡à¸ªà¸´à¸™à¸„à¹‰à¸²",
     category: "Backdrop",
-    meta: "รวมสื่อหลายชิ้นให้แบรนด์ดูพร้อมในงานอีเวนต์",
-    alt: "บูธและสื่อแสดงสินค้า Display Works Media",
+    meta: "à¸£à¸§à¸¡à¸ªà¸·à¹ˆà¸­à¸«à¸¥à¸²à¸¢à¸Šà¸´à¹‰à¸™à¹ƒà¸«à¹‰à¹à¸šà¸£à¸™à¸”à¹Œà¸”à¸¹à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸™à¸‡à¸²à¸™à¸­à¸µà¹€à¸§à¸™à¸•à¹Œ",
+    alt: "à¸šà¸¹à¸˜à¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¹à¸ªà¸”à¸‡à¸ªà¸´à¸™à¸„à¹‰à¸² Display Works Media",
     href: "/portfolio",
     image: "/images/portfolio/work-02.webp",
     img: "/images/portfolio/work-02.webp",
   },
   {
     id: "default-work-03",
-    title: "ฉลากสินค้า",
-    category: "ฉลากสินค้า",
-    meta: "เพิ่มความน่าเชื่อถือให้แพ็กเกจสินค้า",
-    alt: "ฉลากสินค้า Display Works Media",
+    title: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²",
+    category: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²",
+    meta: "à¹€à¸žà¸´à¹ˆà¸¡à¸„à¸§à¸²à¸¡à¸™à¹ˆà¸²à¹€à¸Šà¸·à¹ˆà¸­à¸–à¸·à¸­à¹ƒà¸«à¹‰à¹à¸žà¹‡à¸à¹€à¸à¸ˆà¸ªà¸´à¸™à¸„à¹‰à¸²",
+    alt: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸² Display Works Media",
     href: "/portfolio",
     image: "/images/portfolio/work-06.webp",
     img: "/images/portfolio/work-06.webp",
   },
   {
     id: "default-work-04",
-    title: "Backdrop งานอีเวนต์",
+    title: "Backdrop à¸‡à¸²à¸™à¸­à¸µà¹€à¸§à¸™à¸•à¹Œ",
     category: "Backdrop",
-    meta: "สร้างจุดถ่ายภาพและพื้นที่แบรนด์ที่ชัดเจน",
-    alt: "Backdrop งานอีเวนต์ Display Works Media",
+    meta: "à¸ªà¸£à¹‰à¸²à¸‡à¸ˆà¸¸à¸”à¸–à¹ˆà¸²à¸¢à¸ à¸²à¸žà¹à¸¥à¸°à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¹à¸šà¸£à¸™à¸”à¹Œà¸—à¸µà¹ˆà¸Šà¸±à¸”à¹€à¸ˆà¸™",
+    alt: "Backdrop à¸‡à¸²à¸™à¸­à¸µà¹€à¸§à¸™à¸•à¹Œ Display Works Media",
     href: "/portfolio",
     image: "/images/portfolio/work-03.webp",
     img: "/images/portfolio/work-03.webp",
   },
   {
     id: "default-work-05",
-    title: "งานพิมพ์แคมเปญ",
-    category: "สื่อโฆษณา",
-    meta: "สื่อโปรโมชันที่ช่วยให้ข้อเสนอเห็นชัดขึ้น",
-    alt: "งานพิมพ์แคมเปญ Display Works Media",
+    title: "à¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œà¹à¸„à¸¡à¹€à¸›à¸",
+    category: "à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²",
+    meta: "à¸ªà¸·à¹ˆà¸­à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¸™à¸—à¸µà¹ˆà¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¸‚à¹‰à¸­à¹€à¸ªà¸™à¸­à¹€à¸«à¹‡à¸™à¸Šà¸±à¸”à¸‚à¸¶à¹‰à¸™",
+    alt: "à¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œà¹à¸„à¸¡à¹€à¸›à¸ Display Works Media",
     href: "/portfolio",
     image: "/images/portfolio/work-05.webp",
     img: "/images/portfolio/work-05.webp",
@@ -8142,10 +8142,10 @@ function PortfolioManager({ showToast }: any) {
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       callback(urlData.publicUrl);
-      showToast("อัปโหลดรูปสำเร็จ");
+      showToast("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›à¸ªà¸³à¹€à¸£à¹‡à¸ˆ");
     } catch {
       callback(URL.createObjectURL(file));
-      showToast("ใช้ preview (ตรวจสอบ Supabase Storage)", "error");
+      showToast("à¹ƒà¸Šà¹‰ preview (à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š Supabase Storage)", "error");
     }
     setUploading(false);
   };
@@ -8165,82 +8165,82 @@ function PortfolioManager({ showToast }: any) {
     setItems(ni);
     try {
       await saveCmsSetting("portfolio", ni);
-      showToast("บันทึกผลงานแล้ว");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸œà¸¥à¸‡à¸²à¸™à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     }
     setEditing(null);
   };
   const del = async (id) => {
-    if (!confirm("ลบผลงานนี้?")) return;
+    if (!confirm("à¸¥à¸šà¸œà¸¥à¸‡à¸²à¸™à¸™à¸µà¹‰?")) return;
     const ni = items.filter(i => i.id !== id);
     setItems(ni);
     try {
       await saveCmsSetting("portfolio", ni);
-      showToast("ลบผลงานแล้ว");
+      showToast("à¸¥à¸šà¸œà¸¥à¸‡à¸²à¸™à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("ลบแล้วแต่บันทึกฐานข้อมูลไม่ได้: " + error.message, "error");
+      showToast("à¸¥à¸šà¹à¸¥à¹‰à¸§à¹à¸•à¹ˆà¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     }
   };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700 }}>จัดการผลงาน</h2>
-        <CBtn onClick={() => setEditing({ id: "", title: "", category: "", meta: "", alt: "", href: "", image: "", img: "" })} color="#FF6B00">+ เพิ่มผลงาน</CBtn>
+        <h2 style={{ fontSize: 20, fontWeight: 700 }}>à¸ˆà¸±à¸”à¸à¸²à¸£à¸œà¸¥à¸‡à¸²à¸™</h2>
+        <CBtn onClick={() => setEditing({ id: "", title: "", category: "", meta: "", alt: "", href: "", image: "", img: "" })} color="#FF6B00">+ à¹€à¸žà¸´à¹ˆà¸¡à¸œà¸¥à¸‡à¸²à¸™</CBtn>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
         {items.map(item => (
           <div key={item.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
             <div style={{ height: 140, background: "#1A2233", position: "relative" }}>
-              {(item.image || item.img) ? <img src={item.image || item.img} alt={item.alt || item.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: 36 }}>🖼</div>}
+              {(item.image || item.img) ? <img src={item.image || item.img} alt={item.alt || item.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: 36 }}>ðŸ–¼</div>}
             </div>
             <div style={{ padding: "12px 14px" }}>
-              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{item.title || "ไม่มีชื่อ"}</div>
+              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{item.title || "à¹„à¸¡à¹ˆà¸¡à¸µà¸Šà¸·à¹ˆà¸­"}</div>
               <div style={{ fontSize: 11, color: "#555", marginBottom: 6 }}>{item.category}</div>
               <div style={{ fontSize: 11, color: "#7B8496", marginBottom: 10, lineHeight: 1.5 }}>{item.meta}</div>
               <div style={{ display: "flex", gap: 6 }}>
-                <CIconBtn onClick={() => setEditing(normalizeItem(item))} small>✏️</CIconBtn>
-                <CIconBtn onClick={() => del(item.id)} danger small>🗑️</CIconBtn>
+                <CIconBtn onClick={() => setEditing(normalizeItem(item))} small>âœï¸</CIconBtn>
+                <CIconBtn onClick={() => del(item.id)} danger small>ðŸ—‘ï¸</CIconBtn>
               </div>
             </div>
           </div>
         ))}
-        {items.length === 0 && <EmptyState icon="🖼" text="ยังไม่มีผลงาน" />}
+        {items.length === 0 && <EmptyState icon="ðŸ–¼" text="à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸œà¸¥à¸‡à¸²à¸™" />}
       </div>
 
       {editing && (
-        <CModal title={editing.id ? "แก้ไขผลงาน" : "เพิ่มผลงาน"} onClose={() => setEditing(null)} width={460}>
+        <CModal title={editing.id ? "à¹à¸à¹‰à¹„à¸‚à¸œà¸¥à¸‡à¸²à¸™" : "à¹€à¸žà¸´à¹ˆà¸¡à¸œà¸¥à¸‡à¸²à¸™"} onClose={() => setEditing(null)} width={460}>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <CField label="รูปภาพผลงาน">
+            <CField label="à¸£à¸¹à¸›à¸ à¸²à¸žà¸œà¸¥à¸‡à¸²à¸™">
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <div style={{ width: 120, height: 80, borderRadius: 8, overflow: "hidden", background: "#1A2233", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {(editing.image || editing.img) ? <img src={editing.image || editing.img} alt={editing.alt || editing.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 24, opacity: 0.4 }}>🖼</span>}
+                  {(editing.image || editing.img) ? <img src={editing.image || editing.img} alt={editing.alt || editing.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 24, opacity: 0.4 }}>ðŸ–¼</span>}
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
                   <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadImg(e.target.files?.[0], url => setEditing(p => ({ ...p, image: url, img: url })))} />
-                  <CBtn onClick={() => fileRef.current?.click()} color="#3B82F6" small disabled={uploading}>{uploading ? "⏳..." : "📁 เลือกรูป"}</CBtn>
-                  <input value={editing.image || editing.img} onChange={e => setEditing(p => ({ ...p, image: e.target.value, img: e.target.value }))} placeholder="หรือวาง URL" />
+                  <CBtn onClick={() => fileRef.current?.click()} color="#3B82F6" small disabled={uploading}>{uploading ? "â³..." : "ðŸ“ à¹€à¸¥à¸·à¸­à¸à¸£à¸¹à¸›"}</CBtn>
+                  <input value={editing.image || editing.img} onChange={e => setEditing(p => ({ ...p, image: e.target.value, img: e.target.value }))} placeholder="à¸«à¸£à¸·à¸­à¸§à¸²à¸‡ URL" />
                 </div>
               </div>
             </CField>
-            <CField label="ชื่อผลงาน"><input value={editing.title} onChange={e => setEditing(p => ({ ...p, title: e.target.value }))} /></CField>
-            <CField label="คำอธิบายผลงาน">
-              <textarea value={editing.meta || ""} onChange={e => setEditing(p => ({ ...p, meta: e.target.value }))} rows={3} placeholder="เช่น ป้ายไวนิลหน้าร้านอาหาร ขนาด 4 x 2 เมตร ช่วยให้โปรโมชันอ่านชัดจากระยะหน้าร้าน" />
+            <CField label="à¸Šà¸·à¹ˆà¸­à¸œà¸¥à¸‡à¸²à¸™"><input value={editing.title} onChange={e => setEditing(p => ({ ...p, title: e.target.value }))} /></CField>
+            <CField label="à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸œà¸¥à¸‡à¸²à¸™">
+              <textarea value={editing.meta || ""} onChange={e => setEditing(p => ({ ...p, meta: e.target.value }))} rows={3} placeholder="à¹€à¸Šà¹ˆà¸™ à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™à¸­à¸²à¸«à¸²à¸£ à¸‚à¸™à¸²à¸” 4 x 2 à¹€à¸¡à¸•à¸£ à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¸™à¸­à¹ˆà¸²à¸™à¸Šà¸±à¸”à¸ˆà¸²à¸à¸£à¸°à¸¢à¸°à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™" />
             </CField>
-            <CField label="Alt Text รูปภาพ">
-              <input value={editing.alt || ""} onChange={e => setEditing(p => ({ ...p, alt: e.target.value }))} placeholder="คำอธิบายรูปสำหรับ SEO และการเข้าถึง" />
+            <CField label="Alt Text à¸£à¸¹à¸›à¸ à¸²à¸ž">
+              <input value={editing.alt || ""} onChange={e => setEditing(p => ({ ...p, alt: e.target.value }))} placeholder="à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸£à¸¹à¸›à¸ªà¸³à¸«à¸£à¸±à¸š SEO à¹à¸¥à¸°à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡" />
             </CField>
-            <CField label="ลิงก์เมื่อคลิก (ไม่บังคับ)">
-              <input value={editing.href || ""} onChange={e => setEditing(p => ({ ...p, href: e.target.value }))} placeholder="/portfolio หรือ /services/vinyl-banner" />
+            <CField label="à¸¥à¸´à¸‡à¸à¹Œà¹€à¸¡à¸·à¹ˆà¸­à¸„à¸¥à¸´à¸ (à¹„à¸¡à¹ˆà¸šà¸±à¸‡à¸„à¸±à¸š)">
+              <input value={editing.href || ""} onChange={e => setEditing(p => ({ ...p, href: e.target.value }))} placeholder="/portfolio à¸«à¸£à¸·à¸­ /services/vinyl-banner" />
             </CField>
-            <CField label="หมวดหมู่">
-              <input value={editing.category} onChange={e => setEditing(p => ({ ...p, category: e.target.value }))} list="cat-port" placeholder="เช่น ป้ายไวนิล" />
-              <datalist id="cat-port">{["ป้ายไวนิล","สติ๊กเกอร์","Roll Up","Backdrop","PP Board","ฉลากสินค้า"].map(c => <option key={c} value={c} />)}</datalist>
+            <CField label="à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ">
+              <input value={editing.category} onChange={e => setEditing(p => ({ ...p, category: e.target.value }))} list="cat-port" placeholder="à¹€à¸Šà¹ˆà¸™ à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥" />
+              <datalist id="cat-port">{["à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥","à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ","Roll Up","Backdrop","PP Board","à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²"].map(c => <option key={c} value={c} />)}</datalist>
             </CField>
             <div style={{ display: "flex", gap: 10 }}>
-              <CBtn onClick={() => save(editing)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</CBtn>
-              <CBtn onClick={() => setEditing(null)} outline style={{ flex: 1 }}>ยกเลิก</CBtn>
+              <CBtn onClick={() => save(editing)} color="#FF6B00" style={{ flex: 1 }}>à¸šà¸±à¸™à¸—à¸¶à¸</CBtn>
+              <CBtn onClick={() => setEditing(null)} outline style={{ flex: 1 }}>à¸¢à¸à¹€à¸¥à¸´à¸</CBtn>
             </div>
           </div>
         </CModal>
@@ -8254,114 +8254,114 @@ function PortfolioManager({ showToast }: any) {
 // ============================================================
 const defaultServicePortfolioItems = {
   vinyl: [
-    { title: "ป้ายไวนิลหน้าร้าน", image: "/images/portfolio/1.png", meta: "ช่วยให้ร้านและโปรโมชันอ่านชัดจากระยะหน้าร้าน", category: "ป้ายไวนิล", alt: "ป้ายไวนิลหน้าร้าน Display Works Media" },
-    { title: "ป้ายโปรโมชั่น", image: "/images/portfolio/2.png", meta: "ใช้สื่อสารราคา เมนู หรือแคมเปญให้คนเห็นทันที", category: "ป้ายไวนิล", alt: "ป้ายโปรโมชั่น Display Works Media" },
-    { title: "ป้ายประชาสัมพันธ์", image: "/images/portfolio/3.png", meta: "ประสานขนาดและวัสดุให้เหมาะกับพื้นที่ติดตั้ง", category: "ป้ายไวนิล", alt: "ป้ายประชาสัมพันธ์ Display Works Media" },
+    { title: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™", image: "/images/portfolio/1.png", meta: "à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¸£à¹‰à¸²à¸™à¹à¸¥à¸°à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¸™à¸­à¹ˆà¸²à¸™à¸Šà¸±à¸”à¸ˆà¸²à¸à¸£à¸°à¸¢à¸°à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™", category: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥", alt: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™ Display Works Media" },
+    { title: "à¸›à¹‰à¸²à¸¢à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¹ˆà¸™", image: "/images/portfolio/2.png", meta: "à¹ƒà¸Šà¹‰à¸ªà¸·à¹ˆà¸­à¸ªà¸²à¸£à¸£à¸²à¸„à¸² à¹€à¸¡à¸™à¸¹ à¸«à¸£à¸·à¸­à¹à¸„à¸¡à¹€à¸›à¸à¹ƒà¸«à¹‰à¸„à¸™à¹€à¸«à¹‡à¸™à¸—à¸±à¸™à¸—à¸µ", category: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥", alt: "à¸›à¹‰à¸²à¸¢à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¹ˆà¸™ Display Works Media" },
+    { title: "à¸›à¹‰à¸²à¸¢à¸›à¸£à¸°à¸Šà¸²à¸ªà¸±à¸¡à¸žà¸±à¸™à¸˜à¹Œ", image: "/images/portfolio/3.png", meta: "à¸›à¸£à¸°à¸ªà¸²à¸™à¸‚à¸™à¸²à¸”à¹à¸¥à¸°à¸§à¸±à¸ªà¸”à¸¸à¹ƒà¸«à¹‰à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸•à¸´à¸”à¸•à¸±à¹‰à¸‡", category: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥", alt: "à¸›à¹‰à¸²à¸¢à¸›à¸£à¸°à¸Šà¸²à¸ªà¸±à¸¡à¸žà¸±à¸™à¸˜à¹Œ Display Works Media" },
   ],
   sticker: [
-    { title: "สติ๊กเกอร์ติดกระจก", image: "/images/portfolio/sticker-1.jpg", meta: "เหมาะกับหน้าร้าน กระจกออฟฟิศ และพื้นที่ Indoor / Outdoor", category: "สติ๊กเกอร์", alt: "สติ๊กเกอร์ติดกระจก Display Works Media" },
-    { title: "สติ๊กเกอร์ประชาสัมพันธ์", image: "/images/portfolio/sticker-2.jpg", meta: "ช่วยทำให้ข้อความแคมเปญดูชัดและติดตั้งเป็นระเบียบ", category: "สติ๊กเกอร์", alt: "สติ๊กเกอร์ประชาสัมพันธ์ Display Works Media" },
-    { title: "สติ๊กเกอร์ไดคัท", image: "/images/portfolio/sticker-4.jpg", meta: "ตัดตามรูปทรงโลโก้ ฉลาก หรือชิ้นงานเฉพาะแบรนด์", category: "สติ๊กเกอร์", alt: "สติ๊กเกอร์ไดคัท Display Works Media" },
+    { title: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œà¸•à¸´à¸”à¸à¸£à¸°à¸ˆà¸", image: "/images/portfolio/sticker-1.jpg", meta: "à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™ à¸à¸£à¸°à¸ˆà¸à¸­à¸­à¸Ÿà¸Ÿà¸´à¸¨ à¹à¸¥à¸°à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆ Indoor / Outdoor", category: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ", alt: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œà¸•à¸´à¸”à¸à¸£à¸°à¸ˆà¸ Display Works Media" },
+    { title: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œà¸›à¸£à¸°à¸Šà¸²à¸ªà¸±à¸¡à¸žà¸±à¸™à¸˜à¹Œ", image: "/images/portfolio/sticker-2.jpg", meta: "à¸Šà¹ˆà¸§à¸¢à¸—à¸³à¹ƒà¸«à¹‰à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¹à¸„à¸¡à¹€à¸›à¸à¸”à¸¹à¸Šà¸±à¸”à¹à¸¥à¸°à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¹€à¸›à¹‡à¸™à¸£à¸°à¹€à¸šà¸µà¸¢à¸š", category: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ", alt: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œà¸›à¸£à¸°à¸Šà¸²à¸ªà¸±à¸¡à¸žà¸±à¸™à¸˜à¹Œ Display Works Media" },
+    { title: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œà¹„à¸”à¸„à¸±à¸—", image: "/images/portfolio/sticker-4.jpg", meta: "à¸•à¸±à¸”à¸•à¸²à¸¡à¸£à¸¹à¸›à¸—à¸£à¸‡à¹‚à¸¥à¹‚à¸à¹‰ à¸‰à¸¥à¸²à¸ à¸«à¸£à¸·à¸­à¸Šà¸´à¹‰à¸™à¸‡à¸²à¸™à¹€à¸‰à¸žà¸²à¸°à¹à¸šà¸£à¸™à¸”à¹Œ", category: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ", alt: "à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œà¹„à¸”à¸„à¸±à¸— Display Works Media" },
   ],
   ppboard: [
-    { title: "PP Board โปรโมชั่น", image: "/images/portfolio/ppboard-1.png", meta: "น้ำหนักเบา เหมาะกับโปรโมชันหน้าร้านที่ต้องย้ายตำแหน่งได้", category: "PP Board", alt: "PP Board โปรโมชั่น Display Works Media" },
-    { title: "Standee หน้าร้าน", image: "/images/portfolio/ppboard-2.png", meta: "ช่วยให้สินค้า เมนู หรือบริการเด่นขึ้นในพื้นที่ขาย", category: "PP Board", alt: "Standee หน้าร้าน Display Works Media" },
-    { title: "ป้ายตั้งพื้น", image: "/images/portfolio/ppboard-3.png", meta: "ประเมินขนาดตามตำแหน่งวางและระยะมองเห็น", category: "PP Board", alt: "ป้ายตั้งพื้น PP Board Display Works Media" },
+    { title: "PP Board à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¹ˆà¸™", image: "/images/portfolio/ppboard-1.png", meta: "à¸™à¹‰à¸³à¸«à¸™à¸±à¸à¹€à¸šà¸² à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¸™à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸¢à¹‰à¸²à¸¢à¸•à¸³à¹à¸«à¸™à¹ˆà¸‡à¹„à¸”à¹‰", category: "PP Board", alt: "PP Board à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¹ˆà¸™ Display Works Media" },
+    { title: "Standee à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™", image: "/images/portfolio/ppboard-2.png", meta: "à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¸ªà¸´à¸™à¸„à¹‰à¸² à¹€à¸¡à¸™à¸¹ à¸«à¸£à¸·à¸­à¸šà¸£à¸´à¸à¸²à¸£à¹€à¸”à¹ˆà¸™à¸‚à¸¶à¹‰à¸™à¹ƒà¸™à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸‚à¸²à¸¢", category: "PP Board", alt: "Standee à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™ Display Works Media" },
+    { title: "à¸›à¹‰à¸²à¸¢à¸•à¸±à¹‰à¸‡à¸žà¸·à¹‰à¸™", image: "/images/portfolio/ppboard-3.png", meta: "à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸‚à¸™à¸²à¸”à¸•à¸²à¸¡à¸•à¸³à¹à¸«à¸™à¹ˆà¸‡à¸§à¸²à¸‡à¹à¸¥à¸°à¸£à¸°à¸¢à¸°à¸¡à¸­à¸‡à¹€à¸«à¹‡à¸™", category: "PP Board", alt: "à¸›à¹‰à¸²à¸¢à¸•à¸±à¹‰à¸‡à¸žà¸·à¹‰à¸™ PP Board Display Works Media" },
   ],
   rollup: [
-    { title: "Roll Up สำหรับหน้าร้าน", image: "/images/portfolio/rollup-1.png", meta: "ติดตั้งง่าย เหมาะกับพื้นที่จำกัดและใช้งานซ้ำได้", category: "Roll Up", alt: "Roll Up สำหรับหน้าร้าน Display Works Media" },
-    { title: "Roll Up สำหรับโปรโมชั่น", image: "/images/portfolio/rollup-2.png", meta: "ช่วยให้บูธ งานแสดงสินค้า และกิจกรรมดูพร้อมขึ้น", category: "Roll Up", alt: "Roll Up สำหรับโปรโมชั่น Display Works Media" },
+    { title: "Roll Up à¸ªà¸³à¸«à¸£à¸±à¸šà¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™", image: "/images/portfolio/rollup-1.png", meta: "à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¸‡à¹ˆà¸²à¸¢ à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸ˆà¸³à¸à¸±à¸”à¹à¸¥à¸°à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸‹à¹‰à¸³à¹„à¸”à¹‰", category: "Roll Up", alt: "Roll Up à¸ªà¸³à¸«à¸£à¸±à¸šà¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™ Display Works Media" },
+    { title: "Roll Up à¸ªà¸³à¸«à¸£à¸±à¸šà¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¹ˆà¸™", image: "/images/portfolio/rollup-2.png", meta: "à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¸šà¸¹à¸˜ à¸‡à¸²à¸™à¹à¸ªà¸”à¸‡à¸ªà¸´à¸™à¸„à¹‰à¸² à¹à¸¥à¸°à¸à¸´à¸ˆà¸à¸£à¸£à¸¡à¸”à¸¹à¸žà¸£à¹‰à¸­à¸¡à¸‚à¸¶à¹‰à¸™", category: "Roll Up", alt: "Roll Up à¸ªà¸³à¸«à¸£à¸±à¸šà¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¹ˆà¸™ Display Works Media" },
   ],
   label: [
-    { title: "ฉลากสินค้าสำหรับบรรจุภัณฑ์", image: "/images/portfolio/sticker-1.png", meta: "ช่วยให้แพ็กเกจดูน่าเชื่อถือและสื่อสารแบรนด์ชัดขึ้น", category: "ฉลากสินค้า", alt: "ฉลากสินค้าสำหรับบรรจุภัณฑ์ Display Works Media" },
-    { title: "ฉลากสินค้ากันน้ำ", image: "/images/portfolio/sticker-2.png", meta: "เหมาะกับอาหาร เครื่องดื่ม และสินค้าที่ต้องเจอความชื้น", category: "ฉลากสินค้า", alt: "ฉลากสินค้ากันน้ำ Display Works Media" },
-    { title: "ฉลากไดคัท", image: "/images/portfolio/sticker-4.png", meta: "ตัดตามโลโก้หรือรูปทรงเฉพาะเพื่อเพิ่มมูลค่าสินค้า", category: "ฉลากสินค้า", alt: "ฉลากไดคัท Display Works Media" },
+    { title: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²à¸ªà¸³à¸«à¸£à¸±à¸šà¸šà¸£à¸£à¸ˆà¸¸à¸ à¸±à¸“à¸‘à¹Œ", image: "/images/portfolio/sticker-1.png", meta: "à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¹à¸žà¹‡à¸à¹€à¸à¸ˆà¸”à¸¹à¸™à¹ˆà¸²à¹€à¸Šà¸·à¹ˆà¸­à¸–à¸·à¸­à¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¸ªà¸²à¸£à¹à¸šà¸£à¸™à¸”à¹Œà¸Šà¸±à¸”à¸‚à¸¶à¹‰à¸™", category: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²", alt: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²à¸ªà¸³à¸«à¸£à¸±à¸šà¸šà¸£à¸£à¸ˆà¸¸à¸ à¸±à¸“à¸‘à¹Œ Display Works Media" },
+    { title: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²à¸à¸±à¸™à¸™à¹‰à¸³", image: "/images/portfolio/sticker-2.png", meta: "à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¸­à¸²à¸«à¸²à¸£ à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸”à¸·à¹ˆà¸¡ à¹à¸¥à¸°à¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¹€à¸ˆà¸­à¸„à¸§à¸²à¸¡à¸Šà¸·à¹‰à¸™", category: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²", alt: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²à¸à¸±à¸™à¸™à¹‰à¸³ Display Works Media" },
+    { title: "à¸‰à¸¥à¸²à¸à¹„à¸”à¸„à¸±à¸—", image: "/images/portfolio/sticker-4.png", meta: "à¸•à¸±à¸”à¸•à¸²à¸¡à¹‚à¸¥à¹‚à¸à¹‰à¸«à¸£à¸·à¸­à¸£à¸¹à¸›à¸—à¸£à¸‡à¹€à¸‰à¸žà¸²à¸°à¹€à¸žà¸·à¹ˆà¸­à¹€à¸žà¸´à¹ˆà¸¡à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸ªà¸´à¸™à¸„à¹‰à¸²", category: "à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²", alt: "à¸‰à¸¥à¸²à¸à¹„à¸”à¸„à¸±à¸— Display Works Media" },
   ],
   backdrop: [
-    { title: "Backdrop งานอีเวนต์", image: "/images/portfolio/backdrop-1.png", meta: "สร้างฉากหลังที่ช่วยให้พื้นที่จัดงานดูเป็นแบรนด์เดียวกัน", category: "Backdrop", alt: "Backdrop งานอีเวนต์ Display Works Media" },
-    { title: "Backdrop เปิดตัวสินค้า", image: "/images/portfolio/backdrop-2.png", meta: "ช่วยให้จุดถ่ายภาพและเวทีสื่อสารสินค้าเด่นขึ้น", category: "Backdrop", alt: "Backdrop เปิดตัวสินค้า Display Works Media" },
-    { title: "Backdrop ถ่ายภาพ", image: "/images/portfolio/backdrop-3.png", meta: "แนะนำขนาดตามมุมกล้อง พื้นที่ และรูปแบบงาน", category: "Backdrop", alt: "Backdrop ถ่ายภาพ Display Works Media" },
+    { title: "Backdrop à¸‡à¸²à¸™à¸­à¸µà¹€à¸§à¸™à¸•à¹Œ", image: "/images/portfolio/backdrop-1.png", meta: "à¸ªà¸£à¹‰à¸²à¸‡à¸‰à¸²à¸à¸«à¸¥à¸±à¸‡à¸—à¸µà¹ˆà¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸ˆà¸±à¸”à¸‡à¸²à¸™à¸”à¸¹à¹€à¸›à¹‡à¸™à¹à¸šà¸£à¸™à¸”à¹Œà¹€à¸”à¸µà¸¢à¸§à¸à¸±à¸™", category: "Backdrop", alt: "Backdrop à¸‡à¸²à¸™à¸­à¸µà¹€à¸§à¸™à¸•à¹Œ Display Works Media" },
+    { title: "Backdrop à¹€à¸›à¸´à¸”à¸•à¸±à¸§à¸ªà¸´à¸™à¸„à¹‰à¸²", image: "/images/portfolio/backdrop-2.png", meta: "à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¸ˆà¸¸à¸”à¸–à¹ˆà¸²à¸¢à¸ à¸²à¸žà¹à¸¥à¸°à¹€à¸§à¸—à¸µà¸ªà¸·à¹ˆà¸­à¸ªà¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²à¹€à¸”à¹ˆà¸™à¸‚à¸¶à¹‰à¸™", category: "Backdrop", alt: "Backdrop à¹€à¸›à¸´à¸”à¸•à¸±à¸§à¸ªà¸´à¸™à¸„à¹‰à¸² Display Works Media" },
+    { title: "Backdrop à¸–à¹ˆà¸²à¸¢à¸ à¸²à¸ž", image: "/images/portfolio/backdrop-3.png", meta: "à¹à¸™à¸°à¸™à¸³à¸‚à¸™à¸²à¸”à¸•à¸²à¸¡à¸¡à¸¸à¸¡à¸à¸¥à¹‰à¸­à¸‡ à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆ à¹à¸¥à¸°à¸£à¸¹à¸›à¹à¸šà¸šà¸‡à¸²à¸™", category: "Backdrop", alt: "Backdrop à¸–à¹ˆà¸²à¸¢à¸ à¸²à¸ž Display Works Media" },
   ],
 };
 
 const defaultPageContent = {
   home: {
     servicesEyebrow: "OUR SERVICES",
-    servicesTitle: "บริการของเรา",
-    servicesSubtitle: "ครบวงจรทุกงาน ตั้งแต่ขั้นตอนการออกแบบ ผลิต จนถึงการจัดส่ง",
+    servicesTitle: "à¸šà¸£à¸´à¸à¸²à¸£à¸‚à¸­à¸‡à¹€à¸£à¸²",
+    servicesSubtitle: "à¸„à¸£à¸šà¸§à¸‡à¸ˆà¸£à¸—à¸¸à¸à¸‡à¸²à¸™ à¸•à¸±à¹‰à¸‡à¹à¸•à¹ˆà¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¸à¸²à¸£à¸­à¸­à¸à¹à¸šà¸š à¸œà¸¥à¸´à¸• à¸ˆà¸™à¸–à¸¶à¸‡à¸à¸²à¸£à¸ˆà¸±à¸”à¸ªà¹ˆà¸‡",
   },
   shared: {
     workflowEyebrow: "OUR PROCESS",
-    workflowTitle: "จากไอเดีย สู่การมองเห็น",
-    workflowSubtitle: "กระบวนการทำงานที่ใส่ใจในทุกรายละเอียด เพื่อผลงานที่มีคุณภาพและตรงตามเป้าหมาย",
+    workflowTitle: "à¸ˆà¸²à¸à¹„à¸­à¹€à¸”à¸µà¸¢ à¸ªà¸¹à¹ˆà¸à¸²à¸£à¸¡à¸­à¸‡à¹€à¸«à¹‡à¸™",
+    workflowSubtitle: "à¸à¸£à¸°à¸šà¸§à¸™à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™à¸—à¸µà¹ˆà¹ƒà¸ªà¹ˆà¹ƒà¸ˆà¹ƒà¸™à¸—à¸¸à¸à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸” à¹€à¸žà¸·à¹ˆà¸­à¸œà¸¥à¸‡à¸²à¸™à¸—à¸µà¹ˆà¸¡à¸µà¸„à¸¸à¸“à¸ à¸²à¸žà¹à¸¥à¸°à¸•à¸£à¸‡à¸•à¸²à¸¡à¹€à¸›à¹‰à¸²à¸«à¸¡à¸²à¸¢",
     portfolioEyebrow: "OUR WORK",
-    portfolioTitle: "ผลงานของเรา",
-    portfolioSubtitle: "ตัวอย่างผลงานจริงที่ผลิตและส่งมอบให้ลูกค้า ด้วยมาตรฐานเดียวกันในทุกประเภทงาน",
+    portfolioTitle: "à¸œà¸¥à¸‡à¸²à¸™à¸‚à¸­à¸‡à¹€à¸£à¸²",
+    portfolioSubtitle: "à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡à¸œà¸¥à¸‡à¸²à¸™à¸ˆà¸£à¸´à¸‡à¸—à¸µà¹ˆà¸œà¸¥à¸´à¸•à¹à¸¥à¸°à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¹ƒà¸«à¹‰à¸¥à¸¹à¸à¸„à¹‰à¸² à¸”à¹‰à¸§à¸¢à¸¡à¸²à¸•à¸£à¸à¸²à¸™à¹€à¸”à¸µà¸¢à¸§à¸à¸±à¸™à¹ƒà¸™à¸—à¸¸à¸à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™",
     quoteEyebrow: "FREE CONSULTATION",
-    quoteTitle: "มีงานอยู่?\nเราช่วยดูแลให้",
-    quoteSubtitle: "กรอกรายละเอียดงาน ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง",
+    quoteTitle: "à¸¡à¸µà¸‡à¸²à¸™à¸­à¸¢à¸¹à¹ˆ?\nà¹€à¸£à¸²à¸Šà¹ˆà¸§à¸¢à¸”à¸¹à¹à¸¥à¹ƒà¸«à¹‰",
+    quoteSubtitle: "à¸à¸£à¸­à¸à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¸‡à¸²à¸™ à¸—à¸µà¸¡à¸‡à¸²à¸™à¸ˆà¸°à¸•à¸´à¸”à¸•à¹ˆà¸­à¸à¸¥à¸±à¸šà¸ à¸²à¸¢à¹ƒà¸™ 24 à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡",
   },
   about: {
-    eyebrow: "เกี่ยวกับเรา",
-    title: "ผู้เชี่ยวชาญด้านงานพิมพ์และสื่อโฆษณาครบวงจร",
-    subtitle: "ให้คำปรึกษา ออกแบบ ผลิต และจัดส่งสื่อโฆษณาคุณภาพ เพื่อช่วยให้ธุรกิจของคุณโดดเด่นและน่าจดจำมากยิ่งขึ้น",
+    eyebrow: "à¹€à¸à¸µà¹ˆà¸¢à¸§à¸à¸±à¸šà¹€à¸£à¸²",
+    title: "à¸œà¸¹à¹‰à¹€à¸Šà¸µà¹ˆà¸¢à¸§à¸Šà¸²à¸à¸”à¹‰à¸²à¸™à¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œà¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²à¸„à¸£à¸šà¸§à¸‡à¸ˆà¸£",
+    subtitle: "à¹ƒà¸«à¹‰à¸„à¸³à¸›à¸£à¸¶à¸à¸©à¸² à¸­à¸­à¸à¹à¸šà¸š à¸œà¸¥à¸´à¸• à¹à¸¥à¸°à¸ˆà¸±à¸”à¸ªà¹ˆà¸‡à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²à¸„à¸¸à¸“à¸ à¸²à¸ž à¹€à¸žà¸·à¹ˆà¸­à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¸˜à¸¸à¸£à¸à¸´à¸ˆà¸‚à¸­à¸‡à¸„à¸¸à¸“à¹‚à¸”à¸”à¹€à¸”à¹ˆà¸™à¹à¸¥à¸°à¸™à¹ˆà¸²à¸ˆà¸”à¸ˆà¸³à¸¡à¸²à¸à¸¢à¸´à¹ˆà¸‡à¸‚à¸¶à¹‰à¸™",
   },
   services: {
     eyebrow: "OUR SERVICES",
-    title: "บริการงานป้ายและงานพิมพ์สำหรับธุรกิจ",
-    subtitle: "เลือกประเภทงานที่ต้องการ ทีม Display Works Media ช่วยแนะนำวัสดุ ตรวจไฟล์ ประเมินราคา และดูแลการผลิตให้เหมาะกับการใช้งานจริง",
+    title: "à¸šà¸£à¸´à¸à¸²à¸£à¸‡à¸²à¸™à¸›à¹‰à¸²à¸¢à¹à¸¥à¸°à¸‡à¸²à¸™à¸žà¸´à¸¡à¸žà¹Œà¸ªà¸³à¸«à¸£à¸±à¸šà¸˜à¸¸à¸£à¸à¸´à¸ˆ",
+    subtitle: "à¹€à¸¥à¸·à¸­à¸à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£ à¸—à¸µà¸¡ Display Works Media à¸Šà¹ˆà¸§à¸¢à¹à¸™à¸°à¸™à¸³à¸§à¸±à¸ªà¸”à¸¸ à¸•à¸£à¸§à¸ˆà¹„à¸Ÿà¸¥à¹Œ à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸£à¸²à¸„à¸² à¹à¸¥à¸°à¸”à¸¹à¹à¸¥à¸à¸²à¸£à¸œà¸¥à¸´à¸•à¹ƒà¸«à¹‰à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸ˆà¸£à¸´à¸‡",
   },
   contact: {
-    eyebrow: "ติดต่อเรา",
-    title: "กำลังมองหางานป้ายหรือสื่อโฆษณา?",
-    subtitle: "ติดต่อสอบถามและปรึกษาได้ฟรี ทีมงานพร้อมให้คำแนะนำและประเมินราคาเบื้องต้นโดยไม่มีค่าใช้จ่าย",
+    eyebrow: "à¸•à¸´à¸”à¸•à¹ˆà¸­à¹€à¸£à¸²",
+    title: "à¸à¸³à¸¥à¸±à¸‡à¸¡à¸­à¸‡à¸«à¸²à¸‡à¸²à¸™à¸›à¹‰à¸²à¸¢à¸«à¸£à¸·à¸­à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²?",
+    subtitle: "à¸•à¸´à¸”à¸•à¹ˆà¸­à¸ªà¸­à¸šà¸–à¸²à¸¡à¹à¸¥à¸°à¸›à¸£à¸¶à¸à¸©à¸²à¹„à¸”à¹‰à¸Ÿà¸£à¸µ à¸—à¸µà¸¡à¸‡à¸²à¸™à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸«à¹‰à¸„à¸³à¹à¸™à¸°à¸™à¸³à¹à¸¥à¸°à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸£à¸²à¸„à¸²à¹€à¸šà¸·à¹‰à¸­à¸‡à¸•à¹‰à¸™à¹‚à¸”à¸¢à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¹ˆà¸²à¹ƒà¸Šà¹‰à¸ˆà¹ˆà¸²à¸¢",
   },
   faq: {
     eyebrow: "FAQ",
-    title: "คำถามที่พบบ่อยก่อนสั่งผลิตงานป้าย",
-    subtitle: "รวมคำตอบเรื่องขั้นต่ำ ระยะเวลาผลิต ไฟล์ Artwork การชำระเงิน และการจัดส่ง เพื่อช่วยให้เตรียมงานได้ง่ายขึ้น",
+    title: "à¸„à¸³à¸–à¸²à¸¡à¸—à¸µà¹ˆà¸žà¸šà¸šà¹ˆà¸­à¸¢à¸à¹ˆà¸­à¸™à¸ªà¸±à¹ˆà¸‡à¸œà¸¥à¸´à¸•à¸‡à¸²à¸™à¸›à¹‰à¸²à¸¢",
+    subtitle: "à¸£à¸§à¸¡à¸„à¸³à¸•à¸­à¸šà¹€à¸£à¸·à¹ˆà¸­à¸‡à¸‚à¸±à¹‰à¸™à¸•à¹ˆà¸³ à¸£à¸°à¸¢à¸°à¹€à¸§à¸¥à¸²à¸œà¸¥à¸´à¸• à¹„à¸Ÿà¸¥à¹Œ Artwork à¸à¸²à¸£à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™ à¹à¸¥à¸°à¸à¸²à¸£à¸ˆà¸±à¸”à¸ªà¹ˆà¸‡ à¹€à¸žà¸·à¹ˆà¸­à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¹€à¸•à¸£à¸µà¸¢à¸¡à¸‡à¸²à¸™à¹„à¸”à¹‰à¸‡à¹ˆà¸²à¸¢à¸‚à¸¶à¹‰à¸™",
   },
   footer: {
     eyebrow: "FREE CONSULTATION",
-    title: "พร้อมให้คำปรึกษาและผลิตสื่อโฆษณาสำหรับธุรกิจของคุณ",
-    subtitle: "สอบถามงานและประเมินราคาเบื้องต้นฟรี",
+    title: "à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸«à¹‰à¸„à¸³à¸›à¸£à¸¶à¸à¸©à¸²à¹à¸¥à¸°à¸œà¸¥à¸´à¸•à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²à¸ªà¸³à¸«à¸£à¸±à¸šà¸˜à¸¸à¸£à¸à¸´à¸ˆà¸‚à¸­à¸‡à¸„à¸¸à¸“",
+    subtitle: "à¸ªà¸­à¸šà¸–à¸²à¸¡à¸‡à¸²à¸™à¹à¸¥à¸°à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸£à¸²à¸„à¸²à¹€à¸šà¸·à¹‰à¸­à¸‡à¸•à¹‰à¸™à¸Ÿà¸£à¸µ",
   },
   servicesDetail: {
     vinyl: {
-      eyebrow: "บริการออกแบบและผลิต",
-      title: "ป้ายไวนิล",
-      highlight: "คุณภาพสูง",
-      subtitle: "พิมพ์ไวนิลสีสด คมชัด ทนแดด ทนฝน เหมาะสำหรับป้ายร้านค้า โฆษณา โปรโมชั่น และตกแต่งอาคารทุกประเภท",
+      eyebrow: "à¸šà¸£à¸´à¸à¸²à¸£à¸­à¸­à¸à¹à¸šà¸šà¹à¸¥à¸°à¸œà¸¥à¸´à¸•",
+      title: "à¸›à¹‰à¸²à¸¢à¹„à¸§à¸™à¸´à¸¥",
+      highlight: "à¸„à¸¸à¸“à¸ à¸²à¸žà¸ªà¸¹à¸‡",
+      subtitle: "à¸žà¸´à¸¡à¸žà¹Œà¹„à¸§à¸™à¸´à¸¥à¸ªà¸µà¸ªà¸” à¸„à¸¡à¸Šà¸±à¸” à¸—à¸™à¹à¸”à¸” à¸—à¸™à¸à¸™ à¹€à¸«à¸¡à¸²à¸°à¸ªà¸³à¸«à¸£à¸±à¸šà¸›à¹‰à¸²à¸¢à¸£à¹‰à¸²à¸™à¸„à¹‰à¸² à¹‚à¸†à¸©à¸“à¸² à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¹ˆà¸™ à¹à¸¥à¸°à¸•à¸à¹à¸•à¹ˆà¸‡à¸­à¸²à¸„à¸²à¸£à¸—à¸¸à¸à¸›à¸£à¸°à¹€à¸ à¸—",
     },
     sticker: {
-      eyebrow: "บริการออกแบบและผลิต",
-      title: "สั่งสติ๊กเกอร์",
-      highlight: "คุณภาพสูง",
-      subtitle: "พิมพ์สติ๊กเกอร์สีสด คมชัด ไดคัทได้ตามรูปแบบที่ต้องการ รองรับทั้งงาน Indoor และ Outdoor เหมาะสำหรับฉลากสินค้าและตกแต่งกระจกร้าน",
+      eyebrow: "à¸šà¸£à¸´à¸à¸²à¸£à¸­à¸­à¸à¹à¸šà¸šà¹à¸¥à¸°à¸œà¸¥à¸´à¸•",
+      title: "à¸ªà¸±à¹ˆà¸‡à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ",
+      highlight: "à¸„à¸¸à¸“à¸ à¸²à¸žà¸ªà¸¹à¸‡",
+      subtitle: "à¸žà¸´à¸¡à¸žà¹Œà¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œà¸ªà¸µà¸ªà¸” à¸„à¸¡à¸Šà¸±à¸” à¹„à¸”à¸„à¸±à¸—à¹„à¸”à¹‰à¸•à¸²à¸¡à¸£à¸¹à¸›à¹à¸šà¸šà¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£ à¸£à¸­à¸‡à¸£à¸±à¸šà¸—à¸±à¹‰à¸‡à¸‡à¸²à¸™ Indoor à¹à¸¥à¸° Outdoor à¹€à¸«à¸¡à¸²à¸°à¸ªà¸³à¸«à¸£à¸±à¸šà¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸¥à¸°à¸•à¸à¹à¸•à¹ˆà¸‡à¸à¸£à¸°à¸ˆà¸à¸£à¹‰à¸²à¸™",
     },
     backdrop: {
-      eyebrow: "บริการออกแบบและผลิตแบ็คดรอป",
-      title: "แบ็คดรอป",
-      highlight: "ฉากหลังจัดงาน",
-      subtitle: "ผลิตแบ็คดรอปสำหรับงานอีเวนต์ นิทรรศการ และงานแต่งงาน ภาพคมชัด โครงสร้างแข็งแรง ติดตั้งง่าย สะกดทุกสายตาให้งานคุณโดดเด่นยิ่งขึ้น",
+      eyebrow: "à¸šà¸£à¸´à¸à¸²à¸£à¸­à¸­à¸à¹à¸šà¸šà¹à¸¥à¸°à¸œà¸¥à¸´à¸•à¹à¸šà¹‡à¸„à¸”à¸£à¸­à¸›",
+      title: "à¹à¸šà¹‡à¸„à¸”à¸£à¸­à¸›",
+      highlight: "à¸‰à¸²à¸à¸«à¸¥à¸±à¸‡à¸ˆà¸±à¸”à¸‡à¸²à¸™",
+      subtitle: "à¸œà¸¥à¸´à¸•à¹à¸šà¹‡à¸„à¸”à¸£à¸­à¸›à¸ªà¸³à¸«à¸£à¸±à¸šà¸‡à¸²à¸™à¸­à¸µà¹€à¸§à¸™à¸•à¹Œ à¸™à¸´à¸—à¸£à¸£à¸¨à¸à¸²à¸£ à¹à¸¥à¸°à¸‡à¸²à¸™à¹à¸•à¹ˆà¸‡à¸‡à¸²à¸™ à¸ à¸²à¸žà¸„à¸¡à¸Šà¸±à¸” à¹‚à¸„à¸£à¸‡à¸ªà¸£à¹‰à¸²à¸‡à¹à¸‚à¹‡à¸‡à¹à¸£à¸‡ à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¸‡à¹ˆà¸²à¸¢ à¸ªà¸°à¸à¸”à¸—à¸¸à¸à¸ªà¸²à¸¢à¸•à¸²à¹ƒà¸«à¹‰à¸‡à¸²à¸™à¸„à¸¸à¸“à¹‚à¸”à¸”à¹€à¸”à¹ˆà¸™à¸¢à¸´à¹ˆà¸‡à¸‚à¸¶à¹‰à¸™",
     },
     rollup: {
-      eyebrow: "บริการพิมพ์และจัดจำหน่ายโครง",
+      eyebrow: "à¸šà¸£à¸´à¸à¸²à¸£à¸žà¸´à¸¡à¸žà¹Œà¹à¸¥à¸°à¸ˆà¸±à¸”à¸ˆà¸³à¸«à¸™à¹ˆà¸²à¸¢à¹‚à¸„à¸£à¸‡",
       title: "Roll Up",
       highlight: "/ X-Stand",
-      subtitle: "ป้ายตั้งพื้นเคลื่อนที่ ติดตั้งง่ายภายใน 1 นาที มาพร้อมกระเป๋าพกพาสะดวก เหมาะสำหรับงานออกบูธ นิทรรศการ และป้ายส่งเสริมการขายหน้าร้าน พิมพ์สีคมชัดโดดเด่น",
+      subtitle: "à¸›à¹‰à¸²à¸¢à¸•à¸±à¹‰à¸‡à¸žà¸·à¹‰à¸™à¹€à¸„à¸¥à¸·à¹ˆà¸­à¸™à¸—à¸µà¹ˆ à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¸‡à¹ˆà¸²à¸¢à¸ à¸²à¸¢à¹ƒà¸™ 1 à¸™à¸²à¸—à¸µ à¸¡à¸²à¸žà¸£à¹‰à¸­à¸¡à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¸žà¸à¸žà¸²à¸ªà¸°à¸”à¸§à¸ à¹€à¸«à¸¡à¸²à¸°à¸ªà¸³à¸«à¸£à¸±à¸šà¸‡à¸²à¸™à¸­à¸­à¸à¸šà¸¹à¸˜ à¸™à¸´à¸—à¸£à¸£à¸¨à¸à¸²à¸£ à¹à¸¥à¸°à¸›à¹‰à¸²à¸¢à¸ªà¹ˆà¸‡à¹€à¸ªà¸£à¸´à¸¡à¸à¸²à¸£à¸‚à¸²à¸¢à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™ à¸žà¸´à¸¡à¸žà¹Œà¸ªà¸µà¸„à¸¡à¸Šà¸±à¸”à¹‚à¸”à¸”à¹€à¸”à¹ˆà¸™",
     },
     ppboard: {
-      eyebrow: "บริการออกแบบและผลิต",
+      eyebrow: "à¸šà¸£à¸´à¸à¸²à¸£à¸­à¸­à¸à¹à¸šà¸šà¹à¸¥à¸°à¸œà¸¥à¸´à¸•",
       title: "PP Board",
       highlight: "/ Standee",
-      subtitle: "ป้าย PP Board น้ำหนักเบา เหมาะกับป้ายตั้งพื้น ป้ายโปรโมชั่น และสื่อหน้าร้านที่ต้องการความคมชัด เคลื่อนย้ายง่าย และผลิตตามขนาดได้",
+      subtitle: "à¸›à¹‰à¸²à¸¢ PP Board à¸™à¹‰à¸³à¸«à¸™à¸±à¸à¹€à¸šà¸² à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¸›à¹‰à¸²à¸¢à¸•à¸±à¹‰à¸‡à¸žà¸·à¹‰à¸™ à¸›à¹‰à¸²à¸¢à¹‚à¸›à¸£à¹‚à¸¡à¸Šà¸±à¹ˆà¸™ à¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸„à¸§à¸²à¸¡à¸„à¸¡à¸Šà¸±à¸” à¹€à¸„à¸¥à¸·à¹ˆà¸­à¸™à¸¢à¹‰à¸²à¸¢à¸‡à¹ˆà¸²à¸¢ à¹à¸¥à¸°à¸œà¸¥à¸´à¸•à¸•à¸²à¸¡à¸‚à¸™à¸²à¸”à¹„à¸”à¹‰",
     },
     label: {
-      eyebrow: "บริการพิมพ์และไดคัทสติกเกอร์",
-      title: "พิมพ์ฉลากสินค้า",
-      highlight: "ระบบดิจิตอล",
-      subtitle: "ยกระดับแบรนด์ของคุณด้วยฉลากสินค้าสีสด คมชัด ไดคัทฟรีฟอร์ม ลอกแปะง่าย ติดแน่นทนนาน รองรับงานกันน้ำ แช่เย็นได้ 100%",
+      eyebrow: "à¸šà¸£à¸´à¸à¸²à¸£à¸žà¸´à¸¡à¸žà¹Œà¹à¸¥à¸°à¹„à¸”à¸„à¸±à¸—à¸ªà¸•à¸´à¸à¹€à¸à¸­à¸£à¹Œ",
+      title: "à¸žà¸´à¸¡à¸žà¹Œà¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²",
+      highlight: "à¸£à¸°à¸šà¸šà¸”à¸´à¸ˆà¸´à¸•à¸­à¸¥",
+      subtitle: "à¸¢à¸à¸£à¸°à¸”à¸±à¸šà¹à¸šà¸£à¸™à¸”à¹Œà¸‚à¸­à¸‡à¸„à¸¸à¸“à¸”à¹‰à¸§à¸¢à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²à¸ªà¸µà¸ªà¸” à¸„à¸¡à¸Šà¸±à¸” à¹„à¸”à¸„à¸±à¸—à¸Ÿà¸£à¸µà¸Ÿà¸­à¸£à¹Œà¸¡ à¸¥à¸­à¸à¹à¸›à¸°à¸‡à¹ˆà¸²à¸¢ à¸•à¸´à¸”à¹à¸™à¹ˆà¸™à¸—à¸™à¸™à¸²à¸™ à¸£à¸­à¸‡à¸£à¸±à¸šà¸‡à¸²à¸™à¸à¸±à¸™à¸™à¹‰à¸³ à¹à¸Šà¹ˆà¹€à¸¢à¹‡à¸™à¹„à¸”à¹‰ 100%",
     },
   },
 };
@@ -8455,9 +8455,9 @@ function PageContentManager({ showToast }: any) {
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("cms-media").getPublicUrl(path);
       updateServicePortfolioItem(serviceKey, index, "image", urlData.publicUrl);
-      showToast("อัปโหลดรูปผลงานแล้ว");
+      showToast("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›à¸œà¸¥à¸‡à¸²à¸™à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("อัปโหลดรูปไม่ได้: " + error.message, "error");
+      showToast("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     } finally {
       setServicePortfolioUploading("");
     }
@@ -8466,124 +8466,124 @@ function PageContentManager({ showToast }: any) {
   const save = async () => {
     try {
       await saveCmsSetting("page_content", content);
-      showToast("บันทึกข้อความรายหน้าแล้ว");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸£à¸²à¸¢à¸«à¸™à¹‰à¸²à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     }
   };
 
   const fields: Record<string, Array<{ key: string; label: string; rows?: number }>> = {
     home: [
-      { key: "servicesEyebrow", label: "ป้ายกำกับส่วนบริการ" },
-      { key: "servicesTitle", label: "หัวข้อบริการ" },
-      { key: "servicesSubtitle", label: "คำอธิบายบริการ", rows: 3 },
+      { key: "servicesEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸šà¸£à¸´à¸à¸²à¸£" },
+      { key: "servicesTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸£à¸´à¸à¸²à¸£" },
+      { key: "servicesSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸šà¸£à¸´à¸à¸²à¸£", rows: 3 },
     ],
     shared: [
-      { key: "workflowEyebrow", label: "ป้ายกำกับขั้นตอนการทำงาน" },
-      { key: "workflowTitle", label: "หัวข้อขั้นตอนการทำงาน" },
-      { key: "workflowSubtitle", label: "คำอธิบายขั้นตอนการทำงาน", rows: 3 },
-      { key: "portfolioEyebrow", label: "ป้ายกำกับผลงาน" },
-      { key: "portfolioTitle", label: "หัวข้อผลงาน" },
-      { key: "portfolioSubtitle", label: "คำอธิบายผลงาน", rows: 3 },
-      { key: "quoteEyebrow", label: "ป้ายกำกับฟอร์ม" },
-      { key: "quoteTitle", label: "หัวข้อฟอร์ม (ขึ้นบรรทัดใหม่ได้)", rows: 2 },
-      { key: "quoteSubtitle", label: "คำอธิบายฟอร์ม", rows: 2 },
+      { key: "workflowEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™" },
+      { key: "workflowTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™" },
+      { key: "workflowSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™", rows: 3 },
+      { key: "portfolioEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸œà¸¥à¸‡à¸²à¸™", rows: 3 },
+      { key: "quoteEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸Ÿà¸­à¸£à¹Œà¸¡" },
+      { key: "quoteTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸Ÿà¸­à¸£à¹Œà¸¡ (à¸‚à¸¶à¹‰à¸™à¸šà¸£à¸£à¸—à¸±à¸”à¹ƒà¸«à¸¡à¹ˆà¹„à¸”à¹‰)", rows: 2 },
+      { key: "quoteSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸Ÿà¸­à¸£à¹Œà¸¡", rows: 2 },
     ],
     about: [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อหลัก", rows: 2 },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸«à¸¥à¸±à¸", rows: 2 },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
     ],
     services: [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อหลัก", rows: 2 },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸«à¸¥à¸±à¸", rows: 2 },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
     ],
     contact: [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อหลัก", rows: 2 },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸«à¸¥à¸±à¸", rows: 2 },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
     ],
     faq: [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อหลัก", rows: 2 },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸«à¸¥à¸±à¸", rows: 2 },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
     ],
     footer: [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อ" },
-      { key: "subtitle", label: "คำอธิบาย" },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­" },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢" },
     ],
     "servicesDetail.vinyl": [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อบรรทัดหลัก" },
-      { key: "highlight", label: "ข้อความสีส้ม" },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
-      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
-      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
-      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸£à¸£à¸—à¸±à¸”à¸«à¸¥à¸±à¸" },
+      { key: "highlight", label: "à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸ªà¸µà¸ªà¹‰à¸¡" },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
+      { key: "portfolioEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™", rows: 3 },
     ],
     "servicesDetail.sticker": [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อบรรทัดหลัก" },
-      { key: "highlight", label: "ข้อความสีส้ม" },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
-      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
-      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
-      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸£à¸£à¸—à¸±à¸”à¸«à¸¥à¸±à¸" },
+      { key: "highlight", label: "à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸ªà¸µà¸ªà¹‰à¸¡" },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
+      { key: "portfolioEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™", rows: 3 },
     ],
     "servicesDetail.backdrop": [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อบรรทัดหลัก" },
-      { key: "highlight", label: "ข้อความสีส้ม" },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
-      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
-      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
-      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸£à¸£à¸—à¸±à¸”à¸«à¸¥à¸±à¸" },
+      { key: "highlight", label: "à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸ªà¸µà¸ªà¹‰à¸¡" },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
+      { key: "portfolioEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™", rows: 3 },
     ],
     "servicesDetail.rollup": [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อบรรทัดหลัก" },
-      { key: "highlight", label: "ข้อความสีส้ม" },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
-      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
-      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
-      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸£à¸£à¸—à¸±à¸”à¸«à¸¥à¸±à¸" },
+      { key: "highlight", label: "à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸ªà¸µà¸ªà¹‰à¸¡" },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
+      { key: "portfolioEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™", rows: 3 },
     ],
     "servicesDetail.ppboard": [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อบรรทัดหลัก" },
-      { key: "highlight", label: "ข้อความสีส้ม" },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
-      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
-      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
-      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸£à¸£à¸—à¸±à¸”à¸«à¸¥à¸±à¸" },
+      { key: "highlight", label: "à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸ªà¸µà¸ªà¹‰à¸¡" },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
+      { key: "portfolioEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™", rows: 3 },
     ],
     "servicesDetail.label": [
-      { key: "eyebrow", label: "ป้ายกำกับ" },
-      { key: "title", label: "หัวข้อบรรทัดหลัก" },
-      { key: "highlight", label: "ข้อความสีส้ม" },
-      { key: "subtitle", label: "คำอธิบาย", rows: 3 },
-      { key: "portfolioEyebrow", label: "ป้ายกำกับส่วนผลงาน" },
-      { key: "portfolioTitle", label: "หัวข้อส่วนผลงาน" },
-      { key: "portfolioSubtitle", label: "คำอธิบายส่วนผลงาน", rows: 3 },
+      { key: "eyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸š" },
+      { key: "title", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸šà¸£à¸£à¸—à¸±à¸”à¸«à¸¥à¸±à¸" },
+      { key: "highlight", label: "à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸ªà¸µà¸ªà¹‰à¸¡" },
+      { key: "subtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢", rows: 3 },
+      { key: "portfolioEyebrow", label: "à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioTitle", label: "à¸«à¸±à¸§à¸‚à¹‰à¸­à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™" },
+      { key: "portfolioSubtitle", label: "à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™", rows: 3 },
     ],
   };
 
   const sections = [
-    ["home", "หน้าแรก"],
-    ["shared", "ส่วนกลางทุกหน้า"],
-    ["about", "เกี่ยวกับเรา"],
-    ["services", "บริการ"],
-    ["contact", "ติดต่อเรา"],
+    ["home", "à¸«à¸™à¹‰à¸²à¹à¸£à¸"],
+    ["shared", "à¸ªà¹ˆà¸§à¸™à¸à¸¥à¸²à¸‡à¸—à¸¸à¸à¸«à¸™à¹‰à¸²"],
+    ["about", "à¹€à¸à¸µà¹ˆà¸¢à¸§à¸à¸±à¸šà¹€à¸£à¸²"],
+    ["services", "à¸šà¸£à¸´à¸à¸²à¸£"],
+    ["contact", "à¸•à¸´à¸”à¸•à¹ˆà¸­à¹€à¸£à¸²"],
     ["faq", "FAQ"],
     ["footer", "Footer"],
-    ["servicesDetail.vinyl", "บริการ: ไวนิล"],
-    ["servicesDetail.sticker", "บริการ: สติ๊กเกอร์"],
-    ["servicesDetail.backdrop", "บริการ: Backdrop"],
-    ["servicesDetail.rollup", "บริการ: Roll Up"],
-    ["servicesDetail.ppboard", "บริการ: PP Board"],
-    ["servicesDetail.label", "บริการ: ฉลากสินค้า"],
+    ["servicesDetail.vinyl", "à¸šà¸£à¸´à¸à¸²à¸£: à¹„à¸§à¸™à¸´à¸¥"],
+    ["servicesDetail.sticker", "à¸šà¸£à¸´à¸à¸²à¸£: à¸ªà¸•à¸´à¹Šà¸à¹€à¸à¸­à¸£à¹Œ"],
+    ["servicesDetail.backdrop", "à¸šà¸£à¸´à¸à¸²à¸£: Backdrop"],
+    ["servicesDetail.rollup", "à¸šà¸£à¸´à¸à¸²à¸£: Roll Up"],
+    ["servicesDetail.ppboard", "à¸šà¸£à¸´à¸à¸²à¸£: PP Board"],
+    ["servicesDetail.label", "à¸šà¸£à¸´à¸à¸²à¸£: à¸‰à¸¥à¸²à¸à¸ªà¸´à¸™à¸„à¹‰à¸²"],
   ];
 
   const activeServiceKey = section.startsWith("servicesDetail.") ? section.split(".")[1] : "";
@@ -8598,8 +8598,8 @@ function PageContentManager({ showToast }: any) {
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 760 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>ข้อความรายหน้า</h2>
-      <p style={{ color: "#888", fontSize: 13, marginBottom: 20 }}>แก้หัวข้อหลักและข้อความส่วนกลางที่แสดงบนเว็บไซต์</p>
+      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸£à¸²à¸¢à¸«à¸™à¹‰à¸²</h2>
+      <p style={{ color: "#888", fontSize: 13, marginBottom: 20 }}>à¹à¸à¹‰à¸«à¸±à¸§à¸‚à¹‰à¸­à¸«à¸¥à¸±à¸à¹à¸¥à¸°à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸ªà¹ˆà¸§à¸™à¸à¸¥à¸²à¸‡à¸—à¸µà¹ˆà¹à¸ªà¸”à¸‡à¸šà¸™à¹€à¸§à¹‡à¸šà¹„à¸‹à¸•à¹Œ</p>
       <div style={{
         background: "rgba(59,130,246,0.1)",
         border: "1px solid rgba(59,130,246,0.25)",
@@ -8610,11 +8610,11 @@ function PageContentManager({ showToast }: any) {
         lineHeight: 1.7,
         marginBottom: 16,
       }}>
-        หากยังไม่เคยบันทึก ระบบจะแสดงค่าตั้งต้นจากโค้ดก่อน ให้กด “บันทึกข้อความ” หนึ่งครั้งเพื่อสร้างข้อมูลชุดแรกใน database จากนั้นหน้าเว็บจะอ่านค่าจาก CMS หลัง refresh
+        à¸«à¸²à¸à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹€à¸„à¸¢à¸šà¸±à¸™à¸—à¸¶à¸ à¸£à¸°à¸šà¸šà¸ˆà¸°à¹à¸ªà¸”à¸‡à¸„à¹ˆà¸²à¸•à¸±à¹‰à¸‡à¸•à¹‰à¸™à¸ˆà¸²à¸à¹‚à¸„à¹‰à¸”à¸à¹ˆà¸­à¸™ à¹ƒà¸«à¹‰à¸à¸” â€œà¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡â€ à¸«à¸™à¸¶à¹ˆà¸‡à¸„à¸£à¸±à¹‰à¸‡à¹€à¸žà¸·à¹ˆà¸­à¸ªà¸£à¹‰à¸²à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸Šà¸¸à¸”à¹à¸£à¸à¹ƒà¸™ database à¸ˆà¸²à¸à¸™à¸±à¹‰à¸™à¸«à¸™à¹‰à¸²à¹€à¸§à¹‡à¸šà¸ˆà¸°à¸­à¹ˆà¸²à¸™à¸„à¹ˆà¸²à¸ˆà¸²à¸ CMS à¸«à¸¥à¸±à¸‡ refresh
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
         {sections.map(([id, label]) => (
-          <button key={id} onClick={() => setSection(id)} style={{
+          <button type="button" key={id} onClick={() => setSection(id)} style={{
             border: section === id ? "1px solid #FF6B00" : "1px solid rgba(255,255,255,0.12)",
             background: section === id ? "rgba(255,107,0,0.14)" : "#141A24",
             color: section === id ? "#FF6B00" : "#A8B0C0",
@@ -8637,12 +8637,12 @@ function PageContentManager({ showToast }: any) {
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16, marginTop: 4 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
                 <div>
-                  <SectionTitle>ผลงานของบริการนี้</SectionTitle>
+                  <SectionTitle>à¸œà¸¥à¸‡à¸²à¸™à¸‚à¸­à¸‡à¸šà¸£à¸´à¸à¸²à¸£à¸™à¸µà¹‰</SectionTitle>
                   <p style={{ color: "#888", fontSize: 12, lineHeight: 1.6 }}>
-                    รูปเหล่านี้จะแสดงในส่วนผลงานของหน้าบริการที่เลือก หากไม่ใส่ ระบบจะใช้รูปตั้งต้นเดิม
+                    à¸£à¸¹à¸›à¹€à¸«à¸¥à¹ˆà¸²à¸™à¸µà¹‰à¸ˆà¸°à¹à¸ªà¸”à¸‡à¹ƒà¸™à¸ªà¹ˆà¸§à¸™à¸œà¸¥à¸‡à¸²à¸™à¸‚à¸­à¸‡à¸«à¸™à¹‰à¸²à¸šà¸£à¸´à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸ à¸«à¸²à¸à¹„à¸¡à¹ˆà¹ƒà¸ªà¹ˆ à¸£à¸°à¸šà¸šà¸ˆà¸°à¹ƒà¸Šà¹‰à¸£à¸¹à¸›à¸•à¸±à¹‰à¸‡à¸•à¹‰à¸™à¹€à¸”à¸´à¸¡
                   </p>
                 </div>
-                <CBtn onClick={() => addServicePortfolioItem(activeServiceKey)} small color="#3B82F6">+ เพิ่มรูป</CBtn>
+                <CBtn onClick={() => addServicePortfolioItem(activeServiceKey)} small color="#3B82F6">+ à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸¹à¸›</CBtn>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {servicePortfolioItems.map((item: any, index: number) => (
@@ -8652,37 +8652,37 @@ function PageContentManager({ showToast }: any) {
                         {item.image ? (
                           <img src={item.image} alt={item.alt || item.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         ) : (
-                          <span style={{ opacity: 0.45, fontSize: 24 }}>🖼</span>
+                          <span style={{ opacity: 0.45, fontSize: 24 }}>ðŸ–¼</span>
                         )}
                       </div>
                       <div className="service-portfolio-fields" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        <CField label="ชื่อผลงาน">
+                        <CField label="à¸Šà¸·à¹ˆà¸­à¸œà¸¥à¸‡à¸²à¸™">
                           <input value={item.title || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "title", e.target.value)} />
                         </CField>
-                        <CField label="หมวดหมู่">
+                        <CField label="à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ">
                           <input value={item.category || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "category", e.target.value)} />
                         </CField>
-                        <CField label="URL รูปภาพ">
+                        <CField label="URL à¸£à¸¹à¸›à¸ à¸²à¸ž">
                           <input value={item.image || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "image", e.target.value)} placeholder="/images/portfolio/example.jpg" />
                         </CField>
-                        <CField label="อัปโหลดรูป">
+                        <CField label="à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸£à¸¹à¸›">
                           <input
                             type="file"
                             accept="image/*"
                             onChange={(e) => uploadServicePortfolioImage(activeServiceKey, index, e.target.files?.[0])}
                           />
                           {servicePortfolioUploading === `${activeServiceKey}-${index}` && (
-                            <div style={{ color: "#60A5FA", fontSize: 11, marginTop: 6 }}>กำลังอัปโหลด...</div>
+                            <div style={{ color: "#60A5FA", fontSize: 11, marginTop: 6 }}>à¸à¸³à¸¥à¸±à¸‡à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”...</div>
                           )}
                         </CField>
                         <CField label="Alt Text">
                           <input value={item.alt || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "alt", e.target.value)} />
                         </CField>
-                        <CField label="ลิงก์เมื่อคลิก">
-                          <input value={item.href || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "href", e.target.value)} placeholder="/portfolio หรือ /services/..." />
+                        <CField label="à¸¥à¸´à¸‡à¸à¹Œà¹€à¸¡à¸·à¹ˆà¸­à¸„à¸¥à¸´à¸">
+                          <input value={item.href || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "href", e.target.value)} placeholder="/portfolio à¸«à¸£à¸·à¸­ /services/..." />
                         </CField>
                         <div style={{ gridColumn: "1 / -1" }}>
-                          <CField label="คำอธิบายใต้รูป">
+                          <CField label="à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢à¹ƒà¸•à¹‰à¸£à¸¹à¸›">
                             <textarea value={item.meta || ""} onChange={(e) => updateServicePortfolioItem(activeServiceKey, index, "meta", e.target.value)} rows={2} />
                           </CField>
                         </div>
@@ -8690,7 +8690,7 @@ function PageContentManager({ showToast }: any) {
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
                       <CBtn onClick={() => deleteServicePortfolioItem(activeServiceKey, index)} small outline style={{ color: "#EF4444", borderColor: "rgba(239,68,68,0.35)" }}>
-                        ลบรูปนี้
+                        à¸¥à¸šà¸£à¸¹à¸›à¸™à¸µà¹‰
                       </CBtn>
                     </div>
                   </div>
@@ -8698,7 +8698,7 @@ function PageContentManager({ showToast }: any) {
               </div>
             </div>
           )}
-          <CBtn onClick={save} color="#FF6B00">💾 บันทึกข้อความ</CBtn>
+          <CBtn onClick={save} color="#FF6B00">ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡</CBtn>
         </div>
       </Card>
     </div>
@@ -8711,7 +8711,7 @@ function PageContentManager({ showToast }: any) {
 function ContactManager({ showToast }: any) {
   const [c, setC] = useState(() => loadLocal("contact", {
     phone: "065-916-1539", line: "https://lin.ee/O0nPl03", email: "info@displayworksmedia.com",
-    address: "123 ถ.ตัวอย่าง กรุงเทพฯ 10110", facebook: "", instagram: "", hours: "จ-ศ 9:00-18:00 น.",
+    address: "123 à¸–.à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡ à¸à¸£à¸¸à¸‡à¹€à¸—à¸žà¸¯ 10110", facebook: "", instagram: "", hours: "à¸ˆ-à¸¨ 9:00-18:00 à¸™.",
   }));
   const set = k => e => setC(p => ({ ...p, [k]: e.target.value }));
   useEffect(() => {
@@ -8724,29 +8724,29 @@ function ContactManager({ showToast }: any) {
   const save = async () => {
     try {
       await saveCmsSetting("contact", c);
-      showToast("บันทึกข้อมูลติดต่อแล้ว");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸•à¸´à¸”à¸•à¹ˆà¸­à¹à¸¥à¹‰à¸§");
     } catch (error: any) {
-      showToast("บันทึกไม่ได้: " + error.message, "error");
+      showToast("à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸¡à¹ˆà¹„à¸”à¹‰: " + error.message, "error");
     }
   };
 
   return (
     <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 560 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>ข้อมูลติดต่อ</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸•à¸´à¸”à¸•à¹ˆà¸­</h2>
       <Card>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <CField label="📞 เบอร์โทร"><input value={c.phone} onChange={set("phone")} /></CField>
-            <CField label="📧 อีเมล"><input value={c.email} onChange={set("email")} /></CField>
+            <CField label="ðŸ“ž à¹€à¸šà¸­à¸£à¹Œà¹‚à¸—à¸£"><input value={c.phone} onChange={set("phone")} /></CField>
+            <CField label="ðŸ“§ à¸­à¸µà¹€à¸¡à¸¥"><input value={c.email} onChange={set("email")} /></CField>
           </div>
-          <CField label="💬 LINE URL"><input value={c.line} onChange={set("line")} /></CField>
-          <CField label="📍 ที่อยู่"><textarea value={c.address} onChange={set("address")} rows={2} /></CField>
+          <CField label="ðŸ’¬ LINE URL"><input value={c.line} onChange={set("line")} /></CField>
+          <CField label="ðŸ“ à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆ"><textarea value={c.address} onChange={set("address")} rows={2} /></CField>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <CField label="Facebook URL"><input value={c.facebook} onChange={set("facebook")} placeholder="https://facebook.com/..." /></CField>
             <CField label="Instagram URL"><input value={c.instagram} onChange={set("instagram")} placeholder="https://instagram.com/..." /></CField>
           </div>
-          <CField label="⏰ เวลาทำการ"><input value={c.hours} onChange={set("hours")} /></CField>
-          <CBtn onClick={save} color="#FF6B00">💾 บันทึกข้อมูลติดต่อ</CBtn>
+          <CField label="â° à¹€à¸§à¸¥à¸²à¸—à¸³à¸à¸²à¸£"><input value={c.hours} onChange={set("hours")} /></CField>
+          <CBtn onClick={save} color="#FF6B00">ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸•à¸´à¸”à¸•à¹ˆà¸­</CBtn>
         </div>
       </Card>
     </div>
@@ -8765,11 +8765,12 @@ function SectionTitle({ children }: any) {
 function CField({ label, children, style }: any) {
   return <div style={style}><label>{label}</label>{children}</div>;
 }
-function CBtn({ onClick, children, color, outline, small, style, disabled, ...rest }: any) {
+function CBtn({ onClick, children, color, outline, small, style, disabled, type = "button", ...rest }: any) {
+  const buttonColor = color === "#FF6B00" || color === "#FF7A00" || !color ? "#C2410C" : color;
   return (
-    <button onClick={onClick} disabled={disabled} {...rest} style={{
-      background: outline ? "transparent" : (color || "#FF6B00"),
-      border: `1px solid ${outline ? "rgba(255,255,255,0.15)" : (color || "#FF6B00")}`,
+    <button type={type} onClick={onClick} disabled={disabled} {...rest} style={{
+      background: outline ? "transparent" : buttonColor,
+      border: `1px solid ${outline ? "rgba(255,255,255,0.15)" : buttonColor}`,
       color: outline ? "#A8B0C0" : "#fff",
       padding: small ? "8px 14px" : "11px 20px",
       borderRadius: 10, fontSize: small ? 13 : 14, fontWeight: 600,
@@ -8779,15 +8780,15 @@ function CBtn({ onClick, children, color, outline, small, style, disabled, ...re
     }}>{children}</button>
   );
 }
-function CIconBtn({ onClick, children, danger, small, ...rest }: any) {
+function CIconBtn({ onClick, children, danger, small, type = "button", ...rest }: any) {
   return (
-    <button onClick={onClick} {...rest} style={{
+    <button type={type} onClick={onClick} {...rest} style={{
       background: danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
       border: `1px solid ${danger ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)"}`,
       color: danger ? "#ef4444" : "#A8B0C0",
       padding: small ? "6px 10px" : "8px 12px", borderRadius: 8,
       cursor: "pointer", fontSize: small ? 12 : 14, fontFamily: "inherit",
-      minHeight: 36, display: "inline-flex", alignItems: "center",
+      minHeight: 44, minWidth: 44, display: "inline-flex", alignItems: "center", justifyContent: "center",
     }}>{children}</button>
   );
 }
@@ -8799,7 +8800,7 @@ function CModal({ title, onClose, children, width = 500 }: any) {
         <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
-          <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>âœ•</button>
         </div>
         <div style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
       </div>

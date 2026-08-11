@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { ArrowRight, MessageCircle, Phone } from "lucide-react";
 
 const points = [
-  "ไม่มีค่าใช้จ่ายในการประเมินราคา",
-  "ตอบกลับภายใน 24 ชั่วโมง",
-  "ให้คำปรึกษาก่อนตัดสินใจ",
-  "ยังไม่มีแบบก็สอบถามได้",
+  "à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¹ˆà¸²à¹ƒà¸Šà¹‰à¸ˆà¹ˆà¸²à¸¢à¹ƒà¸™à¸à¸²à¸£à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸£à¸²à¸„à¸²",
+  "à¸•à¸­à¸šà¸à¸¥à¸±à¸šà¸ à¸²à¸¢à¹ƒà¸™ 24 à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡",
+  "à¹ƒà¸«à¹‰à¸„à¸³à¸›à¸£à¸¶à¸à¸©à¸²à¸à¹ˆà¸­à¸™à¸•à¸±à¸”à¸ªà¸´à¸™à¹ƒà¸ˆ",
+  "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¹à¸šà¸šà¸à¹‡à¸ªà¸­à¸šà¸–à¸²à¸¡à¹„à¸”à¹‰",
 ];
 
 export default function CTA() {
@@ -52,11 +52,11 @@ export default function CTA() {
               className="font-kanit font-extrabold leading-tight mb-5 text-white"
               style={{ fontSize: "clamp(32px, 4vw, 56px)" }}
             >
-              เริ่มต้นง่ายกว่าที่คิด
+              à¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™à¸‡à¹ˆà¸²à¸¢à¸à¸§à¹ˆà¸²à¸—à¸µà¹ˆà¸„à¸´à¸”
             </h2>
 
             <p className="text-base leading-relaxed mb-8" style={{ color: "#A8B0C0" }}>
-              กำลังมองหางานป้ายหรือสื่อโฆษณา?
+              à¸à¸³à¸¥à¸±à¸‡à¸¡à¸­à¸‡à¸«à¸²à¸‡à¸²à¸™à¸›à¹‰à¸²à¸¢à¸«à¸£à¸·à¸­à¸ªà¸·à¹ˆà¸­à¹‚à¸†à¸©à¸“à¸²?
             </p>
 
             {/* Checklist */}
@@ -101,10 +101,10 @@ export default function CTA() {
               }}
             >
               <h3 className="font-kanit font-bold text-white text-2xl mb-2">
-                ติดต่อเราได้เลย
+                à¸•à¸´à¸”à¸•à¹ˆà¸­à¹€à¸£à¸²à¹„à¸”à¹‰à¹€à¸¥à¸¢
               </h3>
               <p className="text-sm mb-8" style={{ color: "#A8B0C0" }}>
-                ปรึกษางานและประเมินราคาเบื้องต้นฟรี ติดต่อกลับภายใน 30 นาที
+                à¸›à¸£à¸¶à¸à¸©à¸²à¸‡à¸²à¸™à¹à¸¥à¸°à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸£à¸²à¸„à¸²à¹€à¸šà¸·à¹‰à¸­à¸‡à¸•à¹‰à¸™à¸Ÿà¸£à¸µ à¸•à¸´à¸”à¸•à¹ˆà¸­à¸à¸¥à¸±à¸šà¸ à¸²à¸¢à¹ƒà¸™ 30 à¸™à¸²à¸—à¸µ
               </p>
 
               {/* Primary CTA */}
@@ -112,21 +112,21 @@ export default function CTA() {
                 href="#quote"
                 className="group flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-white text-base mb-4 transition-all duration-200 hover:-translate-y-0.5"
                 style={{
-                  background: "#FF6500",
-                  boxShadow: "0 8px 32px rgba(255,101,0,0.3)",
+                  background: "#C2410C",
+                  boxShadow: "0 8px 32px rgba(194,65,12,0.34)",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "#FF8C33";
+                  (e.currentTarget as HTMLElement).style.background = "#9A3412";
                   (e.currentTarget as HTMLElement).style.boxShadow =
-                    "0 12px 40px rgba(255,107,0,0.45)";
+                    "0 12px 40px rgba(194,65,12,0.42)";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "#FF6500";
+                  (e.currentTarget as HTMLElement).style.background = "#C2410C";
                   (e.currentTarget as HTMLElement).style.boxShadow =
-                    "0 8px 32px rgba(255,107,0,0.3)";
+                    "0 8px 32px rgba(194,65,12,0.34)";
                 }}
               >
-                ติดต่อสอบถามออนไลน์
+                à¸•à¸´à¸”à¸•à¹ˆà¸­à¸ªà¸­à¸šà¸–à¸²à¸¡à¸­à¸­à¸™à¹„à¸¥à¸™à¹Œ
                 <ArrowRight
                   size={18}
                   className="transition-transform group-hover:translate-x-1"
@@ -140,7 +140,7 @@ export default function CTA() {
                   style={{ background: "rgba(255,255,255,0.07)" }}
                 />
                 <span className="text-xs" style={{ color: "#A8B0C0" }}>
-                  หรือติดต่อโดยตรง
+                  à¸«à¸£à¸·à¸­à¸•à¸´à¸”à¸•à¹ˆà¸­à¹‚à¸”à¸¢à¸•à¸£à¸‡
                 </span>
                 <div
                   className="flex-1 h-px"
@@ -156,8 +156,8 @@ export default function CTA() {
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5"
                   style={{
-                    background: "#06C755",
-                    boxShadow: "0 4px 16px rgba(6,199,85,0.25)",
+                    background: "#047857",
+                    boxShadow: "0 4px 16px rgba(4,120,87,0.28)",
                   }}
                 >
                   <MessageCircle size={16} />
@@ -178,7 +178,7 @@ export default function CTA() {
                 className="text-center text-xs mt-6"
                 style={{ color: "#A8B0C0" }}
               >
-                ข้อมูลของคุณใช้เพื่อการติดต่อและประเมินราคาเท่านั้น
+                à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸‚à¸­à¸‡à¸„à¸¸à¸“à¹ƒà¸Šà¹‰à¹€à¸žà¸·à¹ˆà¸­à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­à¹à¸¥à¸°à¸›à¸£à¸°à¹€à¸¡à¸´à¸™à¸£à¸²à¸„à¸²à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™
               </p>
             </div>
           </motion.div>

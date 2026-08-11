@@ -177,7 +177,7 @@ const serviceLinks = [
 
 const socials = [
   { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61581015452518", label: "Facebook", hoverBg: "#1877F2" },
-  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#06C755" },
+  { icon: MessageCircle, href: "https://lin.ee/O0nPl03", label: "LINE", hoverBg: "#047857" },
   { icon: Instagram, href: "https://instagram.com", label: "Instagram", hoverBg: "#E1306C" },
 ];
 
@@ -223,9 +223,9 @@ function Navbar() {
           ))}
         </div>
         <div className="hidden lg:flex items-center gap-4">
-          <a href="#quote" className="bg-[#FF7A00] hover:bg-[#e56a00] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-[#FF7A00]/20">ขอใบเสนอราคา</a>
+          <a href="#quote" className="bg-[#C2410C] hover:bg-[#9A3412] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-[#FF7A00]/20">ขอใบเสนอราคา</a>
         </div>
-        <button className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button type="button" className="lg:hidden text-white" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -235,7 +235,7 @@ function Navbar() {
             {navLinks.map((link) => (
               <a key={link.label} href={link.href} className="text-[#A7B0C0] hover:text-white text-base border-b border-white/5 pb-2" onClick={() => setMobileOpen(false)}>{link.label}</a>
             ))}
-            <a href="#quote" className="mt-4 bg-[#FF7A00] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
+            <a href="#quote" className="mt-4 bg-[#C2410C] text-white py-3 rounded-lg text-center font-bold" onClick={() => setMobileOpen(false)}>ขอใบเสนอราคา</a>
           </motion.div>
         )}
       </AnimatePresence>
@@ -291,7 +291,7 @@ export default function StickerLandingPage() {
         <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#050806] via-[#050806]/85 to-transparent/30" />
         <div className="absolute -bottom-2 left-0 right-0 h-[300px] lg:h-[400px] z-0 pointer-events-none bg-gradient-to-t from-[#050806] to-transparent" />
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full pt-16 pb-24"> 
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full pt-16 pb-24">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-transparent">
               {serviceText("eyebrow", "บริการออกแบบและผลิต")}
@@ -303,11 +303,11 @@ export default function StickerLandingPage() {
             <p className="text-base text-gray-300 max-w-xl mb-10 leading-relaxed">
               {serviceText("subtitle", "พิมพ์สติ๊กเกอร์สีสด คมชัด ไดคัทได้ตามรูปแบบที่ต้องการ รองรับทั้งงาน Indoor และ Outdoor เหมาะสำหรับฉลากสินค้าและตกแต่งกระจกร้าน")}
             </p>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
               {stickerFeatures.map((f, i) => (
                 <div key={i} className="bg-[#0E1310]/80 backdrop-blur-sm p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#FF7A00]/10 text-[#FF7A00]"><f.icon size={20} /></div>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#C2410C]/10 text-[#FF7A00]"><f.icon size={20} /></div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-white leading-tight">{f.title}</span>
                     <span className="text-xs text-gray-400">{f.desc}</span>
@@ -315,9 +315,9 @@ export default function StickerLandingPage() {
                 </div>
               ))}
             </div>
-            
+
             <div className="flex flex-wrap gap-4">
-              <a href="#quote" className="bg-[#FF7A00] hover:bg-[#FF8C33] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#FF7A00]/20">
+              <a href="#quote" className="bg-[#C2410C] hover:bg-[#9A3412] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#FF7A00]/20">
                 ขอใบเสนอราคา <ArrowRight size={18} />
               </a>
               <a href="https://lin.ee/O0nPl03" target="_blank" rel="noopener noreferrer" className="bg-[#00B900] hover:bg-[#009900] px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all text-white shadow-lg shadow-[#00B900]/20">
@@ -331,7 +331,7 @@ export default function StickerLandingPage() {
       {/* ── 2. STICKER KNOWLEDGE (GRID LAYOUT) ── */}
       <section id="knowledge" className="py-24 bg-[#0E1310]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          
+
           {/* Intro */}
           <div className="mb-16">
             <h2 className="text-3xl font-['Kanit'] font-bold text-white mb-6 text-center">เจาะลึกประเภทสติ๊กเกอร์ Indoor & Outdoor</h2>
@@ -345,7 +345,7 @@ export default function StickerLandingPage() {
           {/* INDOOR SECTION */}
           <div className="mb-16">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-1.5 h-8 bg-[#FF7A00] rounded-full" />
+              <div className="w-1.5 h-8 bg-[#C2410C] rounded-full" />
               <div>
                 <h3 className="text-2xl font-['Kanit'] font-bold text-white leading-tight">สติ๊กเกอร์สำหรับภายใน (Indoor)</h3>
                 <p className="text-[#FF7A00] text-sm mt-1 flex items-center gap-2"><Sparkles size={14} /> เน้นงานพิมพ์ละเอียดสูง สีสันสดใสมาก (แนะนำให้เคลือบงานเสมอ)</p>
@@ -359,7 +359,7 @@ export default function StickerLandingPage() {
                   <div className="relative aspect-video w-full bg-[#141A24] border-b border-white/5">
                     <Image src={item.image} alt={item.name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   </div>
-                  
+
                   <div className="p-8 flex flex-col flex-grow">
                     <h3 className="text-xl font-bold mb-3 text-[#FF7A00]">{item.name}</h3>
                     <p className="text-gray-300 text-sm leading-relaxed mb-6">{item.desc}</p>
@@ -369,7 +369,7 @@ export default function StickerLandingPage() {
                       <ul className="space-y-2 mb-6">
                         {item.highlights.map((p, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{p}</span>
                           </li>
                         ))}
@@ -379,7 +379,7 @@ export default function StickerLandingPage() {
                       <ul className="space-y-2">
                         {item.uses.map((u, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{u}</span>
                           </li>
                         ))}
@@ -394,7 +394,7 @@ export default function StickerLandingPage() {
           {/* OUTDOOR SECTION */}
           <div>
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-1.5 h-8 bg-[#FF7A00] rounded-full" />
+              <div className="w-1.5 h-8 bg-[#C2410C] rounded-full" />
               <div>
                 <h3 className="text-2xl font-['Kanit'] font-bold text-white leading-tight">สติ๊กเกอร์สำหรับภายนอก (Outdoor)</h3>
                 <p className="text-[#FF7A00] text-sm mt-1 flex items-center gap-2"><Sun size={14} /> ทนแดด ทนฝน ไม่ต้องเคลือบก็ได้ ทนทานสูง 3-5 ปีขึ้นไป</p>
@@ -408,7 +408,7 @@ export default function StickerLandingPage() {
                   <div className="relative aspect-video w-full bg-[#141A24] border-b border-white/5">
                     <Image src={item.image} alt={item.name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   </div>
-                  
+
                   <div className="p-8 flex flex-col flex-grow">
                     <h3 className="text-xl font-bold mb-3 text-[#FF7A00]">{item.name}</h3>
                     <p className="text-gray-300 text-sm leading-relaxed mb-6">{item.desc}</p>
@@ -418,7 +418,7 @@ export default function StickerLandingPage() {
                       <ul className="space-y-2 mb-6">
                         {item.highlights.map((p, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{p}</span>
                           </li>
                         ))}
@@ -428,7 +428,7 @@ export default function StickerLandingPage() {
                       <ul className="space-y-2">
                         {item.uses.map((u, i) => (
                           <li key={i} className="text-sm text-gray-400 flex items-start gap-2 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-1.5 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C] mt-1.5 flex-shrink-0" />
                             <span>{u}</span>
                           </li>
                         ))}
@@ -453,7 +453,7 @@ export default function StickerLandingPage() {
 
           <div className="hidden md:block overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
             <table className="w-full text-left bg-[#0E1310]">
-              <thead className="bg-[#FF7A00] text-white border-b border-white/10">
+              <thead className="bg-[#C2410C] text-white border-b border-white/10">
                 <tr>
                   <th className="px-6 py-4 font-bold w-1/3">หน้างาน / วัตถุประสงค์</th>
                   <th className="px-6 py-4 font-bold w-1/3">ประเภทสติ๊กเกอร์ที่ควรใช้</th>
@@ -476,7 +476,7 @@ export default function StickerLandingPage() {
             {usageGuidelines.map((item, i) => (
               <div key={i} className="bg-[#0E1310] p-5 rounded-2xl border border-white/5 shadow-lg">
                 <div className="font-bold text-white mb-2 text-lg">{item.useCase}</div>
-                <div className="bg-[#FF7A00]/10 border border-[#FF7A00]/20 px-3 py-2 rounded-lg mb-3">
+                <div className="bg-[#C2410C]/10 border border-[#FF7A00]/20 px-3 py-2 rounded-lg mb-3">
                   <span className="text-xs text-gray-400 block mb-1">แนะนำ:</span>
                   <span className="text-[#FF7A00] font-bold text-sm">{item.type}</span>
                 </div>
@@ -521,7 +521,7 @@ export default function StickerLandingPage() {
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
             <table className="w-full text-left bg-[#0E1310]">
-              <thead className="bg-[#FF7A00] text-white">
+              <thead className="bg-[#C2410C] text-white">
                 <tr>
                   <th className="px-6 py-4 font-bold">ขนาด</th>
                   <th className="px-6 py-4 font-bold">การใช้งานที่แนะนำ</th>
@@ -555,7 +555,7 @@ export default function StickerLandingPage() {
               <motion.div key={i} whileHover={{ scale: 1.02 }} className="relative aspect-[16/10] rounded-3xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer bg-[#050806]">
                 <Image src={src} alt="Portfolio" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
-                   <div className="bg-[#FF7A00] p-3 rounded-full"><Check size={24} className="text-white" /></div>
+                   <div className="bg-[#C2410C] p-3 rounded-full"><Check size={24} className="text-white" /></div>
                 </div>
               </motion.div>
             ))}
@@ -584,7 +584,7 @@ export default function StickerLandingPage() {
                       <span className="font-['Kanit'] font-bold text-xs mb-1 tracking-widest text-[#FF7A00]/70">{String(step.num).padStart(2, "0")}</span>
                       <Icon size={28} strokeWidth={1.5} className="text-[#FF7A00]" />
                     </div>
-                    <div className="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold mb-3 bg-[#FF7A00]/10 text-[#FF7A00] border border-[#FF7A00]/20">{step.time}</div>
+                    <div className="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold mb-3 bg-[#C2410C]/10 text-[#FF7A00] border border-[#FF7A00]/20">{step.time}</div>
                     <h3 className="font-['Kanit'] font-bold text-white text-sm mb-2 leading-snug">{step.title}</h3>
                     <p className="text-xs leading-relaxed text-[#A8B0C0]">{step.desc}</p>
                   </motion.div>
@@ -605,7 +605,7 @@ export default function StickerLandingPage() {
                     {i < processSteps.length - 1 && <div className="w-px mt-2" style={{ background: "linear-gradient(to bottom, rgba(255,107,0,0.4), transparent)", minHeight: "48px" }} />}
                   </div>
                   <div className="pb-8 pt-1 flex-1">
-                    <div className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 bg-[#FF7A00]/10 text-[#FF7A00] border border-[#FF7A00]/20">{step.time}</div>
+                    <div className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 bg-[#C2410C]/10 text-[#FF7A00] border border-[#FF7A00]/20">{step.time}</div>
                     <h3 className="font-['Kanit'] font-bold text-white text-base mb-1">{step.title}</h3>
                     <p className="text-sm leading-relaxed text-[#A8B0C0]">{step.desc}</p>
                   </div>
@@ -615,7 +615,7 @@ export default function StickerLandingPage() {
           </div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.5 }} className="text-center mt-16">
-            <a href="#quote" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5 bg-[#FF7A00] shadow-[0_4px_24px_rgba(255,107,0,0.25)]">เริ่มต้นสั่งงานเลย</a>
+            <a href="#quote" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:-translate-y-0.5 bg-[#C2410C] shadow-[0_4px_24px_rgba(255,107,0,0.25)]">เริ่มต้นสั่งงานเลย</a>
           </motion.div>
         </div>
       </section>
@@ -627,7 +627,7 @@ export default function StickerLandingPage() {
           <div className="space-y-4">
             {faqs.map((faq, i) => (
               <div key={i} className="bg-[#050806] rounded-2xl overflow-hidden border border-white/5 shadow-lg">
-                <button className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                <button type="button" className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-all" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span className="font-bold text-sm">{faq.q}</span>
                   {openFaq === i ? <Minus size={18} className="text-[#FF7A00]" /> : <Plus size={18} className="text-gray-500" />}
                 </button>
@@ -649,7 +649,7 @@ export default function StickerLandingPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="lg:col-span-2">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-[#FF7A00]/10">ขอใบเสนอราคา</div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[#FF7A00]/30 text-[#FF7A00] bg-[#C2410C]/10">ขอใบเสนอราคา</div>
               <h2 className="text-4xl lg:text-5xl font-['Kanit'] font-extrabold mb-6 leading-tight text-white">มีงานอยู่?<br />เราช่วยดูแลให้</h2>
               <p className="text-gray-400 mb-10 leading-relaxed text-lg">กรอกรายละเอียดงาน ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง</p>
 
@@ -677,7 +677,7 @@ export default function StickerLandingPage() {
                     <CheckCircle size={56} className="text-[#FF7A00]" />
                     <h3 className="font-['Kanit'] font-bold text-2xl text-white">ส่งข้อมูลสำเร็จ!</h3>
                     <p className="text-gray-400 text-sm max-w-xs">ทีมงานได้รับข้อมูลของคุณแล้ว จะติดต่อกลับภายใน 24 ชั่วโมง</p>
-                    <button onClick={() => setSubmitted(false)} className="mt-4 text-sm underline text-[#FF7A00]">ส่งใบเสนอราคาอีกครั้ง</button>
+                    <button type="button" onClick={() => setSubmitted(false)} className="mt-4 text-sm underline text-[#FF7A00]">ส่งใบเสนอราคาอีกครั้ง</button>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
@@ -734,7 +734,7 @@ export default function StickerLandingPage() {
                       </label>
                     </div>
 
-                    <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-white text-base transition-all duration-200 disabled:opacity-70 bg-[#FF7A00] hover:bg-[#FF8C33] shadow-lg shadow-[#FF7A00]/20 mt-4">
+                    <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-white text-base transition-all duration-200 disabled:opacity-70 bg-[#C2410C] hover:bg-[#9A3412] shadow-lg shadow-[#FF7A00]/20 mt-4">
                       {loading ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> กำลังส่งข้อมูล...</> : <><Send size={18} /> ส่งข้อมูลขอใบเสนอราคา</>}
                     </button>
                     <p className="text-center text-xs text-gray-500 mt-2">ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง • ไม่มีค่าใช้จ่ายในการขอใบเสนอราคา</p>

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hero CSS animations — replaces framer-motion on above-the-fold content */
+/* Hero CSS animations â€” replaces framer-motion on above-the-fold content */
 @keyframes heroFadeUp {
   from { opacity: 0; transform: translateY(30px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -24,7 +24,7 @@
 .hero-scroll   { animation: heroFadeIn 0.5s ease both 1.2s; }
 .hero-scroll-dot { animation: scrollBounce 1.5s ease-in-out infinite; }
 
-/* Scroll-reveal — replaces framer-motion whileInView across all sections */
+/* Scroll-reveal â€” replaces framer-motion whileInView across all sections */
 @keyframes revealUp {
   from { opacity: 0; translate: 0 24px; }
   to   { opacity: 1; translate: 0 0; }
@@ -183,6 +183,8 @@
 :root {
   --orange: #ff6500;
   --orange-light: #ff8a3d;
+  --cta-orange: #c2410c;
+  --line-green: #047857;
   --bg: #070a0f;
   --card: #10151d;
   --card2: #151c26;
@@ -311,15 +313,46 @@ a {
 /* Selection */
 ::selection { background: rgba(255,107,0,0.3); color: #fff; }
 
+.visually-hidden,
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.article-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.article-table-scroll table {
+  min-width: 640px;
+}
+
+@media (max-width: 640px) {
+  .article-table-scroll {
+    margin-inline: -16px;
+    padding-inline: 16px;
+  }
+}
+
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 text-white px-7 py-4 rounded-md font-semibold text-base transition-all duration-200 hover:-translate-y-0.5;
-    background-color: var(--orange);
-    box-shadow: 0 8px 28px rgba(255,101,0,0.22);
+    background-color: var(--cta-orange);
+    box-shadow: 0 8px 28px rgba(194,65,12,0.24);
   }
   .btn-primary:hover {
-    background-color: var(--orange-light);
-    box-shadow: 0 12px 34px rgba(255,101,0,0.32);
+    background-color: #9a3412;
+    box-shadow: 0 12px 34px rgba(194,65,12,0.34);
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 bg-transparent text-white px-7 py-4 rounded-md font-medium text-base border border-white/20 transition-all duration-200 hover:border-white/50 hover:bg-white/5;
@@ -2443,7 +2476,7 @@ a {
   top: 0;
   left: 0;
   color: #ff6500;
-  content: "•";
+  content: "â€¢";
 }
 
 .brand-article [class*="prose"] h2 {
@@ -3469,13 +3502,13 @@ a {
   }
 
   .navbar-mobile-action-line {
-    background: #06c755;
-    box-shadow: 0 12px 30px rgba(6, 199, 85, 0.18);
+    background: var(--line-green);
+    box-shadow: 0 12px 30px rgba(4, 120, 87, 0.2);
   }
 
   .navbar-mobile-action-quote {
-    background: #ff6500;
-    box-shadow: 0 12px 30px rgba(255, 101, 0, 0.2);
+    background: var(--cta-orange);
+    box-shadow: 0 12px 30px rgba(194, 65, 12, 0.24);
   }
 
   .home-shell > nav + .home-hero {

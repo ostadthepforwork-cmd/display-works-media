@@ -17,18 +17,18 @@ function fmtDateTH(dateStr: string) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
 }
 function readTimeTH(body: string) {
-  return `${Math.max(1, Math.round((body || "").length / 5 / 200))} นาที`;
+  return `${Math.max(1, Math.round((body || "").length / 5 / 200))} à¸™à¸²à¸—à¸µ`;
 }
 
 export default function BlogClientShell({ posts, categories }: { posts: Post[]; categories: string[] }) {
-  const [activeCategory, setActiveCategory] = useState("ทั้งหมด");
+  const [activeCategory, setActiveCategory] = useState("à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const isFiltered = activeCategory !== "ทั้งหมด" || searchQuery !== "";
+  const isFiltered = activeCategory !== "à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”" || searchQuery !== "";
 
   const filteredPosts = isFiltered
     ? posts.filter((p) => {
-        const matchCat = activeCategory === "ทั้งหมด" || p.category === activeCategory;
+        const matchCat = activeCategory === "à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”" || p.category === activeCategory;
         const matchSearch =
           p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (p.excerpt || "").toLowerCase().includes(searchQuery.toLowerCase());
@@ -43,7 +43,8 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A7B0C0]" aria-hidden="true" />
         <input
           type="text"
-          placeholder="ค้นหาบทความ..."
+          aria-label="à¸„à¹‰à¸™à¸«à¸²à¸šà¸—à¸„à¸§à¸²à¸¡"
+          placeholder="à¸„à¹‰à¸™à¸«à¸²à¸šà¸—à¸„à¸§à¸²à¸¡..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-11 pr-4 py-3.5 rounded-md bg-[#10151D] border border-white/10 text-white text-sm placeholder-[#A7B0C0] focus:border-[#FF6500]/50 focus:outline-none transition-colors"
@@ -53,10 +54,13 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
       {/* Category tabs */}
       <div className="sticky top-[72px] z-40 mt-6 border-b border-white/5 bg-[#070A0F]">
         <div className="mx-auto max-w-7xl">
-          <div className="flex gap-1 overflow-x-auto py-3">
+          <div className="flex gap-1 overflow-x-auto py-3" role="tablist" aria-label="à¸«à¸¡à¸§à¸”à¸šà¸—à¸„à¸§à¸²à¸¡">
             {categories.map((cat) => (
               <button
                 key={cat}
+                type="button"
+                role="tab"
+                aria-selected={activeCategory === cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0 ${
                   activeCategory === cat ? "bg-[#FF6500] text-white" : "text-[#A7B0C0] hover:text-white hover:bg-white/5"
@@ -69,12 +73,12 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
         </div>
       </div>
 
-      {/* Filtered results — only shown when searching/filtering */}
+      {/* Filtered results â€” only shown when searching/filtering */}
       {isFiltered && (
         <div className="mx-auto max-w-7xl py-10">
           {filteredPosts.length === 0 ? (
             <div className="text-center py-20 text-[#A7B0C0]">
-              <p>ไม่พบบทความที่ค้นหา</p>
+              <p>à¹„à¸¡à¹ˆà¸žà¸šà¸šà¸—à¸„à¸§à¸²à¸¡à¸—à¸µà¹ˆà¸„à¹‰à¸™à¸«à¸²</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,7 +98,7 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
                           className="blog-cover-img group-hover:scale-[1.02] transition-transform duration-500"
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">ไม่มีรูปปก</div>
+                        <div className="absolute inset-0 flex items-center justify-center text-[#A7B0C0] text-xs">à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸¹à¸›à¸›à¸</div>
                       )}
                       {post.category && (
                         <div className="absolute top-3 left-3">
@@ -114,7 +118,7 @@ export default function BlogClientShell({ posts, categories }: { posts: Post[]; 
                       </h3>
                       <p className="text-[#A7B0C0] text-sm leading-relaxed line-clamp-2 mb-4">{post.excerpt}</p>
                       <span className="inline-flex items-center gap-1.5 text-[#FF7A00] text-xs font-semibold">
-                        อ่านต่อ <ArrowRight size={14} aria-hidden="true" />
+                        à¸­à¹ˆà¸²à¸™à¸•à¹ˆà¸­ <ArrowRight size={14} aria-hidden="true" />
                       </span>
                     </div>
                   </Link>
