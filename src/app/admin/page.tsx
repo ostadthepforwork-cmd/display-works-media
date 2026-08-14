@@ -4140,6 +4140,17 @@ export default function AdminPage() {
           }
           .modal-backdrop .modal-panel > div:first-child {
             flex: 0 0 auto !important;
+            width: 42px !important;
+            height: 4px !important;
+            min-height: 4px !important;
+            margin: 10px auto 6px !important;
+            padding: 0 !important;
+            background: #e5e7eb !important;
+            border: 0 !important;
+            border-radius: 999px !important;
+          }
+          .modal-backdrop .modal-panel > div:nth-child(2) {
+            flex: 0 0 auto !important;
             position: sticky !important;
             top: 0 !important;
             z-index: 20 !important;
@@ -4150,13 +4161,13 @@ export default function AdminPage() {
             color: #111827 !important;
             -webkit-text-fill-color: #111827 !important;
           }
-          .modal-backdrop .modal-panel > div:first-child span,
-          .modal-backdrop .modal-panel > div:first-child strong,
-          .modal-backdrop .modal-panel > div:first-child b {
+          .modal-backdrop .modal-panel > div:nth-child(2) span,
+          .modal-backdrop .modal-panel > div:nth-child(2) strong,
+          .modal-backdrop .modal-panel > div:nth-child(2) b {
             color: #111827 !important;
             -webkit-text-fill-color: #111827 !important;
           }
-          .modal-backdrop .modal-panel > div:nth-child(2) {
+          .modal-backdrop .modal-panel > div:nth-child(3) {
             flex: 1 1 auto !important;
             min-height: 0 !important;
             overflow-y: auto !important;
@@ -4207,6 +4218,22 @@ export default function AdminPage() {
             -webkit-text-fill-color: #111827 !important;
             font-size: 16px !important;
           }
+          .modal-backdrop .modal-panel input[type="date"],
+          .modal-backdrop .modal-panel input[type="month"],
+          .modal-backdrop .modal-panel input[type="number"],
+          .modal-backdrop .modal-panel input[type="text"],
+          .modal-backdrop .modal-panel input[type="tel"],
+          .modal-backdrop .modal-panel input[type="email"],
+          .modal-backdrop .modal-panel input[type="url"] {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .modal-backdrop .modal-panel input[type="date"]::-webkit-date-and-time-value,
+          .modal-backdrop .modal-panel input[type="month"]::-webkit-date-and-time-value {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            text-align: left !important;
+          }
           .modal-backdrop .modal-panel textarea {
             min-height: 116px !important;
             resize: vertical !important;
@@ -4236,7 +4263,7 @@ export default function AdminPage() {
             top: 0 !important;
             z-index: 12 !important;
             width: auto !important;
-            margin: -16px -18px 14px !important;
+            margin: 0 0 14px !important;
             padding: 10px 14px !important;
             flex-direction: row !important;
             overflow-x: auto !important;
@@ -4295,6 +4322,24 @@ export default function AdminPage() {
           .modal-backdrop .rich-editor-surface * {
             color: #f8fafc !important;
             -webkit-text-fill-color: #f8fafc !important;
+          }
+          .marketing-main input[type="date"],
+          .marketing-main input[type="month"],
+          .marketing-header input[type="date"],
+          .marketing-header input[type="month"] {
+            background: #ffffff !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            border: 1px solid #cbd5e1 !important;
+            color-scheme: light !important;
+          }
+          .marketing-main input[type="date"]::-webkit-date-and-time-value,
+          .marketing-main input[type="month"]::-webkit-date-and-time-value,
+          .marketing-header input[type="date"]::-webkit-date-and-time-value,
+          .marketing-header input[type="month"]::-webkit-date-and-time-value {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            text-align: left !important;
           }
         }
 
