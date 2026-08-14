@@ -4115,6 +4115,187 @@ export default function AdminPage() {
             -webkit-text-fill-color: #111827 !important;
             border-color: #d7dde8 !important;
           }
+
+          /* Mobile backend form usability: keep dialogs readable and complete. */
+          .modal-backdrop {
+            align-items: flex-end !important;
+            justify-content: center !important;
+            padding: 0 !important;
+          }
+          .modal-backdrop .modal-panel {
+            position: fixed !important;
+            inset: auto 0 0 0 !important;
+            width: 100vw !important;
+            max-width: none !important;
+            height: calc(100dvh - env(safe-area-inset-top, 0px)) !important;
+            max-height: calc(100dvh - env(safe-area-inset-top, 0px)) !important;
+            margin: 0 !important;
+            border-radius: 22px 22px 0 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            color-scheme: light !important;
+          }
+          .modal-backdrop .modal-panel > div:first-child {
+            flex: 0 0 auto !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+            min-height: 58px !important;
+            padding: 14px 18px !important;
+            background: #ffffff !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .modal-backdrop .modal-panel > div:first-child span,
+          .modal-backdrop .modal-panel > div:first-child strong,
+          .modal-backdrop .modal-panel > div:first-child b {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+          }
+          .modal-backdrop .modal-panel > div:nth-child(2) {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 16px 18px calc(106px + env(safe-area-inset-bottom, 0px)) !important;
+            background: #ffffff !important;
+          }
+          .modal-backdrop .modal-panel * {
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+          }
+          .modal-backdrop .modal-panel [style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .modal-backdrop .modal-panel label,
+          .modal-backdrop .modal-panel [style*="font-size: 12"] {
+            color: #334155 !important;
+            -webkit-text-fill-color: #334155 !important;
+          }
+          .modal-backdrop .modal-panel input,
+          .modal-backdrop .modal-panel select,
+          .modal-backdrop .modal-panel textarea {
+            width: 100% !important;
+            min-height: 50px !important;
+            padding: 12px 14px !important;
+            border-radius: 14px !important;
+            background: #f8fafc !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            border: 1px solid #cbd5e1 !important;
+            font-size: 16px !important;
+            line-height: 1.35 !important;
+            box-shadow: none !important;
+          }
+          .modal-backdrop .modal-panel select {
+            padding-right: 42px !important;
+            color-scheme: light !important;
+            appearance: auto !important;
+            -webkit-appearance: menulist !important;
+          }
+          .modal-backdrop .modal-panel select option,
+          .modal-backdrop .modal-panel optgroup {
+            background: #ffffff !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            font-size: 16px !important;
+          }
+          .modal-backdrop .modal-panel textarea {
+            min-height: 116px !important;
+            resize: vertical !important;
+          }
+          .modal-backdrop .modal-panel button {
+            min-height: 48px !important;
+            border-radius: 14px !important;
+            white-space: normal !important;
+            line-height: 1.25 !important;
+          }
+          .modal-backdrop .modal-panel button[aria-label="Close dialog"] {
+            flex: 0 0 42px !important;
+            width: 42px !important;
+            height: 42px !important;
+            min-height: 42px !important;
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+            border: 1px solid #d7dde8 !important;
+          }
+          .modal-backdrop .blog-form-body {
+            display: block !important;
+            min-height: 0 !important;
+          }
+          .modal-backdrop .blog-form-tabs {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 12 !important;
+            width: auto !important;
+            margin: -16px -18px 14px !important;
+            padding: 10px 14px !important;
+            flex-direction: row !important;
+            overflow-x: auto !important;
+            background: #0f172a !important;
+            border-right: 0 !important;
+            border-bottom: 1px solid rgba(255,255,255,.12) !important;
+          }
+          .modal-backdrop .blog-form-tabs button {
+            flex: 0 0 auto !important;
+            min-width: max-content !important;
+            min-height: 44px !important;
+            padding: 10px 14px !important;
+            color: #e2e8f0 !important;
+            -webkit-text-fill-color: #e2e8f0 !important;
+          }
+          .modal-backdrop .blog-form-content {
+            padding: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+          }
+          .modal-backdrop .rich-editor-shell {
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            background: #0f172a !important;
+          }
+          .modal-backdrop .rich-editor-toolbar {
+            display: grid !important;
+            grid-template-columns: repeat(4, minmax(42px, 1fr)) !important;
+            gap: 8px !important;
+            padding: 10px !important;
+            align-items: stretch !important;
+          }
+          .modal-backdrop .rich-editor-toolbar select {
+            grid-column: span 2 !important;
+            min-height: 42px !important;
+          }
+          .modal-backdrop .rich-editor-toolbar button,
+          .modal-backdrop .rich-editor-toolbar label {
+            width: 100% !important;
+            min-width: 42px !important;
+            height: 42px !important;
+            min-height: 42px !important;
+          }
+          .modal-backdrop .rich-editor-toolbar > div[style*="width: 1"] {
+            display: none !important;
+          }
+          .modal-backdrop .rich-editor-surface {
+            min-height: 300px !important;
+            max-height: none !important;
+            overflow-y: visible !important;
+            padding: 16px !important;
+            font-size: 16px !important;
+            line-height: 1.7 !important;
+          }
+          .modal-backdrop .rich-editor-surface,
+          .modal-backdrop .rich-editor-surface * {
+            color: #f8fafc !important;
+            -webkit-text-fill-color: #f8fafc !important;
+          }
         }
 
         /* ── iPhone 15 Pro specific (393px wide) ── */
