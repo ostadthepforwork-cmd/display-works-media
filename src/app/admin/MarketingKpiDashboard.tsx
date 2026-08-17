@@ -651,8 +651,12 @@ export default function MarketingKpiDashboard({
       : !hasMetaApiData
         ? "Meta Ads API เชื่อมต่อแล้ว แต่ไม่พบข้อมูลในช่วงวันที่เลือก หรือแคมเปญใน ad account นี้ยังไม่มี delivery"
         : "";
+  const metaSourceErrors = Array.isArray(meta?.source?.errors) ? meta.source.errors : [];
+  const metaPartialWarning = meta?.connected && metaSourceErrors.length
+    ? `Meta API ดึงข้อมูลได้บางส่วน แต่มีบาง endpoint ไม่พร้อม: ${metaSourceErrors.map((item: any) => `${item.section}: ${item.message}`).join(" / ")}`
+    : "";
   const metaSourceSummary = meta?.source
-    ? `Account rows ${Number(meta.source.accountRows || 0)}, Campaign rows ${Number(meta.source.campaignRows || 0)}, Ad set rows ${Number(meta.source.adSetRows || 0)}, Ad rows ${Number(meta.source.adRows || 0)}`
+    ? `Range ${meta?.range?.request?.label || (dateRangeMode === "all" ? "ข้อมูลทั้งหมด" : `${startDate || "-"} ถึง ${endDate || "-"}`)} / Account rows ${Number(meta.source.accountRows || 0)}, Campaign rows ${Number(meta.source.campaignRows || 0)}, Ad set rows ${Number(meta.source.adSetRows || 0)}, Ad rows ${Number(meta.source.adRows || 0)}`
     : "";
   const campaignRows = metaCampaignRows.length
     ? metaCampaignRows.map((row: any, index: number) => ({
@@ -1994,12 +1998,13 @@ export default function MarketingKpiDashboard({
             </div>
           </section>}
 
-          {(activeSection === "facebook" || activeSection === "reports") && metaStatusMessage && (
+          {(activeSection === "facebook" || activeSection === "reports") && (metaStatusMessage || metaPartialWarning) && (
             <section className="mk-empty" style={{ marginTop: 16, textAlign: "left" }}>
-              <strong>Meta Ads data ยังไม่พร้อมแสดง</strong>
-              <div>{metaStatusMessage}</div>
+              <strong>{metaPartialWarning ? "Meta Ads API ดึงข้อมูลได้บางส่วน" : "Meta Ads data ยังไม่พร้อมแสดง"}</strong>
+              {metaStatusMessage && <div>{metaStatusMessage}</div>}
+              {metaPartialWarning && <div>{metaPartialWarning}</div>}
               {metaSourceSummary && <div>{metaSourceSummary}</div>}
-              <div>ตรวจใน Vercel ว่ามี META_AD_ACCOUNT_ID หรือ META_ADS_ACCOUNT_ID และ META_ACCESS_TOKEN หรือ META_ADS_ACCESS_TOKEN แล้ว Redeploy โปรเจกต์อีกครั้ง</div>
+              {!meta?.connected && <div>ตรวจใน Vercel ว่ามี META_AD_ACCOUNT_ID หรือ META_ADS_ACCOUNT_ID และ META_ACCESS_TOKEN หรือ META_ADS_ACCESS_TOKEN แล้ว Redeploy โปรเจกต์อีกครั้ง</div>}
             </section>
           )}
 

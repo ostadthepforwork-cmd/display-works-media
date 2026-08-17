@@ -197,6 +197,26 @@ function insightDateParams(request: Request): Record<string, string> {
   return { date_preset: "last_30d" };
 }
 
+function insightRangeLabel(request: Request) {
+  const url = new URL(request.url);
+  const startDate = url.searchParams.get("startDate");
+  const endDate = url.searchParams.get("endDate");
+  if (startDate && endDate) return { mode: "custom", startDate, endDate, label: `${startDate} to ${endDate}` };
+  return { mode: "preset", preset: "last_30d", label: "last_30d" };
+}
+
+function settledData<T>(result: PromiseSettledResult<T>, fallback: T) {
+  return result.status === "fulfilled" ? result.value : fallback;
+}
+
+function settledError(result: PromiseSettledResult<unknown>, label: string) {
+  if (result.status === "fulfilled") return null;
+  return {
+    section: label,
+    message: result.reason instanceof Error ? result.reason.message : "Meta API request failed",
+  };
+}
+
 export async function GET(request: Request) {
   const { user } = await requireAdminUser();
   if (!user) {
@@ -225,6 +245,7 @@ export async function GET(request: Request) {
 
   try {
     const dateParams = insightDateParams(request);
+    const requestedRange = insightRangeLabel(request);
     const accountFields = [
       "spend",
       "impressions",
@@ -294,7 +315,7 @@ export async function GET(request: Request) {
       "purchase_roas",
     ].join(",");
 
-    const [accountInsights, campaignInsights, adSetInsights, adInsights] = await Promise.all([
+    const [accountResult, campaignResult, adSetResult, adResult] = await Promise.allSettled([
       graphGet(`${adAccountId}/insights`, {
         ...dateParams,
         level: "account",
@@ -323,6 +344,28 @@ export async function GET(request: Request) {
       }),
     ]);
 
+    const sourceErrors = [
+      settledError(accountResult, "account"),
+      settledError(campaignResult, "campaign"),
+      settledError(adSetResult, "adset"),
+      settledError(adResult, "ad"),
+    ].filter(Boolean);
+
+    const accountInsights = settledData(accountResult, { data: [] } as any);
+    const campaignInsights = settledData(campaignResult, [] as any[]);
+    const adSetInsights = settledData(adSetResult, [] as any[]);
+    const adInsights = settledData(adResult, [] as any[]);
+
+    if (
+      sourceErrors.length === 4 &&
+      !accountInsights.data?.length &&
+      !campaignInsights.length &&
+      !adSetInsights.length &&
+      !adInsights.length
+    ) {
+      throw new Error(sourceErrors.map((item: any) => `${item.section}: ${item.message}`).join(" | "));
+    }
+
     const account = accountInsights.data?.[0] || {};
     const accountLeadBreakdown = actionBreakdown(account.actions);
     const accountEngagementBreakdown = engagementBreakdown(account.actions);
@@ -335,7 +378,10 @@ export async function GET(request: Request) {
       {
         success: true,
         connected: true,
-        range: dateParams,
+        range: {
+          request: requestedRange,
+          metaParams: dateParams,
+        },
         source: {
           graphVersion: GRAPH_VERSION,
           adAccountId,
@@ -343,6 +389,8 @@ export async function GET(request: Request) {
           campaignRows: campaignInsights.length,
           adSetRows: adSetInsights.length,
           adRows: adInsights.length,
+          partial: sourceErrors.length > 0,
+          errors: sourceErrors,
         },
         totals: {
           spend,
