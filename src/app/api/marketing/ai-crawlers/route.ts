@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isSensitiveProbePath, sensitiveProbeIntentDetail } from "@/lib/sensitive-paths";
 
 type CrawlerVisit = {
   id: string;
@@ -76,6 +77,9 @@ function searchHintFromUrl(value: string | null) {
 function inferIntent(path: string, referrer: string | null) {
   const target = path.toLowerCase();
   const searchHint = searchHintFromUrl(path) || searchHintFromUrl(referrer);
+  if (isSensitiveProbePath(target)) {
+    return { intent: "Security probe / blocked path", detail: sensitiveProbeIntentDetail(target) };
+  }
   if (target.includes("robots.txt")) return { intent: "Crawler access rules", detail: "Bot checked robots.txt before reading the site" };
   if (target.includes("sitemap.xml")) return { intent: "Site discovery", detail: "Bot explored URLs from sitemap.xml" };
   if (target.includes("llms.txt")) return { intent: "AI summary source", detail: "Bot checked llms.txt for AI-readable site context" };
@@ -176,6 +180,8 @@ export async function GET(request: Request) {
   }
 
   const rows = (data || []) as CrawlerVisit[];
+  const publicContentRows = rows.filter((row) => !isSensitiveProbePath(row.path));
+  const securityProbeRows = rows.filter((row) => isSensitiveProbePath(row.path));
   return NextResponse.json(
     {
       success: true,
@@ -183,10 +189,12 @@ export async function GET(request: Request) {
       totals: {
         visits: rows.length,
         bots: new Set(rows.map((row) => row.bot_name)).size,
-        pages: new Set(rows.map((row) => row.path)).size,
+        pages: new Set(publicContentRows.map((row) => row.path)).size,
+        securityProbes: securityProbeRows.length,
       },
       byBot: countBy(rows, (row) => row.bot_name),
-      byPath: countPaths(rows),
+      byPath: countPaths(publicContentRows),
+      bySecurityProbe: countPaths(securityProbeRows),
       byIntent: countIntents(rows),
       byReferrer: countReferrers(rows),
       daily: countDaily(rows),

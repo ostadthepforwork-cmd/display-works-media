@@ -929,6 +929,7 @@ export default function MarketingKpiDashboard({
   const topCreativeRows = creativeRows.slice(0, 8);
   const topAiBots = (aiCrawlers.byBot || []).slice(0, 8);
   const topAiPages = (aiCrawlers.byPath || []).slice(0, 8);
+  const topAiSecurityProbes = (aiCrawlers.bySecurityProbe || []).slice(0, 8);
   const topAiIntents = (aiCrawlers.byIntent || []).slice(0, 8);
   const topAiReferrers = (aiCrawlers.byReferrer || []).slice(0, 6);
   const recentAiRows = (aiCrawlers.recent || []).slice(0, 12);
@@ -938,6 +939,7 @@ export default function MarketingKpiDashboard({
   const recentAiCitations = (aiCitations.recent || []).slice(0, 8);
   const maxAiBotCount = Math.max(...topAiBots.map((item: any) => Number(item.count || 0)), 1);
   const maxAiPageCount = Math.max(...topAiPages.map((item: any) => Number(item.count || 0)), 1);
+  const maxAiSecurityProbeCount = Math.max(...topAiSecurityProbes.map((item: any) => Number(item.count || 0)), 1);
   const maxAiIntentCount = Math.max(...topAiIntents.map((item: any) => Number(item.count || 0)), 1);
   const maxAiReferrerCount = Math.max(...topAiReferrers.map((item: any) => Number(item.count || 0)), 1);
   const maxCitedPageCount = Math.max(...topCitedPages.map((item: any) => Number(item.count || 0)), 1);
@@ -2424,7 +2426,7 @@ export default function MarketingKpiDashboard({
                 <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.visits ?? 0))}</strong><div>AI/Search visits</div></div>
                 <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.bots ?? 0))}</strong><div>Bot types</div></div>
                 <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.pages ?? 0))}</strong><div>Public pages crawled</div></div>
-                <div className="mk-mini"><strong>{aiCrawlers.loading ? "Syncing" : (aiCrawlers.connected ? "Live" : "-")}</strong><div>{aiCrawlers.error || "เริ่มนับหลังติดตั้ง SQL และ deploy"}</div></div>
+                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.securityProbes ?? 0))}</strong><div>Security probes blocked</div></div>
               </div>
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
@@ -2500,6 +2502,20 @@ export default function MarketingKpiDashboard({
                     )) : <div className="mk-empty">ยังไม่มี AI/Search bot เข้าในช่วงวันที่นี้</div>}
                   </div>
                 </div>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h2>Blocked Security Probes</h2>
+                  <p>คำขอที่พยายามเปิดไฟล์ระบบ เช่น .env, .git, logs, backup จะถูกตอบ 404 และไม่นับเป็นหน้า public</p>
+                  <div className="mk-chart-list" style={{ marginTop: 12 }}>
+                    {topAiSecurityProbes.length ? topAiSecurityProbes.map((page: any) => (
+                      <div className="mk-source compact mk-chart-row" key={page.path || page.name || "Unknown"} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(page.count || 0) / maxAiSecurityProbeCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#ef4444,#ff6b00)" }}>
+                        <strong>{page.path || page.name || "Unknown"}</strong>
+                        <span className="mk-badge">{money(Number(page.count || 0))} ครั้ง</span>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มี security probe ในช่วงวันที่นี้</div>}
+                  </div>
+                </div>
+              </div>
+              <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h2>Top Pages</h2>
                   <div className="mk-chart-list" style={{ marginTop: 12 }}>

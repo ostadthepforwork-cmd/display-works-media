@@ -1,6 +1,7 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { detectAiBot } from "./lib/ai-bots";
+import { isSensitiveProbePath } from "./lib/sensitive-paths";
 
 const PUBLIC_FILE = /\.(js|css|png|jpg|jpeg|webp|avif|gif|svg|ico|woff|woff2|ttf|map)$/i;
 const PRIVATE_PATH = /^\/(admin|api|auth|doc)(\/|$)/i;
@@ -48,7 +49,7 @@ function isLocalAdminBypass(req: NextRequest) {
   );
 }
 
-async function logAiCrawlerVisit(req: NextRequest) {
+async function logAiCrawlerVisit(req: NextRequest, status = 200, responseSize: number | null = null) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
@@ -70,17 +71,30 @@ async function logAiCrawlerVisit(req: NextRequest) {
       user_agent: userAgent,
       referrer: (req.headers.get("referer") || "").slice(0, 300) || null,
       country: req.headers.get("x-vercel-ip-country") || null,
+      http_status: status,
+      response_size: responseSize,
     }),
   }).catch(() => undefined);
 }
 
 export async function proxy(req: NextRequest, event: NextFetchEvent) {
+  const pathname = req.nextUrl.pathname;
+
   if (shouldLogCrawler(req)) {
-    event.waitUntil(logAiCrawlerVisit(req));
+    event.waitUntil(logAiCrawlerVisit(req, isSensitiveProbePath(pathname) ? 404 : 200, 0));
+  }
+
+  if (isSensitiveProbePath(pathname)) {
+    return new NextResponse("Not found", {
+      status: 404,
+      headers: {
+        "Cache-Control": "no-store",
+        "X-Robots-Tag": "noindex, nofollow, noarchive",
+      },
+    });
   }
 
   let res = NextResponse.next({ request: req });
-  const pathname = req.nextUrl.pathname;
 
   if (!pathname.startsWith("/admin") && pathname !== "/login") {
     return res;
