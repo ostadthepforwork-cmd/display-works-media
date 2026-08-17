@@ -79,19 +79,12 @@ async function graphGetAll(path: string, params: Record<string, string>, maxPage
 
 const numberValue = (value: unknown) => Number(value || 0);
 
-const leadActionTypes = [
+const formLeadActionTypes = [
   "lead",
   "leadgen_grouped",
   "offsite_conversion.fb_pixel_lead",
   "onsite_conversion.lead",
   "onsite_conversion.lead_grouped",
-  "onsite_conversion.messaging_conversation_started_7d",
-  "onsite_conversion.messaging_conversation_started",
-  "omni_messaging_conversation_started_7d",
-  "omni_messaging_conversation_started",
-  "onsite_conversion.messaging_first_reply",
-  "onsite_conversion.messaging_user_subscribed",
-  "onsite_conversion.post_save",
 ];
 
 const messageLeadActionTypes = [
@@ -101,6 +94,17 @@ const messageLeadActionTypes = [
   "omni_messaging_conversation_started",
   "onsite_conversion.messaging_first_reply",
   "onsite_conversion.messaging_user_subscribed",
+];
+
+const leadActionTypes = [...formLeadActionTypes, ...messageLeadActionTypes];
+
+const engagementActionTypes = [
+  "onsite_conversion.post_save",
+  "onsite_conversion.post_save_7d",
+  "post_save",
+  "post_engagement",
+  "page_engagement",
+  "omni_post_engagement",
 ];
 
 const purchaseActionTypes = [
@@ -153,7 +157,22 @@ function actionBreakdown(actions: any[] | undefined) {
   return {
     breakdown,
     messageLeads: actionCount(source, messageLeadActionTypes),
-    formLeads: actionCount(source, ["lead", "onsite_conversion.lead_grouped"]),
+    formLeads: actionCount(source, formLeadActionTypes),
+  };
+}
+
+function engagementBreakdown(actions: any[] | undefined) {
+  const source = Array.isArray(actions) ? actions : [];
+  const breakdown = engagementActionTypes.map((type) => ({
+    type,
+    value: source
+      .filter((item) => item.action_type === type)
+      .reduce((sum, item) => sum + numberValue(item.value), 0),
+  })).filter((item) => item.value > 0);
+
+  return {
+    breakdown,
+    total: breakdown.reduce((sum, item) => sum + item.value, 0),
   };
 }
 
@@ -305,8 +324,9 @@ export async function GET(request: Request) {
     ]);
 
     const account = accountInsights.data?.[0] || {};
-    const leads = actionCount(account.actions, leadActionTypes);
     const accountLeadBreakdown = actionBreakdown(account.actions);
+    const accountEngagementBreakdown = engagementBreakdown(account.actions);
+    const leads = accountLeadBreakdown.messageLeads + accountLeadBreakdown.formLeads;
     const accountReportedRevenue = actionValue(account.action_values, purchaseActionTypes);
     const accountReportedRoas = roasValue(account.purchase_roas);
     const spend = numberValue(account.spend);
@@ -336,6 +356,8 @@ export async function GET(request: Request) {
           messageLeads: accountLeadBreakdown.messageLeads,
           formLeads: accountLeadBreakdown.formLeads,
           leadBreakdown: accountLeadBreakdown.breakdown,
+          engagementActions: accountEngagementBreakdown.total,
+          engagementBreakdown: accountEngagementBreakdown.breakdown,
           metaReportedRevenue: accountReportedRevenue,
           metaReportedRoas: accountReportedRoas || (spend > 0 && accountReportedRevenue > 0 ? accountReportedRevenue / spend : 0),
           actionValues: valueBreakdown(account.action_values),
@@ -343,8 +365,9 @@ export async function GET(request: Request) {
           cpl: leads > 0 ? spend / leads : 0,
         },
         campaigns: campaignInsights.map((row: any) => {
-          const rowLeads = actionCount(row.actions, leadActionTypes);
           const rowLeadBreakdown = actionBreakdown(row.actions);
+          const rowEngagementBreakdown = engagementBreakdown(row.actions);
+          const rowLeads = rowLeadBreakdown.messageLeads + rowLeadBreakdown.formLeads;
           const rowSpend = numberValue(row.spend);
           const rowReportedRevenue = actionValue(row.action_values, purchaseActionTypes);
           const rowReportedRoas = roasValue(row.purchase_roas);
@@ -361,6 +384,8 @@ export async function GET(request: Request) {
             messageLeads: rowLeadBreakdown.messageLeads,
             formLeads: rowLeadBreakdown.formLeads,
             leadBreakdown: rowLeadBreakdown.breakdown,
+            engagementActions: rowEngagementBreakdown.total,
+            engagementBreakdown: rowEngagementBreakdown.breakdown,
             metaReportedRevenue: rowReportedRevenue,
             metaReportedRoas: rowReportedRoas || (rowSpend > 0 && rowReportedRevenue > 0 ? rowReportedRevenue / rowSpend : 0),
             actionValues: valueBreakdown(row.action_values),
@@ -369,8 +394,9 @@ export async function GET(request: Request) {
           };
         }),
         adSets: adSetInsights.map((row: any) => {
-          const rowLeads = actionCount(row.actions, leadActionTypes);
           const rowLeadBreakdown = actionBreakdown(row.actions);
+          const rowEngagementBreakdown = engagementBreakdown(row.actions);
+          const rowLeads = rowLeadBreakdown.messageLeads + rowLeadBreakdown.formLeads;
           const rowSpend = numberValue(row.spend);
           const rowReportedRevenue = actionValue(row.action_values, purchaseActionTypes);
           const rowReportedRoas = roasValue(row.purchase_roas);
@@ -389,6 +415,8 @@ export async function GET(request: Request) {
             messageLeads: rowLeadBreakdown.messageLeads,
             formLeads: rowLeadBreakdown.formLeads,
             leadBreakdown: rowLeadBreakdown.breakdown,
+            engagementActions: rowEngagementBreakdown.total,
+            engagementBreakdown: rowEngagementBreakdown.breakdown,
             metaReportedRevenue: rowReportedRevenue,
             metaReportedRoas: rowReportedRoas || (rowSpend > 0 && rowReportedRevenue > 0 ? rowReportedRevenue / rowSpend : 0),
             actionValues: valueBreakdown(row.action_values),
@@ -397,8 +425,9 @@ export async function GET(request: Request) {
           };
         }),
         ads: adInsights.map((row: any) => {
-          const rowLeads = actionCount(row.actions, leadActionTypes);
           const rowLeadBreakdown = actionBreakdown(row.actions);
+          const rowEngagementBreakdown = engagementBreakdown(row.actions);
+          const rowLeads = rowLeadBreakdown.messageLeads + rowLeadBreakdown.formLeads;
           const rowSpend = numberValue(row.spend);
           const rowReportedRevenue = actionValue(row.action_values, purchaseActionTypes);
           const rowReportedRoas = roasValue(row.purchase_roas);
@@ -419,6 +448,8 @@ export async function GET(request: Request) {
             messageLeads: rowLeadBreakdown.messageLeads,
             formLeads: rowLeadBreakdown.formLeads,
             leadBreakdown: rowLeadBreakdown.breakdown,
+            engagementActions: rowEngagementBreakdown.total,
+            engagementBreakdown: rowEngagementBreakdown.breakdown,
             metaReportedRevenue: rowReportedRevenue,
             metaReportedRoas: rowReportedRoas || (rowSpend > 0 && rowReportedRevenue > 0 ? rowReportedRevenue / rowSpend : 0),
             actionValues: valueBreakdown(row.action_values),
