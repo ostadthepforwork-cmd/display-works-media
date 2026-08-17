@@ -631,9 +631,9 @@ export default function MarketingKpiDashboard({
   const marketingSpend = meta.connected ? metaSpend : manualSpend;
   const crmLeads = filteredLeads.length;
   const campaignLeads = filteredCampaigns.reduce((sum, campaign) => sum + Number(campaign.leads || 0), 0);
-  const manualMarketingLeadSignals = crmLeads + campaignLeads;
-  const marketingLeadSignals = meta.connected ? metaLeadSignalCount : manualMarketingLeadSignals;
-  const crmFallbackLeadSignals = meta.connected && metaLeadSignalCount === 0 ? manualMarketingLeadSignals : 0;
+  const paidMarketingLeadSignals = meta.connected ? metaLeadSignalCount : campaignLeads;
+  const marketingLeadSignals = paidMarketingLeadSignals;
+  const crmFallbackLeadSignals = meta.connected && metaLeadSignalCount === 0 ? crmLeads : 0;
   const contactedLeads = filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const qualifiedLeads = filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const crmQuotationSent = filteredLeads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
@@ -645,7 +645,7 @@ export default function MarketingKpiDashboard({
   const unmappedReceiptJobs = Math.max(0, erpReceiptJobs - mappedClosedJobs);
   const closedLeadRevenue = filteredLeads.filter(isRevenueLead).reduce((sum, lead) => sum + Number(lead.value || 0), 0);
   const grossProfit = receiptRevenue - receiptCost;
-  const cpl = marketingLeadSignals > 0 ? marketingSpend / marketingLeadSignals : 0;
+  const cpl = paidMarketingLeadSignals > 0 ? marketingSpend / paidMarketingLeadSignals : 0;
   const cpql = qualifiedLeads > 0 ? marketingSpend / qualifiedLeads : 0;
   const costPerClosedJob = mappedClosedJobs > 0 ? marketingSpend / mappedClosedJobs : 0;
   const canCalculateLeadToCustomer = crmLeads > 0 && closedLeadCount <= crmLeads;
@@ -661,6 +661,9 @@ export default function MarketingKpiDashboard({
   const hasMetaApiData = Boolean(
     meta?.connected &&
       (metaSpend > 0 ||
+        metaReach > 0 ||
+        metaImpressions > 0 ||
+        metaClicks > 0 ||
         metaLeadSignalCount > 0 ||
         metaEngagementActions > 0 ||
         metaReportedRevenue > 0 ||
@@ -690,7 +693,17 @@ export default function MarketingKpiDashboard({
         channel: "Facebook Ads",
         status: "active" as const,
         spend: Number(row.spend || 0),
+        impressions: Number(row.impressions || 0),
+        reach: Number(row.reach || 0),
+        clicks: Number(row.clicks || 0),
+        cpc: Number(row.cpc || 0),
+        cpm: Number(row.cpm || 0),
+        ctr: Number(row.ctr || 0),
+        cpl: Number(row.cpl || 0),
         leads: Number(row.leads || 0),
+        messageLeads: Number(row.messageLeads || 0),
+        formLeads: Number(row.formLeads || 0),
+        engagementActions: Number(row.engagementActions || 0),
         conversions: Number(row.conversions || 0),
         revenue: mappedLeadRevenue(filteredLeads, "campaign", row.name) || Number(row.revenue || 0),
         metaReportedRevenue: Number(row.metaReportedRevenue || 0),
@@ -717,6 +730,13 @@ export default function MarketingKpiDashboard({
         reach: Number((row as any).reach || 0),
         impressions: Number((row as any).impressions || 0),
         clicks: Number((row as any).clicks || 0),
+        cpc: Number((row as any).cpc || 0),
+        cpm: Number((row as any).cpm || 0),
+        ctr: Number((row as any).ctr || 0),
+        cpl: Number((row as any).cpl || 0),
+        messageLeads: Number((row as any).messageLeads || 0),
+        formLeads: Number((row as any).formLeads || 0),
+        engagementActions: Number((row as any).engagementActions || 0),
         metaReportedRevenue: Number((row as any).metaReportedRevenue || 0),
         metaReportedRoas: Number((row as any).metaReportedRoas || 0),
         actionValues: Array.isArray((row as any).actionValues) ? (row as any).actionValues : [],
@@ -926,7 +946,7 @@ export default function MarketingKpiDashboard({
     { label: "Revenue", value: `฿${money(receiptRevenue)}`, sub: "ตรงกับ ERP: ใบเสร็จเท่านั้น", tone: "green" },
     { label: "Gross Profit", value: `฿${money(grossProfit)}`, sub: `Margin ${percent(grossMargin)}`, tone: "teal" },
     { label: "Marketing Spend", value: `฿${money(marketingSpend)}`, sub: meta.connected ? "จาก Meta Ads" : "รอเชื่อมต่อ Meta API", tone: "pink" },
-    { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected ? "Meta lead/message actions only" : "CRM / Manual fallback", tone: "blue" },
+    { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected ? "Meta lead/message actions only" : "Manual campaign leads", tone: "blue" },
     { label: "Qualified Leads", value: money(qualifiedLeads), sub: "Lead ที่ข้อมูลพร้อมติดตาม", tone: "purple" },
     { label: "Quotation Sent", value: money(crmQuotationSent), sub: `CRM pipeline / ERP quote docs ${money(erpQuotationDocs)}`, tone: "yellow" },
     { label: "Closed Won", value: money(mappedClosedJobs), sub: `CRM closed-won / ERP receipts ${money(erpReceiptJobs)}`, tone: "green" },
@@ -1171,7 +1191,7 @@ export default function MarketingKpiDashboard({
       name: "Facebook Ads",
       primary: `${money(metaLeadSignalCount)} leads`,
       secondary: `Spend ฿${money(metaSpend)} / Clicks ${money(Number(meta?.totals?.clicks || 0))}`,
-      roas: roas ? roas.toFixed(2) : "รอ Mapping รายได้",
+      roas: facebookErpRoas ? facebookErpRoas.toFixed(2) : "รอ Mapping รายได้",
       mixValue: metaLeadSignalCount || Number(meta?.totals?.clicks || 0) || metaSpend,
       color: "#ff6b00",
     },
@@ -1280,11 +1300,11 @@ export default function MarketingKpiDashboard({
   const budgetTarget = plannedBudget || marketingSpend;
 
   const marketingFunnel = [
-    { label: "Reach", value: Number(meta?.totals?.reach ?? 0), source: "Meta Ads reach", color: "#2563eb" },
-    { label: "Click", value: Number(meta?.totals?.clicks ?? 0), source: "Meta Ads clicks", color: "#0ea5e9" },
+    { label: "Reach", value: meta.connected ? metaReach : 0, source: meta.connected ? "Meta Ads reach" : "รอ Meta API", color: "#2563eb" },
+    { label: "Click", value: meta.connected ? metaClicks : 0, source: meta.connected ? "Meta Ads clicks" : "รอ Meta API", color: "#0ea5e9" },
     { label: "Visitor", value: Number(ga4?.totals?.activeUsers ?? ga4?.totals?.sessions ?? 0), source: "GA4 active users / sessions", color: "#06b6d4" },
-    { label: "Lead / Message", value: marketingLeadSignals, source: meta.connected ? "Meta lead/message actions only" : "Manual campaign + CRM leads", color: "#22c55e" },
-    { label: "Qualified Lead", value: qualifiedLeads, source: "CRM qualified status", color: "#f59e0b" },
+    { label: "Lead / Message", value: paidMarketingLeadSignals, source: meta.connected ? "Meta lead/message actions only" : "Manual campaign leads", color: "#22c55e" },
+    { label: "CRM Qualified", value: qualifiedLeads, source: "CRM mapped separately", color: "#f59e0b" },
   ];
   const salesFunnel = hasSalesMapping ? [
     { label: "Lead", value: crmLeads, source: "CRM leads", color: "#2563eb" },
@@ -2152,12 +2172,12 @@ export default function MarketingKpiDashboard({
           {(activeSection === "facebook" || activeSection === "reports") && (
             <section className="mk-grid" style={{ marginTop: 16 }}>
               {[
-                ["Facebook Spend", `฿${money(marketingSpend)}`, "Meta Ads spend"],
+                ["Facebook Spend", `฿${money(meta.connected ? metaSpend : manualSpend)}`, meta.connected ? "Meta Ads spend" : "Manual campaign spend"],
                 ["Meta Reported Revenue", metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", "From Meta action_values"],
                 ["Meta Reported ROAS", metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", "From Meta purchase_roas"],
-                ["Facebook Leads", money(metaLeadSignalCount), "Messages / Lead forms"],
+                ["Facebook Leads", money(meta.connected ? metaLeadSignalCount : campaignLeads), meta.connected ? "Messages / Lead forms" : "Manual campaign leads"],
                 ["Meta Engagement", money(metaEngagementActions), "Post save / engagement ไม่ใช่ Lead"],
-                ["Facebook CPL", metaLeadSignalCount ? `฿${money(metaSpend / metaLeadSignalCount)}` : "-", "Spend / Leads"],
+                ["Facebook CPL", paidMarketingLeadSignals ? `฿${money((meta.connected ? metaSpend : manualSpend) / paidMarketingLeadSignals)}` : "-", "Spend / Leads"],
                 ["Facebook ROAS", facebookErpRoas ? facebookErpRoas.toFixed(2) : "รอ Mapping", "ใช้เฉพาะ ERP/CRM ที่ map กับ Facebook"],
                 ["Qualified Leads", money(qualifiedLeads), "CRM mapped"],
                 ["CRM Closed Won", money(mappedClosedJobs), "CRM pipeline"],
@@ -2218,6 +2238,11 @@ export default function MarketingKpiDashboard({
               ) : (
                 <div className="mk-empty" style={{ gridColumn: "1 / -1" }}>
                   ยังไม่มีข้อมูล campaign จาก Meta API ในช่วงวันที่นี้ ตรวจ env, สิทธิ์ ads_read และ Ad Account ID แล้วกด Sync/รีเฟรชอีกครั้ง
+                  {meta?.connected && (metaSpend > 0 || metaClicks > 0 || metaReach > 0) && (
+                    <div style={{ marginTop: 8 }}>
+                      อย่างไรก็ตาม Account summary มีข้อมูล: Spend ฿{money(metaSpend)} / Reach {money(metaReach)} / Clicks {money(metaClicks)} แต่ Meta ไม่ส่ง campaign breakdown ใน response นี้
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -2244,7 +2269,7 @@ export default function MarketingKpiDashboard({
                         <td>{money(richRow?.clicks || 0)}</td>
                         <td>{money(row.leads)}</td>
                         <td>{Number((row as any).metaReportedRevenue || 0) > 0 ? `THB ${money(Number((row as any).metaReportedRevenue || 0))}` : "-"}</td>
-                        <td>{rowCpl ? `฿${money(rowCpl)}` : "-"}</td>
+                        <td>{Number((row as any).cpl || 0) ? `฿${money(Number((row as any).cpl || 0))}` : rowCpl ? `฿${money(rowCpl)}` : "-"}</td>
                         <td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td>
                         <td>{richRow?.recommendation || (row.revenue > 0 ? "รอดูต่อ" : "ต้อง map Order/Receipt")}</td>
                       </tr>
