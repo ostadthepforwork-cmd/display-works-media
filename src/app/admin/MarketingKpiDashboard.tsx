@@ -1086,6 +1086,44 @@ export default function MarketingKpiDashboard({
   const ga4ApiRangeLabel = ga4?.range
     ? `${ga4.range.startDate || "-"} ถึง ${ga4.range.endDate || "-"}`
     : (dateRangeMode === "all" ? "2020-01-01 ถึง today" : rangeLabel);
+  const metaDiagnosticRows = [
+    {
+      label: "Connection",
+      value: meta?.loading ? "Loading" : meta?.connected ? "Connected" : "Not connected",
+      detail: meta?.connected ? "Meta Ads API route responded" : meta?.error || "ตรวจ env/token แล้ว Redeploy",
+      tone: meta?.connected ? "good" : "danger",
+    },
+    {
+      label: "API Range",
+      value: metaApiRangeLabel,
+      detail: dateRangeMode === "all" ? "ส่ง date_preset=maximum ไปที่ Meta" : "ส่ง time_range ตามวันที่ที่เลือก",
+      tone: "info",
+    },
+    {
+      label: "Insight Rows",
+      value: `Account ${money(Number(meta?.source?.accountRows || 0))} / Campaign ${money(Number(meta?.source?.campaignRows || 0))}`,
+      detail: `Ad set ${money(Number(meta?.source?.adSetRows || 0))} / Ad ${money(Number(meta?.source?.adRows || 0))}`,
+      tone: hasMetaApiData ? "good" : "warning",
+    },
+    {
+      label: "Spend / Reach / Click",
+      value: `฿${money(metaSpend)} / ${money(Number(meta?.totals?.reach || 0))} / ${money(Number(meta?.totals?.clicks || 0))}`,
+      detail: "เทียบช่วงวันที่เดียวกันกับ Ads Manager",
+      tone: metaSpend || Number(meta?.totals?.reach || 0) || Number(meta?.totals?.clicks || 0) ? "good" : "warning",
+    },
+    {
+      label: "Lead / Message",
+      value: money(metaLeadSignalCount),
+      detail: meta.connected ? "รวม lead/message actions จาก Meta" : "รอ Meta API",
+      tone: metaLeadSignalCount ? "good" : "warning",
+    },
+    {
+      label: "Meta Revenue",
+      value: metaReportedRevenue ? `฿${money(metaReportedRevenue)}` : "No action_values",
+      detail: "จะขึ้นเมื่อ Meta มี Purchase/Value event ในช่วงวันที่นี้",
+      tone: metaReportedRevenue ? "good" : "warning",
+    },
+  ];
 
   const visibleSourceLogs = activeSourceLog === "ทั้งหมด"
     ? sourceLogs
@@ -2035,6 +2073,44 @@ export default function MarketingKpiDashboard({
               {metaPartialWarning && <div>{metaPartialWarning}</div>}
               {metaSourceSummary && <div>{metaSourceSummary}</div>}
               {!meta?.connected && <div>ตรวจใน Vercel ว่ามี META_AD_ACCOUNT_ID หรือ META_ADS_ACCOUNT_ID และ META_ACCESS_TOKEN หรือ META_ADS_ACCESS_TOKEN แล้ว Redeploy โปรเจกต์อีกครั้ง</div>}
+            </section>
+          )}
+
+          {(activeSection === "facebook" || activeSection === "reports" || activeSection === "sources") && (
+            <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
+              <div className="mk-section-head">
+                <div>
+                  <h2>Meta API Health Check</h2>
+                  <p>ตรวจว่ารายงาน Facebook Ads ดึงข้อมูลจาก API ช่วงวันที่ที่เลือกได้ครบแค่ไหน</p>
+                </div>
+                <span className={`mk-status ${meta?.connected ? "ready" : ""}`}>
+                  {meta?.connected ? "API Connected" : "Needs setup"}
+                </span>
+              </div>
+              <div className="mk-channel-grid" style={{ marginTop: 14 }}>
+                {metaDiagnosticRows.map((row) => (
+                  <div className={`mk-mini ${row.tone === "danger" ? "danger" : ""}`} key={row.label}>
+                    <strong>{row.value}</strong>
+                    <div>{row.label}</div>
+                    <small style={{ color: row.tone === "danger" ? "#fca5a5" : row.tone === "warning" ? "#fbbf24" : "#94a3b8" }}>{row.detail}</small>
+                  </div>
+                ))}
+              </div>
+              {metaSourceErrors.length > 0 && (
+                <div className="mk-empty" style={{ marginTop: 14, textAlign: "left" }}>
+                  <strong>Meta endpoint warnings</strong>
+                  {metaSourceErrors.map((item: any, index: number) => (
+                    <div key={`${item.section || "section"}-${index}`}>{item.section}: {item.message}</div>
+                  ))}
+                </div>
+              )}
+              {meta?.connected && !hasMetaApiData && (
+                <div className="mk-empty" style={{ marginTop: 14, textAlign: "left" }}>
+                  <strong>เชื่อมต่อแล้ว แต่ยังไม่มีข้อมูลจาก Meta ในช่วงนี้</strong>
+                  <div>ให้เทียบวันที่เดียวกันใน Ads Manager ก่อน ถ้า Ads Manager มีข้อมูลแต่หน้านี้ยังเป็น 0 ให้ตรวจ ad account id, token permission และระดับ field ที่ Meta อนุญาต</div>
+                  <div>รายได้ฝั่ง Meta จะขึ้นเฉพาะเมื่อมี action_values หรือ purchase_roas จาก Pixel/Conversions API เท่านั้น ส่วนรายได้จริงยังอ้างอิงจากใบเสร็จ ERP และ CRM mapping</div>
+                </div>
+              )}
             </section>
           )}
 
