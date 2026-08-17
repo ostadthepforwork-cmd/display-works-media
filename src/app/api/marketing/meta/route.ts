@@ -227,24 +227,71 @@ function maxRoas(rows: any[]) {
   return rows.reduce((max, row) => Math.max(max, roasValue(row?.purchase_roas)), 0);
 }
 
+const allowedDatePresets = new Set([
+  "today",
+  "yesterday",
+  "this_month",
+  "last_month",
+  "this_quarter",
+  "maximum",
+  "last_3d",
+  "last_7d",
+  "last_14d",
+  "last_28d",
+  "last_30d",
+  "last_90d",
+  "last_week_mon_sun",
+  "last_week_sun_sat",
+  "last_quarter",
+  "last_year",
+  "this_week_mon_today",
+  "this_week_sun_today",
+  "this_year",
+]);
+
+function requestedDatePreset(request: Request) {
+  const url = new URL(request.url);
+  const preset = url.searchParams.get("datePreset") || "";
+  return allowedDatePresets.has(preset) ? preset : "";
+}
+
 function insightDateParams(request: Request): Record<string, string> {
   const url = new URL(request.url);
+  const mode = url.searchParams.get("mode");
+  const preset = requestedDatePreset(request);
   const startDate = url.searchParams.get("startDate");
   const endDate = url.searchParams.get("endDate");
+
+  if (mode === "all") {
+    return { date_preset: preset || "maximum" };
+  }
+
   if (startDate && endDate) {
     return {
       time_range: JSON.stringify({ since: startDate, until: endDate }),
     };
   }
-  return { date_preset: "last_30d" };
+  return { date_preset: preset || "last_30d" };
 }
 
 function insightRangeLabel(request: Request) {
   const url = new URL(request.url);
+  const mode = url.searchParams.get("mode");
+  const preset = requestedDatePreset(request);
   const startDate = url.searchParams.get("startDate");
   const endDate = url.searchParams.get("endDate");
+
+  if (mode === "all") {
+    const activePreset = preset || "maximum";
+    return {
+      mode: "preset",
+      preset: activePreset,
+      label: activePreset === "maximum" ? "all available Meta insights" : activePreset,
+    };
+  }
+
   if (startDate && endDate) return { mode: "custom", startDate, endDate, label: `${startDate} to ${endDate}` };
-  return { mode: "preset", preset: "last_30d", label: "last_30d" };
+  return { mode: "preset", preset: preset || "last_30d", label: preset || "last_30d" };
 }
 
 function settledData<T>(result: PromiseSettledResult<T>, fallback: T) {

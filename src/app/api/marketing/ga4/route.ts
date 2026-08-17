@@ -88,8 +88,10 @@ const dimensionValue = (row: any, index: number) => String(row?.dimensionValues?
 
 function dateRangesFromRequest(request: Request) {
   const url = new URL(request.url);
+  const mode = url.searchParams.get("mode");
   const startDate = url.searchParams.get("startDate");
   const endDate = url.searchParams.get("endDate");
+  if (mode === "all") return [{ startDate: "2020-01-01", endDate: "today" }];
   if (startDate && endDate) return [{ startDate, endDate }];
   return [{ startDate: "30daysAgo", endDate: "today" }];
 }

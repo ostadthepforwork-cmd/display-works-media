@@ -488,12 +488,24 @@ export default function MarketingKpiDashboard({
     }
   };
 
-  const sourceUrl = useCallback((baseUrl: string) => {
-    const apiStartDate = dateRangeMode === "all" ? "2020-01-01" : startDate;
-    const apiEndDate = dateRangeMode === "all" ? todayInput() : endDate;
-    if (!apiStartDate || !apiEndDate) return baseUrl;
-    const params = new URLSearchParams({ startDate: apiStartDate, endDate: apiEndDate });
-    return `${baseUrl}?${params.toString()}`;
+  const sourceUrl = useCallback((baseUrl: string, source: "ga4" | "meta" | "ai" = "ga4") => {
+    const params = new URLSearchParams();
+    params.set("mode", dateRangeMode);
+
+    if (dateRangeMode === "all") {
+      if (source === "meta") {
+        params.set("datePreset", "maximum");
+      } else {
+        params.set("startDate", "2020-01-01");
+        params.set("endDate", todayInput());
+      }
+    } else if (startDate && endDate) {
+      params.set("startDate", startDate);
+      params.set("endDate", endDate);
+    }
+
+    const query = params.toString();
+    return query ? `${baseUrl}?${query}` : baseUrl;
   }, [dateRangeMode, endDate, startDate]);
 
   const addSourceLog = useCallback((message: string) => {
@@ -517,10 +529,10 @@ export default function MarketingKpiDashboard({
     setAiCitations((prev: any) => ({ ...prev, loading: true }));
 
     const [ga4Data, metaData, aiCrawlerData, aiCitationData] = await Promise.allSettled([
-      load("GA4", sourceUrl("/api/marketing/ga4")),
-      load("Meta", sourceUrl("/api/marketing/meta")),
-      load("AI Crawlers", sourceUrl("/api/marketing/ai-crawlers")),
-      load("AI Citations", sourceUrl("/api/marketing/ai-citations")),
+      load("GA4", sourceUrl("/api/marketing/ga4", "ga4")),
+      load("Meta", sourceUrl("/api/marketing/meta", "meta")),
+      load("AI Crawlers", sourceUrl("/api/marketing/ai-crawlers", "ai")),
+      load("AI Citations", sourceUrl("/api/marketing/ai-citations", "ai")),
     ]);
 
     if (ga4Data.status === "fulfilled") {
@@ -855,6 +867,8 @@ export default function MarketingKpiDashboard({
   const exportMarketingCsv = () => {
     const rows = [
       ["Date Range", rangeLabel, meta.connected ? "Meta API connected" : meta.error || "Meta API not connected"],
+      ["Meta API Range", metaApiRangeLabel, metaSourceSummary || ""],
+      ["GA4 API Range", ga4ApiRangeLabel, ga4.connected ? "GA4 connected" : ga4.error || "GA4 not connected"],
       [],
       ["Metric", "Value", "Note"],
       ...cards.map((card) => [card.label, card.value, card.sub]),
@@ -1068,6 +1082,10 @@ export default function MarketingKpiDashboard({
   const rangeLabel = dateRangeMode === "all"
     ? "ข้อมูลทั้งหมด"
     : `${startDate || "-"} ถึง ${endDate || "-"}`;
+  const metaApiRangeLabel = meta?.range?.request?.label || (dateRangeMode === "all" ? "all available Meta insights" : rangeLabel);
+  const ga4ApiRangeLabel = ga4?.range
+    ? `${ga4.range.startDate || "-"} ถึง ${ga4.range.endDate || "-"}`
+    : (dateRangeMode === "all" ? "2020-01-01 ถึง today" : rangeLabel);
 
   const visibleSourceLogs = activeSourceLog === "ทั้งหมด"
     ? sourceLogs
