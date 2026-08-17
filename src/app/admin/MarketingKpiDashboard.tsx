@@ -421,6 +421,10 @@ export default function MarketingKpiDashboard({
   const [meta, setMeta] = useState<any>({ loading: true, connected: false, error: "", totals: {}, campaigns: [] });
   const [aiCrawlers, setAiCrawlers] = useState<any>({ loading: true, connected: false, error: "", totals: {}, byBot: [], byPath: [], recent: [] });
   const [aiCitations, setAiCitations] = useState<any>({ loading: true, connected: false, error: "", totals: {}, byCitedPage: [], competitors: [], referralsByPlatform: [], daily: [], recent: [], recentReferrals: [] });
+  const todayIso = todayInput();
+  const isBoundedRange = dateRangeMode !== "all";
+  const hasInvalidDateRange = isBoundedRange && Boolean(startDate && endDate && startDate > endDate);
+  const hasFutureDateRange = isBoundedRange && Boolean((startDate && startDate > todayIso) || (endDate && endDate > todayIso));
 
   useEffect(() => {
     const sectionMap: Record<string, MarketingSection> = {
@@ -611,6 +615,9 @@ export default function MarketingKpiDashboard({
     return receipts.reduce((sum, doc) => sum + documentCost(doc, products), 0);
   }, [receipts, products]);
   const metaSpend = Number(meta?.totals?.spend ?? 0);
+  const metaReach = Number(meta?.totals?.reach ?? 0);
+  const metaImpressions = Number(meta?.totals?.impressions ?? 0);
+  const metaClicks = Number(meta?.totals?.clicks ?? 0);
   const metaReportedRevenue = Number(meta?.totals?.metaReportedRevenue ?? 0);
   const metaReportedRoas = Number(meta?.totals?.metaReportedRoas ?? 0) || (metaSpend > 0 && metaReportedRevenue > 0 ? metaReportedRevenue / metaSpend : 0);
   const metaMessageLeads = Number(meta?.totals?.messageLeads ?? 0);
@@ -1060,15 +1067,35 @@ export default function MarketingKpiDashboard({
     .filter(({ status }) => status.tone === "warning" || status.tone === "danger" || status.tone === "unknown")
     .map(({ source, status }) => `${source.name}: ${status.label}`);
 
+  const apiErrorAlerts = [
+    meta?.error ? `Meta API Error: ${meta.error}` : "",
+    ga4?.error ? `GA4 API Error: ${ga4.error}` : "",
+    aiCitations?.error ? `AI Citation API Error: ${aiCitations.error}` : "",
+  ].filter(Boolean);
+
   const hasSalesMapping = crmLeads > 0;
   const alerts = [
+    hasInvalidDateRange ? "ช่วงวันที่ไม่ถูกต้อง: วันที่เริ่มต้นอยู่หลังวันที่สิ้นสุด ระบบอาจกรองข้อมูลผิดได้" : "",
+    hasFutureDateRange ? "ช่วงวันที่อยู่ในอนาคต: Meta / GA4 / ERP อาจยังไม่มีข้อมูลในช่วงนี้" : "",
     !meta.connected ? "Facebook Ads ยังไม่ได้เชื่อมต่อ หรือ API ยังไม่มีข้อมูลล่าสุด" : "",
     !ga4.connected ? "GA4 ยังไม่ได้เชื่อมต่อกับ Dashboard data API" : "",
     meta.connected && metaSpend > 0 && metaLeadSignalCount === 0 && metaEngagementActions > 0
       ? "Meta มีงบและ engagement แต่ยังไม่มี Lead/Message จริงในช่วงวันที่นี้ ระบบจึงไม่นับ post save เป็น lead"
       : "",
-    meta.connected && metaSpend > 0 && Number(meta?.totals?.reach || 0) === 0 && Number(meta?.totals?.clicks || 0) === 0
+    meta.connected && metaSpend > 0 && metaImpressions === 0
+      ? "Meta มี Spend แต่ Impressions เป็น 0 โปรดตรวจสอบ permission, field หรือช่วงวันที่ใน Ads Manager"
+      : "",
+    meta.connected && metaSpend > 0 && metaReach === 0 && metaClicks === 0
       ? "Meta มี Spend แต่ Reach/Click เป็น 0 โปรดตรวจสอบ permission, field หรือช่วงวันที่ใน Ads Manager"
+      : "",
+    meta.connected && metaLeadSignalCount > 0 && metaReach === 0
+      ? "Meta มี Lead/Message แต่ Reach เป็น 0 ข้อมูลอาจมาไม่ครบจาก API หรือเลือก field ไม่ครบ"
+      : "",
+    receiptRevenue > 0 && mappedClosedJobs === 0
+      ? `ERP มีรายได้จากใบเสร็จ ฿${money(receiptRevenue)} แต่ยังไม่มี Closed Won ที่ map กับ CRM lead ในช่วงนี้`
+      : "",
+    marketingSpend === 0 && (metaReportedRevenue > 0 || metaReportedRoas > 0)
+      ? "Meta มี Revenue/ROAS แต่ Spend เป็น 0 โปรดตรวจสอบ action_values, purchase_roas และ spend field"
       : "",
     !hasSalesMapping && erpReceiptJobs > 0
       ? `มีใบเสร็จ ERP ${money(erpReceiptJobs)} รายการ แต่ยังไม่มี CRM lead ในช่วงนี้ จึงยังคำนวณ Lead-to-Customer แบบตรง source ไม่ได้`
@@ -1077,6 +1104,7 @@ export default function MarketingKpiDashboard({
     filteredLeads.some((lead) => leadScore(lead) >= 70 && !lead.nextFollowUp) ? "มี Hot Lead ที่ยังไม่มีวัน Follow-up" : "",
     erpReceiptJobs > 0 && unmappedReceiptJobs > 0 ? `มีใบเสร็จ ERP ${money(unmappedReceiptJobs)} รายการที่ยังไม่ผูกกับ CRM lead/source จึงไม่รวมใน Sales Funnel` : "",
     crmQuotationSent > 0 && quoteToCloseRate === null ? "Quote to Close Rate ยังไม่ควรคำนวณ เพราะ CRM quotation และ closed-won ยังไม่ได้ Mapping ครบ" : "",
+    ...apiErrorAlerts,
     ...apiExpiryAlerts,
   ].filter(Boolean);
 
@@ -1758,10 +1786,13 @@ export default function MarketingKpiDashboard({
                   aria-label="Start date"
                   type="date"
                   value={startDate}
+                  max={todayIso}
                   disabled={dateRangeMode === "all"}
                   onChange={(event) => {
+                    const nextStart = event.target.value;
                     setDateRangeMode("custom");
-                    setStartDate(event.target.value);
+                    setStartDate(nextStart);
+                    if (endDate && nextStart && nextStart > endDate) setEndDate(nextStart);
                   }}
                 />
                 <label className="sr-only" htmlFor="mk-end-date">End date</label>
@@ -1770,10 +1801,13 @@ export default function MarketingKpiDashboard({
                   aria-label="End date"
                   type="date"
                   value={endDate}
+                  max={todayIso}
                   disabled={dateRangeMode === "all"}
                   onChange={(event) => {
+                    const nextEnd = event.target.value;
                     setDateRangeMode("custom");
-                    setEndDate(event.target.value);
+                    setEndDate(nextEnd);
+                    if (startDate && nextEnd && nextEnd < startDate) setStartDate(nextEnd);
                   }}
                 />
               </div>
@@ -1961,7 +1995,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {showDashboard && alerts.length > 0 && (
+          {(showDashboard || activeSection === "reports" || activeSection === "facebook" || activeSection === "sources") && alerts.length > 0 && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
               <h2>Marketing Alerts</h2>
               <p>แจ้งเตือนเรื่องข้อมูลและ API ที่ต้องตรวจสอบก่อนใช้ตัดสินใจ</p>
