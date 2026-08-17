@@ -185,6 +185,48 @@ function clickCount(row: any) {
   return numberValue(row.clicks) || numberValue(row.inline_link_clicks) || outboundClicks(row);
 }
 
+function sumNumber(rows: any[], field: string) {
+  return rows.reduce((sum, row) => sum + numberValue(row?.[field]), 0);
+}
+
+function sumClicks(rows: any[]) {
+  return rows.reduce((sum, row) => sum + clickCount(row), 0);
+}
+
+function sumActionValues(rows: any[], types: string[]) {
+  return rows.reduce((sum, row) => sum + actionValue(row?.action_values, types), 0);
+}
+
+function sumLeadBreakdown(rows: any[]) {
+  return rows.reduce(
+    (summary, row) => {
+      const breakdown = actionBreakdown(row?.actions);
+      summary.messageLeads += breakdown.messageLeads;
+      summary.formLeads += breakdown.formLeads;
+      summary.rawLeads += breakdown.messageLeads + breakdown.formLeads;
+      summary.breakdown.push(...breakdown.breakdown);
+      return summary;
+    },
+    { messageLeads: 0, formLeads: 0, rawLeads: 0, breakdown: [] as { type: string; value: number }[] },
+  );
+}
+
+function sumEngagementBreakdown(rows: any[]) {
+  return rows.reduce(
+    (summary, row) => {
+      const breakdown = engagementBreakdown(row?.actions);
+      summary.total += breakdown.total;
+      summary.breakdown.push(...breakdown.breakdown);
+      return summary;
+    },
+    { total: 0, breakdown: [] as { type: string; value: number }[] },
+  );
+}
+
+function maxRoas(rows: any[]) {
+  return rows.reduce((max, row) => Math.max(max, roasValue(row?.purchase_roas)), 0);
+}
+
 function insightDateParams(request: Request): Record<string, string> {
   const url = new URL(request.url);
   const startDate = url.searchParams.get("startDate");
@@ -246,6 +288,10 @@ export async function GET(request: Request) {
   try {
     const dateParams = insightDateParams(request);
     const requestedRange = insightRangeLabel(request);
+    const attributionParams = {
+      action_report_time: "conversion",
+      use_unified_attribution_setting: "true",
+    };
     const accountFields = [
       "spend",
       "impressions",
@@ -318,11 +364,13 @@ export async function GET(request: Request) {
     const [accountResult, campaignResult, adSetResult, adResult] = await Promise.allSettled([
       graphGet(`${adAccountId}/insights`, {
         ...dateParams,
+        ...attributionParams,
         level: "account",
         fields: accountFields,
       }),
       graphGetAll(`${adAccountId}/insights`, {
         ...dateParams,
+        ...attributionParams,
         level: "campaign",
         fields: campaignFields,
         limit: "100",
@@ -330,6 +378,7 @@ export async function GET(request: Request) {
       }),
       graphGetAll(`${adAccountId}/insights`, {
         ...dateParams,
+        ...attributionParams,
         level: "adset",
         fields: adSetFields,
         limit: "100",
@@ -337,6 +386,7 @@ export async function GET(request: Request) {
       }),
       graphGetAll(`${adAccountId}/insights`, {
         ...dateParams,
+        ...attributionParams,
         level: "ad",
         fields: adFields,
         limit: "100",
@@ -369,10 +419,28 @@ export async function GET(request: Request) {
     const account = accountInsights.data?.[0] || {};
     const accountLeadBreakdown = actionBreakdown(account.actions);
     const accountEngagementBreakdown = engagementBreakdown(account.actions);
-    const leads = accountLeadBreakdown.messageLeads + accountLeadBreakdown.formLeads;
+    const accountLeads = accountLeadBreakdown.messageLeads + accountLeadBreakdown.formLeads;
+    const accountSpend = numberValue(account.spend);
     const accountReportedRevenue = actionValue(account.action_values, purchaseActionTypes);
-    const accountReportedRoas = roasValue(account.purchase_roas);
-    const spend = numberValue(account.spend);
+    const accountHasUsefulData =
+      accountSpend > 0 ||
+      numberValue(account.impressions) > 0 ||
+      numberValue(account.reach) > 0 ||
+      clickCount(account) > 0 ||
+      accountLeads > 0 ||
+      accountReportedRevenue > 0;
+    const useCampaignFallback = !accountHasUsefulData && campaignInsights.length > 0;
+    const summaryLeadBreakdown = useCampaignFallback ? sumLeadBreakdown(campaignInsights) : {
+      messageLeads: accountLeadBreakdown.messageLeads,
+      formLeads: accountLeadBreakdown.formLeads,
+      rawLeads: accountLeads,
+      breakdown: accountLeadBreakdown.breakdown,
+    };
+    const summaryEngagementBreakdown = useCampaignFallback ? sumEngagementBreakdown(campaignInsights) : accountEngagementBreakdown;
+    const spend = useCampaignFallback ? sumNumber(campaignInsights, "spend") : accountSpend;
+    const summaryReportedRevenue = useCampaignFallback ? sumActionValues(campaignInsights, purchaseActionTypes) : accountReportedRevenue;
+    const summaryReportedRoas = useCampaignFallback ? maxRoas(campaignInsights) : roasValue(account.purchase_roas);
+    const leads = summaryLeadBreakdown.messageLeads + summaryLeadBreakdown.formLeads;
 
     return NextResponse.json(
       {
@@ -389,27 +457,28 @@ export async function GET(request: Request) {
           campaignRows: campaignInsights.length,
           adSetRows: adSetInsights.length,
           adRows: adInsights.length,
+          totalsFrom: useCampaignFallback ? "campaign_fallback" : "account",
           partial: sourceErrors.length > 0,
           errors: sourceErrors,
         },
         totals: {
           spend,
-          impressions: numberValue(account.impressions),
-          reach: numberValue(account.reach),
-          clicks: clickCount(account),
+          impressions: useCampaignFallback ? sumNumber(campaignInsights, "impressions") : numberValue(account.impressions),
+          reach: useCampaignFallback ? sumNumber(campaignInsights, "reach") : numberValue(account.reach),
+          clicks: useCampaignFallback ? sumClicks(campaignInsights) : clickCount(account),
           cpc: numberValue(account.cpc),
           cpm: numberValue(account.cpm),
           ctr: numberValue(account.ctr),
           leads,
-          messageLeads: accountLeadBreakdown.messageLeads,
-          formLeads: accountLeadBreakdown.formLeads,
-          leadBreakdown: accountLeadBreakdown.breakdown,
-          engagementActions: accountEngagementBreakdown.total,
-          engagementBreakdown: accountEngagementBreakdown.breakdown,
-          metaReportedRevenue: accountReportedRevenue,
-          metaReportedRoas: accountReportedRoas || (spend > 0 && accountReportedRevenue > 0 ? accountReportedRevenue / spend : 0),
-          actionValues: valueBreakdown(account.action_values),
-          purchaseRoas: valueBreakdown(account.purchase_roas),
+          messageLeads: summaryLeadBreakdown.messageLeads,
+          formLeads: summaryLeadBreakdown.formLeads,
+          leadBreakdown: summaryLeadBreakdown.breakdown,
+          engagementActions: summaryEngagementBreakdown.total,
+          engagementBreakdown: summaryEngagementBreakdown.breakdown,
+          metaReportedRevenue: summaryReportedRevenue,
+          metaReportedRoas: spend > 0 && summaryReportedRevenue > 0 ? summaryReportedRevenue / spend : summaryReportedRoas,
+          actionValues: useCampaignFallback ? [] : valueBreakdown(account.action_values),
+          purchaseRoas: useCampaignFallback ? [] : valueBreakdown(account.purchase_roas),
           cpl: leads > 0 ? spend / leads : 0,
         },
         campaigns: campaignInsights.map((row: any) => {

@@ -139,6 +139,9 @@ const safeDateValue = (value: unknown) => {
   return text.includes("T") ? text.slice(0, 10) : text.slice(0, 10);
 };
 
+const leadDateValue = (lead: any) =>
+  lead?.date || lead?.createdAt || lead?.created_at || lead?.nextFollowUp || lead?.next_follow_up;
+
 const isInRange = (value: unknown, startDate: string, endDate: string, mode: DateRangeMode) => {
   if (mode === "all") return true;
   const date = safeDateValue(value);
@@ -576,7 +579,7 @@ export default function MarketingKpiDashboard({
   );
 
   const filteredLeads = useMemo(
-    () => leads.filter((lead) => isInRange(lead.date, startDate, endDate, dateRangeMode)),
+    () => leads.filter((lead) => isInRange(leadDateValue(lead), startDate, endDate, dateRangeMode)),
     [leads, startDate, endDate, dateRangeMode],
   );
 
@@ -601,7 +604,7 @@ export default function MarketingKpiDashboard({
   const metaMessageLeads = Number(meta?.totals?.messageLeads ?? 0);
   const metaFormLeads = Number(meta?.totals?.formLeads ?? 0);
   const metaRawLeads = Number(meta?.totals?.leads ?? 0);
-  const metaLeadSignals = metaMessageLeads + metaFormLeads || metaRawLeads;
+  const metaLeadSignalCount = metaMessageLeads + metaFormLeads || metaRawLeads;
   const metaEngagementActions = Number(meta?.totals?.engagementActions ?? 0);
   const metaLeadBreakdown = Array.isArray(meta?.totals?.leadBreakdown) ? meta.totals.leadBreakdown : [];
   const metaEngagementBreakdown = Array.isArray(meta?.totals?.engagementBreakdown) ? meta.totals.engagementBreakdown : [];
@@ -609,7 +612,8 @@ export default function MarketingKpiDashboard({
   const marketingSpend = meta.connected ? metaSpend : manualSpend;
   const crmLeads = filteredLeads.length;
   const campaignLeads = filteredCampaigns.reduce((sum, campaign) => sum + Number(campaign.leads || 0), 0);
-  const marketingLeadSignals = meta.connected ? metaLeadSignals + crmLeads : crmLeads + campaignLeads;
+  const manualMarketingLeadSignals = crmLeads + campaignLeads;
+  const marketingLeadSignals = meta.connected ? (metaLeadSignalCount || manualMarketingLeadSignals) : manualMarketingLeadSignals;
   const contactedLeads = filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const qualifiedLeads = filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const crmQuotationSent = filteredLeads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
@@ -637,7 +641,7 @@ export default function MarketingKpiDashboard({
   const hasMetaApiData = Boolean(
     meta?.connected &&
       (metaSpend > 0 ||
-        metaLeadSignals > 0 ||
+        metaLeadSignalCount > 0 ||
         metaEngagementActions > 0 ||
         metaReportedRevenue > 0 ||
         metaCampaignRows.length > 0 ||
@@ -655,8 +659,9 @@ export default function MarketingKpiDashboard({
   const metaPartialWarning = meta?.connected && metaSourceErrors.length
     ? `Meta API ดึงข้อมูลได้บางส่วน แต่มีบาง endpoint ไม่พร้อม: ${metaSourceErrors.map((item: any) => `${item.section}: ${item.message}`).join(" / ")}`
     : "";
+  const metaTotalsSource = meta?.source?.totalsFrom === "campaign_fallback" ? "Campaign fallback" : "Account summary";
   const metaSourceSummary = meta?.source
-    ? `Range ${meta?.range?.request?.label || (dateRangeMode === "all" ? "ข้อมูลทั้งหมด" : `${startDate || "-"} ถึง ${endDate || "-"}`)} / Account rows ${Number(meta.source.accountRows || 0)}, Campaign rows ${Number(meta.source.campaignRows || 0)}, Ad set rows ${Number(meta.source.adSetRows || 0)}, Ad rows ${Number(meta.source.adRows || 0)}`
+    ? `Range ${meta?.range?.request?.label || (dateRangeMode === "all" ? "ข้อมูลทั้งหมด" : `${startDate || "-"} ถึง ${endDate || "-"}`)} / Totals ${metaTotalsSource} / Account rows ${Number(meta.source.accountRows || 0)}, Campaign rows ${Number(meta.source.campaignRows || 0)}, Ad set rows ${Number(meta.source.adSetRows || 0)}, Ad rows ${Number(meta.source.adRows || 0)}`
     : "";
   const campaignRows = metaCampaignRows.length
     ? metaCampaignRows.map((row: any, index: number) => ({
@@ -899,7 +904,7 @@ export default function MarketingKpiDashboard({
     { label: "Revenue", value: `฿${money(receiptRevenue)}`, sub: "ตรงกับ ERP: ใบเสร็จเท่านั้น", tone: "green" },
     { label: "Gross Profit", value: `฿${money(grossProfit)}`, sub: `Margin ${percent(grossMargin)}`, tone: "teal" },
     { label: "Marketing Spend", value: `฿${money(marketingSpend)}`, sub: meta.connected ? "จาก Meta Ads" : "รอเชื่อมต่อ Meta API", tone: "pink" },
-    { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected ? "Meta + CRM in selected date" : "CRM / Manual in selected date", tone: "blue" },
+    { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected && metaLeadSignalCount > 0 ? "Meta lead/message actions" : "CRM / Manual fallback", tone: "blue" },
     { label: "Qualified Leads", value: money(qualifiedLeads), sub: "Lead ที่ข้อมูลพร้อมติดตาม", tone: "purple" },
     { label: "Quotation Sent", value: money(crmQuotationSent), sub: `CRM pipeline / ERP quote docs ${money(erpQuotationDocs)}`, tone: "yellow" },
     { label: "Closed Won", value: money(mappedClosedJobs), sub: `CRM closed-won / ERP receipts ${money(erpReceiptJobs)}`, tone: "green" },
@@ -1044,7 +1049,7 @@ export default function MarketingKpiDashboard({
   const alerts = [
     !meta.connected ? "Facebook Ads ยังไม่ได้เชื่อมต่อ หรือ API ยังไม่มีข้อมูลล่าสุด" : "",
     !ga4.connected ? "GA4 ยังไม่ได้เชื่อมต่อกับ Dashboard data API" : "",
-    meta.connected && metaSpend > 0 && metaLeadSignals === 0 && metaEngagementActions > 0
+    meta.connected && metaSpend > 0 && metaLeadSignalCount === 0 && metaEngagementActions > 0
       ? "Meta มีงบและ engagement แต่ยังไม่มี Lead/Message จริงในช่วงวันที่นี้ ระบบจึงไม่นับ post save เป็น lead"
       : "",
     meta.connected && metaSpend > 0 && Number(meta?.totals?.reach || 0) === 0 && Number(meta?.totals?.clicks || 0) === 0
@@ -1079,10 +1084,10 @@ export default function MarketingKpiDashboard({
   const channelRows = [
     {
       name: "Facebook Ads",
-      primary: `${money(metaLeadSignals)} leads`,
+      primary: `${money(metaLeadSignalCount)} leads`,
       secondary: `Spend ฿${money(metaSpend)} / Clicks ${money(Number(meta?.totals?.clicks || 0))}`,
       roas: roas ? roas.toFixed(2) : "รอ Mapping รายได้",
-      mixValue: metaLeadSignals || Number(meta?.totals?.clicks || 0) || metaSpend,
+      mixValue: metaLeadSignalCount || Number(meta?.totals?.clicks || 0) || metaSpend,
       color: "#ff6b00",
     },
     {
@@ -1231,7 +1236,7 @@ export default function MarketingKpiDashboard({
   const revenueTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, (doc) => documentTotal(doc));
   const profitTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, (doc) => documentTotal(doc) - documentCost(doc, products));
   const closedJobTrend = trendMap(receipts, (doc) => doc?.date || doc?.createdAt || doc?.created_at, () => 1);
-  const leadTrend = trendMap(filteredLeads, (lead) => lead.date, () => 1);
+  const leadTrend = trendMap(filteredLeads, (lead) => leadDateValue(lead), () => 1);
   const quoteTrend = trendMap(
     filteredDocuments.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled"),
     (doc) => doc?.date || doc?.createdAt || doc?.created_at,
@@ -1869,7 +1874,7 @@ export default function MarketingKpiDashboard({
                 </div>
               </div>
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
-                <div className="mk-mini"><strong>{money(metaLeadSignals)}</strong><div>Meta lead/message actions</div></div>
+                <div className="mk-mini"><strong>{money(metaLeadSignalCount)}</strong><div>Meta lead/message actions</div></div>
                 <div className="mk-mini"><strong>{money(metaMessageLeads)}</strong><div>ลูกค้าทัก / message actions</div></div>
                 <div className="mk-mini"><strong>{money(metaFormLeads)}</strong><div>Lead form actions</div></div>
                 <div className="mk-mini"><strong>{money(metaEngagementActions)}</strong><div>Meta engagement actions (ไม่ใช่ Lead)</div></div>
@@ -2014,9 +2019,9 @@ export default function MarketingKpiDashboard({
                 ["Facebook Spend", `฿${money(marketingSpend)}`, "Meta Ads spend"],
                 ["Meta Reported Revenue", metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", "From Meta action_values"],
                 ["Meta Reported ROAS", metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", "From Meta purchase_roas"],
-                ["Facebook Leads", money(metaLeadSignals), "Messages / Lead forms"],
+                ["Facebook Leads", money(metaLeadSignalCount), "Messages / Lead forms"],
                 ["Meta Engagement", money(metaEngagementActions), "Post save / engagement ไม่ใช่ Lead"],
-                ["Facebook CPL", metaLeadSignals ? `฿${money(marketingSpend / metaLeadSignals)}` : "-", "Spend / Leads"],
+                ["Facebook CPL", metaLeadSignalCount ? `฿${money(metaSpend / metaLeadSignalCount)}` : "-", "Spend / Leads"],
                 ["Facebook ROAS", facebookErpRoas ? facebookErpRoas.toFixed(2) : "รอ Mapping", "ใช้เฉพาะ ERP/CRM ที่ map กับ Facebook"],
                 ["Qualified Leads", money(qualifiedLeads), "CRM mapped"],
                 ["CRM Closed Won", money(mappedClosedJobs), "CRM pipeline"],
