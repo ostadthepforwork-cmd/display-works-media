@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import FacebookPixel from "@/components/FacebookPixel";
+import AIReferralTracker from "@/components/AIReferralTracker";
 import PDPAConsent from "@/components/PDPAConsent";
 import SchemaOrg from "@/components/SchemaOrg";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -91,6 +92,7 @@ export default async function RootLayout({
           หลัง page load เสร็จแล้ว ไม่บล็อก FCP/LCP
         */}
         <FacebookPixel />
+        <AIReferralTracker />
         <PDPAConsent />
         <FloatingButtons />
         {/* ScrollReveal: re-observe ทุกครั้งที่ navigate — แก้บัคหน้าดำเมื่อกลับมาหน้าแรก */}

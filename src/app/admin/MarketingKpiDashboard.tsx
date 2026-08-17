@@ -168,6 +168,9 @@ const isInRange = (value: unknown, startDate: string, endDate: string, mode: Dat
   return (!startDate || date >= startDate) && (!endDate || date <= endDate);
 };
 
+const marketingDateFromRow = (row: any) =>
+  row?.date || row?.createdAt || row?.created_at || row?.updatedAt || row?.updated_at || "";
+
 const thaiProvinces = [
   "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท",
   "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม", "นครราชสีมา",
@@ -434,6 +437,7 @@ export default function MarketingKpiDashboard({
   const [ga4, setGa4] = useState<any>({ loading: true, connected: false, error: "", totals: {} });
   const [meta, setMeta] = useState<any>({ loading: true, connected: false, error: "", totals: {}, campaigns: [] });
   const [aiCrawlers, setAiCrawlers] = useState<any>({ loading: true, connected: false, error: "", totals: {}, byBot: [], byPath: [], recent: [] });
+  const [aiCitations, setAiCitations] = useState<any>({ loading: true, connected: false, error: "", totals: {}, byCitedPage: [], competitors: [], referralsByPlatform: [], daily: [], recent: [], recentReferrals: [] });
 
   useEffect(() => {
     const sectionMap: Record<string, MarketingSection> = {
@@ -502,8 +506,10 @@ export default function MarketingKpiDashboard({
   };
 
   const sourceUrl = useCallback((baseUrl: string) => {
-    if (dateRangeMode === "all" || !startDate || !endDate) return baseUrl;
-    const params = new URLSearchParams({ startDate, endDate });
+    const apiStartDate = dateRangeMode === "all" ? "2020-01-01" : startDate;
+    const apiEndDate = dateRangeMode === "all" ? todayInput() : endDate;
+    if (!apiStartDate || !apiEndDate) return baseUrl;
+    const params = new URLSearchParams({ startDate: apiStartDate, endDate: apiEndDate });
     return `${baseUrl}?${params.toString()}`;
   }, [dateRangeMode, endDate, startDate]);
 
@@ -525,11 +531,13 @@ export default function MarketingKpiDashboard({
     setGa4((prev: any) => ({ ...prev, loading: true }));
     setMeta((prev: any) => ({ ...prev, loading: true }));
     setAiCrawlers((prev: any) => ({ ...prev, loading: true }));
+    setAiCitations((prev: any) => ({ ...prev, loading: true }));
 
-    const [ga4Data, metaData, aiCrawlerData] = await Promise.allSettled([
+    const [ga4Data, metaData, aiCrawlerData, aiCitationData] = await Promise.allSettled([
       load("GA4", sourceUrl("/api/marketing/ga4")),
       load("Meta", sourceUrl("/api/marketing/meta")),
       load("AI Crawlers", sourceUrl("/api/marketing/ai-crawlers")),
+      load("AI Citations", sourceUrl("/api/marketing/ai-citations")),
     ]);
 
     if (ga4Data.status === "fulfilled") {
@@ -561,6 +569,16 @@ export default function MarketingKpiDashboard({
       setAiCrawlers({ loading: false, connected: false, error: aiCrawlerData.reason?.message || "เชื่อมต่อ AI crawler log ไม่สำเร็จ", totals: {}, byBot: [], byPath: [], recent: [] });
       addSourceLog(`AI crawler sync ไม่สำเร็จ: ${aiCrawlerData.reason?.message || "Unknown error"}`);
     }
+
+    if (aiCitationData.status === "fulfilled") {
+      setAiCitations({ loading: false, ...aiCitationData.value });
+      addSourceLog(aiCitationData.value?.connected
+        ? `AI citation sync สำเร็จ (${trigger})`
+        : `AI citation API เรียกได้ แต่ยังไม่พร้อมใช้งาน: ${aiCitationData.value?.error || "ยังไม่มีข้อมูล"}`);
+    } else {
+      setAiCitations({ loading: false, connected: false, error: aiCitationData.reason?.message || "เชื่อมต่อ AI citation log ไม่สำเร็จ", totals: {}, byCitedPage: [], competitors: [], referralsByPlatform: [], daily: [], recent: [], recentReferrals: [] });
+      addSourceLog(`AI citation sync ไม่สำเร็จ: ${aiCitationData.reason?.message || "Unknown error"}`);
+    }
   }, [addSourceLog, sourceUrl]);
 
   useEffect(() => {
@@ -582,6 +600,15 @@ export default function MarketingKpiDashboard({
     [leads, startDate, endDate, dateRangeMode],
   );
 
+  const filteredCampaigns = useMemo(
+    () => campaigns.filter((campaign: any) => {
+      const date = marketingDateFromRow(campaign);
+      if (!date) return dateRangeMode === "all" || Number(campaign.spend || 0) === 0;
+      return isInRange(date, startDate, endDate, dateRangeMode);
+    }),
+    [campaigns, dateRangeMode, endDate, startDate],
+  );
+
   const receiptRevenue = useMemo(() => {
     return receipts.reduce((sum, doc) => sum + documentTotal(doc), 0);
   }, [receipts]);
@@ -594,12 +621,12 @@ export default function MarketingKpiDashboard({
   const metaMessageLeads = Number(meta?.totals?.messageLeads ?? 0);
   const metaFormLeads = Number(meta?.totals?.formLeads ?? 0);
   const metaLeadBreakdown = Array.isArray(meta?.totals?.leadBreakdown) ? meta.totals.leadBreakdown : [];
-  const manualSpend = campaigns.reduce((sum, campaign) => sum + Number(campaign.spend || 0), 0);
+  const manualSpend = filteredCampaigns.reduce((sum, campaign) => sum + Number(campaign.spend || 0), 0);
   const marketingSpend = meta.connected ? metaSpend : manualSpend;
   const crmLeads = filteredLeads.length;
   const metaLeads = Number(meta?.totals?.leads ?? 0);
-  const campaignLeads = campaigns.reduce((sum, campaign) => sum + Number(campaign.leads || 0), 0);
-  const totalLeads = crmLeads + metaLeads + campaignLeads;
+  const campaignLeads = filteredCampaigns.reduce((sum, campaign) => sum + Number(campaign.leads || 0), 0);
+  const marketingLeadSignals = meta.connected ? metaLeads + crmLeads : crmLeads + campaignLeads;
   const contactedLeads = filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const qualifiedLeads = filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const quotationSent = filteredDocuments.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length
@@ -608,19 +635,19 @@ export default function MarketingKpiDashboard({
   const closedLeadCount = filteredLeads.filter((lead) => lead.status === "closed_won").length;
   const closedLeadRevenue = filteredLeads.filter(isRevenueLead).reduce((sum, lead) => sum + Number(lead.value || 0), 0);
   const grossProfit = receiptRevenue - receiptCost;
-  const cpl = totalLeads > 0 ? marketingSpend / totalLeads : 0;
+  const cpl = marketingLeadSignals > 0 ? marketingSpend / marketingLeadSignals : 0;
   const cpql = qualifiedLeads > 0 ? marketingSpend / qualifiedLeads : 0;
   const costPerClosedJob = closedJobs > 0 ? marketingSpend / closedJobs : 0;
   const cac = closedJobs > 0 ? marketingSpend / closedJobs : 0;
-  const canCalculateLeadToCustomer = totalLeads > 0 && closedJobs <= totalLeads;
-  const conversionRate = canCalculateLeadToCustomer ? (closedJobs / totalLeads) * 100 : null;
+  const canCalculateLeadToCustomer = crmLeads > 0 && closedLeadCount <= crmLeads;
+  const conversionRate = canCalculateLeadToCustomer ? (closedLeadCount / crmLeads) * 100 : null;
   const quoteToCloseRate = quotationSent > 0 && closedJobs <= quotationSent ? (closedJobs / quotationSent) * 100 : null;
   const roas = marketingSpend > 0 ? receiptRevenue / marketingSpend : 0;
   const profitRoas = marketingSpend > 0 ? grossProfit / marketingSpend : 0;
   const grossMargin = receiptRevenue > 0 ? (grossProfit / receiptRevenue) * 100 : 0;
   const roi = marketingSpend > 0 ? ((receiptRevenue - marketingSpend) / marketingSpend) * 100 : 0;
   const averageOrderValue = closedJobs > 0 ? receiptRevenue / closedJobs : 0;
-  const plannedBudget = campaigns.reduce((sum, campaign) => sum + Number(campaign.spend || 0), 0);
+  const plannedBudget = filteredCampaigns.reduce((sum, campaign) => sum + Number(campaign.spend || 0), 0);
 
   const metaCampaignRows = Array.isArray(meta?.campaigns) ? meta.campaigns : [];
   const campaignRows = metaCampaignRows.length
@@ -638,7 +665,7 @@ export default function MarketingKpiDashboard({
         actionValues: Array.isArray(row.actionValues) ? row.actionValues : [],
         note: "ข้อมูลจาก Meta API",
       }))
-    : campaigns;
+    : filteredCampaigns;
 
   const facebookRows = campaignRows
     .filter((row: Campaign) => /facebook|meta/i.test(row.channel))
@@ -812,11 +839,31 @@ export default function MarketingKpiDashboard({
 
   const exportMarketingCsv = () => {
     const rows = [
+      ["Date Range", rangeLabel, meta.connected ? "Meta API connected" : meta.error || "Meta API not connected"],
+      [],
       ["Metric", "Value", "Note"],
       ...cards.map((card) => [card.label, card.value, card.sub]),
       [],
-      ["Campaign", "Channel", "Spend", "Leads", "Revenue", "Recommendation"],
-      ...campaignRows.map((row: Campaign) => [row.name, row.channel, row.spend, row.leads, row.revenue, row.note]),
+      ["Campaign", "Channel", "Spend", "Reach", "Clicks", "Leads", "Meta Reported Revenue", "Meta Reported ROAS", "ERP Mapped Revenue", "Recommendation"],
+      ...campaignRows.map((row: Campaign) => {
+        const richRow = facebookRows.find((item) => item.id === row.id);
+        return [
+          row.name,
+          row.channel,
+          row.spend,
+          richRow?.reach || 0,
+          richRow?.clicks || 0,
+          row.leads,
+          Number((row as any).metaReportedRevenue || 0),
+          Number((row as any).metaReportedRoas || 0),
+          row.revenue,
+          richRow?.recommendation || row.note,
+        ];
+      }),
+      [],
+      ["Funnel", "Value", "Source"],
+      ...marketingFunnel.map((item) => [item.label, item.value, item.label === "Visitor" ? "GA4" : item.label === "Qualified Lead" ? "CRM" : "Meta/CRM"]),
+      ...salesFunnel.map((item) => [item.label, item.value, item.label.includes("Receipt") ? "ERP receipts" : "CRM/ERP"]),
     ];
     const csv = rows
       .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
@@ -833,12 +880,14 @@ export default function MarketingKpiDashboard({
 
   const cards = [
     { label: "AI Search Visits", value: money(Number(aiCrawlers?.totals?.visits ?? 0)), sub: aiCrawlers.connected ? `${money(Number(aiCrawlers?.totals?.bots ?? 0))} bots / ${money(Number(aiCrawlers?.totals?.pages ?? 0))} pages` : "รอข้อมูล AI crawler", tone: "teal" },
+    { label: "AI Citation Rate", value: aiCitations.connected ? percent(Number(aiCitations?.totals?.citationRate ?? 0)) : "-", sub: aiCitations.connected ? `${money(Number(aiCitations?.totals?.cited ?? 0))}/${money(Number(aiCitations?.totals?.promptsChecked ?? 0))} prompts cited` : "รอ citation monitor", tone: "purple" },
+    { label: "AI Referrals", value: money(Number(aiCitations?.totals?.referralVisits ?? 0)), sub: aiCitations.connected ? "Clicks from AI platforms" : "รอ referral tracker", tone: "blue" },
     { label: "Meta Reported Revenue", value: metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", sub: "action_values / purchase", tone: "orange" },
     { label: "Meta Reported ROAS", value: metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", sub: "purchase_roas from Meta", tone: "purple" },
     { label: "Revenue", value: `฿${money(receiptRevenue)}`, sub: "ตรงกับ ERP: ใบเสร็จเท่านั้น", tone: "green" },
     { label: "Gross Profit", value: `฿${money(grossProfit)}`, sub: `Margin ${percent(grossMargin)}`, tone: "teal" },
     { label: "Marketing Spend", value: `฿${money(marketingSpend)}`, sub: meta.connected ? "จาก Meta Ads" : "รอเชื่อมต่อ Meta API", tone: "pink" },
-    { label: "Total Leads", value: money(totalLeads), sub: meta.connected ? "รวม Meta + CRM" : "CRM / Manual", tone: "blue" },
+    { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected ? "Meta + CRM in selected date" : "CRM / Manual in selected date", tone: "blue" },
     { label: "Qualified Leads", value: money(qualifiedLeads), sub: "Lead ที่ข้อมูลพร้อมติดตาม", tone: "purple" },
     { label: "Quotation Sent", value: money(quotationSent), sub: "ใบเสนอราคา + CRM", tone: "yellow" },
     { label: "Closed Jobs", value: money(closedJobs), sub: "จำนวนใบเสร็จใน ERP", tone: "green" },
@@ -854,7 +903,7 @@ export default function MarketingKpiDashboard({
   const overviewCards = cards.filter((card) => [
     "Revenue",
     "Marketing Spend",
-    "Total Leads",
+    "Marketing Leads",
     "Cost per Lead",
     "Closed Jobs",
     "ROAS",
@@ -869,7 +918,7 @@ export default function MarketingKpiDashboard({
     { label: "Gross Profit", value: Math.max(0, grossProfit), color: "#22c55e" },
   ];
   const leadPipelineBars = [
-    { label: "Total Leads", value: totalLeads, color: "#2563eb" },
+    { label: "Marketing Leads", value: marketingLeadSignals, color: "#2563eb" },
     { label: "Qualified", value: qualifiedLeads, color: "#14b8a6" },
     { label: "Quotations", value: quotationSent, color: "#f59e0b" },
     { label: "Closed Jobs", value: closedJobs, color: "#ff6b00" },
@@ -883,10 +932,17 @@ export default function MarketingKpiDashboard({
   const topAiIntents = (aiCrawlers.byIntent || []).slice(0, 8);
   const topAiReferrers = (aiCrawlers.byReferrer || []).slice(0, 6);
   const recentAiRows = (aiCrawlers.recent || []).slice(0, 12);
+  const topCitedPages = (aiCitations.byCitedPage || []).slice(0, 8);
+  const topCompetitors = (aiCitations.competitors || []).slice(0, 8);
+  const topAiReferralPlatforms = (aiCitations.referralsByPlatform || []).slice(0, 6);
+  const recentAiCitations = (aiCitations.recent || []).slice(0, 8);
   const maxAiBotCount = Math.max(...topAiBots.map((item: any) => Number(item.count || 0)), 1);
   const maxAiPageCount = Math.max(...topAiPages.map((item: any) => Number(item.count || 0)), 1);
   const maxAiIntentCount = Math.max(...topAiIntents.map((item: any) => Number(item.count || 0)), 1);
   const maxAiReferrerCount = Math.max(...topAiReferrers.map((item: any) => Number(item.count || 0)), 1);
+  const maxCitedPageCount = Math.max(...topCitedPages.map((item: any) => Number(item.count || 0)), 1);
+  const maxCompetitorCount = Math.max(...topCompetitors.map((item: any) => Number(item.count || 0)), 1);
+  const maxAiReferralCount = Math.max(...topAiReferralPlatforms.map((item: any) => Number(item.count || 0)), 1);
 
   const sources = [
     {
@@ -934,6 +990,19 @@ export default function MarketingKpiDashboard({
       tokenType: "Public crawler log",
       expiry: null,
       envKeys: "supabase/ai-crawler-visits.sql",
+    },
+    {
+      id: "ai-citations",
+      name: "AI Citation Monitor",
+      account: "Synthetic prompts / AI referral tracking",
+      detail: aiCitations.connected
+        ? `${percent(Number(aiCitations?.totals?.citationRate ?? 0))} citation rate / ${money(Number(aiCitations?.totals?.referralVisits ?? 0))} AI referrals`
+        : aiCitations.error || "รอสร้างตาราง ai_citation_logs และ ai_referral_visits",
+      ready: !!aiCitations.connected,
+      error: aiCitations.error || "",
+      tokenType: "Citation worker",
+      expiry: null,
+      envKeys: "supabase/ai-citation-monitoring.sql, OPENAI/PERPLEXITY/GEMINI/SERPAPI keys (Phase 2)",
     },
     {
       id: "erp",
@@ -1097,16 +1166,18 @@ export default function MarketingKpiDashboard({
   const budgetTarget = plannedBudget || marketingSpend;
 
   const marketingFunnel = [
-    { label: "Visitor", value: Number(ga4?.totals?.activeUsers ?? ga4?.totals?.sessions ?? 0), color: "#2563eb" },
-    { label: "Lead", value: totalLeads, color: "#06b6d4" },
-    { label: "Qualified Lead", value: qualifiedLeads, color: "#22c55e" },
+    { label: "Reach", value: Number(meta?.totals?.reach ?? 0), color: "#2563eb" },
+    { label: "Click", value: Number(meta?.totals?.clicks ?? 0), color: "#0ea5e9" },
+    { label: "Visitor", value: Number(ga4?.totals?.activeUsers ?? ga4?.totals?.sessions ?? 0), color: "#06b6d4" },
+    { label: "Lead / Message", value: marketingLeadSignals, color: "#22c55e" },
+    { label: "Qualified Lead", value: qualifiedLeads, color: "#f59e0b" },
   ];
   const salesFunnel = hasSalesMapping ? [
     { label: "Lead", value: crmLeads, color: "#2563eb" },
     { label: "Contacted", value: contactedLeads, color: "#06b6d4" },
     { label: "Detail Completed", value: filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, color: "#22c55e" },
     { label: "Quotation Sent", value: quotationSent, color: "#f59e0b" },
-    { label: "Closed Won", value: closedLeadCount, color: "#ff6b00" },
+    { label: "Closed Won / Receipt", value: closedJobs, color: "#ff6b00" },
   ] : [];
 
   const trendLength = dateRangeMode === "7d" ? 7 : 30;
@@ -1653,8 +1724,8 @@ export default function MarketingKpiDashboard({
                 </div>
                 <div className="mk-mobile-metric">
                   <span>Leads</span>
-                  <strong>{money(totalLeads)}</strong>
-                  <span>Meta + CRM</span>
+                  <strong>{money(marketingLeadSignals)}</strong>
+                  <span>{meta.connected ? "Meta + CRM" : "CRM / Manual"}</span>
                 </div>
                 <div className="mk-mobile-metric">
                   <span>Ad Spend</span>
@@ -1856,7 +1927,7 @@ export default function MarketingKpiDashboard({
               <div className="mk-channel-grid" style={{ marginTop: 18 }}>
                 <div className="mk-mini"><strong>฿{money(receiptRevenue)}</strong><div>ERP Receipt Revenue</div></div>
                 <div className="mk-mini"><strong>฿{money(marketingSpend)}</strong><div>Meta / Manual Spend</div></div>
-                <div className="mk-mini"><strong>{money(totalLeads)}</strong><div>Total Leads</div></div>
+                <div className="mk-mini"><strong>{money(marketingLeadSignals)}</strong><div>Marketing Leads</div></div>
                 <div className="mk-mini"><strong>{money(closedJobs)}</strong><div>ERP Receipts</div></div>
               </div>
               <div className="mk-empty" style={{ marginTop: 14 }}>
@@ -1897,7 +1968,7 @@ export default function MarketingKpiDashboard({
             </div>
           </section>}
 
-          {activeSection === "facebook" && (
+          {(activeSection === "facebook" || activeSection === "reports") && (
             <section className="mk-grid" style={{ marginTop: 16 }}>
               {[
                 ["Facebook Spend", `฿${money(marketingSpend)}`, "Meta Ads spend"],
@@ -1905,7 +1976,7 @@ export default function MarketingKpiDashboard({
                 ["Meta Reported ROAS", metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", "From Meta purchase_roas"],
                 ["Facebook Leads", money(metaLeads), "Messages / Leads"],
                 ["Facebook CPL", metaLeads ? `฿${money(marketingSpend / metaLeads)}` : "-", "Spend / Leads"],
-                ["Facebook ROAS", roas ? roas.toFixed(2) : "รอ Mapping", "ต้อง map รายได้กับ campaign ก่อน"],
+                ["Facebook ROAS", facebookErpRoas ? facebookErpRoas.toFixed(2) : "รอ Mapping", "ใช้เฉพาะ ERP/CRM ที่ map กับ Facebook"],
                 ["Qualified Leads", money(qualifiedLeads), "CRM mapped"],
                 ["Closed Jobs", money(closedJobs), "ERP receipts"],
                 ["Mapped ERP Revenue", facebookAttributedRevenue ? `THB ${money(facebookAttributedRevenue)}` : "-", "ERP receipt source or closed-won CRM leads"],
@@ -1919,14 +1990,14 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {activeSection === "facebook" && (
+          {(activeSection === "facebook" || activeSection === "reports") && (
             <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
               <h2>Facebook Revenue Mapping</h2>
               <div className="mk-channel-grid" style={{ marginTop: 14, marginBottom: 14 }}>
                 <div className="mk-mini"><strong>THB {money(metaReportedRevenue)}</strong><div>Meta Reported Revenue</div></div>
                 <div className="mk-mini"><strong>{metaReportedRoas ? metaReportedRoas.toFixed(2) : "-"}</strong><div>Meta Reported ROAS</div></div>
               </div>
-              <p>รายได้จากโฆษณาจะโชว์เมื่อ Lead ใน CRM ใส่ Campaign/Creative ให้ตรงกับ Meta และตั้งสถานะเป็น Closed Won พร้อม Estimated Value</p>
+              <p>Meta Reported Revenue มาจาก action_values/purchase_roas ใน Meta API ส่วน ERP Mapped Revenue มาจากใบเสร็จหรือ CRM ที่ระบุแหล่งที่มาเป็น Facebook/Meta เท่านั้น</p>
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
                 <div className="mk-mini"><strong>฿{money(facebookMappedRevenue)}</strong><div>รายได้ที่ map กับ Facebook Campaign</div></div>
                 <div className="mk-mini"><strong>{facebookMappedRoas ? facebookMappedRoas.toFixed(2) : "-"}</strong><div>Facebook ROAS จากยอดที่ map แล้ว</div></div>
@@ -1936,7 +2007,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "facebook" || activeSection === "campaigns") && <section className="mk-panel" id="marketing-campaigns" style={{ marginTop: 16 }}>
+          {(activeSection === "facebook" || activeSection === "campaigns" || activeSection === "reports") && <section className="mk-panel" id="marketing-campaigns" style={{ marginTop: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
               <div>
                 <h2>Campaign Performance</h2>
@@ -2332,6 +2403,68 @@ export default function MarketingKpiDashboard({
               </div>
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <div className="mk-section-head">
+                    <div>
+                      <h2>AI Citation & Referral</h2>
+                      <p>แยกให้เห็นว่า AI แค่อ่านเว็บ หรือมีการอ้างอิงและส่งคนกลับมาจริง</p>
+                    </div>
+                    <span className={`mk-status ${aiCitations.connected ? "ready" : ""}`}>
+                      {aiCitations.connected ? "พร้อมใช้งาน" : "รอ SQL / Worker"}
+                    </span>
+                  </div>
+                  <div className="mk-channel-grid" style={{ marginTop: 12 }}>
+                    <div className="mk-mini"><strong>{aiCitations.connected ? percent(Number(aiCitations?.totals?.citationRate ?? 0)) : "-"}</strong><div>Citation visibility rate</div></div>
+                    <div className="mk-mini"><strong>{money(Number(aiCitations?.totals?.promptsChecked ?? 0))}</strong><div>Synthetic prompts checked</div></div>
+                    <div className="mk-mini"><strong>{money(Number(aiCitations?.totals?.referralVisits ?? 0))}</strong><div>AI referral visits</div></div>
+                    <div className="mk-mini"><strong>{money(Number(aiCitations?.totals?.competitorDomains ?? 0))}</strong><div>Competitor domains found</div></div>
+                  </div>
+                  {aiCitations.error && (
+                    <div className="mk-empty" style={{ marginTop: 12 }}>
+                      {aiCitations.error} - รันไฟล์ supabase/ai-citation-monitoring.sql ก่อน แล้วค่อยต่อ API prompt automation
+                    </div>
+                  )}
+                </div>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h2>AI Referral Platforms</h2>
+                  <p>คนที่คลิกลิงก์จาก AI platform กลับเข้าเว็บไซต์หลังยอมรับ PDPA</p>
+                  <div className="mk-chart-list" style={{ marginTop: 12 }}>
+                    {topAiReferralPlatforms.length ? topAiReferralPlatforms.map((item: any) => (
+                      <div className="mk-source compact mk-chart-row" key={item.name} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(item.count || 0) / maxAiReferralCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#22c55e,#2563eb)" }}>
+                        <strong>{item.name}</strong>
+                        <span className="mk-badge">{money(Number(item.count || 0))} visits</span>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มี referral จาก AI platform ในช่วงวันที่นี้</div>}
+                  </div>
+                </div>
+              </div>
+              <div className="mk-row" style={{ marginTop: 16 }}>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h2>Top Cited Pages</h2>
+                  <p>URL ของเว็บเราที่ระบบ prompt monitor พบว่า AI อ้างอิงในคำตอบ</p>
+                  <div className="mk-chart-list" style={{ marginTop: 12 }}>
+                    {topCitedPages.length ? topCitedPages.map((item: any) => (
+                      <div className="mk-source compact mk-chart-row" key={item.url} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(item.count || 0) / maxCitedPageCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#ff6b00,#22c55e)" }}>
+                        <strong>{item.url}</strong>
+                        <span className="mk-badge">{money(Number(item.count || 0))} citations</span>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มี citation logs จาก prompt monitor</div>}
+                  </div>
+                </div>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
+                  <h2>Competitor Benchmark</h2>
+                  <p>โดเมนคู่แข่งที่ถูกพบในคำตอบเดียวกัน เพื่อใช้เทียบ GEO visibility</p>
+                  <div className="mk-chart-list" style={{ marginTop: 12 }}>
+                    {topCompetitors.length ? topCompetitors.map((item: any) => (
+                      <div className="mk-source compact mk-chart-row" key={item.url} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(item.count || 0) / maxCompetitorCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#8b5cf6,#f59e0b)" }}>
+                        <strong>{item.url}</strong>
+                        <span className="mk-badge">{money(Number(item.count || 0))} mentions</span>
+                      </div>
+                    )) : <div className="mk-empty">ยังไม่มี competitor URL จาก prompt monitor</div>}
+                  </div>
+                </div>
+              </div>
+              <div className="mk-row" style={{ marginTop: 16 }}>
+                <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h2>Top AI Bots</h2>
                   <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiBots.length ? topAiBots.map((bot: any) => (
@@ -2384,6 +2517,36 @@ export default function MarketingKpiDashboard({
                     )) : <div className="mk-empty">ส่วนใหญ่ crawler จะซ่อน referrer จึงอาจเห็นเป็น Direct / hidden</div>}
                   </div>
                 </div>
+              </div>
+              <div className="mk-table-wrap compact" style={{ marginTop: 16 }}>
+                <table className="mk-table">
+                  <thead>
+                    <tr>
+                      <th>Platform</th>
+                      <th>Prompt</th>
+                      <th>Cited</th>
+                      <th>Cited URLs</th>
+                      <th>Competitors</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentAiCitations.length ? recentAiCitations.map((log: any) => (
+                      <tr key={log.id}>
+                        <td>{log.platform}</td>
+                        <td>{String(log.prompt_text || "-").slice(0, 90)}</td>
+                        <td>{log.is_cited ? "Yes" : "No"}</td>
+                        <td>{(log.cited_urls || []).slice(0, 2).join(" / ") || "-"}</td>
+                        <td>{(log.competitor_urls || []).slice(0, 2).join(" / ") || "-"}</td>
+                        <td>{log.timestamp ? new Date(log.timestamp).toLocaleString("th-TH") : "-"}</td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={6}>ยังไม่มี synthetic prompt citation logs</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
               <div className="mk-table-wrap compact" style={{ marginTop: 16 }}>
                   <table className="mk-table">

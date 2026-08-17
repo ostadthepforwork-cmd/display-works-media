@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { aiRobotsUserAgents } from "@/lib/ai-bots";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -10,43 +11,7 @@ export default function robots(): MetadataRoute.Robots {
       },
       // อนุญาต AI crawlers ทุกตัว — จำเป็นสำหรับ GEO/AEO
       {
-        userAgent: [
-          "GPTBot",
-          "ChatGPT-User",
-          "OAI-SearchBot",
-          "OAI-AdsBot",
-          "Claude-Web",
-          "ClaudeBot",
-          "Claude-SearchBot",
-          "Claude-User",
-          "anthropic-ai",
-          "PerplexityBot",
-          "Perplexity-User",
-          "Googlebot",
-          "Googlebot-Image",
-          "GoogleOther",
-          "GoogleOther-Image",
-          "GoogleOther-Video",
-          "Google-InspectionTool",
-          "Google-CloudVertexBot",
-          "AdsBot-Google",
-          "FacebookBot",
-          "Meta-ExternalAgent",
-          "Bingbot",
-          "BingPreview",
-          "Applebot",
-          "Applebot-Extended",
-          "CCBot",
-          "Amazonbot",
-          "Bytespider",
-          "YouBot",
-          "DuckAssistBot",
-          "DuckDuckBot",
-          "Bravebot",
-          "MistralAI-User",
-          "cohere-ai",
-          "AI2Bot",
-        ],
+        userAgent: aiRobotsUserAgents(),
         allow: "/",
         disallow: ["/admin/", "/api/", "/auth/", "/doc/", "/login"],
       },

@@ -101,6 +101,12 @@ const addDays = (d: string, n: number) => {
   dt.setDate(dt.getDate() + n);
   return dt.toISOString().slice(0, 10);
 };
+const localDateInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 const fmtDate = (d: string) => {
   if (!d) return "-";
   const dt = new Date(d + "T00:00:00");
@@ -4624,12 +4630,68 @@ function MarketingPage({ documents, showToast }: any) {
     note: "",
   };
   const [leadForm, setLeadForm] = useState(emptyLeadForm);
+  const [marketingRange, setMarketingRange] = useState(() => {
+    const endDate = today();
+    return {
+      preset: "30d",
+      startDate: addDays(endDate, -29),
+      endDate,
+    };
+  });
+  const marketingDateValue = (value?: string) => {
+    if (!value) return null;
+    const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
+    return Number.isFinite(date.getTime()) ? date.getTime() : null;
+  };
+  const marketingRangeStart = marketingDateValue(marketingRange.startDate);
+  const marketingRangeEnd = marketingDateValue(marketingRange.endDate);
+  const marketingRangeEndInclusive = marketingRangeEnd === null ? null : marketingRangeEnd + 24 * 60 * 60 * 1000 - 1;
+  const isAllMarketingRange = marketingRange.preset === "all";
+  const marketingQueryString = !isAllMarketingRange && marketingRange.startDate && marketingRange.endDate
+    ? new URLSearchParams({ startDate: marketingRange.startDate, endDate: marketingRange.endDate }).toString()
+    : "";
+  const dateInMarketingRange = (value?: string) => {
+    if (isAllMarketingRange) return true;
+    const time = marketingDateValue(value);
+    if (time === null || marketingRangeStart === null || marketingRangeEndInclusive === null) return false;
+    return time >= marketingRangeStart && time <= marketingRangeEndInclusive;
+  };
+  const campaignInMarketingRange = (campaign: any) => {
+    if (isAllMarketingRange) return true;
+    if (marketingRangeStart === null || marketingRangeEndInclusive === null) return true;
+    const start = marketingDateValue(campaign?.startDate) ?? marketingRangeStart;
+    const end = marketingDateValue(campaign?.endDate) ?? start;
+    return start <= marketingRangeEndInclusive && end >= marketingRangeStart;
+  };
+  const setPresetRange = (preset: string) => {
+    const endDate = today();
+    if (preset === "7d") {
+      setMarketingRange({ preset, startDate: addDays(endDate, -6), endDate });
+      return;
+    }
+    if (preset === "30d") {
+      setMarketingRange({ preset, startDate: addDays(endDate, -29), endDate });
+      return;
+    }
+    if (preset === "month") {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      setMarketingRange({ preset, startDate: localDateInput(start), endDate: localDateInput(end) });
+      return;
+    }
+    setMarketingRange({ preset: "all", startDate: "", endDate: "" });
+  };
+  const marketingRangeLabel = isAllMarketingRange
+    ? "ข้อมูลทั้งหมด"
+    : `${marketingRange.startDate || "-"} ถึง ${marketingRange.endDate || "-"}`;
 
   useEffect(() => {
     let cancelled = false;
     async function loadGa4() {
       try {
-        const response = await fetch("/api/marketing/ga4", { cache: "no-store" });
+        setGa4((prev) => ({ ...prev, loading: true, error: "" }));
+        const response = await fetch(`/api/marketing/ga4${marketingQueryString ? `?${marketingQueryString}` : ""}`, { cache: "no-store" });
         const data = await response.json();
         if (cancelled) return;
         setGa4({
@@ -4652,13 +4714,14 @@ function MarketingPage({ documents, showToast }: any) {
     }
     loadGa4();
     return () => { cancelled = true; };
-  }, []);
+  }, [marketingQueryString]);
 
   useEffect(() => {
     let cancelled = false;
     async function loadMetaAds() {
       try {
-        const response = await fetch("/api/marketing/meta", { cache: "no-store" });
+        setMetaAds((prev) => ({ ...prev, loading: true, error: "" }));
+        const response = await fetch(`/api/marketing/meta${marketingQueryString ? `?${marketingQueryString}` : ""}`, { cache: "no-store" });
         const data = await response.json();
         if (cancelled) return;
         setMetaAds({
@@ -4680,16 +4743,24 @@ function MarketingPage({ documents, showToast }: any) {
     }
     loadMetaAds();
     return () => { cancelled = true; };
-  }, []);
+  }, [marketingQueryString]);
 
-  const reportDocs = reportingDocuments(documents || []);
-  const quoteDocs = (documents || []).filter((doc: any) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled");
+  const allReportDocs = reportingDocuments(documents || []);
+  const reportDocs = allReportDocs.filter((doc: any) => dateInMarketingRange(doc?.date || doc?.paymentDate || doc?.createdAt));
+  const quoteDocs = (documents || []).filter((doc: any) =>
+    doc?.type === "quote"
+    && !doc?.deleted
+    && doc?.status !== "cancelled"
+    && dateInMarketingRange(doc?.date || doc?.createdAt)
+  );
+  const filteredCampaigns = campaigns.filter(campaignInMarketingRange);
+  const filteredLeads = leads.filter((lead: any) => dateInMarketingRange(lead?.date || lead?.createdAt));
   const quoteCount = quoteDocs.length;
   const revenue = reportDocs.reduce((sum: number, doc: any) => sum + calcDocTotal(doc).total, 0);
   const grossCost = reportDocs.reduce((sum: number, doc: any) => sum + (doc.items || []).reduce((itemSum: number, item: any) => itemSum + lineCost(item), 0), 0);
   const grossProfit = revenue - grossCost;
-  const activeCampaigns = campaigns.filter((campaign: any) => campaign.status === "active").length;
-  const plannedBudget = campaigns.reduce((sum: number, campaign: any) => sum + Number(campaign.budget || 0), 0);
+  const activeCampaigns = filteredCampaigns.filter((campaign: any) => campaign.status === "active").length;
+  const plannedBudget = filteredCampaigns.reduce((sum: number, campaign: any) => sum + Number(campaign.budget || 0), 0);
   const saveCampaigns = (next: any[]) => {
     setCampaigns(next);
     saveLocal("marketing_campaigns", next);
@@ -4785,95 +4856,128 @@ function MarketingPage({ documents, showToast }: any) {
     { source: "Service Pages", intent: "ลูกค้าค้นหาบริการ", action: "เชื่อมปุ่ม LINE และฟอร์ม" },
     { source: "Blog / Organic", intent: "ให้ความรู้ก่อนตัดสินใจ", action: "ลิงก์ไปหน้าบริการที่เกี่ยวข้อง" },
   ];
-  const connectedSources = [
-    { name: "ERP Receipts", state: "พร้อมใช้", detail: "ใช้ยอดรายได้จากใบเสร็จจริง" },
-    { name: "Campaign Planner", state: "พร้อมใช้", detail: "บันทึกงบและช่วงเวลาแคมเปญ" },
-    { name: "GA4", state: ga4.loading ? "Loading" : ga4.connected ? "Connected" : "Error", detail: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions / 30 days` : (ga4.error || "สำหรับ Visitor, Session, Conversion") },
-    { name: "Facebook Pixel / Ads", state: metaAds.loading ? "Loading" : metaAds.connected ? "Connected" : "Error", detail: metaAds.connected ? `฿${fmtMoney(metaAds.totals.spend)} spend / ${metaAds.totals.clicks.toLocaleString()} clicks` : (metaAds.error || "สำหรับ Spend, CPL, ROAS") },
-    { name: "LINE OA", state: "รอเชื่อมต่อ", detail: "สำหรับจำนวนแชทและ source ของ lead" },
-  ];
-  const channelRows = [
-    { name: "Facebook Ads", leads: metaAds.connected ? metaAds.totals.leads.toLocaleString() : "รอ API", spend: metaAds.connected ? `฿${fmtMoney(metaAds.totals.spend)}` : "รอ API", priority: metaAds.connected ? `CPC ฿${fmtMoney(metaAds.totals.cpc)} / CTR ${metaAds.totals.ctr.toFixed(2)}%` : "ใช้ UTM ทุกแคมเปญ" },
-    { name: "LINE OA", leads: "รอเชื่อมต่อ", spend: "-", priority: "CTA หลักของเว็บ" },
-    { name: "Organic / SEO", leads: "รอฟอร์ม lead", spend: "0", priority: "ดันหน้าบริการและบทความ" },
-    { name: "Direct / Referral", leads: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions` : "รอ GA4", spend: "-", priority: "ตรวจ source จาก UTM" },
-  ];
-  const marketingFunnelRows = [
-    { step: "Reach", value: metaAds.connected ? metaAds.totals.reach.toLocaleString() : "Wait Meta API", rate: "Ad visibility" },
-    { step: "Click", value: metaAds.connected ? metaAds.totals.clicks.toLocaleString() : "Wait Meta API", rate: metaAds.connected ? `CTR ${metaAds.totals.ctr.toFixed(2)}%` : "No data" },
-    { step: "Landing Page / Profile Visit", value: ga4.connected ? ga4.totals.pageViews.toLocaleString() : "Wait GA4", rate: "Website/Page view" },
-    { step: "Message / Lead", value: totalLeads.toLocaleString(), rate: "CRM + Ads" },
-    { step: "Qualified Lead", value: qualifiedLeadCount.toLocaleString(), rate: totalLeads ? `${((qualifiedLeadCount / totalLeads) * 100).toFixed(1)}%` : "0%" },
-  ];
-  const salesFunnelRows = [
-    { step: "Lead", value: totalLeads.toLocaleString(), rate: "CRM" },
-    { step: "Contacted", value: contactedCount.toLocaleString(), rate: totalLeads ? `${((contactedCount / totalLeads) * 100).toFixed(1)}%` : "0%" },
-    { step: "Detail Completed", value: detailCompletedCount.toLocaleString(), rate: totalLeads ? `${((detailCompletedCount / totalLeads) * 100).toFixed(1)}%` : "0%" },
-    { step: "Quotation Sent", value: quoteCount.toLocaleString(), rate: "ERP quote" },
-    { step: "Follow-up", value: followUpCount.toLocaleString(), rate: "CRM" },
-    { step: "Paid / Closed Job", value: closedJobs.toLocaleString(), rate: totalLeads ? `${conversionRate.toFixed(1)}%` : "0%" },
-    { step: "Delivered", value: deliveredJobs.toLocaleString(), rate: "Receipt" },
-    { step: "Repeat Customer", value: repeatCustomers.toLocaleString(), rate: "Unique customers" },
-  ];
-  const reportCards = [
-    { title: "Monthly Marketing Summary", detail: "สรุปแคมเปญ งบ และรายได้จากใบเสร็จ", status: "พร้อมใช้บางส่วน" },
-    { title: "Channel Performance", detail: "เปรียบเทียบ LINE, Ads, Organic, Blog", status: "รอ source tracking" },
-    { title: "Content Conversion", detail: "ดูบทความ/หน้าบริการที่พาไปสู่ lead", status: "รอ GA4 event" },
-  ];
-  const insightCards = [
-    "ควรใช้ LINE เป็น CTA หลัก เพราะเป็นช่องทางที่ลูกค้าส่งไฟล์และถามราคาได้เร็ว",
-    "ทุกแคมเปญ Ads ควรใช้ UTM เพื่อแยกผลระหว่าง Facebook, LINE และ Blog",
-    "หลังต่อ GA4/Pixel แล้วควรวัด Lead ไม่ใช่แค่วัด Traffic",
-    "หน้าบริการควรมี CTA เดียวที่ชัด: ปรึกษาทาง LINE หรือขอใบเสนอราคา",
-  ];
   const card = (extra = {}) => ({ background: "rgba(20,26,36,0.82)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, ...extra });
   const lightCard = (extra = {}) => ({ background: "linear-gradient(180deg, rgba(20,26,36,0.96), rgba(12,17,26,0.96))", border: "1px solid rgba(255,107,0,0.16)", borderRadius: 18, boxShadow: "0 18px 50px rgba(0,0,0,0.22)", color: "#F8FAFC", ...extra });
-  const manualLeadCount = leads.length;
+  const manualLeadCount = filteredLeads.length;
   const apiLeadCount = Number(metaAds.totals.leads || 0);
-  const totalLeads = Math.max(manualLeadCount, apiLeadCount, 0);
-  const qualifiedLeadCount = leads.filter((lead: any) => leadScore(lead) >= 40 && !["Not Qualified", "Closed Lost", "No Response"].includes(lead.status)).length;
-  const contactedCount = leads.filter((lead: any) => ["Contacted", "Waiting for Detail", "Detail Completed", "Quotation Sent", "Follow-up", "Waiting Payment", "Closed Won"].includes(lead.status)).length;
-  const detailCompletedCount = leads.filter((lead: any) => ["Detail Completed", "Quotation Sent", "Follow-up", "Waiting Payment", "Closed Won"].includes(lead.status)).length;
-  const followUpCount = leads.filter((lead: any) => lead.status === "Follow-up").length;
+  const marketingLeadCount = metaAds.connected ? Math.max(apiLeadCount, manualLeadCount) : manualLeadCount;
+  const salesLeadCount = manualLeadCount;
+  const qualifiedLeadCount = filteredLeads.filter((lead: any) => leadScore(lead) >= 40 && !["Not Qualified", "Closed Lost", "No Response"].includes(lead.status)).length;
+  const contactedCount = filteredLeads.filter((lead: any) => ["Contacted", "Waiting for Detail", "Detail Completed", "Quotation Sent", "Follow-up", "Waiting Payment", "Closed Won"].includes(lead.status)).length;
+  const detailCompletedCount = filteredLeads.filter((lead: any) => ["Detail Completed", "Quotation Sent", "Follow-up", "Waiting Payment", "Closed Won"].includes(lead.status)).length;
+  const followUpCount = filteredLeads.filter((lead: any) => lead.status === "Follow-up").length;
   const closedJobs = reportDocs.length;
   const deliveredJobs = reportDocs.filter((doc: any) => ["paid", "approved", "completed"].includes(doc.status || "")).length || closedJobs;
   const repeatCustomers = new Set(reportDocs.map((doc: any) => doc.customerName).filter(Boolean)).size;
   const marketingSpend = Number(metaAds.totals.spend || 0);
-  const conversionRate = totalLeads > 0 ? (closedJobs / totalLeads) * 100 : 0;
+  const metaReportedRevenue = Number(metaAds.totals.metaReportedRevenue || 0);
+  const metaReportedRoas = Number(metaAds.totals.metaReportedRoas || 0);
+  const conversionRate = salesLeadCount > 0 ? (closedJobs / salesLeadCount) * 100 : 0;
   const roas = marketingSpend > 0 ? revenue / marketingSpend : 0;
-  const cpl = totalLeads > 0 ? marketingSpend / totalLeads : 0;
+  const cpl = marketingLeadCount > 0 ? marketingSpend / marketingLeadCount : 0;
   const cpql = qualifiedLeadCount > 0 ? marketingSpend / qualifiedLeadCount : 0;
   const cac = closedJobs > 0 ? marketingSpend / closedJobs : 0;
   const roi = marketingSpend > 0 ? ((grossProfit - marketingSpend) / marketingSpend) * 100 : 0;
   const channelMix = [
-    { name: "Facebook Ads", value: marketingSpend || 1, color: "#1877F2" },
-    { name: "LINE OA", value: totalLeads || 1, color: "#06C755" },
-    { name: "Organic", value: ga4.totals.sessions || 1, color: "#F59E0B" },
+    { name: "Facebook Ads", value: metaAds.connected ? Math.max(marketingSpend, apiLeadCount, 1) : 1, color: "#1877F2" },
+    { name: "LINE OA", value: Math.max(filteredLeads.filter((lead: any) => /line/i.test(String(lead.source || lead.contact || ""))).length, 1), color: "#06C755" },
+    { name: "Organic", value: ga4.connected ? Math.max(ga4.totals.sessions || 0, 1) : 1, color: "#F59E0B" },
     { name: "Direct", value: Math.max(1, Math.round((ga4.totals.sessions || 0) * 0.25)), color: "#8B5CF6" },
   ];
   const mixTotal = channelMix.reduce((sum, row) => sum + Number(row.value || 0), 0) || 1;
+  const connectedSources = [
+    { name: "ERP Receipts", state: "พร้อมใช้", detail: `รายได้ใบเสร็จช่วงนี้ ฿${fmtMoney(revenue)}` },
+    { name: "Campaign Planner", state: "พร้อมใช้", detail: `${filteredCampaigns.length} campaigns in selected range` },
+    { name: "GA4", state: ga4.loading ? "Loading" : ga4.connected ? "Connected" : "Error", detail: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions (${marketingRangeLabel})` : (ga4.error || "สำหรับ Visitor, Session, Conversion") },
+    { name: "Facebook Pixel / Ads", state: metaAds.loading ? "Loading" : metaAds.connected ? "Connected" : "Error", detail: metaAds.connected ? `฿${fmtMoney(marketingSpend)} spend / ${Number(metaAds.totals.clicks || 0).toLocaleString()} clicks` : (metaAds.error || "สำหรับ Spend, CPL, ROAS") },
+    { name: "LINE OA", state: "รอเชื่อมต่อ", detail: "สำหรับจำนวนแชทและ source ของ lead" },
+  ];
+  const channelRows = [
+    { name: "Facebook Ads", leads: metaAds.connected ? apiLeadCount.toLocaleString() : "รอ API", spend: metaAds.connected ? `฿${fmtMoney(marketingSpend)}` : "รอ API", priority: metaAds.connected ? `Meta Revenue ฿${fmtMoney(metaReportedRevenue)} / ROAS ${metaReportedRoas ? metaReportedRoas.toFixed(2) : "-"}` : "ใช้ UTM ทุกแคมเปญ" },
+    { name: "LINE OA", leads: filteredLeads.filter((lead: any) => /line/i.test(String(lead.source || lead.contact || ""))).length.toLocaleString(), spend: "-", priority: "CRM manual + future LINE API" },
+    { name: "Organic / SEO", leads: filteredLeads.filter((lead: any) => /organic|blog|seo/i.test(String(lead.source || ""))).length.toLocaleString(), spend: "0", priority: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions` : "รอ GA4" },
+    { name: "Direct / Referral", leads: ga4.connected ? `${ga4.totals.sessions.toLocaleString()} sessions` : "รอ GA4", spend: "-", priority: "ตรวจ source จาก UTM" },
+  ];
+  const marketingFunnelRows = [
+    { step: "Reach", value: metaAds.connected ? Number(metaAds.totals.reach || 0).toLocaleString() : "Wait Meta API", rate: "Meta Ads" },
+    { step: "Click", value: metaAds.connected ? Number(metaAds.totals.clicks || 0).toLocaleString() : "Wait Meta API", rate: metaAds.connected ? `CTR ${Number(metaAds.totals.ctr || 0).toFixed(2)}%` : "No data" },
+    { step: "Website Visit", value: ga4.connected ? Number(ga4.totals.sessions || ga4.totals.pageViews || 0).toLocaleString() : "Wait GA4", rate: "GA4" },
+    { step: "Lead / Message", value: marketingLeadCount.toLocaleString(), rate: metaAds.connected ? "Meta lead/message" : "CRM manual" },
+    { step: "Qualified Lead", value: qualifiedLeadCount.toLocaleString(), rate: salesLeadCount ? `${((qualifiedLeadCount / salesLeadCount) * 100).toFixed(1)}% CRM` : "No CRM lead" },
+  ];
+  const salesFunnelRows = [
+    { step: "CRM Lead", value: salesLeadCount.toLocaleString(), rate: "Manual CRM only" },
+    { step: "Contacted", value: contactedCount.toLocaleString(), rate: salesLeadCount ? `${((contactedCount / salesLeadCount) * 100).toFixed(1)}%` : "0%" },
+    { step: "Detail Completed", value: detailCompletedCount.toLocaleString(), rate: salesLeadCount ? `${((detailCompletedCount / salesLeadCount) * 100).toFixed(1)}%` : "0%" },
+    { step: "Quotation Sent", value: quoteCount.toLocaleString(), rate: "ERP quote" },
+    { step: "Follow-up", value: followUpCount.toLocaleString(), rate: "CRM" },
+    { step: "Paid / Closed Job", value: closedJobs.toLocaleString(), rate: salesLeadCount ? `${conversionRate.toFixed(1)}%` : "No CRM mapping" },
+    { step: "Delivered", value: deliveredJobs.toLocaleString(), rate: "Receipt" },
+    { step: "Repeat Customer", value: repeatCustomers.toLocaleString(), rate: "Unique customers" },
+  ];
+  const reportCards = [
+    { title: "Monthly Marketing Summary", detail: `ช่วงข้อมูล ${marketingRangeLabel}`, status: "พร้อมใช้" },
+    { title: "Facebook API Report", detail: metaAds.connected ? `Spend ฿${fmtMoney(marketingSpend)} / Meta revenue ฿${fmtMoney(metaReportedRevenue)}` : (metaAds.error || "รอ Meta API"), status: metaAds.connected ? "Connected" : "รอเชื่อมต่อ" },
+    { title: "ERP Sales Report", detail: `ใบเสร็จ ${closedJobs} ใบ / รายได้ ฿${fmtMoney(revenue)}`, status: "พร้อมใช้" },
+  ];
+  const insightCards = [
+    "Marketing Funnel ใช้ Meta/GA4/CRM เพื่อดูการไหลของการตลาด",
+    "Sales Funnel ใช้ CRM + ERP เท่านั้น เพื่อไม่ให้ Meta lead ทำให้ยอดปิดการขายเพี้ยน",
+    "Revenue หลักยังยึดใบเสร็จ ERP ส่วน Meta Reported Revenue แสดงแยกต่างหาก",
+    "ทุกแคมเปญ Ads ควรใช้ UTM เพื่อ map lead กับเอกสารได้แม่นขึ้น",
+  ];
   const campaignTable = [
-    ...metaAds.campaigns.map((campaign: any) => ({
-      name: campaign.name || "Meta Campaign",
-      channel: "Facebook Ads",
-      status: "Active",
-      spend: campaign.spend || 0,
-      leads: campaign.leads || 0,
-      cpl: campaign.cpl || 0,
-      revenue: 0,
-      roas: 0,
-    })),
-    ...campaigns.map((campaign: any) => ({
+    ...metaAds.campaigns.map((campaign: any) => {
+      const spend = Number(campaign.spend || 0);
+      const metaRevenue = Number(campaign.metaReportedRevenue || 0);
+      const metaRoas = Number(campaign.metaReportedRoas || 0) || (spend > 0 ? metaRevenue / spend : 0);
+      return {
+        name: campaign.name || "Meta Campaign",
+        channel: "Facebook Ads",
+        status: campaign.effectiveStatus || campaign.status || "Active",
+        spend,
+        leads: campaign.leads || 0,
+        cpl: campaign.cpl || 0,
+        revenue: metaRevenue,
+        roas: metaRoas,
+      };
+    }),
+    ...filteredCampaigns.map((campaign: any) => ({
       name: campaign.name,
       channel: campaign.channel,
       status: campaign.status,
       spend: Number(campaign.budget || 0),
-      leads: campaign.objective === "LINE Inquiry" ? totalLeads : quoteCount,
+      leads: campaign.objective === "LINE Inquiry" ? salesLeadCount : quoteCount,
       cpl: 0,
-      revenue: campaigns.length ? revenue / campaigns.length : 0,
-      roas: Number(campaign.budget || 0) > 0 ? (campaigns.length ? revenue / campaigns.length : 0) / Number(campaign.budget || 1) : 0,
+      revenue: filteredCampaigns.length ? revenue / filteredCampaigns.length : 0,
+      roas: Number(campaign.budget || 0) > 0 ? (filteredCampaigns.length ? revenue / filteredCampaigns.length : 0) / Number(campaign.budget || 1) : 0,
     })),
   ].slice(0, 7);
+  const exportMarketingCsv = () => {
+    const rows = [
+      ["Range", marketingRangeLabel],
+      ["ERP Receipt Revenue", revenue],
+      ["ERP Gross Profit", grossProfit],
+      ["Meta Spend", marketingSpend],
+      ["Meta Reported Revenue", metaReportedRevenue],
+      ["Meta ROAS", metaReportedRoas || roas],
+      ["CRM Leads", salesLeadCount],
+      ["Meta Leads", apiLeadCount],
+      ["ERP Quotes", quoteCount],
+      ["ERP Closed Jobs", closedJobs],
+      [],
+      ["Campaign", "Channel", "Status", "Spend", "Leads", "Revenue", "ROAS"],
+      ...campaignTable.map((row: any) => [row.name, row.channel, row.status, row.spend, row.leads, row.revenue, row.roas]),
+    ];
+    const csv = rows.map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `display-works-marketing-${marketingRange.startDate || "all"}-${marketingRange.endDate || "all"}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
   const pill = (bg: string, color: string) => ({ display: "inline-flex", alignItems: "center", borderRadius: 999, background: bg, color, padding: "5px 10px", fontSize: 11, fontWeight: 800 });
 
   return (
@@ -4921,20 +5025,50 @@ function MarketingPage({ documents, showToast }: any) {
               <h1 style={{ margin: 0, fontSize: 26, fontWeight: 950, color: "#F8FAFC" }}>Display Works Media Marketing KPI Dashboard</h1>
               <p style={{ margin: "5px 0 0", color: "#A8B0C0", fontSize: 13 }}>ภาพรวมประสิทธิภาพการตลาดของ Display Works Media</p>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <select style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 14px", fontWeight: 700 }}>
-                <option>Last 30 days</option><option>This month</option><option>Last 7 days</option>
-              </select>
-              <button type="button" onClick={() => showToast("Export report ยังเป็นขั้นถัดไป")} style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 14px", fontWeight: 800 }}>Export</button>
-              <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#EEF4FF", display: "grid", placeItems: "center", color: "#FF6B00", fontWeight: 900 }}>A</div>
+            <div className="marketing-range-controls" style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap", gap: 10, maxWidth: 430 }}>
+              {[
+                ["7d", "7 วัน"],
+                ["30d", "30 วัน"],
+                ["month", "เดือนนี้"],
+                ["all", "ทั้งหมด"],
+              ].map(([preset, label]) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setPresetRange(preset)}
+                  style={{
+                    height: 42,
+                    borderRadius: 12,
+                    border: "1px solid rgba(255,107,0,0.22)",
+                    background: marketingRange.preset === preset ? "linear-gradient(135deg,#FF6B00,#C2410C)" : "#101722",
+                    color: "#F8FAFC",
+                    padding: "0 14px",
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+              <button type="button" onClick={() => setMarketingRange((prev) => ({ ...prev, preset: "custom" }))} style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.22)", background: marketingRange.preset === "custom" ? "linear-gradient(135deg,#FF6B00,#C2410C)" : "#101722", color: "#F8FAFC", padding: "0 14px", fontWeight: 900 }}>กำหนดเอง</button>
+              <label style={{ display: "grid", gap: 4, color: "#A8B0C0", fontSize: 11, fontWeight: 800 }}>
+                เริ่ม
+                <input type="date" value={marketingRange.startDate} disabled={isAllMarketingRange} onChange={(e) => setMarketingRange((prev) => ({ ...prev, preset: "custom", startDate: e.target.value }))} style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 12px", fontWeight: 800 }} />
+              </label>
+              <label style={{ display: "grid", gap: 4, color: "#A8B0C0", fontSize: 11, fontWeight: 800 }}>
+                สิ้นสุด
+                <input type="date" value={marketingRange.endDate} disabled={isAllMarketingRange} onChange={(e) => setMarketingRange((prev) => ({ ...prev, preset: "custom", endDate: e.target.value }))} style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 12px", fontWeight: 800 }} />
+              </label>
+              <div style={{ flexBasis: "100%", textAlign: "right", color: "#A8B0C0", fontSize: 11 }}>ช่วงข้อมูล: {marketingRangeLabel}</div>
+              <button type="button" onClick={exportMarketingCsv} style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,107,0,0.2)", background: "#101722", color: "#CBD5E1", padding: "0 14px", fontWeight: 800 }}>Export CSV</button>
             </div>
           </header>
 
           <section id="marketing-dashboard" className="marketing-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 14, marginBottom: 18 }}>
             {[
               { label: "Campaign Revenue", value: `฿${fmtMoney(revenue)}`, sub: "From receipts only", formula: "Revenue = receipt totals", icon: "฿", color: "#10B981" },
-              { label: "Total Leads", value: totalLeads.toLocaleString(), sub: "Manual CRM / Ads", formula: "Total Leads = max(CRM leads, API leads)", icon: "L", color: "#FF6B00" },
-              { label: "Lead to Customer Conversion Rate", value: `${conversionRate.toFixed(2)}%`, sub: "Closed Jobs / Total Leads", formula: "Close Rate = Closed Jobs / Total Leads x 100", icon: "%", color: "#8B5CF6" },
+              { label: "Marketing Leads", value: marketingLeadCount.toLocaleString(), sub: "Meta lead/message + CRM view", formula: "Marketing Leads = Meta leads if connected, otherwise CRM leads", icon: "L", color: "#FF6B00" },
+              { label: "CRM to Customer Rate", value: `${conversionRate.toFixed(2)}%`, sub: "ERP receipts / CRM leads", formula: "Close Rate = Closed Jobs / CRM Leads x 100", icon: "%", color: "#8B5CF6" },
               { label: "Closed Jobs", value: closedJobs.toLocaleString(), sub: "Receipts in ERP", formula: "Closed Jobs = valid receipts", icon: "J", color: "#22C55E" },
               { label: "Marketing Spend", value: `฿${fmtMoney(marketingSpend)}`, sub: metaAds.connected ? "Meta Ads" : "Waiting Meta API", formula: "Spend from connected ad source", icon: "S", color: "#EC4899" },
               { label: "Cost per Lead", value: cpl ? `฿${fmtMoney(cpl)}` : "-", sub: "CPL", formula: "CPL = Spend / Leads", icon: "C", color: "#EAB308" },
@@ -5043,7 +5177,7 @@ function MarketingPage({ documents, showToast }: any) {
                 <h2 style={{ margin: 0, color: "#F8FAFC", fontSize: 17 }}>Leads / CRM</h2>
                 <p style={{ margin: "4px 0 0", color: "#7A8599", fontSize: 12 }}>Manual lead capture for chat, LINE, Facebook, and organic inquiries.</p>
               </div>
-              <span style={pill("rgba(255,107,0,0.14)", "#FF6B00")}>{leads.length} leads</span>
+              <span style={pill("rgba(255,107,0,0.14)", "#FF6B00")}>{filteredLeads.length} leads in range</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: 16 }}>
               <div style={{ display: "grid", gap: 10 }}>
@@ -5076,7 +5210,7 @@ function MarketingPage({ documents, showToast }: any) {
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                   <thead><tr style={{ color: "#A8B0C0", textAlign: "left" }}>{["Lead","Source","Product","Status","Score","Temp","Follow-up","Action"].map((h) => <th key={h} style={{ padding: "10px 8px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{h}</th>)}</tr></thead>
-                  <tbody>{leads.map((lead: any) => {
+                  <tbody>{filteredLeads.map((lead: any) => {
                     const score = leadScore(lead);
                     const temp = leadTemperature(score);
                     return (

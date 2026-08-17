@@ -1,49 +1,9 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-
-const AI_BOT_PATTERNS = [
-  { name: "GPTBot", pattern: /GPTBot/i },
-  { name: "ChatGPT-User", pattern: /ChatGPT-User/i },
-  { name: "OAI-SearchBot", pattern: /OAI-SearchBot/i },
-  { name: "OAI-AdsBot", pattern: /OAI-AdsBot/i },
-  { name: "ClaudeBot", pattern: /ClaudeBot/i },
-  { name: "Claude-Web", pattern: /Claude-Web/i },
-  { name: "Claude-SearchBot", pattern: /Claude-SearchBot/i },
-  { name: "Claude-User", pattern: /Claude-User/i },
-  { name: "PerplexityBot", pattern: /PerplexityBot/i },
-  { name: "Perplexity-User", pattern: /Perplexity-User/i },
-  { name: "anthropic-ai", pattern: /anthropic-ai/i },
-  { name: "Google-Extended", pattern: /Google-Extended/i },
-  { name: "Googlebot", pattern: /Googlebot/i },
-  { name: "GoogleOther", pattern: /GoogleOther/i },
-  { name: "GoogleOther-Image", pattern: /GoogleOther-Image/i },
-  { name: "GoogleOther-Video", pattern: /GoogleOther-Video/i },
-  { name: "Google-InspectionTool", pattern: /Google-InspectionTool/i },
-  { name: "Google-CloudVertexBot", pattern: /Google-CloudVertexBot/i },
-  { name: "Bingbot", pattern: /bingbot/i },
-  { name: "BingPreview", pattern: /BingPreview/i },
-  { name: "FacebookBot", pattern: /FacebookBot|facebookexternalhit/i },
-  { name: "Meta-ExternalAgent", pattern: /Meta-ExternalAgent|meta-externalagent/i },
-  { name: "Applebot", pattern: /Applebot/i },
-  { name: "Applebot-Extended", pattern: /Applebot-Extended/i },
-  { name: "CCBot", pattern: /CCBot/i },
-  { name: "Amazonbot", pattern: /Amazonbot/i },
-  { name: "Bytespider", pattern: /Bytespider/i },
-  { name: "YouBot", pattern: /YouBot/i },
-  { name: "DuckAssistBot", pattern: /DuckAssistBot/i },
-  { name: "DuckDuckBot", pattern: /DuckDuckBot/i },
-  { name: "Bravebot", pattern: /Bravebot/i },
-  { name: "MistralAI-User", pattern: /MistralAI-User/i },
-  { name: "Cohere-AI", pattern: /cohere-ai/i },
-  { name: "AI2Bot", pattern: /AI2Bot/i },
-];
+import { detectAiBot } from "./lib/ai-bots";
 
 const PUBLIC_FILE = /\.(js|css|png|jpg|jpeg|webp|avif|gif|svg|ico|woff|woff2|ttf|map)$/i;
 const PRIVATE_PATH = /^\/(admin|api|auth|doc)(\/|$)/i;
-
-function detectAiBot(userAgent: string) {
-  return AI_BOT_PATTERNS.find((bot) => bot.pattern.test(userAgent))?.name || "";
-}
 
 function shouldLogCrawler(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
@@ -90,16 +50,17 @@ function isLocalAdminBypass(req: NextRequest) {
 
 async function logAiCrawlerVisit(req: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
   const userAgent = (req.headers.get("user-agent") || "").slice(0, 500);
   const botName = detectAiBot(userAgent);
-  if (!supabaseUrl || !anonKey || !botName) return;
+  if (!supabaseUrl || !serviceRoleKey || !botName) return;
 
   await fetch(`${supabaseUrl}/rest/v1/ai_crawler_visits`, {
     method: "POST",
     headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
       "Content-Type": "application/json",
       Prefer: "return=minimal",
     },

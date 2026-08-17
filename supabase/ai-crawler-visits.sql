@@ -1,5 +1,6 @@
 -- Track public AI crawler visits for GEO / AI Search monitoring.
 -- This table must not store admin, API, shared document, customer, supplier, or ERP/CMS internal URLs.
+-- Inserts are server-only via SUPABASE_SERVICE_ROLE_KEY in src/proxy.ts.
 
 create extension if not exists pgcrypto;
 
@@ -10,60 +11,21 @@ create table if not exists public.ai_crawler_visits (
   user_agent text not null,
   referrer text,
   country text,
+  http_status integer,
+  response_size integer,
+  source text not null default 'next_proxy_request',
   created_at timestamptz not null default now()
 );
+
+alter table if exists public.ai_crawler_visits
+  add column if not exists http_status integer,
+  add column if not exists response_size integer,
+  add column if not exists source text not null default 'next_proxy_request';
 
 alter table public.ai_crawler_visits enable row level security;
 
 drop policy if exists "Public AI crawler insert only" on public.ai_crawler_visits;
 drop policy if exists "Authenticated users can read AI crawler visits" on public.ai_crawler_visits;
-
-create policy "Public AI crawler insert only"
-on public.ai_crawler_visits
-for insert
-to anon, authenticated
-with check (
-  bot_name in (
-    'GPTBot',
-    'ChatGPT-User',
-    'OAI-SearchBot',
-    'OAI-AdsBot',
-    'ClaudeBot',
-    'Claude-Web',
-    'Claude-SearchBot',
-    'Claude-User',
-    'PerplexityBot',
-    'Perplexity-User',
-    'anthropic-ai',
-    'Google-Extended',
-    'Googlebot',
-    'GoogleOther',
-    'GoogleOther-Image',
-    'GoogleOther-Video',
-    'Google-InspectionTool',
-    'Google-CloudVertexBot',
-    'Bingbot',
-    'BingPreview',
-    'FacebookBot',
-    'Meta-ExternalAgent',
-    'Applebot',
-    'Applebot-Extended',
-    'CCBot',
-    'Amazonbot',
-    'Bytespider',
-    'YouBot',
-    'DuckAssistBot',
-    'DuckDuckBot',
-    'Bravebot',
-    'MistralAI-User',
-    'Cohere-AI',
-    'AI2Bot'
-  )
-  and path !~ '^/(admin|api|auth|doc)(/|$)'
-  and path !~ '\.(js|css|png|jpg|jpeg|webp|avif|gif|svg|ico|woff|woff2|ttf|map)$'
-  and char_length(path) <= 300
-  and char_length(user_agent) <= 500
-);
 
 create policy "Authenticated users can read AI crawler visits"
 on public.ai_crawler_visits
@@ -71,7 +33,7 @@ for select
 to authenticated
 using (true);
 
-grant insert on table public.ai_crawler_visits to anon, authenticated;
+revoke insert on table public.ai_crawler_visits from anon, authenticated;
 grant select on table public.ai_crawler_visits to authenticated;
 
 create index if not exists ai_crawler_visits_created_at_idx
