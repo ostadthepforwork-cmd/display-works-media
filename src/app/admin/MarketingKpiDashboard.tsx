@@ -583,7 +583,7 @@ export default function MarketingKpiDashboard({
   const filteredCampaigns = useMemo(
     () => campaigns.filter((campaign: any) => {
       const date = marketingDateFromRow(campaign);
-      if (!date) return dateRangeMode === "all" || Number(campaign.spend || 0) === 0;
+      if (!date) return dateRangeMode === "all";
       return isInRange(date, startDate, endDate, dateRangeMode);
     }),
     [campaigns, dateRangeMode, endDate, startDate],
@@ -613,22 +613,24 @@ export default function MarketingKpiDashboard({
   const contactedLeads = filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const qualifiedLeads = filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const crmQuotationSent = filteredLeads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
-  const quotationSent = filteredDocuments.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length
-    + crmQuotationSent;
-  const closedJobs = receipts.length;
+  const erpQuotationDocs = filteredDocuments.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length;
+  const erpReceiptJobs = receipts.length;
+  const closedJobs = erpReceiptJobs;
   const closedLeadCount = filteredLeads.filter((lead) => lead.status === "closed_won").length;
+  const mappedClosedJobs = closedLeadCount;
+  const unmappedReceiptJobs = Math.max(0, erpReceiptJobs - mappedClosedJobs);
   const closedLeadRevenue = filteredLeads.filter(isRevenueLead).reduce((sum, lead) => sum + Number(lead.value || 0), 0);
   const grossProfit = receiptRevenue - receiptCost;
   const cpl = marketingLeadSignals > 0 ? marketingSpend / marketingLeadSignals : 0;
   const cpql = qualifiedLeads > 0 ? marketingSpend / qualifiedLeads : 0;
-  const costPerClosedJob = closedJobs > 0 ? marketingSpend / closedJobs : 0;
+  const costPerClosedJob = mappedClosedJobs > 0 ? marketingSpend / mappedClosedJobs : 0;
   const canCalculateLeadToCustomer = crmLeads > 0 && closedLeadCount <= crmLeads;
   const conversionRate = canCalculateLeadToCustomer ? (closedLeadCount / crmLeads) * 100 : null;
-  const quoteToCloseRate = quotationSent > 0 && closedJobs <= quotationSent ? (closedJobs / quotationSent) * 100 : null;
+  const quoteToCloseRate = crmQuotationSent > 0 && mappedClosedJobs <= crmQuotationSent ? (mappedClosedJobs / crmQuotationSent) * 100 : null;
   const roas = marketingSpend > 0 ? receiptRevenue / marketingSpend : 0;
   const profitRoas = marketingSpend > 0 ? grossProfit / marketingSpend : 0;
   const grossMargin = receiptRevenue > 0 ? (grossProfit / receiptRevenue) * 100 : 0;
-  const averageOrderValue = closedJobs > 0 ? receiptRevenue / closedJobs : 0;
+  const averageOrderValue = erpReceiptJobs > 0 ? receiptRevenue / erpReceiptJobs : 0;
   const plannedBudget = filteredCampaigns.reduce((sum, campaign) => sum + Number(campaign.spend || 0), 0);
 
   const metaCampaignRows = Array.isArray(meta?.campaigns) ? meta.campaigns : [];
@@ -667,7 +669,9 @@ export default function MarketingKpiDashboard({
         actionValues: Array.isArray(row.actionValues) ? row.actionValues : [],
         note: "ข้อมูลจาก Meta API",
       }))
-    : filteredCampaigns;
+    : meta?.connected
+      ? []
+      : filteredCampaigns;
 
   const facebookRows = campaignRows
     .filter((row: Campaign) => /facebook|meta/i.test(row.channel))
@@ -865,7 +869,9 @@ export default function MarketingKpiDashboard({
       [],
       ["Funnel", "Value", "Source"],
       ...marketingFunnel.map((item) => [item.label, item.value, item.label === "Visitor" ? "GA4" : item.label === "Qualified Lead" ? "CRM" : "Meta/CRM"]),
-      ...salesFunnel.map((item) => [item.label, item.value, item.label.includes("Receipt") ? "ERP receipts" : "CRM/ERP"]),
+      ...salesFunnel.map((item) => [item.label, item.value, "CRM pipeline"]),
+      ["ERP Receipts", erpReceiptJobs, "ERP receipts"],
+      ["Unmapped ERP Receipts", unmappedReceiptJobs, "ERP receipts waiting CRM mapping"],
     ];
     const csv = rows
       .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
@@ -891,15 +897,15 @@ export default function MarketingKpiDashboard({
     { label: "Marketing Spend", value: `฿${money(marketingSpend)}`, sub: meta.connected ? "จาก Meta Ads" : "รอเชื่อมต่อ Meta API", tone: "pink" },
     { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected ? "Meta + CRM in selected date" : "CRM / Manual in selected date", tone: "blue" },
     { label: "Qualified Leads", value: money(qualifiedLeads), sub: "Lead ที่ข้อมูลพร้อมติดตาม", tone: "purple" },
-    { label: "Quotation Sent", value: money(quotationSent), sub: "ใบเสนอราคา + CRM", tone: "yellow" },
-    { label: "Closed Jobs", value: money(closedJobs), sub: "จำนวนใบเสร็จใน ERP", tone: "green" },
+    { label: "Quotation Sent", value: money(crmQuotationSent), sub: `CRM pipeline / ERP quote docs ${money(erpQuotationDocs)}`, tone: "yellow" },
+    { label: "Closed Won", value: money(mappedClosedJobs), sub: `CRM closed-won / ERP receipts ${money(erpReceiptJobs)}`, tone: "green" },
     { label: "ROAS", value: roas ? roas.toFixed(2) : "-", sub: "Revenue / Ad Spend", tone: "orange" },
     { label: "Cost per Lead", value: cpl ? `฿${money(cpl)}` : "-", sub: "CPL", tone: "yellow" },
     { label: "Cost per Qualified Lead", value: cpql ? `฿${money(cpql)}` : "-", sub: "Spend / Qualified Lead", tone: "teal" },
-    { label: "Cost per Closed Job", value: costPerClosedJob ? `฿${money(costPerClosedJob)}` : "-", sub: "Spend / Closed Job", tone: "pink" },
+    { label: "Cost per Closed Won", value: costPerClosedJob ? `฿${money(costPerClosedJob)}` : "-", sub: "Spend / CRM Closed Won", tone: "pink" },
     { label: "Lead to Customer", value: conversionRate === null ? "ยังคำนวณไม่ได้" : percent(conversionRate), sub: "ไม่รวมคนละ source แบบมั่ว", tone: "purple" },
     { label: "Profit ROAS", value: profitRoas ? profitRoas.toFixed(2) : "-", sub: "Gross Profit / Spend", tone: "green" },
-    { label: "Average Order Value", value: averageOrderValue ? `฿${money(averageOrderValue)}` : "-", sub: "Revenue / Closed Jobs", tone: "orange" },
+    { label: "Average Order Value", value: averageOrderValue ? `฿${money(averageOrderValue)}` : "-", sub: "Revenue / ERP Receipts", tone: "orange" },
   ];
 
   const overviewCards = cards.filter((card) => [
@@ -907,7 +913,7 @@ export default function MarketingKpiDashboard({
     "Marketing Spend",
     "Marketing Leads",
     "Cost per Lead",
-    "Closed Jobs",
+    "Closed Won",
     "ROAS",
     "Gross Profit",
     "Average Order Value",
@@ -922,8 +928,8 @@ export default function MarketingKpiDashboard({
   const leadPipelineBars = [
     { label: "Marketing Leads", value: marketingLeadSignals, color: "#2563eb" },
     { label: "Qualified", value: qualifiedLeads, color: "#14b8a6" },
-    { label: "Quotations", value: quotationSent, color: "#f59e0b" },
-    { label: "Closed Jobs", value: closedJobs, color: "#ff6b00" },
+    { label: "CRM Quotes", value: crmQuotationSent, color: "#f59e0b" },
+    { label: "CRM Closed Won", value: mappedClosedJobs, color: "#ff6b00" },
   ];
   const maxLeadPipeline = Math.max(...leadPipelineBars.map((item) => Number(item.value || 0)), 1);
   const topCampaignRows = campaignRows.slice(0, 6);
@@ -1040,12 +1046,13 @@ export default function MarketingKpiDashboard({
     meta.connected && metaSpend > 0 && Number(meta?.totals?.reach || 0) === 0 && Number(meta?.totals?.clicks || 0) === 0
       ? "Meta มี Spend แต่ Reach/Click เป็น 0 โปรดตรวจสอบ permission, field หรือช่วงวันที่ใน Ads Manager"
       : "",
-    !hasSalesMapping && closedJobs > 0
-      ? `มีใบเสร็จ ERP ${money(closedJobs)} รายการ แต่ยังไม่มี CRM lead ในช่วงนี้ จึงยังคำนวณ Lead-to-Customer แบบตรง source ไม่ได้`
+    !hasSalesMapping && erpReceiptJobs > 0
+      ? `มีใบเสร็จ ERP ${money(erpReceiptJobs)} รายการ แต่ยังไม่มี CRM lead ในช่วงนี้ จึงยังคำนวณ Lead-to-Customer แบบตรง source ไม่ได้`
       : "",
     hasSalesMapping && conversionRate === null ? "Conversion Rate ยังไม่ควรคำนวณ เพราะ CRM lead กับ Closed Won ยังไม่ได้ Mapping ครบ" : "",
     filteredLeads.some((lead) => leadScore(lead) >= 70 && !lead.nextFollowUp) ? "มี Hot Lead ที่ยังไม่มีวัน Follow-up" : "",
-    quotationSent > 0 && quoteToCloseRate === null ? "Quote to Close Rate ยังไม่ควรคำนวณ เพราะข้อมูลใบเสนอราคาและใบเสร็จยังไม่ได้ Mapping" : "",
+    erpReceiptJobs > 0 && unmappedReceiptJobs > 0 ? `มีใบเสร็จ ERP ${money(unmappedReceiptJobs)} รายการที่ยังไม่ผูกกับ CRM lead/source จึงไม่รวมใน Sales Funnel` : "",
+    crmQuotationSent > 0 && quoteToCloseRate === null ? "Quote to Close Rate ยังไม่ควรคำนวณ เพราะ CRM quotation และ closed-won ยังไม่ได้ Mapping ครบ" : "",
     ...apiExpiryAlerts,
   ].filter(Boolean);
 
@@ -1240,7 +1247,7 @@ export default function MarketingKpiDashboard({
     { title: "Revenue Growth", value: `THB ${money(trendTotal(revenueTrend))}`, detail: "ERP receipt revenue by day", color: "#ff6b00", points: revenueTrend },
     { title: "Profit Growth", value: `THB ${money(trendTotal(profitTrend))}`, detail: "Revenue minus real cost", color: "#22c55e", points: profitTrend },
     { title: "Lead Growth", value: money(trendTotal(leadTrend)), detail: "CRM leads by day", color: "#2563eb", points: leadTrend },
-    { title: "Closed Jobs Growth", value: money(trendTotal(closedJobTrend)), detail: "Receipt count by day", color: "#f59e0b", points: closedJobTrend },
+    { title: "ERP Receipt Growth", value: money(trendTotal(closedJobTrend)), detail: "Receipt count by day", color: "#f59e0b", points: closedJobTrend },
   ];
   const sectionGrowthPanels =
     activeSection === "orders"
@@ -2007,7 +2014,8 @@ export default function MarketingKpiDashboard({
                 ["Facebook CPL", metaLeadSignals ? `฿${money(marketingSpend / metaLeadSignals)}` : "-", "Spend / Leads"],
                 ["Facebook ROAS", facebookErpRoas ? facebookErpRoas.toFixed(2) : "รอ Mapping", "ใช้เฉพาะ ERP/CRM ที่ map กับ Facebook"],
                 ["Qualified Leads", money(qualifiedLeads), "CRM mapped"],
-                ["Closed Jobs", money(closedJobs), "ERP receipts"],
+                ["CRM Closed Won", money(mappedClosedJobs), "CRM pipeline"],
+                ["ERP Receipts", money(erpReceiptJobs), "รายได้จริงจากใบเสร็จ"],
                 ["Mapped ERP Revenue", facebookAttributedRevenue ? `THB ${money(facebookAttributedRevenue)}` : "-", "ERP receipt source or closed-won CRM leads"],
                 ["Profit ROAS", profitRoas ? profitRoas.toFixed(2) : "-", "Gross Profit / Spend"],
               ].map(([label, value, sub]) => (
@@ -2031,7 +2039,8 @@ export default function MarketingKpiDashboard({
                 <div className="mk-mini"><strong>฿{money(facebookMappedRevenue)}</strong><div>รายได้ที่ map กับ Facebook Campaign</div></div>
                 <div className="mk-mini"><strong>{facebookMappedRoas ? facebookMappedRoas.toFixed(2) : "-"}</strong><div>Facebook ROAS จากยอดที่ map แล้ว</div></div>
                 <div className="mk-mini"><strong>{money(metaMessageLeads)}</strong><div>ลูกค้าทักจาก Meta message actions</div></div>
-                <div className="mk-mini"><strong>{money(closedLeadCount)}</strong><div>ปิดการขายใน CRM</div></div>
+                <div className="mk-mini"><strong>{money(mappedClosedJobs)}</strong><div>ปิดการขายใน CRM</div></div>
+                <div className="mk-mini"><strong>{money(unmappedReceiptJobs)}</strong><div>ใบเสร็จ ERP ที่ยังรอ map</div></div>
               </div>
             </section>
           )}
@@ -2158,7 +2167,8 @@ export default function MarketingKpiDashboard({
                     ))}
                   </div>
                   <div className="mk-empty" style={{ marginTop: 14 }}>
-                    ใบเสร็จ ERP ในช่วงนี้มี {money(closedJobs)} รายการ ใช้เป็นยอดปิดงานฝั่ง ERP แยกจาก CRM funnel จนกว่าจะผูก Lead/Quote/Receipt ด้วยรหัสเดียวกัน
+                    CRM Closed Won {money(mappedClosedJobs)} รายการ / ERP Receipts {money(erpReceiptJobs)} รายการ
+                    {unmappedReceiptJobs > 0 ? ` (${money(unmappedReceiptJobs)} ใบเสร็จยังรอผูก lead/source)` : " (ผูกข้อมูลครบในช่วงนี้)"}
                   </div>
                 </>
               ) : (
@@ -2418,8 +2428,10 @@ export default function MarketingKpiDashboard({
               <p>ข้อมูลส่วนนี้อ้างอิงจาก ERP เพื่อใช้ดูภาพรวมการปิดการขายและกำไรจริง</p>
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
                 <div className="mk-mini"><strong>{customers.length}</strong><div>Customers</div></div>
-                <div className="mk-mini"><strong>{quotationSent}</strong><div>Quotation Sent</div></div>
-                <div className="mk-mini"><strong>{closedJobs}</strong><div>Closed Jobs</div></div>
+                <div className="mk-mini"><strong>{crmQuotationSent}</strong><div>CRM Quotation Sent</div></div>
+                <div className="mk-mini"><strong>{erpQuotationDocs}</strong><div>ERP Quote Docs</div></div>
+                <div className="mk-mini"><strong>{mappedClosedJobs}</strong><div>CRM Closed Won</div></div>
+                <div className="mk-mini"><strong>{erpReceiptJobs}</strong><div>ERP Receipts</div></div>
                 <div className="mk-mini"><strong>{products.length}</strong><div>Products / Supplier Catalog</div></div>
                 <div className="mk-mini"><strong>฿{money(receiptRevenue)}</strong><div>Receipt Revenue</div></div>
                 <div className="mk-mini"><strong>฿{money(receiptCost)}</strong><div>Expense / Cost</div></div>
