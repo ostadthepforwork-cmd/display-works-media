@@ -3,15 +3,44 @@ import { requireAdminUser } from "@/lib/admin-auth";
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v20.0";
 
+const accessTokenKeys = [
+  "META_ACCESS_TOKEN",
+  "META_ADS_ACCESS_TOKEN",
+  "FACEBOOK_ACCESS_TOKEN",
+  "FACEBOOK_ADS_ACCESS_TOKEN",
+  "FB_ACCESS_TOKEN",
+];
+
+const adAccountKeys = [
+  "META_AD_ACCOUNT_ID",
+  "META_ADS_ACCOUNT_ID",
+  "FACEBOOK_AD_ACCOUNT_ID",
+  "FACEBOOK_ADS_ACCOUNT_ID",
+  "FB_AD_ACCOUNT_ID",
+];
+
+function readFirstEnv(keys: string[]) {
+  for (const key of keys) {
+    const value = (process.env[key] || "").trim();
+    if (value) return value;
+  }
+  return "";
+}
+
 function getAdAccountId() {
-  const raw = (process.env.META_AD_ACCOUNT_ID || "").trim();
+  const raw = readFirstEnv(adAccountKeys);
   if (!raw) return "";
-  return raw.startsWith("act_") ? raw : `act_${raw}`;
+  const clean = raw.replace(/^act_/, "");
+  return `act_${clean}`;
+}
+
+function getAccessToken() {
+  return readFirstEnv(accessTokenKeys);
 }
 
 async function graphGet(path: string, params: Record<string, string>) {
-  const token = process.env.META_ACCESS_TOKEN;
-  if (!token) throw new Error("ยังไม่ได้ตั้งค่า META_ACCESS_TOKEN");
+  const token = getAccessToken();
+  if (!token) throw new Error(`ยังไม่ได้ตั้งค่า Meta access token (${accessTokenKeys.join(" หรือ ")})`);
 
   const url = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${path}`);
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
@@ -52,9 +81,14 @@ const numberValue = (value: unknown) => Number(value || 0);
 
 const leadActionTypes = [
   "lead",
+  "leadgen_grouped",
+  "offsite_conversion.fb_pixel_lead",
+  "onsite_conversion.lead",
   "onsite_conversion.lead_grouped",
   "onsite_conversion.messaging_conversation_started_7d",
+  "onsite_conversion.messaging_conversation_started",
   "omni_messaging_conversation_started_7d",
+  "omni_messaging_conversation_started",
   "onsite_conversion.messaging_first_reply",
   "onsite_conversion.messaging_user_subscribed",
   "onsite_conversion.post_save",
@@ -62,7 +96,9 @@ const leadActionTypes = [
 
 const messageLeadActionTypes = [
   "onsite_conversion.messaging_conversation_started_7d",
+  "onsite_conversion.messaging_conversation_started",
   "omni_messaging_conversation_started_7d",
+  "omni_messaging_conversation_started",
   "onsite_conversion.messaging_first_reply",
   "onsite_conversion.messaging_user_subscribed",
 ];
@@ -152,12 +188,17 @@ export async function GET(request: Request) {
   }
 
   const adAccountId = getAdAccountId();
-  if (!adAccountId || !process.env.META_ACCESS_TOKEN) {
+  const accessToken = getAccessToken();
+  if (!adAccountId || !accessToken) {
     return NextResponse.json(
       {
         success: false,
         connected: false,
-        error: "ยังไม่ได้ตั้งค่า META_AD_ACCOUNT_ID หรือ META_ACCESS_TOKEN",
+        error: `ยังไม่ได้ตั้งค่า Meta API ให้ครบ ต้องมี Ad Account (${adAccountKeys.join(" หรือ ")}) และ Token (${accessTokenKeys.join(" หรือ ")})`,
+        requiredEnv: {
+          adAccount: adAccountKeys,
+          accessToken: accessTokenKeys,
+        },
       },
       { headers: { "Cache-Control": "no-store" } }
     );
@@ -275,6 +316,14 @@ export async function GET(request: Request) {
         success: true,
         connected: true,
         range: dateParams,
+        source: {
+          graphVersion: GRAPH_VERSION,
+          adAccountId,
+          accountRows: Array.isArray(accountInsights.data) ? accountInsights.data.length : 0,
+          campaignRows: campaignInsights.length,
+          adSetRows: adSetInsights.length,
+          adRows: adInsights.length,
+        },
         totals: {
           spend,
           impressions: numberValue(account.impressions),
@@ -387,6 +436,10 @@ export async function GET(request: Request) {
         success: false,
         connected: false,
         error: error instanceof Error ? error.message : "ไม่สามารถดึงข้อมูล Meta Ads ได้",
+        requiredEnv: {
+          adAccount: adAccountKeys,
+          accessToken: accessTokenKeys,
+        },
       },
       { status: 502, headers: { "Cache-Control": "no-store" } }
     );

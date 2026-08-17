@@ -81,30 +81,8 @@ const storageKeys = {
   apiExpiries: "dwm_marketing_api_expiries_v1",
 };
 
-const defaultCampaigns: Campaign[] = [
-  {
-    id: "camp-line-vinyl",
-    name: "Vinyl Banner LINE Inquiry",
-    channel: "Facebook Ads",
-    status: "active",
-    spend: 0,
-    leads: 0,
-    conversions: 0,
-    revenue: 0,
-    note: "แคมเปญรับบรีฟงานป้ายไวนิลและป้ายหน้าร้าน",
-  },
-  {
-    id: "camp-organic-sticker",
-    name: "Sticker Content SEO",
-    channel: "Organic",
-    status: "planning",
-    spend: 0,
-    leads: 0,
-    conversions: 0,
-    revenue: 0,
-    note: "บทความและหน้าบริการสำหรับสติ๊กเกอร์ฉลากสินค้า",
-  },
-];
+const defaultCampaigns: Campaign[] = [];
+const legacyDemoCampaignIds = new Set(["camp-line-vinyl", "camp-organic-sticker"]);
 
 const defaultLeads: Lead[] = [];
 
@@ -412,7 +390,9 @@ export default function MarketingKpiDashboard({
   const [dateRangeMode, setDateRangeMode] = useState<DateRangeMode>("30d");
   const [startDate, setStartDate] = useState(addDaysInput(-29));
   const [endDate, setEndDate] = useState(todayInput());
-  const [campaigns, setCampaigns] = useState<Campaign[]>(() => loadLocal(storageKeys.campaigns, defaultCampaigns));
+  const [campaigns, setCampaigns] = useState<Campaign[]>(() =>
+    loadLocal<Campaign[]>(storageKeys.campaigns, defaultCampaigns).filter((campaign) => !legacyDemoCampaignIds.has(campaign.id)),
+  );
   const [leads, setLeads] = useState<Lead[]>(() => loadLocal(storageKeys.leads, defaultLeads));
   const [apiExpiries, setApiExpiries] = useState<Record<string, ApiExpiryConfig>>(() =>
     loadLocal(storageKeys.apiExpiries, defaultApiExpiries()),
@@ -629,8 +609,9 @@ export default function MarketingKpiDashboard({
   const marketingLeadSignals = meta.connected ? metaLeads + crmLeads : crmLeads + campaignLeads;
   const contactedLeads = filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const qualifiedLeads = filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
+  const crmQuotationSent = filteredLeads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const quotationSent = filteredDocuments.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length
-    + filteredLeads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
+    + crmQuotationSent;
   const closedJobs = receipts.length;
   const closedLeadCount = filteredLeads.filter((lead) => lead.status === "closed_won").length;
   const closedLeadRevenue = filteredLeads.filter(isRevenueLead).reduce((sum, lead) => sum + Number(lead.value || 0), 0);
@@ -650,6 +631,25 @@ export default function MarketingKpiDashboard({
   const plannedBudget = filteredCampaigns.reduce((sum, campaign) => sum + Number(campaign.spend || 0), 0);
 
   const metaCampaignRows = Array.isArray(meta?.campaigns) ? meta.campaigns : [];
+  const hasMetaApiData = Boolean(
+    meta?.connected &&
+      (metaSpend > 0 ||
+        metaLeads > 0 ||
+        metaReportedRevenue > 0 ||
+        metaCampaignRows.length > 0 ||
+        Number(meta?.source?.campaignRows || 0) > 0 ||
+        Number(meta?.source?.accountRows || 0) > 0),
+  );
+  const metaStatusMessage = meta?.loading
+    ? "กำลังดึงข้อมูลจาก Meta Ads API..."
+    : !meta?.connected
+      ? meta?.error || "ยังไม่ได้เชื่อมต่อ Meta Ads API หรือ env บน Vercel ยังไม่ครบ"
+      : !hasMetaApiData
+        ? "Meta Ads API เชื่อมต่อแล้ว แต่ไม่พบข้อมูลในช่วงวันที่เลือก หรือแคมเปญใน ad account นี้ยังไม่มี delivery"
+        : "";
+  const metaSourceSummary = meta?.source
+    ? `Account rows ${Number(meta.source.accountRows || 0)}, Campaign rows ${Number(meta.source.campaignRows || 0)}, Ad set rows ${Number(meta.source.adSetRows || 0)}, Ad rows ${Number(meta.source.adRows || 0)}`
+    : "";
   const campaignRows = metaCampaignRows.length
     ? metaCampaignRows.map((row: any, index: number) => ({
         id: row.id || `meta-${index}`,
@@ -965,7 +965,7 @@ export default function MarketingKpiDashboard({
       error: meta.error || "",
       tokenType: "Meta access token",
       expiry: apiExpiries.meta || defaultApiExpiries().meta,
-      envKeys: "META_AD_ACCOUNT_ID, META_ACCESS_TOKEN",
+      envKeys: "META_AD_ACCOUNT_ID/META_ADS_ACCOUNT_ID, META_ACCESS_TOKEN/META_ADS_ACCESS_TOKEN",
     },
     {
       id: "line",
@@ -1176,8 +1176,8 @@ export default function MarketingKpiDashboard({
     { label: "Lead", value: crmLeads, color: "#2563eb" },
     { label: "Contacted", value: contactedLeads, color: "#06b6d4" },
     { label: "Detail Completed", value: filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, color: "#22c55e" },
-    { label: "Quotation Sent", value: quotationSent, color: "#f59e0b" },
-    { label: "Closed Won / Receipt", value: closedJobs, color: "#ff6b00" },
+    { label: "Quotation Sent", value: crmQuotationSent, color: "#f59e0b" },
+    { label: "Closed Won", value: closedLeadCount, color: "#ff6b00" },
   ] : [];
 
   const trendLength = dateRangeMode === "7d" ? 7 : 30;
@@ -1968,6 +1968,15 @@ export default function MarketingKpiDashboard({
             </div>
           </section>}
 
+          {(activeSection === "facebook" || activeSection === "reports") && metaStatusMessage && (
+            <section className="mk-empty" style={{ marginTop: 16, textAlign: "left" }}>
+              <strong>Meta Ads data ยังไม่พร้อมแสดง</strong>
+              <div>{metaStatusMessage}</div>
+              {metaSourceSummary && <div>{metaSourceSummary}</div>}
+              <div>ตรวจใน Vercel ว่ามี META_AD_ACCOUNT_ID หรือ META_ADS_ACCOUNT_ID และ META_ACCESS_TOKEN หรือ META_ADS_ACCESS_TOKEN แล้ว Redeploy โปรเจกต์อีกครั้ง</div>
+            </section>
+          )}
+
           {(activeSection === "facebook" || activeSection === "reports") && (
             <section className="mk-grid" style={{ marginTop: 16 }}>
               {[
@@ -2016,15 +2025,21 @@ export default function MarketingKpiDashboard({
               <span className="mk-badge" style={{ background: "rgba(34,197,94,.15)", color: "#22c55e" }}>Top {topCampaignRows.length} / {campaignRows.length} campaigns</span>
             </div>
             <div className="mk-meter-grid" style={{ marginBottom: 16 }}>
-              {topCampaignRows.slice(0, 5).map((row: Campaign) => (
-                <div className="mk-meter-row" key={`meter-${row.id}`}>
-                  <strong>{row.name}</strong>
-                  <div className="mk-meter-track">
-                    <span style={{ width: `${Math.max(3, (row.spend / Math.max(marketingSpend, 1)) * 100)}%`, background: row.revenue > 0 ? "#22c55e" : "#ff6b00" }} />
+              {topCampaignRows.length ? (
+                topCampaignRows.slice(0, 5).map((row: Campaign) => (
+                  <div className="mk-meter-row" key={`meter-${row.id}`}>
+                    <strong>{row.name}</strong>
+                    <div className="mk-meter-track">
+                      <span style={{ width: `${Math.max(3, (row.spend / Math.max(marketingSpend, 1)) * 100)}%`, background: row.revenue > 0 ? "#22c55e" : "#ff6b00" }} />
+                    </div>
+                    <span>Spend THB {money(row.spend)} / Leads {money(row.leads)}</span>
                   </div>
-                  <span>Spend THB {money(row.spend)} / Leads {money(row.leads)}</span>
+                ))
+              ) : (
+                <div className="mk-empty" style={{ gridColumn: "1 / -1" }}>
+                  ยังไม่มีข้อมูล campaign จาก Meta API ในช่วงวันที่นี้ ตรวจ env, สิทธิ์ ads_read และ Ad Account ID แล้วกด Sync/รีเฟรชอีกครั้ง
                 </div>
-              ))}
+              )}
             </div>
             <div className="mk-table-wrap compact">
               <table className="mk-table">
@@ -2032,6 +2047,11 @@ export default function MarketingKpiDashboard({
                   <tr><th>Campaign</th><th>Status</th><th>Spend</th><th>Reach</th><th>Clicks</th><th>Leads</th><th>Meta Revenue</th><th>CPL</th><th>ERP Mapped Revenue</th><th>Action</th></tr>
                 </thead>
                 <tbody>
+                  {!topCampaignRows.length && (
+                    <tr>
+                      <td colSpan={10}>ยังไม่มี campaign data จาก Meta API หรือ manual campaign ในช่วงวันที่นี้</td>
+                    </tr>
+                  )}
                   {topCampaignRows.map((row: Campaign) => {
                     const richRow = facebookRows.find((item) => item.id === row.id);
                     const rowCpl = row.leads ? row.spend / row.leads : 0;
@@ -2107,18 +2127,23 @@ export default function MarketingKpiDashboard({
                 ))}
               </div>
               <h2 style={{ marginTop: 22 }}>Sales Funnel</h2>
-              <p>เส้นทางจาก Lead ไปถึงงานที่ปิดได้จริง ต้องมีการ map Lead กับ Order/Receipt</p>
+              <p>เส้นทาง CRM จาก Lead ไปถึง Closed Won แยกจากใบเสร็จ ERP เพื่อไม่ให้นับงานที่ยังไม่ map ปนกัน</p>
               {hasSalesMapping ? (
-                <div className="mk-funnel">
-                  {salesFunnel.map((item, index) => (
-                    <div key={item.label} style={{ background: item.color, width: `${100 - index * 8}%`, marginInline: "auto" }}>
-                      <span>{item.label}</span><span>{money(item.value)}</span>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <div className="mk-funnel">
+                    {salesFunnel.map((item, index) => (
+                      <div key={item.label} style={{ background: item.color, width: `${100 - index * 8}%`, marginInline: "auto" }}>
+                        <span>{item.label}</span><span>{money(item.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mk-empty" style={{ marginTop: 14 }}>
+                    ใบเสร็จ ERP ในช่วงนี้มี {money(closedJobs)} รายการ ใช้เป็นยอดปิดงานฝั่ง ERP แยกจาก CRM funnel จนกว่าจะผูก Lead/Quote/Receipt ด้วยรหัสเดียวกัน
+                  </div>
+                </>
               ) : (
                 <div className="mk-empty">
-                  มีใบเสร็จใน ERP {money(closedJobs)} รายการ แต่ CRM lead ในช่วงนี้มี {money(crmLeads)} รายการ จึงยังไม่ควรทำ Funnel รวมกันจนกว่าจะผูก Lead/Quote/Receipt ด้วยรหัสเดียวกัน
+                  ยังไม่มี CRM lead ในช่วงวันที่นี้ จึงยังสร้าง Sales Funnel ไม่ได้ หากต้องการเทียบกับใบเสร็จ ให้ระบุ Lead Source/Campaign ในเอกสาร ERP ให้ตรงกัน
                 </div>
               )}
             </div>
