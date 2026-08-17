@@ -1173,6 +1173,55 @@ export default function MarketingKpiDashboard({
       tone: metaReportedRevenue ? "good" : "warning",
     },
   ];
+  const metaHasAccountSummary = Number(meta?.source?.accountRows || 0) > 0;
+  const metaHasCampaignBreakdown = Number(meta?.source?.campaignRows || 0) > 0;
+  const metaHasAdBreakdown = Number(meta?.source?.adSetRows || 0) > 0 || Number(meta?.source?.adRows || 0) > 0;
+  const sourceCoverageRows = [
+    {
+      label: "Meta Account Summary",
+      value: meta?.loading ? "Loading" : meta?.connected ? (metaHasAccountSummary || hasMetaApiData ? "พร้อมใช้" : "ไม่มี delivery") : "ยังไม่เชื่อมต่อ",
+      detail: meta?.connected
+        ? `ช่วงวันที่ ${metaApiRangeLabel} / Spend ฿${money(metaSpend)} / Reach ${money(metaReach)} / Click ${money(metaClicks)}`
+        : meta?.error || "ต้องตั้งค่า Meta env และ Redeploy",
+      tone: meta?.connected && (metaHasAccountSummary || hasMetaApiData) ? "good" : meta?.connected ? "warning" : "danger",
+    },
+    {
+      label: "Meta Campaign Breakdown",
+      value: metaHasCampaignBreakdown ? `${money(Number(meta?.source?.campaignRows || 0))} campaigns` : "ยังไม่คืน campaign rows",
+      detail: metaHasCampaignBreakdown
+        ? "Campaign Performance ใช้ข้อมูลจาก Meta API โดยตรง"
+        : meta?.connected
+          ? "ถ้า Ads Manager มีข้อมูล ให้ตรวจสิทธิ์ ads_read/read_insights หรือ Ad Account ID"
+          : "รอเชื่อม Meta API",
+      tone: metaHasCampaignBreakdown ? "good" : "warning",
+    },
+    {
+      label: "Meta Ad / Creative Breakdown",
+      value: metaHasAdBreakdown ? `${money(Number(meta?.source?.adSetRows || 0))} ad sets / ${money(Number(meta?.source?.adRows || 0))} ads` : "ยังไม่มี creative rows",
+      detail: metaHasAdBreakdown ? "Ad Set และ Creative Performance พร้อมวิเคราะห์" : "จะขึ้นเมื่อ Meta คืนข้อมูลระดับ adset/ad ในช่วงวันที่เลือก",
+      tone: metaHasAdBreakdown ? "good" : "warning",
+    },
+    {
+      label: "GA4 Traffic",
+      value: ga4?.loading ? "Loading" : ga4?.connected ? `${money(Number(ga4?.totals?.sessions || 0))} sessions` : "ยังไม่เชื่อมต่อ",
+      detail: ga4?.connected ? `ช่วงวันที่ ${ga4ApiRangeLabel}` : ga4?.error || "ต้องตั้งค่า GA4 service account/env",
+      tone: ga4?.connected ? "good" : "warning",
+    },
+    {
+      label: "ERP Revenue",
+      value: `${money(erpReceiptJobs)} receipts`,
+      detail: `รายได้จริง ฿${money(receiptRevenue)} / ใช้เทียบการปิดการขาย แต่ไม่เดา revenue ให้ Meta เอง`,
+      tone: erpReceiptJobs ? "good" : "warning",
+    },
+    {
+      label: "CRM Mapping",
+      value: hasSalesMapping ? `${money(mappedClosedJobs)} closed leads` : "ยังไม่มี mapping",
+      detail: hasSalesMapping
+        ? "Sales Funnel ใช้ CRM lead ที่ map กับสถานะขายจริง"
+        : "ถ้าต้องการ ROAS/Conversion แม่น ให้ระบุ source/campaign ตอนสร้าง lead หรือเอกสาร ERP",
+      tone: hasSalesMapping ? "good" : "warning",
+    },
+  ];
 
   const visibleSourceLogs = activeSourceLog === "ทั้งหมด"
     ? sourceLogs
@@ -1304,7 +1353,7 @@ export default function MarketingKpiDashboard({
     { label: "Click", value: meta.connected ? metaClicks : 0, source: meta.connected ? "Meta Ads clicks" : "รอ Meta API", color: "#0ea5e9" },
     { label: "Visitor", value: Number(ga4?.totals?.activeUsers ?? ga4?.totals?.sessions ?? 0), source: "GA4 active users / sessions", color: "#06b6d4" },
     { label: "Lead / Message", value: paidMarketingLeadSignals, source: meta.connected ? "Meta lead/message actions only" : "Manual campaign leads", color: "#22c55e" },
-    { label: "CRM Qualified", value: qualifiedLeads, source: "CRM mapped separately", color: "#f59e0b" },
+    { label: "Qualified CRM", value: qualifiedLeads, source: "CRM only, not ERP customer count", color: "#f59e0b" },
   ];
   const salesFunnel = hasSalesMapping ? [
     { label: "Lead", value: crmLeads, source: "CRM leads", color: "#2563eb" },
@@ -2169,6 +2218,29 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
+          {(activeSection === "facebook" || activeSection === "reports" || activeSection === "sources") && (
+            <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
+              <div className="mk-section-head">
+                <div>
+                  <h2>Data Coverage Check</h2>
+                  <p>ตรวจว่าแต่ละส่วนใช้ข้อมูลจาก API/ERP แหล่งไหน และช่วงวันที่ที่เลือกมีข้อมูลครบพอหรือไม่</p>
+                </div>
+                <span className={`mk-status ${hasMetaApiData || ga4?.connected || erpReceiptJobs ? "ready" : ""}`}>
+                  {hasMetaApiData || ga4?.connected || erpReceiptJobs ? "Data available" : "Waiting data"}
+                </span>
+              </div>
+              <div className="mk-channel-grid" style={{ marginTop: 14 }}>
+                {sourceCoverageRows.map((row) => (
+                  <div className={`mk-mini ${row.tone === "danger" ? "danger" : ""}`} key={row.label}>
+                    <strong>{row.value}</strong>
+                    <div>{row.label}</div>
+                    <small style={{ color: row.tone === "danger" ? "#fca5a5" : row.tone === "warning" ? "#fbbf24" : "#94a3b8" }}>{row.detail}</small>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {(activeSection === "facebook" || activeSection === "reports") && (
             <section className="mk-grid" style={{ marginTop: 16 }}>
               {[
@@ -2323,7 +2395,7 @@ export default function MarketingKpiDashboard({
             </div>
             <div className="mk-panel">
               <h2>Marketing Funnel</h2>
-              <p>แยกเฉพาะข้อมูลการตลาด ไม่เอา ERP Customer มารวมมั่ว</p>
+              <p>ใช้ Meta reach/click, GA4 visitor และ lead/message จริงในช่วงวันที่เลือก แยกจากใบเสร็จ ERP</p>
               <div className="mk-funnel">
                 {marketingFunnel.map((item) => (
                   <div key={item.label} style={{ background: item.color, width: `${funnelWidth(item.value, marketingFunnelMax)}%`, marginInline: "auto", opacity: Number(item.value || 0) > 0 ? 1 : 0.5 }}>
@@ -2339,6 +2411,11 @@ export default function MarketingKpiDashboard({
               {meta.connected && metaLeadSignalCount === 0 && metaSpend > 0 && (
                 <div className="mk-empty" style={{ marginTop: 14 }}>
                   มี Meta Spend แต่ Lead/Message เป็น 0: ควรตรวจ objective, action type และสิทธิ์ ads_read/read_insights ใน Meta API
+                </div>
+              )}
+              {meta.connected && metaLeadSignalCount === 0 && !metaSpend && !metaReach && !metaClicks && (
+                <div className="mk-empty" style={{ marginTop: 14 }}>
+                  ช่วงวันที่นี้ Meta API ไม่พบ delivery ของโฆษณา จึงยังไม่มี Reach, Click หรือ Lead ให้แสดงใน Marketing Funnel
                 </div>
               )}
               <h2 style={{ marginTop: 22 }}>Sales Funnel</h2>
