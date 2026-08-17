@@ -877,8 +877,8 @@ export default function MarketingKpiDashboard({
       }),
       [],
       ["Funnel", "Value", "Source"],
-      ...marketingFunnel.map((item) => [item.label, item.value, item.label === "Visitor" ? "GA4" : item.label === "Qualified Lead" ? "CRM" : "Meta/CRM"]),
-      ...salesFunnel.map((item) => [item.label, item.value, "CRM pipeline"]),
+      ...marketingFunnel.map((item) => [item.label, item.value, item.source]),
+      ...salesFunnel.map((item) => [item.label, item.value, item.source]),
       ["ERP Receipts", erpReceiptJobs, "ERP receipts"],
       ["Unmapped ERP Receipts", unmappedReceiptJobs, "ERP receipts waiting CRM mapping"],
     ];
@@ -1195,19 +1195,26 @@ export default function MarketingKpiDashboard({
   const budgetTarget = plannedBudget || marketingSpend;
 
   const marketingFunnel = [
-    { label: "Reach", value: Number(meta?.totals?.reach ?? 0), color: "#2563eb" },
-    { label: "Click", value: Number(meta?.totals?.clicks ?? 0), color: "#0ea5e9" },
-    { label: "Visitor", value: Number(ga4?.totals?.activeUsers ?? ga4?.totals?.sessions ?? 0), color: "#06b6d4" },
-    { label: "Lead / Message", value: marketingLeadSignals, color: "#22c55e" },
-    { label: "Qualified Lead", value: qualifiedLeads, color: "#f59e0b" },
+    { label: "Reach", value: Number(meta?.totals?.reach ?? 0), source: "Meta Ads reach", color: "#2563eb" },
+    { label: "Click", value: Number(meta?.totals?.clicks ?? 0), source: "Meta Ads clicks", color: "#0ea5e9" },
+    { label: "Visitor", value: Number(ga4?.totals?.activeUsers ?? ga4?.totals?.sessions ?? 0), source: "GA4 active users / sessions", color: "#06b6d4" },
+    { label: "Lead / Message", value: marketingLeadSignals, source: meta.connected ? "Meta lead/message actions + CRM fallback" : "Manual campaign + CRM leads", color: "#22c55e" },
+    { label: "Qualified Lead", value: qualifiedLeads, source: "CRM qualified status", color: "#f59e0b" },
   ];
   const salesFunnel = hasSalesMapping ? [
-    { label: "Lead", value: crmLeads, color: "#2563eb" },
-    { label: "Contacted", value: contactedLeads, color: "#06b6d4" },
-    { label: "Detail Completed", value: filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, color: "#22c55e" },
-    { label: "Quotation Sent", value: crmQuotationSent, color: "#f59e0b" },
-    { label: "Closed Won", value: closedLeadCount, color: "#ff6b00" },
+    { label: "Lead", value: crmLeads, source: "CRM leads", color: "#2563eb" },
+    { label: "Contacted", value: contactedLeads, source: "CRM contacted status", color: "#06b6d4" },
+    { label: "Detail Completed", value: filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, source: "CRM detail completed+", color: "#22c55e" },
+    { label: "Quotation Sent", value: crmQuotationSent, source: "CRM quotation sent", color: "#f59e0b" },
+    { label: "Closed Won", value: closedLeadCount, source: "CRM closed won", color: "#ff6b00" },
   ] : [];
+  const funnelWidth = (value: number, maxValue: number) => {
+    const numeric = Number(value || 0);
+    if (!maxValue || numeric <= 0) return 8;
+    return Math.max(16, Math.min(100, (numeric / maxValue) * 100));
+  };
+  const marketingFunnelMax = Math.max(1, ...marketingFunnel.map((item) => Number(item.value || 0)));
+  const salesFunnelMax = Math.max(1, ...salesFunnel.map((item) => Number(item.value || 0)));
 
   const trendLength = dateRangeMode === "7d" ? 7 : 30;
   const trendEnd = endDate || todayInput();
@@ -1353,7 +1360,7 @@ export default function MarketingKpiDashboard({
         .mk-table-wrap{overflow:auto;overscroll-behavior-x:contain}.mk-table-wrap.compact{max-height:560px;border-radius:14px;border:1px solid rgba(255,255,255,.06)}.mk-table-wrap.compact .mk-table th{position:sticky;top:0;background:#111923;z-index:3}.mk-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}.mk-table th,.mk-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.mk-table th{color:#94a3b8;font-size:12px}.mk-table td{color:#e5e7eb}.mk-table th:first-child,.mk-table td:first-child{position:sticky;left:0;background:#111923;z-index:2;box-shadow:10px 0 22px rgba(0,0,0,.22)}.mk-table th:first-child{z-index:4}.mk-table td strong{color:#fff}.mk-dashboard .mk-table th{color:#94a3b8!important;-webkit-text-fill-color:#94a3b8!important}.mk-dashboard .mk-table td{color:#e5e7eb!important;-webkit-text-fill-color:#e5e7eb!important}.mk-dashboard .mk-table td strong{color:#fff!important;-webkit-text-fill-color:#fff!important}
         .mk-badge{display:inline-flex;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900}
         .mk-budget{height:18px;background:#1f2937;border-radius:999px;overflow:hidden;margin:18px 0}.mk-budget span{display:block;height:100%;background:linear-gradient(90deg,#ff6b00,#22c55e)}
-        .mk-funnel{display:grid;gap:10px;margin-top:16px}.mk-funnel div{border-radius:12px;padding:12px 16px;color:#fff;font-weight:900;display:flex;justify-content:space-between}
+        .mk-funnel{display:grid;gap:10px;margin-top:16px}.mk-funnel div{border-radius:12px;padding:12px 16px;color:#fff;font-weight:900;display:flex;justify-content:space-between;gap:12px}.mk-funnel-label{display:grid;gap:2px;min-width:0}.mk-funnel-label small{font-size:11px;line-height:1.35;opacity:.78;font-weight:800}.mk-funnel-value{white-space:nowrap}
         .mk-channel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mk-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px}
         .mk-decision-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.mk-decision{border:1px solid rgba(255,107,0,.18);background:linear-gradient(135deg,rgba(255,107,0,.12),rgba(255,255,255,.035));border-radius:16px;padding:16px}.mk-decision strong{display:block;margin-bottom:6px}.mk-decision span{color:#a8b0c0;font-size:13px;line-height:1.55}
         .mk-scroll-list{display:grid;gap:10px;max-height:520px;overflow:auto;padding-right:4px}.mk-source.compact{padding:13px 14px}.mk-source.compact strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-meter-grid{display:grid;gap:12px}.mk-meter-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(160px,2fr) auto;gap:12px;align-items:center;color:#cbd5e1}.mk-meter-track{height:12px;background:#1f2937;border-radius:999px;overflow:hidden}.mk-meter-track span{display:block;height:100%;border-radius:999px}
@@ -2045,6 +2052,11 @@ export default function MarketingKpiDashboard({
                 <div className="mk-mini"><strong>{metaReportedRoas ? metaReportedRoas.toFixed(2) : "-"}</strong><div>Meta Reported ROAS</div></div>
               </div>
               <p>Meta Reported Revenue มาจาก action_values/purchase_roas ใน Meta API ส่วน ERP Mapped Revenue มาจากใบเสร็จหรือ CRM ที่ระบุแหล่งที่มาเป็น Facebook/Meta เท่านั้น</p>
+              <div className="mk-empty" style={{ marginTop: 14 }}>
+                <strong>{metaReportedRevenue > 0 ? "Meta ส่งรายได้จาก action_values แล้ว" : "Meta ยังไม่ส่งยอดซื้อหรือ action_values ในช่วงวันที่นี้"}</strong>
+                <div>{metaSourceSummary || "ตรวจช่วงวันที่และการเชื่อมต่อ Meta Ads API อีกครั้ง"}</div>
+                {metaReportedRevenue <= 0 && <div>ถ้าต้องการเห็นรายได้ฝั่ง Meta ต้องมี Purchase/Value event หรือ mapping ยอดขายกลับ Meta ก่อน ส่วนรายได้จริงยังดูจาก ERP Mapped Revenue ได้</div>}
+              </div>
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
                 <div className="mk-mini"><strong>฿{money(facebookMappedRevenue)}</strong><div>รายได้ที่ map กับ Facebook Campaign</div></div>
                 <div className="mk-mini"><strong>{facebookMappedRoas ? facebookMappedRoas.toFixed(2) : "-"}</strong><div>Facebook ROAS จากยอดที่ map แล้ว</div></div>
@@ -2159,9 +2171,9 @@ export default function MarketingKpiDashboard({
               <h2>Marketing Funnel</h2>
               <p>แยกเฉพาะข้อมูลการตลาด ไม่เอา ERP Customer มารวมมั่ว</p>
               <div className="mk-funnel">
-                {marketingFunnel.map((item, index) => (
-                  <div key={item.label} style={{ background: item.color, width: `${100 - index * 10}%`, marginInline: "auto" }}>
-                    <span>{item.label}</span><span>{money(item.value)}</span>
+                {marketingFunnel.map((item) => (
+                  <div key={item.label} style={{ background: item.color, width: `${funnelWidth(item.value, marketingFunnelMax)}%`, marginInline: "auto", opacity: Number(item.value || 0) > 0 ? 1 : 0.5 }}>
+                    <span className="mk-funnel-label">{item.label}<small>{item.source}</small></span><span className="mk-funnel-value">{money(item.value)}</span>
                   </div>
                 ))}
               </div>
@@ -2170,9 +2182,9 @@ export default function MarketingKpiDashboard({
               {hasSalesMapping ? (
                 <>
                   <div className="mk-funnel">
-                    {salesFunnel.map((item, index) => (
-                      <div key={item.label} style={{ background: item.color, width: `${100 - index * 8}%`, marginInline: "auto" }}>
-                        <span>{item.label}</span><span>{money(item.value)}</span>
+                    {salesFunnel.map((item) => (
+                      <div key={item.label} style={{ background: item.color, width: `${funnelWidth(item.value, salesFunnelMax)}%`, marginInline: "auto", opacity: Number(item.value || 0) > 0 ? 1 : 0.5 }}>
+                        <span className="mk-funnel-label">{item.label}<small>{item.source}</small></span><span className="mk-funnel-value">{money(item.value)}</span>
                       </div>
                     ))}
                   </div>
