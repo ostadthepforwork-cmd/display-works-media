@@ -625,7 +625,8 @@ export default function MarketingKpiDashboard({
   const crmLeads = filteredLeads.length;
   const campaignLeads = filteredCampaigns.reduce((sum, campaign) => sum + Number(campaign.leads || 0), 0);
   const manualMarketingLeadSignals = crmLeads + campaignLeads;
-  const marketingLeadSignals = meta.connected ? (metaLeadSignalCount || manualMarketingLeadSignals) : manualMarketingLeadSignals;
+  const marketingLeadSignals = meta.connected ? metaLeadSignalCount : manualMarketingLeadSignals;
+  const crmFallbackLeadSignals = meta.connected && metaLeadSignalCount === 0 ? manualMarketingLeadSignals : 0;
   const contactedLeads = filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const qualifiedLeads = filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
   const crmQuotationSent = filteredLeads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
@@ -918,7 +919,7 @@ export default function MarketingKpiDashboard({
     { label: "Revenue", value: `฿${money(receiptRevenue)}`, sub: "ตรงกับ ERP: ใบเสร็จเท่านั้น", tone: "green" },
     { label: "Gross Profit", value: `฿${money(grossProfit)}`, sub: `Margin ${percent(grossMargin)}`, tone: "teal" },
     { label: "Marketing Spend", value: `฿${money(marketingSpend)}`, sub: meta.connected ? "จาก Meta Ads" : "รอเชื่อมต่อ Meta API", tone: "pink" },
-    { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected && metaLeadSignalCount > 0 ? "Meta lead/message actions" : "CRM / Manual fallback", tone: "blue" },
+    { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected ? "Meta lead/message actions only" : "CRM / Manual fallback", tone: "blue" },
     { label: "Qualified Leads", value: money(qualifiedLeads), sub: "Lead ที่ข้อมูลพร้อมติดตาม", tone: "purple" },
     { label: "Quotation Sent", value: money(crmQuotationSent), sub: `CRM pipeline / ERP quote docs ${money(erpQuotationDocs)}`, tone: "yellow" },
     { label: "Closed Won", value: money(mappedClosedJobs), sub: `CRM closed-won / ERP receipts ${money(erpReceiptJobs)}`, tone: "green" },
@@ -1254,7 +1255,7 @@ export default function MarketingKpiDashboard({
     { label: "Reach", value: Number(meta?.totals?.reach ?? 0), source: "Meta Ads reach", color: "#2563eb" },
     { label: "Click", value: Number(meta?.totals?.clicks ?? 0), source: "Meta Ads clicks", color: "#0ea5e9" },
     { label: "Visitor", value: Number(ga4?.totals?.activeUsers ?? ga4?.totals?.sessions ?? 0), source: "GA4 active users / sessions", color: "#06b6d4" },
-    { label: "Lead / Message", value: marketingLeadSignals, source: meta.connected ? "Meta lead/message actions + CRM fallback" : "Manual campaign + CRM leads", color: "#22c55e" },
+    { label: "Lead / Message", value: marketingLeadSignals, source: meta.connected ? "Meta lead/message actions only" : "Manual campaign + CRM leads", color: "#22c55e" },
     { label: "Qualified Lead", value: qualifiedLeads, source: "CRM qualified status", color: "#f59e0b" },
   ];
   const salesFunnel = hasSalesMapping ? [
@@ -1817,7 +1818,7 @@ export default function MarketingKpiDashboard({
                 <div className="mk-mobile-metric">
                   <span>Leads</span>
                   <strong>{money(marketingLeadSignals)}</strong>
-                  <span>{meta.connected ? "Meta + CRM" : "CRM / Manual"}</span>
+                  <span>{meta.connected ? "Meta actions" : "CRM / Manual"}</span>
                 </div>
                 <div className="mk-mobile-metric">
                   <span>Ad Spend</span>
@@ -2271,6 +2272,16 @@ export default function MarketingKpiDashboard({
                   </div>
                 ))}
               </div>
+              {crmFallbackLeadSignals > 0 && (
+                <div className="mk-empty" style={{ marginTop: 14 }}>
+                  Meta API ยังไม่ส่ง Lead/Message action ในช่วงนี้ แต่มี CRM/manual lead {money(crmFallbackLeadSignals)} รายการ จึงแยกไว้ใน Sales/CRM เพื่อไม่ให้ Marketing Funnel นับปนกัน
+                </div>
+              )}
+              {meta.connected && metaLeadSignalCount === 0 && metaSpend > 0 && (
+                <div className="mk-empty" style={{ marginTop: 14 }}>
+                  มี Meta Spend แต่ Lead/Message เป็น 0: ควรตรวจ objective, action type และสิทธิ์ ads_read/read_insights ใน Meta API
+                </div>
+              )}
               <h2 style={{ marginTop: 22 }}>Sales Funnel</h2>
               <p>เส้นทาง CRM จาก Lead ไปถึง Closed Won แยกจากใบเสร็จ ERP เพื่อไม่ให้นับงานที่ยังไม่ map ปนกัน</p>
               {hasSalesMapping ? (
