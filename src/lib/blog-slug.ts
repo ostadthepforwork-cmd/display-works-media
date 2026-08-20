@@ -1,8 +1,31 @@
+const BLOG_SLUG_ALIASES: Record<string, string> = {
+  "storefront-sign-types-guide": "storefront-signage-ideas",
+};
+
 export function normalizeBlogSlug(slug: string | null | undefined) {
-  return String(slug || "")
+  let normalized = String(slug || "")
     .trim()
+    .replace(/&amp;/g, "&")
+    .replace(/^['"]+|['"]+$/g, "");
+
+  try {
+    if (/^https?:\/\//i.test(normalized)) {
+      normalized = new URL(normalized).pathname;
+    }
+  } catch {
+    // Fall back to treating the value as a plain slug.
+  }
+
+  normalized = normalized
+    .split(/[?#]/)[0]
     .replace(/^\/+/, "")
     .replace(/\/+$/, "");
+
+  while (/^blog\//i.test(normalized)) {
+    normalized = normalized.replace(/^blog\/+/i, "");
+  }
+
+  return BLOG_SLUG_ALIASES[normalized.toLowerCase()] || normalized;
 }
 
 export function blogSlugCandidates(slug: string | null | undefined) {

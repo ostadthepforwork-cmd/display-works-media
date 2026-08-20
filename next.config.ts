@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      { source: "/blog/blog/storefront-sign-types-guide", destination: "/blog/storefront-signage-ideas", permanent: true },
+      { source: "/blog/storefront-sign-types-guide", destination: "/blog/storefront-signage-ideas", permanent: true },
+      { source: "/blog/blog/:slug*", destination: "/blog/:slug*", permanent: true },
       { source: "/services/vinyl", destination: "/services/vinyl-banner", permanent: true },
       { source: "/services/ppboard", destination: "/services/pp-board", permanent: true },
       { source: "/services/rollup", destination: "/services/roll-up", permanent: true },

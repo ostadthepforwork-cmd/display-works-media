@@ -18,7 +18,7 @@ import {
 
 type Post = {
   id: string; title: string; excerpt: string; category: string;
-  date: string; slug: string; cover: string; cover_alt?: string; published: boolean; body: string;
+  date: string; slug: string; cover: string; cover_url?: string; image?: string; thumbnail?: string; cover_alt?: string; image_alt?: string; published: boolean; body: string;
   faqs?: Array<{ q?: string; a?: string }>;
   ai_summary?: string;
   key_takeaways?: string;
@@ -169,8 +169,8 @@ export default function BlogPostPage({
     );
   }
 
-  const postCover = safeImageSrc(post.cover);
-  const postCoverAlt = post.cover_alt?.trim() || post.title;
+  const postCover = safeImageSrc(post.cover || post.cover_url || post.image || post.thumbnail);
+  const postCoverAlt = post.cover_alt?.trim() || post.image_alt?.trim() || post.title;
   const faqs = cleanFaqs(post.faqs);
   const quickAnswer = String(post.ai_summary || post.excerpt || "").trim();
   const keyTakeaways = String(post.key_takeaways || "")

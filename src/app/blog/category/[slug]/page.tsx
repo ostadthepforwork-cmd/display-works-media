@@ -94,8 +94,8 @@ export default async function BlogCategoryPage({ params }: PageProps) {
             {posts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {posts.map((post: any) => {
-                  const cover = safeImageSrc(post.cover);
-                  const coverAlt = String(post.cover_alt || "").trim() || post.title;
+                  const cover = safeImageSrc(post.cover || post.cover_url || post.image || post.thumbnail);
+                  const coverAlt = String(post.cover_alt || post.image_alt || "").trim() || post.title;
                   return (
                   <article key={post.id} className="group bg-[#0E1310] rounded-2xl overflow-hidden border border-white/5 hover:border-[#FF7A00]/30 transition-all duration-300">
                     <Link href={blogPostPath(post.slug)} className="block">
