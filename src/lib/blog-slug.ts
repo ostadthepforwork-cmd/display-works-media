@@ -1,7 +1,3 @@
-const BLOG_SLUG_ALIASES: Record<string, string> = {
-  "storefront-sign-types-guide": "storefront-signage-ideas",
-};
-
 export function normalizeBlogSlug(slug: string | null | undefined) {
   let normalized = String(slug || "")
     .trim()
@@ -25,7 +21,7 @@ export function normalizeBlogSlug(slug: string | null | undefined) {
     normalized = normalized.replace(/^blog\/+/i, "");
   }
 
-  return BLOG_SLUG_ALIASES[normalized.toLowerCase()] || normalized;
+  return normalized;
 }
 
 export function blogSlugCandidates(slug: string | null | undefined) {
