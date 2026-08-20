@@ -5,7 +5,7 @@ import { Calendar, Clock, ArrowRight, Search, Home, ChevronRight } from "lucide-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BlogClientShell from "./BlogClientShell";
-import { blogCategories } from "@/lib/seo-content";
+import { blogCategories, seoArticlePlans, seoArticlePlanToPost } from "@/lib/seo-content";
 import { safeImageSrc } from "@/lib/image-utils";
 import { blogPostPath } from "@/lib/blog-slug";
 
@@ -34,6 +34,20 @@ function withTimeout<T>(promise: Promise<T>, ms = 3000): Promise<T> {
   ]);
 }
 
+function normalizePost(post: any) {
+  return {
+    ...post,
+    cover: post?.cover || post?.cover_url || post?.image || post?.thumbnail || "",
+    cover_alt: post?.cover_alt || post?.image_alt || post?.title || "",
+    body: post?.body || post?.content || "",
+    excerpt: post?.excerpt || post?.summary || "",
+  };
+}
+
+function fallbackBlogPosts() {
+  return seoArticlePlans.slice(0, 5).map(seoArticlePlanToPost);
+}
+
 export default async function BlogPage() {
   // สร้าง supabase client ภายใน function — ป้องกัน connection leak ใน serverless
   let allPosts: any[] = [];
@@ -51,10 +65,14 @@ export default async function BlogPage() {
           .order("date", { ascending: false }))
       );
 
-      allPosts = posts || [];
+      allPosts = (posts || []).map(normalizePost);
     }
   } catch {
     allPosts = [];
+  }
+
+  if (allPosts.length === 0) {
+    allPosts = fallbackBlogPosts();
   }
 
   allPosts = allPosts

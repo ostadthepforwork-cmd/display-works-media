@@ -7,6 +7,7 @@ import { ArrowRight, CalendarDays, Clock3 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { safeImageSrc } from "@/lib/image-utils";
 import { blogPostPath } from "@/lib/blog-slug";
+import { seoArticlePlans, seoArticlePlanToPost } from "@/lib/seo-content";
 
 export interface BlogPost {
   id: string;
@@ -34,6 +35,10 @@ function readTime(body: string) {
   return Math.max(1, Math.round((body || "").length / 1000));
 }
 
+function fallbackHomePosts(): BlogPost[] {
+  return seoArticlePlans.slice(0, 3).map(seoArticlePlanToPost) as BlogPost[];
+}
+
 export default function BlogSection({ initialPosts = [] }: { initialPosts?: BlogPost[] }) {
   const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
   const [loaded, setLoaded] = useState(initialPosts.length > 0);
@@ -45,6 +50,7 @@ export default function BlogSection({ initialPosts = [] }: { initialPosts?: Blog
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!url || !key) {
+      setPosts(fallbackHomePosts());
       setLoaded(true);
       return;
     }
@@ -59,7 +65,7 @@ export default function BlogSection({ initialPosts = [] }: { initialPosts?: Blog
         .order("date", { ascending: false })
         .limit(3);
 
-      setPosts(data || []);
+      setPosts((data && data.length > 0 ? data : fallbackHomePosts()) as BlogPost[]);
       setLoaded(true);
     }
 

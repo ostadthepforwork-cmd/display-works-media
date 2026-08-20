@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/Navbar";
-import { blogCategories, blogCategoryBySlug, serviceByHref } from "@/lib/seo-content";
+import { blogCategories, blogCategoryBySlug, seoArticlePlans, seoArticlePlanToPost, serviceByHref } from "@/lib/seo-content";
 import { safeImageSrc } from "@/lib/image-utils";
 import { blogPostPath } from "@/lib/blog-slug";
 import { ArrowRight, Calendar, Clock } from "lucide-react";
@@ -65,8 +65,14 @@ export default async function BlogCategoryPage({ params }: PageProps) {
   const { slug } = await params;
   const category = blogCategoryBySlug(slug);
   if (!category) notFound();
-  const posts = (await getPostsByCategory(category.name))
+  let posts = (await getPostsByCategory(category.name))
     .sort((a: any, b: any) => String(b.date).localeCompare(String(a.date)));
+  if (posts.length === 0) {
+    posts = seoArticlePlans
+      .filter((article) => article.categorySlug === category.slug)
+      .map(seoArticlePlanToPost)
+      .sort((a: any, b: any) => String(b.date).localeCompare(String(a.date)));
+  }
   const relatedServices = category.serviceLinks.map(serviceByHref).filter(Boolean);
 
   return (

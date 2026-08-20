@@ -57,6 +57,7 @@ function isSafeUrl(value: string) {
   const trimmed = value.trim().replace(/[\u0000-\u001F\u007F\s]+/g, "");
   if (!trimmed) return false;
   if (/^(javascript|data|vbscript):/i.test(trimmed)) return false;
+  if (/^(images|uploads|blog|portfolio|services)\//i.test(trimmed)) return true;
   return /^(https?:|mailto:|tel:|\/|#)/i.test(trimmed);
 }
 
