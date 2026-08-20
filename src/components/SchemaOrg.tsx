@@ -75,7 +75,7 @@ const organizationSchema = {
         itemOffered: {
           "@type": "Service",
           name: "สติ๊กเกอร์ทุกชนิด",
-          url: "https://displayworksmedia.com/services/label-sticker",
+          url: "https://displayworksmedia.com/services/sticker",
         },
       },
       {

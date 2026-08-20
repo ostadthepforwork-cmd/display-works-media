@@ -34,6 +34,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
   padding: 12px 18px;
   background: rgba(255, 255, 255, 0.96);
@@ -58,6 +59,14 @@ body {
 .doc-toolbar-actions {
   display: flex;
   gap: 8px;
+}
+
+.doc-toolbar-status {
+  flex-basis: 100%;
+  margin: -8px 0 0;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .doc-toolbar button {
@@ -505,12 +514,19 @@ body {
 
   .doc-toolbar-actions {
     flex-shrink: 0;
+    width: 100%;
   }
 
   .doc-toolbar button {
+    flex: 1;
     min-height: 38px;
     padding: 0 10px;
     font-size: 12px;
+  }
+
+  .doc-toolbar-status {
+    margin-top: -4px;
+    font-size: 11px;
   }
 
   .doc-a4 {
@@ -521,6 +537,42 @@ body {
     transform: scale(var(--doc-scale, 0.45));
     margin-bottom: calc(var(--doc-mobile-height, 505px) - 297mm);
   }
+}
+
+/* iPhone/Safari may snapshot the current screen layout before applying print CSS.
+   This print-prep mode removes the mobile scale before opening the save/print sheet. */
+html[data-doc-printing="true"],
+html[data-doc-printing="true"] body {
+  width: 210mm;
+  min-width: 210mm;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fff !important;
+  overflow: visible !important;
+}
+
+html[data-doc-printing="true"] .doc-toolbar {
+  display: none !important;
+}
+
+html[data-doc-printing="true"] .doc-public-shell {
+  width: 210mm !important;
+  min-width: 210mm !important;
+  min-height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fff !important;
+  overflow: visible !important;
+}
+
+html[data-doc-printing="true"] .doc-a4 {
+  width: 210mm !important;
+  min-width: 210mm !important;
+  min-height: 297mm !important;
+  margin: 0 !important;
+  padding: 18mm 12mm 15mm !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 /* ─── PRINT ──────────────────────────────────────────────────────────────── */
@@ -557,6 +609,7 @@ body {
 
   .doc-a4 {
     width: 210mm !important;
+    min-width: 210mm !important;
     min-height: 297mm !important;
     margin: 0 !important;
     padding: 18mm 12mm 15mm !important;

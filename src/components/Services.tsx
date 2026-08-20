@@ -64,13 +64,25 @@ type ServiceItem = {
   href?: string;
 };
 
+function normalizeServiceHref(item: ServiceItem) {
+  const id = String(item.id || "");
+  const name = String(item.name || "").toLowerCase();
+  const href = item.href || item.url || "";
+  const hasLabelIntent = id === "6" || name.includes("ฉลาก") || name.includes("label");
+  const hasStickerIntent = id === "2" || name.includes("สติ๊กเกอร์") || name.includes("sticker");
+
+  if (hasLabelIntent) return "/services/label-sticker";
+  if (hasStickerIntent) return "/services/sticker";
+  return href;
+}
+
 function normalizeServices(items?: ServiceItem[]) {
   if (!Array.isArray(items) || items.length === 0) return defaultServices;
 
   return items
     .filter((item) => item?.name)
     .map((item) => {
-      const href = item.href || item.url || "";
+      const href = normalizeServiceHref(item);
       return {
         image: item.image || item.img || imageByHref[href] || "/images/services/vinyl.jpg",
         name: item.name || "",

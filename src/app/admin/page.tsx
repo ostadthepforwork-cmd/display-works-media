@@ -7035,6 +7035,30 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     showToast(`อัปเดตสถานะเป็น "${STATUS_LABELS[status]}"`);
   };
 
+  const copyTextToClipboard = async (text: string) => {
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    try {
+      const copied = document.execCommand("copy");
+      if (!copied) throw new Error("Copy command failed");
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  };
+
   // ── Email Modal ────────────────────────────────────────────
   const copyDocumentSummary = async (doc) => {
     const { netPay } = calcDocTotal(doc);
@@ -7047,7 +7071,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       `สถานะ: ${STATUS_LABELS[doc.status] || doc.status}`,
     ].join("\n");
     try {
-      await navigator.clipboard.writeText(text);
+      await copyTextToClipboard(text);
       showToast("คัดลอกข้อมูลเอกสารแล้ว");
     } catch {
       showToast("ไม่สามารถคัดลอกได้", "error");
@@ -7061,16 +7085,28 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     }
     const title = `${DOC_TYPES[doc.type]?.label || "เอกสาร"} ${doc.docNo}`;
     const url = publicDocumentUrl(doc.id, doc.updatedAt || Date.now());
+    const shareData = {
+      title,
+      text: `${title}\nลูกค้า: ${doc.customerName || "-"}\nเปิดดูเอกสารและบันทึกเป็น PDF ได้จากลิงก์นี้`,
+      url,
+    };
+
     try {
-      if (navigator.share) {
-        await navigator.share({ title, text: title, url });
+      if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
+        await navigator.share(shareData);
         showToast("แชร์ลิงก์เอกสารแล้ว");
         return;
       }
-      await navigator.clipboard.writeText(url);
+      await copyTextToClipboard(`${title}\n${url}`);
       showToast("คัดลอกลิงก์เอกสารแล้ว");
-    } catch {
-      showToast("ไม่สามารถแชร์ลิงก์เอกสารได้", "error");
+    } catch (error) {
+      if ((error as DOMException)?.name === "AbortError") return;
+      try {
+        await copyTextToClipboard(`${title}\n${url}`);
+        showToast("คัดลอกลิงก์เอกสารแล้ว");
+      } catch {
+        showToast("ไม่สามารถแชร์ลิงก์เอกสารได้", "error");
+      }
     }
   };
 
@@ -8825,21 +8861,35 @@ function HeroManager({ showToast }: any) {
 // SERVICES MANAGER
 // ============================================================
 function ServicesManager({ showToast }: any) {
-  const [services, setServices] = useState(() => loadLocal("services", [
+  function normalizeServiceLinks(list: any[]) {
+    if (!Array.isArray(list)) return [];
+    return list.map((service) => {
+      const id = String(service?.id || "");
+      const name = String(service?.name || "").toLowerCase();
+      const hasLabelIntent = id === "6" || name.includes("ฉลาก") || name.includes("label");
+      const hasStickerIntent = id === "2" || name.includes("สติ๊กเกอร์") || name.includes("sticker");
+
+      if (hasLabelIntent) return { ...service, url: "/services/label-sticker" };
+      if (hasStickerIntent) return { ...service, url: "/services/sticker" };
+      return service;
+    });
+  }
+
+  const [services, setServices] = useState(() => normalizeServiceLinks(loadLocal("services", [
     { id: "1", name: "ป้ายไวนิล", icon: "🪟", desc: "พิมพ์งานคุณภาพสูง ทนต่อแสงและฝน เหมาะสำหรับป้ายหน้าร้าน ป้ายโฆษณา ขนาดใหญ่", price: "ตร.ม.ละ 200฿", url: "/services/vinyl-banner" },
-    { id: "2", name: "สติ๊กเกอร์", icon: "🏷️", desc: "สติ๊กเกอร์กันน้ำ indoor/outdoor พิมพ์สี 4 สี คมชัด ติดทนนาน", price: "ตร.ม.ละ 350฿", url: "/services/label-sticker" },
+    { id: "2", name: "สติ๊กเกอร์", icon: "🏷️", desc: "สติ๊กเกอร์กันน้ำ indoor/outdoor พิมพ์สี 4 สี คมชัด ติดทนนาน", price: "ตร.ม.ละ 350฿", url: "/services/sticker" },
     { id: "3", name: "PP Board", icon: "📋", desc: "ป้ายพีพีบอร์ดน้ำหนักเบา พกพาง่าย เหมาะสำหรับงาน Event และป้ายชั่วคราว", price: "แผ่นละ 400฿", url: "/services/pp-board" },
     { id: "4", name: "Roll Up", icon: "🎪", desc: "ป้าย Roll Up สำหรับงานนิทรรศการ ประชุม และงานกิจกรรมต่างๆ", price: "ชิ้นละ 2,200฿", url: "/services/roll-up" },
     { id: "5", name: "Backdrop", icon: "🖼", desc: "ป้าย Backdrop ขนาดใหญ่สำหรับงานอีเวนต์ ถ่ายรูป และงานแถลงข่าว", price: "ชุดละ 3,500฿", url: "/services/backdrop" },
     { id: "6", name: "ฉลากสินค้า", icon: "🏷", desc: "พิมพ์ฉลากสินค้าคุณภาพสูง ทั้งแบบม้วนและแผ่น รองรับทุกขนาด", price: "100 ชิ้นละ 400฿", url: "/services/label-sticker" },
-  ]));
+  ])));
   const [editing, setEditing] = useState<any>(null);
   const [pageContent, setPageContent] = useState<any>(defaultPageContent);
   const [servicePortfolioUploading, setServicePortfolioUploading] = useState("");
   useEffect(() => {
     let alive = true;
     loadCmsSetting("services", services).then((value) => {
-      if (alive) setServices(value);
+      if (alive) setServices(normalizeServiceLinks(value));
     });
     loadCmsSetting("page_content", defaultPageContent).then((value) => {
       if (alive) setPageContent(value || defaultPageContent);
@@ -8935,7 +8985,7 @@ function ServicesManager({ showToast }: any) {
   };
 
   const save = async (s) => {
-    const newSvc = s.id ? services.map(x => x.id === s.id ? s : x) : [...services, { ...s, id: Date.now().toString() }];
+    const newSvc = normalizeServiceLinks(s.id ? services.map(x => x.id === s.id ? s : x) : [...services, { ...s, id: Date.now().toString() }]);
     setServices(newSvc);
     try {
       await saveCmsSetting("services", newSvc);
