@@ -8134,6 +8134,8 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
   const editorRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const commonEmojis = ["✅", "📌", "⭐", "🔥", "📐", "🖨️", "🎯", "💡", "📦", "🚚", "🏷️", "📍", "📞", "💬", "⚠️", "❌", "➡️", "⬇️"];
 
   // sync ค่าเข้า editor เมื่อเปิดครั้งแรก
   useEffect(() => {
@@ -8150,6 +8152,13 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
 
   const sync = () => {
     if (editorRef.current) onChange(editorRef.current.innerHTML);
+  };
+
+  const insertEmoji = (emoji: string) => {
+    editorRef.current?.focus();
+    document.execCommand("insertText", false, emoji);
+    sync();
+    setEmojiOpen(false);
   };
 
   const insertImage = async (file: File) => {
@@ -8240,6 +8249,20 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
         }} title="แทรกลิงก์">🔗</button>
         <button type="button" aria-label="Remove link" style={btnStyle()} onClick={() => exec("unlink")} title="ลบลิงก์">🚫</button>
         <div style={divider} />
+        {/* Emoji */}
+        <div className="emoji-picker-wrap" style={{ position: "relative" }}>
+          <button type="button" aria-label="Insert emoji" style={btnStyle()} onClick={() => setEmojiOpen(v => !v)} title="แทรก Emoji">😊</button>
+          {emojiOpen && (
+            <div className="emoji-picker-panel" style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 5, display: "grid", gridTemplateColumns: "repeat(6, 34px)", gap: 6, padding: 10, background: "#0F172A", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, boxShadow: "0 14px 36px rgba(0,0,0,0.45)" }}>
+              {commonEmojis.map(emoji => (
+                <button key={emoji} type="button" aria-label={`Insert emoji ${emoji}`} style={{ ...btnStyle(), fontSize: 18, padding: 0, minWidth: 34, height: 34 }} onClick={() => insertEmoji(emoji)}>
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={divider} />
         {/* Image */}
         <input ref={imgRef} type="file" accept="image/*" aria-label="Upload article image" style={{ display: "none" }}
           onChange={e => e.target.files?.[0] && insertImage(e.target.files[0])} />
@@ -8285,7 +8308,7 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
         [contenteditable] figure { margin: 24px 0; text-align: center; }
         [contenteditable] figure img { max-width: 100%; border-radius: 10px; }
         [contenteditable] figcaption { font-size: 13px; color: #888; margin-top: 8px; }
-        [contenteditable]:empty:before { content: "เริ่มพิมพ์เนื้อหาบทความที่นี่... รองรับการจัดรูปแบบ หัวข้อ รูปภาพ ลิงก์"; color: #444; }
+        [contenteditable]:empty:before { content: "เริ่มพิมพ์เนื้อหาบทความที่นี่... รองรับหัวข้อ รูปภาพ ลิงก์ และ Emoji"; color: #444; }
       `}</style>
     </div>
   );
@@ -8413,7 +8436,13 @@ function BlogManager({ showToast }: any) {
       </div>
 
       {editing && (
-        <CModal title={editing.id ? "แก้ไขบทความ" : "เพิ่มบทความใหม่"} onClose={() => setEditing(null)} width={700}>
+        <CModal
+          title={editing.id ? "แก้ไขบทความ" : "เพิ่มบทความใหม่"}
+          onClose={() => setEditing(null)}
+          width={1120}
+          panelClassName="article-editor-modal"
+          contentClassName="article-editor-modal-content"
+        >
           <BlogForm data={editing} onSave={save} onCancel={() => setEditing(null)} showToast={showToast} />
         </CModal>
       )}
@@ -8515,7 +8544,86 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
   const charCountStyle = (len: number, max: number) => ({ fontSize: 11, color: len > max ? "#ef4444" : "#6B7280", textAlign: "right" as const, marginTop: 2 });
 
   return (
-    <div className="blog-form-body" style={{ display: "flex", gap: 0, minHeight: 500 }}>
+    <>
+    <style>{`
+      .article-editor-modal {
+        max-height: 92dvh !important;
+      }
+      .article-editor-modal-content {
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+      .article-editor-modal .blog-form-body {
+        min-height: min(720px, calc(92dvh - 74px)) !important;
+      }
+      .article-editor-modal .blog-form-tabs {
+        width: 172px !important;
+        padding: 18px 12px !important;
+      }
+      .article-editor-modal .blog-form-tabs button {
+        min-height: 48px !important;
+        padding: 12px 14px !important;
+        font-size: 13px !important;
+      }
+      .article-editor-modal .blog-form-content {
+        padding: 24px 28px !important;
+        max-height: calc(92dvh - 74px) !important;
+      }
+      .article-editor-modal .rich-editor-shell {
+        border-radius: 16px !important;
+      }
+      .article-editor-modal .rich-editor-toolbar {
+        gap: 8px !important;
+        padding: 12px !important;
+      }
+      .article-editor-modal .rich-editor-toolbar button,
+      .article-editor-modal .rich-editor-toolbar label {
+        min-height: 38px !important;
+      }
+      .article-editor-modal .rich-editor-surface {
+        min-height: 460px !important;
+        font-size: 16px !important;
+        line-height: 1.85 !important;
+      }
+      @media (max-width: 768px) {
+        .article-editor-modal {
+          width: 100% !important;
+          max-width: none !important;
+          max-height: 94dvh !important;
+          border-radius: 24px 24px 0 0 !important;
+          align-self: flex-end !important;
+        }
+        .article-editor-modal-content {
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+        }
+        .article-editor-modal .blog-form-body {
+          min-height: 0 !important;
+          display: block !important;
+        }
+        .article-editor-modal .blog-form-tabs {
+          width: auto !important;
+          padding: 10px 14px !important;
+        }
+        .article-editor-modal .blog-form-content {
+          padding: 16px !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+        .article-editor-modal .rich-editor-toolbar {
+          grid-template-columns: repeat(4, minmax(44px, 1fr)) !important;
+        }
+        .article-editor-modal .emoji-picker-panel {
+          left: auto !important;
+          right: 0 !important;
+          grid-template-columns: repeat(5, 36px) !important;
+        }
+        .article-editor-modal .rich-editor-surface {
+          min-height: 380px !important;
+        }
+      }
+    `}</style>
+    <div className="blog-form-body" style={{ display: "flex", gap: 0, minHeight: 640 }}>
       {/* Sidebar Tabs */}
       <div className="blog-form-tabs" style={{ width: 130, background: "#0D1320", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px", flexShrink: 0 }}>
         {tabs.map(t => (
@@ -8536,7 +8644,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
       </div>
 
       {/* Tab Content */}
-      <div className="blog-form-content" style={{ flex: 1, padding: "20px 24px", overflowY: "auto", maxHeight: 580 }}>
+      <div className="blog-form-content" style={{ flex: 1, padding: "20px 24px", overflowY: "auto", maxHeight: 680 }}>
 
         {/* ── TAB: GENERAL ── */}
         {activeTab === "general" && (
@@ -8743,6 +8851,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
         )}
       </div>
     </div>
+    </>
   );
 }
 
@@ -9932,17 +10041,17 @@ function CIconBtn({ onClick, children, danger, small, type = "button", ...rest }
     }}>{children}</button>
   );
 }
-function CModal({ title, onClose, children, width = 500 }: any) {
+function CModal({ title, onClose, children, width = 500, panelClassName = "", contentClassName = "" }: any) {
   return (
     <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+      <div className={`modal-panel ${panelClassName}`.trim()} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         {/* drag indicator */}
         <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
           <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
-        <div style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
+        <div className={contentClassName} style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
       </div>
     </div>
   );

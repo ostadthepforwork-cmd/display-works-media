@@ -63,8 +63,21 @@ function normalizeServices(items?: Array<Record<string, any>>) {
     name: item.name || fallbackServices[index]?.name || "บริการงานพิมพ์",
     desc: item.desc || fallbackServices[index]?.desc || "",
     image: item.image || item.img || fallbackServices[index]?.image,
-    href: item.href || item.url || fallbackServices[index]?.href || "/services",
+    href: normalizeServiceHref(item, index),
   }));
+}
+
+function normalizeServiceHref(item: Record<string, any>, index: number) {
+  const name = String(item.name || item.title || "").toLowerCase();
+  const id = String(item.id || item.slug || "").toLowerCase();
+  const href = String(item.href || item.url || "");
+  const hasLabelIntent = id.includes("label") || name.includes("ฉลาก") || name.includes("label");
+  const hasStickerIntent = id.includes("sticker") || name.includes("สติ๊กเกอร์") || name.includes("sticker");
+
+  if (hasLabelIntent) return "/services/label-sticker";
+  if (hasStickerIntent) return "/services/sticker";
+
+  return href || fallbackServices[index]?.href || "/services";
 }
 
 function normalizePortfolioItem(item: Record<string, any>, index: number, serviceKey?: string) {
