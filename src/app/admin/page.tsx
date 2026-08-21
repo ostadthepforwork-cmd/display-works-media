@@ -328,6 +328,12 @@ const STATUS_COLORS = {
 const STATUS_LABELS = {
   draft: "ฉบับร่าง", sent: "ส่งแล้ว", approved: "อนุมัติ", cancelled: "ยกเลิก", paid: "ชำระแล้ว",
 };
+const DOCUMENT_STATUS_KEYS = ["draft", "sent", "approved", "paid", "cancelled"];
+const DOCUMENT_STATUS_VALUES = new Set(DOCUMENT_STATUS_KEYS);
+const normalizeDocumentStatusForDb = (status, docType = "", paymentStatus = "") => {
+  if (docType === "receipt" && paymentStatus && paymentStatus !== "unpaid") return "paid";
+  return DOCUMENT_STATUS_VALUES.has(status) ? status : "draft";
+};
 STATUS_COLORS.partial_paid = "#F59E0B";
 STATUS_LABELS.partial_paid = "ชำระบางส่วน";
 
@@ -6889,9 +6895,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     const normalizedPaymentAmount = Math.max(0, Number(doc.paymentAmount || doc.depositPaid || 0) || 0);
     const docForTotals = { ...doc, paymentAmount: normalizedPaymentAmount };
     const paymentTotals = calcDocTotal(docForTotals, allDocuments);
-    const normalizedStatus = doc.type === "receipt" && paymentTotals.depositPaid > 0
-      ? (paymentTotals.balanceDue > 0 ? "partial_paid" : "paid")
-      : doc.status;
+    const normalizedStatus = normalizeDocumentStatusForDb(doc.status, doc.type, paymentTotals.paymentStatus);
     const docRow = {
       type: doc.type, doc_no: doc.docNo, status: normalizedStatus,
       customer_id: doc.customerId, customer_name: doc.customerName,
@@ -7029,10 +7033,11 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     showToast("ลบเอกสารแล้ว");
   };
   const changeStatus = async (id, status) => {
-    const { error } = await supabase.from("erp_documents").update({ status }).eq("id", id);
+    const safeStatus = normalizeDocumentStatusForDb(status);
+    const { error } = await supabase.from("erp_documents").update({ status: safeStatus }).eq("id", id);
     if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-    setDocuments(prev => prev.map(d => d.id === id ? { ...d, status } : d));
-    showToast(`อัปเดตสถานะเป็น "${STATUS_LABELS[status]}"`);
+    setDocuments(prev => prev.map(d => d.id === id ? { ...d, status: safeStatus } : d));
+    showToast(`อัปเดตสถานะเป็น "${STATUS_LABELS[safeStatus]}"`);
   };
 
   const copyTextToClipboard = async (text: string) => {
@@ -7192,7 +7197,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 180 }} />
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width: 130 }}>
             <option value="all">ทุกสถานะ</option>
-            {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            {DOCUMENT_STATUS_KEYS.map((k) => <option key={k} value={k}>{STATUS_LABELS[k]}</option>)}
           </select>
           <Btn onClick={newDoc} color={dt.color}>+ สร้างเอกสาร</Btn>
         </div>
@@ -7238,11 +7243,11 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         </button>
                         {openStatus === doc.id && (
                           <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 140, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
-                            {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                            {DOCUMENT_STATUS_KEYS.map((k) => (
                               <button type="button" key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
                               style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: doc.status === k ? STATUS_COLORS[k] + "22" : "transparent", color: doc.status === k ? STATUS_COLORS[k] : "#F8FAFC", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left", fontWeight: 700 }}>
                                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[k], flexShrink: 0, display: "inline-block" }} />
-                                {v}
+                                {STATUS_LABELS[k]}
                               </button>
                             ))}
                           </div>
@@ -7356,10 +7361,10 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       </button>
                       {openStatus === doc.id && (
                         <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 140, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
-                          {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                          {DOCUMENT_STATUS_KEYS.map((k) => (
                             <button type="button" key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
                               style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: doc.status === k ? STATUS_COLORS[k] + "22" : "transparent", color: doc.status === k ? STATUS_COLORS[k] : "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left" as const }}>
-                              <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[k], flexShrink: 0, display: "inline-block" }} />{v}
+                              <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[k], flexShrink: 0, display: "inline-block" }} />{STATUS_LABELS[k]}
                             </button>
                           ))}
                         </div>
