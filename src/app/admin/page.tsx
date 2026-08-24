@@ -362,6 +362,38 @@ const normalizeDocumentStatusForDb = (status, docType = "", paymentStatus = "") 
 STATUS_COLORS.partial_paid = "#F59E0B";
 STATUS_LABELS.partial_paid = "ชำระบางส่วน";
 
+const DOCUMENT_TYPE_ALIASES = {
+  quote: "quote",
+  quotation: "quote",
+  quotation_note: "quote",
+  estimate: "quote",
+  bill: "bill",
+  billing: "bill",
+  billing_note: "bill",
+  invoice: "invoice",
+  tax_invoice: "invoice",
+  receipt: "receipt",
+  receipt_note: "receipt",
+};
+
+const normalizeDocumentTypeForUi = (type = "") => {
+  const raw = String(type || "").trim();
+  if (DOC_TYPES[raw]) return raw;
+  return DOCUMENT_TYPE_ALIASES[raw] || "quote";
+};
+
+const normalizeDocumentStatusForUi = (status = "", docType = "", paymentStatus = "") => {
+  const raw = String(status || "").trim();
+  if (raw === "partial_paid") return "partial_paid";
+  return normalizeDocumentStatusForDb(raw, normalizeDocumentTypeForUi(docType), paymentStatus);
+};
+
+const getDocTypeMeta = (type = "") => DOC_TYPES[normalizeDocumentTypeForUi(type)] || DOC_TYPES.quote;
+const getDocStatusColor = (status = "", docType = "", paymentStatus = "") =>
+  STATUS_COLORS[normalizeDocumentStatusForUi(status, docType, paymentStatus)] || STATUS_COLORS.draft;
+const getDocStatusLabel = (status = "", docType = "", paymentStatus = "") =>
+  STATUS_LABELS[normalizeDocumentStatusForUi(status, docType, paymentStatus)] || STATUS_LABELS.draft;
+
 // ============================================================
 // INITIAL DATA
 // ============================================================
@@ -475,7 +507,8 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
 
   const cust = customers.find((c) => c.id === doc.customerId) || {};
   const custAddress = doc.overrideAddress || cust.address || "";
-  const dt = DOC_TYPES[doc.type];
+  const docTypeKey = normalizeDocumentTypeForUi(doc.type);
+  const dt = getDocTypeMeta(docTypeKey);
 
   // ── Calculations (shared utility) ─────────────────────────
   const { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, depositDate, depositNote, paymentType, balanceDue } = calcDocTotal(doc, linkedDocuments);
@@ -489,7 +522,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     invoice: { en: "INVOICE",      sub: "ใบแจ้งหนี้",      valid: "วันครบกำหนด" },
     receipt: { en: "RECEIPT",      sub: "ใบเสร็จรับเงิน",  valid: "วันที่ชำระ" },
   };
-  const lbl = DOC_LABELS[doc.type] || DOC_LABELS.quote;
+  const lbl = DOC_LABELS[docTypeKey] || DOC_LABELS.quote;
 
   // ── Table rows — with bullet detail list ─────────────────
   const rows = doc.items.map((rawItem, i) => {
@@ -993,8 +1026,13 @@ export default function AdminPage() {
         // map documents + inject items
         if (docRes.data) {
           const items = itemRes.data || [];
-          setDocuments(docRes.data.map(d => applyErpDocumentShadow({
-            id: d.id, type: d.type, docNo: d.doc_no, status: d.status,
+          setDocuments(docRes.data.map(d => {
+            const safeType = normalizeDocumentTypeForUi(d.type);
+            const safePaymentStatus = d.payment_status || "";
+            const safeStatus = normalizeDocumentStatusForUi(d.status, safeType, safePaymentStatus);
+
+            return applyErpDocumentShadow({
+            id: d.id, type: safeType, docNo: d.doc_no, status: safeStatus,
             customerId: d.customer_id, customerName: d.customer_name,
             projectName: d.project_name, orderId: d.order_id,
             reference: d.reference, salesPerson: d.sales_person,
@@ -1006,7 +1044,7 @@ export default function AdminPage() {
             paymentAmount: d.payment_amount ?? 0,
             paymentDate: d.payment_date || "",
             paymentNote: d.payment_note || "",
-            paymentStatus: d.payment_status || "",
+            paymentStatus: safePaymentStatus,
             date: d.date, dueDate: d.due_date,
             discount: d.discount, discountType: d.discount_type || "percent", vat: d.vat, vatRate: d.vat_rate ?? 7, wht: d.wht, whtRate: d.wht_rate,
             depositPaid: d.deposit_paid ?? 0,
@@ -1029,7 +1067,8 @@ export default function AdminPage() {
               heightM: i.height_m ?? undefined,
               pieces: i.pieces ?? undefined,
             })),
-          })));
+          });
+          }));
         }
 
         // map company
@@ -6878,28 +6917,30 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const dt = DOC_TYPES[type];
+  const docTypeKey = normalizeDocumentTypeForUi(type);
+  const dt = getDocTypeMeta(docTypeKey);
   const filtered = documents.filter(d =>
     !d.deleted &&
-    (filterStatus === "all" || d.status === filterStatus) &&
+    (filterStatus === "all" || normalizeDocumentStatusForUi(d.status, d.type, d.paymentStatus) === filterStatus) &&
     ([d.docNo, d.customerName].some((value) => String(value || "").includes(search)))
   );
   const nextDocNoForType = (targetType: string) => {
     const year = new Date().getFullYear() + 543;
-    const targetDt = DOC_TYPES[targetType] || dt;
+    const safeTargetType = normalizeDocumentTypeForUi(targetType);
+    const targetDt = getDocTypeMeta(safeTargetType) || dt;
     const prefix = `${targetDt.prefix}${year}-`;
     // หา running number สูงสุดที่มีอยู่แล้วในปีนี้ แทนการนับ .length
     const maxSeq = allDocuments
-      .filter(d => d.type === targetType && d.docNo?.startsWith(prefix))
+      .filter(d => normalizeDocumentTypeForUi(d.type) === safeTargetType && d.docNo?.startsWith(prefix))
       .reduce((max, d) => {
         const seq = parseInt(d.docNo.replace(prefix, ""), 10);
         return isNaN(seq) ? max : Math.max(max, seq);
       }, 0);
     return `${prefix}${String(maxSeq + 1).padStart(4, "0")}`;
   };
-  const nextDocNo = () => nextDocNoForType(type);
+  const nextDocNo = () => nextDocNoForType(docTypeKey);
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: type === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: type === "receipt" ? today() : "", paymentNote: "", items: [], internalExpenses: [], discount: 0, discountType: "percent", vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
+    setEditing({ id: "", type: docTypeKey, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: docTypeKey === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: docTypeKey === "receipt" ? today() : "", paymentNote: "", items: [], internalExpenses: [], discount: 0, discountType: "percent", vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
   const save = async (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
@@ -7097,13 +7138,14 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   // ── Email Modal ────────────────────────────────────────────
   const copyDocumentSummary = async (doc) => {
     const { netPay } = calcDocTotal(doc);
+    const docMeta = getDocTypeMeta(doc.type);
     const text = [
-      `${DOC_TYPES[doc.type]?.label || "เอกสาร"} ${doc.docNo}`,
+      `${docMeta?.label || "เอกสาร"} ${doc.docNo}`,
       `ลูกค้า: ${doc.customerName || "-"}`,
       `วันที่: ${fmtDate(doc.date)}`,
       `ครบกำหนด: ${fmtDate(doc.dueDate)}`,
       `ยอดสุทธิ: ฿${fmtMoney(netPay)}`,
-      `สถานะ: ${STATUS_LABELS[doc.status] || doc.status}`,
+      `สถานะ: ${getDocStatusLabel(doc.status, doc.type, doc.paymentStatus)}`,
     ].join("\n");
     try {
       await copyTextToClipboard(text);
@@ -7118,7 +7160,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       showToast("กรุณาบันทึกเอกสารก่อนแชร์", "error");
       return;
     }
-    const title = `${DOC_TYPES[doc.type]?.label || "เอกสาร"} ${doc.docNo}`;
+    const title = `${getDocTypeMeta(doc.type)?.label || "เอกสาร"} ${doc.docNo}`;
     const url = publicDocumentUrl(doc.id, doc.updatedAt || Date.now());
     const shareData = {
       title,
@@ -7189,7 +7231,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       setSplitModal({ srcDoc, newDoc });
     } else {
       setEditing(newDoc);
-      showToast(`สร้าง${DOC_TYPES[targetType]?.label}จาก ${srcDoc.docNo}`);
+      showToast(`สร้าง${getDocTypeMeta(targetType)?.label}จาก ${srcDoc.docNo}`);
     }
   };
 
@@ -7267,8 +7309,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       {/* ── Status Badge + Dropdown ── */}
                       <div style={{ position: "relative", display: "inline-block" }} data-status-dropdown="">
                         <button type="button" onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
-                          style={{ display: "flex", alignItems: "center", gap: 6, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "5px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-                          {STATUS_LABELS[doc.status]}
+                          style={{ display: "flex", alignItems: "center", gap: 6, background: getDocStatusColor(doc.status, doc.type, doc.paymentStatus) + "22", color: getDocStatusColor(doc.status, doc.type, doc.paymentStatus), border: `1px solid ${getDocStatusColor(doc.status, doc.type, doc.paymentStatus)}55`, padding: "5px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                          {getDocStatusLabel(doc.status, doc.type, doc.paymentStatus)}
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5l3 3 3-3"/></svg>
                         </button>
                         {openStatus === doc.id && (
@@ -7336,15 +7378,15 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             }} />
 
                             {/* สร้างเอกสารต่อ */}
-                            {(DOC_NEXT[doc.type] || []).length > 0 && (
+                            {(DOC_NEXT[normalizeDocumentTypeForUi(doc.type)] || []).length > 0 && (
                               <>
                                 <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
                                 <div style={{ padding: "4px 14px 4px", fontSize: 10, color: "#94A3B8", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>สร้างเอกสารต่อ</div>
-                                {(DOC_NEXT[doc.type] || []).map((next, ni) => (
+                                {(DOC_NEXT[normalizeDocumentTypeForUi(doc.type)] || []).map((next, ni) => (
                                   <MenuBtn key={ni}
-                                    icon={next.split ? "✂️" : DOC_TYPES[next.type]?.short === "BL" ? "📋" : DOC_TYPES[next.type]?.short === "IV" ? "📑" : "🧾"}
+                                    icon={next.split ? "✂️" : getDocTypeMeta(next.type)?.short === "BL" ? "📋" : getDocTypeMeta(next.type)?.short === "IV" ? "📑" : "🧾"}
                                     label={next.label}
-                                    color={DOC_TYPES[next.type]?.color}
+                                    color={getDocTypeMeta(next.type)?.color}
                                     onClick={() => { createFrom(doc, next.type, next.split); closeAll(); }}
                                   />
                                 ))}
@@ -7385,8 +7427,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                   <div className="doc-mobile-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                     <div className="doc-mobile-status" style={{ position: "relative", display: "inline-block" }} data-status-dropdown="">
                       <button type="button" onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
-                        style={{ display: "flex", alignItems: "center", gap: 5, background: STATUS_COLORS[doc.status] + "22", color: STATUS_COLORS[doc.status], border: `1px solid ${STATUS_COLORS[doc.status]}55`, padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-                        {STATUS_LABELS[doc.status]}
+                        style={{ display: "flex", alignItems: "center", gap: 5, background: getDocStatusColor(doc.status, doc.type, doc.paymentStatus) + "22", color: getDocStatusColor(doc.status, doc.type, doc.paymentStatus), border: `1px solid ${getDocStatusColor(doc.status, doc.type, doc.paymentStatus)}55`, padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                        {getDocStatusLabel(doc.status, doc.type, doc.paymentStatus)}
                         <svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5l3 3 3-3"/></svg>
                       </button>
                       {openStatus === doc.id && (
@@ -7429,11 +7471,11 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` }); closeAll(); }} />
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" }); closeAll(); }} />
-                            {(DOC_NEXT[doc.type] || []).length > 0 && <>
+                            {(DOC_NEXT[normalizeDocumentTypeForUi(doc.type)] || []).length > 0 && <>
                               <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
                               <div style={{ padding: "4px 14px", fontSize: 10, color: "#94A3B8", fontWeight: 700, textTransform: "uppercase" as const }}>สร้างเอกสารต่อ</div>
-                              {(DOC_NEXT[doc.type] || []).map((next, ni) => (
-                                <MenuBtn key={ni} icon={next.split ? "✂️" : "📑"} label={next.label} color={DOC_TYPES[next.type]?.color} onClick={() => { createFrom(doc, next.type, next.split); closeAll(); }} />
+                              {(DOC_NEXT[normalizeDocumentTypeForUi(doc.type)] || []).map((next, ni) => (
+                                <MenuBtn key={ni} icon={next.split ? "✂️" : "📑"} label={next.label} color={getDocTypeMeta(next.type)?.color} onClick={() => { createFrom(doc, next.type, next.split); closeAll(); }} />
                               ))}
                             </>}
                             <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
@@ -7514,7 +7556,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           onConfirm={(finalDoc) => {
             setEditing(finalDoc);
             setSplitModal(null);
-            showToast(`สร้าง${DOC_TYPES[finalDoc.type]?.label}แบบแบ่งจ่ายจาก ${splitModal.srcDoc.docNo}`);
+            showToast(`สร้าง${getDocTypeMeta(finalDoc.type)?.label}แบบแบ่งจ่ายจาก ${splitModal.srcDoc.docNo}`);
           }}
           onClose={() => setSplitModal(null)}
         />
@@ -7527,7 +7569,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
 // SPLIT MODAL — เลือกรายการ/ยอดแบ่งจ่าย
 // ============================================================
 function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
-  const dt = DOC_TYPES[newDoc.type];
+  const dt = getDocTypeMeta(newDoc.type);
   // เริ่มต้น: เลือกทุกรายการ เต็มจำนวน
   const [items, setItems] = useState(
     srcDoc.items.map(i => ({ ...i, selectedQty: i.qty, selected: true }))
@@ -7611,7 +7653,8 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const setN = (k) => (e) => setF(prev => ({ ...prev, [k]: parseFloat(e.target.value) || 0 }));
   const setBool = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.checked }));
-  const dt = DOC_TYPES[type];
+  const docTypeKey = normalizeDocumentTypeForUi(type);
+  const dt = getDocTypeMeta(docTypeKey);
 
   // ── ลูกค้า ──────────────────────────────────────────────
   const setCust = (id) => {
@@ -7714,7 +7757,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <Field label="เลขที่เอกสาร *"><input value={f.docNo} onChange={set("docNo")} /></Field>
           <Field label="วันที่ออกเอกสาร"><input type="date" value={f.date} onChange={set("date")} /></Field>
-          <Field label={DOC_TYPES[type]?.prefix === "QT" ? "ยืนยันราคาถึงวันที่" : "วันครบกำหนด"}><input type="date" value={f.dueDate} onChange={set("dueDate")} /></Field>
+          <Field label={dt?.prefix === "QT" ? "ยืนยันราคาถึงวันที่" : "วันครบกำหนด"}><input type="date" value={f.dueDate} onChange={set("dueDate")} /></Field>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Field label="พนักงานขาย"><input value={f.salesPerson || ""} onChange={set("salesPerson")} placeholder="ชื่อพนักงาน" /></Field>
@@ -7754,7 +7797,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
             <option value="">-- ไม่อ้างอิง --</option>
             {relatedOrders.map(d => (
               <option key={d.id} value={d.id}>
-                {d.docNo} · {DOC_TYPES[d.type]?.label} · {d.customerName} ({STATUS_LABELS[d.status]})
+                {d.docNo} · {getDocTypeMeta(d.type)?.label} · {d.customerName} ({getDocStatusLabel(d.status, d.type, d.paymentStatus)})
               </option>
             ))}
           </select>
@@ -7768,8 +7811,8 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
               <div style={{ color: "#FF6B00", fontWeight: 700, fontSize: 11, marginBottom: 4 }}>📋 เอกสารในชุดเดียวกัน</div>
               {linkedDocs.map(d => (
                 <div key={d.id} style={{ display: "flex", justifyContent: "space-between", color: d.id === f.orderId ? "#fff" : "#A8B0C0" }}>
-                  <span>{DOC_TYPES[d.type]?.label} — <span style={{ fontFamily: "monospace", color: DOC_TYPES[d.type]?.color }}>{d.docNo}</span></span>
-                  <span style={{ background: STATUS_COLORS[d.status] + "22", color: STATUS_COLORS[d.status], padding: "1px 8px", borderRadius: 99, fontSize: 10 }}>{STATUS_LABELS[d.status]}</span>
+                  <span>{getDocTypeMeta(d.type)?.label} — <span style={{ fontFamily: "monospace", color: getDocTypeMeta(d.type)?.color }}>{d.docNo}</span></span>
+                  <span style={{ background: getDocStatusColor(d.status, d.type, d.paymentStatus) + "22", color: getDocStatusColor(d.status, d.type, d.paymentStatus), padding: "1px 8px", borderRadius: 99, fontSize: 10 }}>{getDocStatusLabel(d.status, d.type, d.paymentStatus)}</span>
                 </div>
               ))}
             </div>
