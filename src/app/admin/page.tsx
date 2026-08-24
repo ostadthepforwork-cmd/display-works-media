@@ -149,20 +149,27 @@ const fallbackItemCost = (products: any[], item: any) => {
 };
 const DEFAULT_INTERNAL_EXPENSE_OPTIONS = ["ค่าส่ง", "ค่าติดตั้ง", "ค่าออกแบบ", "ค่าเดินทาง", "ค่าแพ็กกิ้ง", "ค่าวัสดุเพิ่มเติม", "ค่าแรงเพิ่มเติม", "อื่นๆ"];
 const normalizeInternalExpenses = (expenses: any[] = []) => (Array.isArray(expenses) ? expenses : [])
-  .map((expense: any, index: number) => ({
-    id: expense?.id || genId(),
-    name: String(expense?.name || expense?.label || `ค่าใช้จ่าย #${index + 1}`).trim(),
-    amount: Math.max(0, Number(expense?.amount || 0) || 0),
-    note: String(expense?.note || "").trim(),
-  }))
-  .filter((expense: any) => expense.name || expense.amount > 0 || expense.note);
+  .map((expense: any, index: number) => {
+    const entry = expense && typeof expense === "object" ? expense : { name: String(expense || "") };
+    const name = String(entry.name || entry.label || "").trim();
+    const amount = Math.max(0, Number(entry.amount || 0) || 0);
+    const note = String(entry.note || "").trim();
+    if (!name && amount <= 0 && !note) return null;
+    return {
+      id: entry.id || genId(),
+      name: name || `ค่าใช้จ่าย #${index + 1}`,
+      amount,
+      note,
+    };
+  })
+  .filter(Boolean);
 const calcInternalExtraCost = (doc: any) =>
   normalizeInternalExpenses(doc?.internalExpenses || doc?.internal_expenses || []).reduce(
     (sum: number, expense: any) => sum + Number(expense.amount || 0),
     0
   );
 const calcInternalItemsCost = (doc: any, products: any[] = []) =>
-  (doc?.items || []).reduce((sum: number, item: any) => sum + lineCost(item, fallbackItemCost(products, item)), 0);
+  (Array.isArray(doc?.items) ? doc.items : []).reduce((sum: number, item: any) => sum + lineCost(item, fallbackItemCost(products, item)), 0);
 const calcInternalDocumentCost = (doc: any, products: any[] = []) =>
   calcInternalItemsCost(doc, products) + calcInternalExtraCost(doc);
 const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
@@ -7592,13 +7599,15 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
 // DOC FORM
 // ============================================================
 function DocForm({ doc, type, customers, products, onSave, onCancel, allDocuments }: any) {
-  const [f, setF] = useState({
+  const baseDoc = doc || {};
+  const [f, setF] = useState(() => ({
     salesPerson: "",
     orderId: "",
     overrideAddress: "",
-    ...doc,
-    internalExpenses: normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || []),
-  });
+    ...baseDoc,
+    items: Array.isArray(baseDoc.items) ? baseDoc.items : [],
+    internalExpenses: normalizeInternalExpenses(baseDoc.internalExpenses || baseDoc.internal_expenses || []),
+  }));
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const setN = (k) => (e) => setF(prev => ({ ...prev, [k]: parseFloat(e.target.value) || 0 }));
   const setBool = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.checked }));
@@ -7611,12 +7620,12 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   };
 
   // ── รายการสินค้า ─────────────────────────────────────────
-  const addItem = () => setF(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0, costUnit: "piece", priceUnit: "piece", widthM: 1, heightM: 1, pieces: 1 }] }));
-  const removeItem = (id) => setF(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
-  const setItem = (id, k, v) => setF(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, [k]: (["qty", "price", "costSnapshot"].includes(k)) ? parseFloat(v) || 0 : v } : i) }));
+  const addItem = () => setF(prev => ({ ...prev, items: [...(Array.isArray(prev.items) ? prev.items : []), { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0, costUnit: "piece", priceUnit: "piece", widthM: 1, heightM: 1, pieces: 1 }] }));
+  const removeItem = (id) => setF(prev => ({ ...prev, items: (Array.isArray(prev.items) ? prev.items : []).filter(i => i.id !== id) }));
+  const setItem = (id, k, v) => setF(prev => ({ ...prev, items: (Array.isArray(prev.items) ? prev.items : []).map(i => i.id === id ? { ...i, [k]: (["qty", "price", "costSnapshot"].includes(k)) ? parseFloat(v) || 0 : v } : i) }));
   const setItemDimension = (id, key, value) => setF(prev => ({
     ...prev,
-    items: prev.items.map(i => {
+    items: (Array.isArray(prev.items) ? prev.items : []).map(i => {
       if (i.id !== id) return i;
       const next = { ...i, [key]: parseFloat(value) || 0 };
       const width = Number(next.widthM || 0);
@@ -7631,7 +7640,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
     const priceUnit = p.priceUnit || p.price_unit || "piece";
     const costUnit = p.costUnit || p.cost_unit || priceUnit;
     const isSqm = isSqmBasis(priceUnit) || isSqmBasis(costUnit);
-    setF(prev => ({ ...prev, items: prev.items.map(i => {
+    setF(prev => ({ ...prev, items: (Array.isArray(prev.items) ? prev.items : []).map(i => {
       if (i.id !== itemId) return i;
       const widthM = Number(i.widthM || 1);
       const heightM = Number(i.heightM || 1);
@@ -7683,7 +7692,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
     }));
 
   // ── เอกสารอ้างอิง (Order linking) ─────────────────────────
-  const relatedOrders = (allDocuments || []).filter(d => d.id !== doc.id && d.customerId === f.customerId);
+  const relatedOrders = (allDocuments || []).filter(d => d.id !== baseDoc.id && d.customerId === f.customerId);
 
   // ── Styles ───────────────────────────────────────────────
   const card = { background: "#1A2233", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "18px 20px", display: "flex" as const, flexDirection: "column" as const, gap: 14 };
