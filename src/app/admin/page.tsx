@@ -5913,14 +5913,17 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             <tbody>
               {recentDocs.map((doc: any, i: number) => {
                 const { total, depositPaid, balanceDue } = calcDocTotal(doc, documents);
+                const docTypeMeta = getDocTypeMeta(doc.type);
+                const statusColor = getDocStatusColor(doc.status, doc.type, doc.paymentStatus);
+                const statusLabel = getDocStatusLabel(doc.status, doc.type, doc.paymentStatus);
                 return (
                   <tr key={doc.id} style={{ borderTop: "1px solid rgba(255,255,255,0.03)", transition: "background 0.15s" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = "rgba(255,255,255,0.02)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = "transparent"; }}>
                     <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "monospace", color: "#FF6B00", fontWeight: 600 }}>{doc.docNo}</td>
                     <td style={{ padding: "12px 20px" }}>
-                      <span style={{ background: (DOC_TYPES as any)[doc.type]?.color + "20", color: (DOC_TYPES as any)[doc.type]?.color, fontSize: 11, padding: "3px 10px", borderRadius: 99, fontWeight: 600 }}>
-                        {(DOC_TYPES as any)[doc.type]?.label}
+                      <span style={{ background: docTypeMeta.color + "20", color: docTypeMeta.color, fontSize: 11, padding: "3px 10px", borderRadius: 99, fontWeight: 600 }}>
+                        {docTypeMeta.label}
                       </span>
                     </td>
                     <td style={{ padding: "12px 20px", fontSize: 13, color: "#CBD5E1" }}>{doc.customerName || "-"}</td>
@@ -5930,8 +5933,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
                       {depositPaid > 0 && balanceDue > 0 && <div style={{ marginTop: 3, color: "#F59E0B", fontSize: 11 }}>ค้างชำระ ฿{fmtMoney(balanceDue)}</div>}
                     </td>
                     <td style={{ padding: "12px 20px" }}>
-                      <span style={{ background: (STATUS_COLORS as any)[doc.status] + "20", color: (STATUS_COLORS as any)[doc.status], fontSize: 11, padding: "3px 10px", borderRadius: 99, fontWeight: 600 }}>
-                        {(STATUS_LABELS as any)[doc.status]}
+                      <span style={{ background: statusColor + "20", color: statusColor, fontSize: 11, padding: "3px 10px", borderRadius: 99, fontWeight: 600 }}>
+                        {statusLabel}
                       </span>
                     </td>
                   </tr>
@@ -5942,12 +5945,15 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
           <div className="erp-latest-cards" aria-label="Latest orders mobile cards">
             {recentDocs.map((doc: any) => {
               const { total, depositPaid, balanceDue } = calcDocTotal(doc, documents);
-              const docType = (DOC_TYPES as any)[doc.type] || {};
+              const docTypeKey = normalizeDocumentTypeForUi(doc.type);
+              const docTypeMeta = getDocTypeMeta(doc.type);
+              const statusColor = getDocStatusColor(doc.status, doc.type, doc.paymentStatus);
+              const statusLabel = getDocStatusLabel(doc.status, doc.type, doc.paymentStatus);
               return (
-                <button key={doc.id} type="button" className="erp-latest-card" onClick={() => setPage(doc.type)} style={{ borderColor: `${docType.color || "#FF6B00"}35` }}>
+                <button key={doc.id} type="button" className="erp-latest-card" onClick={() => setPage(docTypeKey)} style={{ borderColor: `${docTypeMeta.color}35` }}>
                   <div className="erp-latest-card-top">
                     <div>
-                      <strong style={{ color: docType.color || "#FF6B00" }}>{doc.docNo}</strong>
+                      <strong style={{ color: docTypeMeta.color }}>{doc.docNo}</strong>
                       <span>{doc.customerName || "-"}</span>
                     </div>
                     <div>
@@ -5956,8 +5962,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
                     </div>
                   </div>
                   <div className="erp-latest-card-meta">
-                    <span style={{ background: `${docType.color || "#FF6B00"}20`, color: docType.color || "#FF6B00" }}>{docType.label || doc.type}</span>
-                    <span style={{ background: `${(STATUS_COLORS as any)[doc.status] || "#64748B"}20`, color: (STATUS_COLORS as any)[doc.status] || "#CBD5E1" }}>{(STATUS_LABELS as any)[doc.status] || doc.status}</span>
+                    <span style={{ background: `${docTypeMeta.color}20`, color: docTypeMeta.color }}>{docTypeMeta.label}</span>
+                    <span style={{ background: `${statusColor}20`, color: statusColor }}>{statusLabel}</span>
                   </div>
                   {depositPaid > 0 && balanceDue > 0 && (
                     <div className="erp-latest-balance">ค้างชำระ ฿{fmtMoney(balanceDue)}</div>
