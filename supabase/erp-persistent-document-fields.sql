@@ -15,7 +15,11 @@ alter table if exists public.erp_documents
   add column if not exists payment_status text,
   add column if not exists deposit_paid numeric default 0,
   add column if not exists deposit_date date,
-  add column if not exists deposit_note text;
+  add column if not exists deposit_note text,
+  add column if not exists internal_expenses jsonb not null default '[]'::jsonb;
+
+comment on column public.erp_documents.internal_expenses is
+  'Internal-only extra costs such as shipping, installation, design, labor, or packaging. Not shown in customer documents.';
 
 alter table if exists public.erp_document_items
   add column if not exists cost_unit text default 'piece',

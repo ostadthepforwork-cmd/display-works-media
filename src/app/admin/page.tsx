@@ -147,6 +147,24 @@ const fallbackItemCost = (products: any[], item: any) => {
   if (isShippingItem(item)) return Number(item.price || 0);
   return findProductForItem(products, item)?.cost || 0;
 };
+const DEFAULT_INTERNAL_EXPENSE_OPTIONS = ["ค่าส่ง", "ค่าติดตั้ง", "ค่าออกแบบ", "ค่าเดินทาง", "ค่าแพ็กกิ้ง", "ค่าวัสดุเพิ่มเติม", "ค่าแรงเพิ่มเติม", "อื่นๆ"];
+const normalizeInternalExpenses = (expenses: any[] = []) => (Array.isArray(expenses) ? expenses : [])
+  .map((expense: any, index: number) => ({
+    id: expense?.id || genId(),
+    name: String(expense?.name || expense?.label || `ค่าใช้จ่าย #${index + 1}`).trim(),
+    amount: Math.max(0, Number(expense?.amount || 0) || 0),
+    note: String(expense?.note || "").trim(),
+  }))
+  .filter((expense: any) => expense.name || expense.amount > 0 || expense.note);
+const calcInternalExtraCost = (doc: any) =>
+  normalizeInternalExpenses(doc?.internalExpenses || doc?.internal_expenses || []).reduce(
+    (sum: number, expense: any) => sum + Number(expense.amount || 0),
+    0
+  );
+const calcInternalItemsCost = (doc: any, products: any[] = []) =>
+  (doc?.items || []).reduce((sum: number, item: any) => sum + lineCost(item, fallbackItemCost(products, item)), 0);
+const calcInternalDocumentCost = (doc: any, products: any[] = []) =>
+  calcInternalItemsCost(doc, products) + calcInternalExtraCost(doc);
 const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
 const normalizeName = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
 const findProductForItem = (products: any[], item: any) => {
@@ -386,6 +404,7 @@ function saveErpDocumentShadow(docId: string, doc: any) {
     depositPaid: doc.depositPaid ?? 0,
     depositDate: doc.depositDate || "",
     depositNote: doc.depositNote || "",
+    internalExpenses: normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || []),
     vatRate: docVatRate(doc),
     items: (doc.items || []).map((item: any, index: number) => ({
       index,
@@ -418,6 +437,7 @@ function applyErpDocumentShadow(doc: any) {
     depositPaid: Number(doc.depositPaid || 0) > 0 ? doc.depositPaid : (shadow.depositPaid ?? doc.depositPaid ?? 0),
     depositDate: doc.depositDate || shadow.depositDate || "",
     depositNote: doc.depositNote || shadow.depositNote || "",
+    internalExpenses: normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || shadow.internalExpenses || []),
     vatRate: doc.vatRate ?? shadow.vatRate ?? 7,
     items: (doc.items || []).map((item: any, index: number) => {
       const meta = shadowItems.find((candidate: any) => candidate.index === index);
@@ -985,6 +1005,7 @@ export default function AdminPage() {
             depositPaid: d.deposit_paid ?? 0,
             depositDate: d.deposit_date || "",
             depositNote: d.deposit_note || "",
+            internalExpenses: normalizeInternalExpenses(d.internal_expenses || []),
             notes: d.notes, overrideAddress: d.override_address,
             bankName: d.bank_name, bankBranch: d.bank_branch,
             bankAccount: d.bank_account, bankType: d.bank_type, qrImage: d.qr_image,
@@ -4763,7 +4784,7 @@ function MarketingPage({ documents, showToast }: any) {
   const filteredLeads = leads.filter((lead: any) => dateInMarketingRange(lead?.date || lead?.createdAt));
   const quoteCount = quoteDocs.length;
   const revenue = reportDocs.reduce((sum: number, doc: any) => sum + calcDocTotal(doc).total, 0);
-  const grossCost = reportDocs.reduce((sum: number, doc: any) => sum + (doc.items || []).reduce((itemSum: number, item: any) => itemSum + lineCost(item), 0), 0);
+  const grossCost = reportDocs.reduce((sum: number, doc: any) => sum + calcInternalDocumentCost(doc, products), 0);
   const grossProfit = revenue - grossCost;
   const activeCampaigns = filteredCampaigns.filter((campaign: any) => campaign.status === "active").length;
   const plannedBudget = filteredCampaigns.reduce((sum: number, campaign: any) => sum + Number(campaign.budget || 0), 0);
@@ -5361,9 +5382,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const reportDocs = reportingDocuments(documents);
 
   const calcRev = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcDocTotal(d).total, 0);
-  const itemCost = (item: any) => fallbackItemCost(products, item);
-  const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) =>
-    s + d.items.reduce((ss: number, i: any) => ss + lineCost(i, itemCost(i)), 0), 0);
+  const calcCost = (docs: any[]) => docs.reduce((s: number, d: any) => s + calcInternalDocumentCost(d, products), 0);
   const dayStart = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
   const selectedRange = (() => {
     const end = dayStart(now) + 24 * 60 * 60 * 1000;
@@ -5924,7 +5943,7 @@ function CustomerInsightDashboard({ customers = [], documents = [], products = [
   });
   const receiptRevenue = receiptDocs.reduce((sum: number, doc: any) => sum + calcDocTotal(doc).total, 0);
   const receiptProfit = receiptDocs.reduce((sum: number, doc: any) => {
-    const cost = (doc.items || []).reduce((itemSum: number, item: any) => itemSum + lineCost(item, fallbackItemCost(products, item)), 0);
+    const cost = calcInternalDocumentCost(doc, products);
     return sum + calcDocTotal(doc).total - cost;
   }, 0);
   const repeatCustomers = customers.filter((customer: any) => {
@@ -6873,7 +6892,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
   const nextDocNo = () => nextDocNoForType(type);
   const newDoc = () => {
-    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: type === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: type === "receipt" ? today() : "", paymentNote: "", items: [], discount: 0, discountType: "percent", vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
+    setEditing({ id: "", type, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: type === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: type === "receipt" ? today() : "", paymentNote: "", items: [], internalExpenses: [], discount: 0, discountType: "percent", vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
   const save = async (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
@@ -6893,6 +6912,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       return costedItem;
     });
     const normalizedPaymentAmount = Math.max(0, Number(doc.paymentAmount || doc.depositPaid || 0) || 0);
+    const normalizedInternalExpenses = normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || []);
     const docForTotals = { ...doc, paymentAmount: normalizedPaymentAmount };
     const paymentTotals = calcDocTotal(docForTotals, allDocuments);
     const normalizedStatus = normalizeDocumentStatusForDb(doc.status, doc.type, paymentTotals.paymentStatus);
@@ -6915,21 +6935,23 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       deposit_paid: normalizedPaymentAmount,
       deposit_date: doc.depositDate || doc.paymentDate || null,
       deposit_note: doc.depositNote || doc.paymentNote || "",
+      internal_expenses: normalizedInternalExpenses,
       notes: doc.notes, override_address: doc.overrideAddress,
       bank_name: doc.bankName, bank_branch: doc.bankBranch,
       bank_account: doc.bankAccount, bank_type: doc.bankType, qr_image: doc.qrImage,
       deleted: false,
     };
-    const { vat_rate, discount_type, lead_source, marketing_campaign, marketing_adset, marketing_ad, payment_type, payment_amount, payment_date, payment_note, payment_status, deposit_paid, deposit_date, deposit_note, ...legacyDocRow } = docRow;
+    const { vat_rate, discount_type, lead_source, marketing_campaign, marketing_adset, marketing_ad, payment_type, payment_amount, payment_date, payment_note, payment_status, deposit_paid, deposit_date, deposit_note, internal_expenses, ...legacyDocRow } = docRow;
     const isLegacyVatColumnError = (error: any) =>
-      error?.code === "42703" || /vat_rate|discount_type|lead_source|marketing_campaign|marketing_adset|marketing_ad|payment_type|payment_amount|payment_date|payment_note|payment_status|deposit_paid|deposit_date|deposit_note|column/i.test(error?.message || "");
+      error?.code === "42703" || /vat_rate|discount_type|lead_source|marketing_campaign|marketing_adset|marketing_ad|payment_type|payment_amount|payment_date|payment_note|payment_status|deposit_paid|deposit_date|deposit_note|internal_expenses|column/i.test(error?.message || "");
     const requiresPersistentDocColumns =
       docVatRate(doc) !== 7
       || Boolean(doc.leadSource || doc.marketingCampaign || doc.marketingAdSet || doc.marketingAd)
       || (doc.discountType || "percent") !== "percent"
       || Number(doc.depositPaid || doc.paymentAmount || 0) > 0
-      || Boolean(doc.depositDate || doc.depositNote || doc.paymentType || doc.paymentDate || doc.paymentNote);
-    const persistentFieldError = "ฐานข้อมูลยังไม่มีคอลัมน์สำหรับ VAT/Marketing/มัดจำ กรุณารัน supabase/erp-persistent-document-fields.sql ใน Supabase Production แล้วบันทึกเอกสารอีกครั้ง";
+      || Boolean(doc.depositDate || doc.depositNote || doc.paymentType || doc.paymentDate || doc.paymentNote)
+      || normalizedInternalExpenses.length > 0;
+    const persistentFieldError = "ฐานข้อมูลยังไม่มีคอลัมน์สำหรับ VAT/Marketing/มัดจำ/ค่าใช้จ่ายภายใน กรุณารัน supabase/erp-persistent-document-fields.sql ใน Supabase Production แล้วบันทึกเอกสารอีกครั้ง";
     try {
       let docId = doc.id;
       if (doc.id) {
@@ -7007,6 +7029,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
         depositPaid: normalizedPaymentAmount,
         depositDate: doc.depositDate || doc.paymentDate || "",
         depositNote: doc.depositNote || doc.paymentNote || "",
+        internalExpenses: normalizedInternalExpenses,
         items: itemsWithCost,
       };
       saveErpDocumentShadow(docId, saved);
@@ -7569,7 +7592,13 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
 // DOC FORM
 // ============================================================
 function DocForm({ doc, type, customers, products, onSave, onCancel, allDocuments }: any) {
-  const [f, setF] = useState({ salesPerson: "", orderId: "", overrideAddress: "", ...doc });
+  const [f, setF] = useState({
+    salesPerson: "",
+    orderId: "",
+    overrideAddress: "",
+    ...doc,
+    internalExpenses: normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || []),
+  });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const setN = (k) => (e) => setF(prev => ({ ...prev, [k]: parseFloat(e.target.value) || 0 }));
   const setBool = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.checked }));
@@ -7626,6 +7655,32 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
 
   // ── คำนวณ ────────────────────────────────────────────────
   const { subtotal, discountAmt: discAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, balanceDue } = calcDocTotal(f, allDocuments);
+  const rawInternalExpenses = Array.isArray(f.internalExpenses) ? f.internalExpenses : [];
+  const internalExpenses = normalizeInternalExpenses(rawInternalExpenses);
+  const internalItemsCost = calcInternalItemsCost(f, products);
+  const internalExtraCost = internalExpenses.reduce((sum: number, expense: any) => sum + Number(expense.amount || 0), 0);
+  const internalTotalCost = internalItemsCost + internalExtraCost;
+  const internalProfit = total - internalTotalCost;
+  const internalMargin = total > 0 ? (internalProfit / total) * 100 : 0;
+  const addInternalExpense = (name = "ค่าใช้จ่ายอื่น") =>
+    setF((prev: any) => ({
+      ...prev,
+      internalExpenses: [...(Array.isArray(prev.internalExpenses) ? prev.internalExpenses : []), { id: genId(), name, amount: 0, note: "" }],
+    }));
+  const updateInternalExpense = (id: string, patch: any) =>
+    setF((prev: any) => ({
+      ...prev,
+      internalExpenses: (Array.isArray(prev.internalExpenses) ? prev.internalExpenses : []).map((expense: any) =>
+        expense.id === id
+          ? { ...expense, ...patch, amount: patch.amount !== undefined ? Math.max(0, Number(patch.amount || 0) || 0) : expense.amount }
+          : expense
+      ),
+    }));
+  const removeInternalExpense = (id: string) =>
+    setF((prev: any) => ({
+      ...prev,
+      internalExpenses: (Array.isArray(prev.internalExpenses) ? prev.internalExpenses : []).filter((expense: any) => expense.id !== id),
+    }));
 
   // ── เอกสารอ้างอิง (Order linking) ─────────────────────────
   const relatedOrders = (allDocuments || []).filter(d => d.id !== doc.id && d.customerId === f.customerId);
@@ -7834,7 +7889,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
               {(item.supplierName || findProductForItem(products, item)?.supplierName) && (
                 <span style={{ color: "#F97316" }}>Supplier: {item.supplierName || findProductForItem(products, item)?.supplierName}</span>
               )}
-              <span style={{ color: "#ef4444" }}>ต้นทุน: ฿{fmtMoney(lineCost(item))}</span>
+              <span style={{ color: "#ef4444" }}>ต้นทุน: ฿{fmtMoney(lineCost(item, fallbackItemCost(products, item)))}</span>
               <span style={{ color: dt.color }}>รวม: ฿{fmtMoney(lineAmount(item))}</span>
             </div>
                 </>
@@ -7842,6 +7897,65 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
             })()}
           </div>
         ))}
+
+        <div style={{ marginTop: 4, padding: 16, borderRadius: 12, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.22)", display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ color: "#10B981", fontSize: 13, fontWeight: 900 }}>ข้อมูลภายใน: กำไรและค่าใช้จ่ายอื่น</div>
+              <div style={{ color: "#94A3B8", fontSize: 12, marginTop: 3 }}>ใช้ใน ERP เท่านั้น ไม่แสดงใน PDF หรือลิงก์ที่แชร์ให้ลูกค้า</div>
+            </div>
+            <button type="button" onClick={() => addInternalExpense("ค่าใช้จ่ายอื่น")} style={{ background: "#10B981", color: "#02130D", border: "none", borderRadius: 10, padding: "10px 14px", fontWeight: 900, cursor: "pointer" }}>
+              + เพิ่มค่าใช้จ่าย
+            </button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+            <div style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
+              <div style={{ color: "#94A3B8", fontSize: 11 }}>ต้นทุนรายการ</div>
+              <div style={{ color: "#F87171", fontWeight: 900, fontSize: 20 }}>฿{fmtMoney(internalItemsCost)}</div>
+            </div>
+            <div style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
+              <div style={{ color: "#94A3B8", fontSize: 11 }}>ค่าใช้จ่ายอื่น</div>
+              <div style={{ color: "#FBBF24", fontWeight: 900, fontSize: 20 }}>฿{fmtMoney(internalExtraCost)}</div>
+            </div>
+            <div style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
+              <div style={{ color: "#94A3B8", fontSize: 11 }}>กำไรภายใน</div>
+              <div style={{ color: internalProfit >= 0 ? "#10B981" : "#EF4444", fontWeight: 900, fontSize: 20 }}>฿{fmtMoney(internalProfit)}</div>
+              <div style={{ color: "#94A3B8", fontSize: 11 }}>{fmtMoney(internalMargin)}% margin</div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {DEFAULT_INTERNAL_EXPENSE_OPTIONS.map((option) => (
+              <button key={option} type="button" onClick={() => addInternalExpense(option)} style={{ background: "rgba(255,255,255,0.06)", color: "#D1D5DB", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, padding: "7px 10px", fontSize: 12, cursor: "pointer" }}>
+                + {option}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gap: 10 }}>
+            {rawInternalExpenses.length === 0 ? (
+              <div style={{ border: "1px dashed rgba(255,255,255,0.18)", borderRadius: 10, padding: 12, color: "#94A3B8", fontSize: 12 }}>
+                ยังไม่มีค่าใช้จ่ายอื่น เช่น ค่าส่ง ค่าติดตั้ง หรือค่าแรงเพิ่มเติม
+              </div>
+            ) : rawInternalExpenses.map((expense: any) => (
+              <div key={expense.id} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, alignItems: "end", background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
+                <Field label="ชื่อค่าใช้จ่าย">
+                  <input value={expense.name || ""} onChange={(e) => updateInternalExpense(expense.id, { name: e.target.value })} placeholder="เช่น ค่าส่ง" />
+                </Field>
+                <Field label="จำนวนเงิน">
+                  <input type="number" min="0" step="0.01" value={expense.amount || 0} onChange={(e) => updateInternalExpense(expense.id, { amount: e.target.value })} />
+                </Field>
+                <Field label="หมายเหตุ">
+                  <input value={expense.note || ""} onChange={(e) => updateInternalExpense(expense.id, { note: e.target.value })} placeholder="ไม่แสดงในเอกสารลูกค้า" />
+                </Field>
+                <button type="button" onClick={() => removeInternalExpense(expense.id)} style={{ minHeight: 44, borderRadius: 10, border: "1px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)", color: "#FCA5A5", fontWeight: 800, cursor: "pointer" }}>
+                  ลบ
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* ส่วนลด */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 12 }}>
