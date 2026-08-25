@@ -1499,13 +1499,16 @@ export default function AdminPage() {
               { id: "bill",      icon: "📄", label: "ใบวางบิล",       color: (DOC_TYPES as any).bill.color },
               { id: "invoice",   icon: "🧾", label: "ใบแจ้งหนี้",     color: (DOC_TYPES as any).invoice.color },
               { id: "receipt",   icon: "✅", label: "ใบเสร็จรับเงิน", color: (DOC_TYPES as any).receipt.color },
+              null,
               { id: "quick-expense", target: "receipt", icon: "💸", label: "เพิ่มค่าใช้จ่าย", color: "#EF4444" },
+              null,
               { id: "customers", icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
               { id: "products",  icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
               { id: "suppliers", icon: "🏭", label: "Supplier",       color: "#F97316" },
               { id: "company",   icon: "🏢", label: "ตั้งค่าบริษัท",  color: "#34D399" },
               { id: "__cms__",   icon: "✏️", label: "ไปหน้า CMS",     color: "#F59E0B" },
-            ] as any[]).map(item => {
+            ] as any[]).map((item, index) => {
+              if (!item) return <div key={`erp-drawer-separator-${index}`} style={{ height: 1, margin: "8px 24px", background: "rgba(255,255,255,0.08)" }} />;
               const targetPage = item.target || item.id;
               const isActive = item.id !== "__cms__" && erpPage === targetPage;
               return (
@@ -5373,6 +5376,7 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
     { id: "bill", icon: "📄", label: "ใบวางบิล", count: docCounts.bill, color: DOC_TYPES.bill.color },
     { id: "invoice", icon: "🧾", label: "ใบแจ้งหนี้", count: docCounts.invoice, color: DOC_TYPES.invoice.color },
     { id: "receipt", icon: "✅", label: "ใบเสร็จรับเงิน", count: docCounts.receipt, color: DOC_TYPES.receipt.color },
+    null,
     { id: "quick-expense", target: "receipt", icon: "💸", label: "เพิ่มค่าใช้จ่าย", color: "#EF4444" },
     null,
     { id: "company", icon: "🏢", label: "ข้อมูลบริษัท" },
@@ -7429,12 +7433,30 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                           {/* ✅ อนุมัติ */}
-                          {doc.status !== "approved" && doc.status !== "cancelled" && (
-                            <button type="button" onClick={() => { changeStatus(doc.id, "approved"); }} title="อนุมัติ"
-                            style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.55)", color: "#34D399", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 800 }}>
-                              ✅ อนุมัติ
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            disabled={doc.status === "approved" || doc.status === "cancelled"}
+                            onClick={() => {
+                              if (doc.status === "approved" || doc.status === "cancelled") return;
+                              changeStatus(doc.id, "approved");
+                            }}
+                            title={doc.status === "approved" ? "เอกสารอนุมัติแล้ว" : doc.status === "cancelled" ? "เอกสารถูกยกเลิกแล้ว" : "อนุมัติ"}
+                            style={{
+                              minWidth: 88,
+                              background: doc.status === "approved" || doc.status === "cancelled" ? "rgba(148,163,184,0.10)" : "rgba(16,185,129,0.2)",
+                              border: doc.status === "approved" || doc.status === "cancelled" ? "1px solid rgba(148,163,184,0.25)" : "1px solid rgba(16,185,129,0.55)",
+                              color: doc.status === "approved" || doc.status === "cancelled" ? "#94A3B8" : "#34D399",
+                              borderRadius: 8,
+                              padding: "5px 10px",
+                              fontSize: 12,
+                              cursor: doc.status === "approved" || doc.status === "cancelled" ? "not-allowed" : "pointer",
+                              fontFamily: "inherit",
+                              fontWeight: 800,
+                              opacity: doc.status === "approved" || doc.status === "cancelled" ? 0.72 : 1,
+                            }}
+                          >
+                            ✅ อนุมัติ
+                          </button>
                           {/* แก้ไข */}
                           <button type="button" onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }} title="แก้ไข"
                             style={{ background: doc.status === "approved" ? "rgba(148,163,184,0.10)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: doc.status === "approved" ? "#94A3B8" : "#F8FAFC", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit", fontWeight: 700 }}>
@@ -7541,10 +7563,29 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                       )}
                     </div>
                     <div className="doc-mobile-actions" style={{ display: "flex", gap: 6 }}>
-                      {doc.status !== "approved" && doc.status !== "cancelled" && (
-                        <button type="button" onClick={() => changeStatus(doc.id, "approved")}
-                          style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10B981", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>✅ อนุมัติ</button>
-                      )}
+                      <button
+                        type="button"
+                        disabled={doc.status === "approved" || doc.status === "cancelled"}
+                        onClick={() => {
+                          if (doc.status === "approved" || doc.status === "cancelled") return;
+                          changeStatus(doc.id, "approved");
+                        }}
+                        style={{
+                          minWidth: 94,
+                          background: doc.status === "approved" || doc.status === "cancelled" ? "rgba(148,163,184,0.10)" : "rgba(16,185,129,0.15)",
+                          border: doc.status === "approved" || doc.status === "cancelled" ? "1px solid rgba(148,163,184,0.24)" : "1px solid rgba(16,185,129,0.4)",
+                          color: doc.status === "approved" || doc.status === "cancelled" ? "#94A3B8" : "#10B981",
+                          borderRadius: 8,
+                          padding: "6px 12px",
+                          fontSize: 12,
+                          cursor: doc.status === "approved" || doc.status === "cancelled" ? "not-allowed" : "pointer",
+                          fontFamily: "inherit",
+                          fontWeight: 700,
+                          opacity: doc.status === "approved" || doc.status === "cancelled" ? 0.72 : 1,
+                        }}
+                      >
+                        ✅ อนุมัติ
+                      </button>
                       <button type="button" onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }}
                         style={{ background: doc.status === "approved" ? "rgba(148,163,184,0.10)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: doc.status === "approved" ? "#94A3B8" : "#F8FAFC", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit", fontWeight: 700 }}>แก้ไข</button>
                       <button type="button" onClick={() => printDocument(doc, customers, company, { allDocuments })}
