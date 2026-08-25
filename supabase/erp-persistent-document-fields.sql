@@ -21,6 +21,47 @@ alter table if exists public.erp_documents
 comment on column public.erp_documents.internal_expenses is
   'Internal-only extra costs such as shipping, installation, design, labor, or packaging. Not shown in customer documents.';
 
+alter table if exists public.erp_documents
+  alter column payment_status set default 'unpaid';
+
+update public.erp_documents
+set payment_status = case
+  when lower(coalesce(payment_status, '')) in ('paid', 'completed', 'complete') then 'paid'
+  when lower(coalesce(payment_status, '')) in ('partial_paid', 'partial', 'partially_paid', 'overdue') then 'partial_paid'
+  when lower(coalesce(payment_status, '')) = 'unpaid' then 'unpaid'
+  when lower(coalesce(status, '')) in ('paid', 'completed', 'complete') then 'paid'
+  when lower(coalesce(status, '')) in ('partial_paid', 'partial', 'partially_paid', 'overdue') then 'partial_paid'
+  else 'unpaid'
+end
+where payment_status is null
+   or payment_status = ''
+   or lower(coalesce(payment_status, '')) not in ('unpaid', 'partial_paid', 'paid')
+   or lower(coalesce(status, '')) in ('paid', 'partial_paid', 'partial', 'partially_paid', 'overdue', 'completed', 'complete');
+
+update public.erp_documents
+set status = case
+  when lower(coalesce(status, '')) in ('cancelled', 'canceled', 'void') then 'cancelled'
+  when lower(coalesce(status, '')) = 'sent' then 'sent'
+  when lower(coalesce(status, '')) in ('approved', 'paid', 'partial_paid', 'partial', 'partially_paid', 'overdue', 'completed', 'complete') then 'approved'
+  else 'draft'
+end
+where status is null
+   or lower(coalesce(status, '')) not in ('draft', 'sent', 'approved', 'cancelled');
+
+alter table if exists public.erp_documents
+  drop constraint if exists erp_documents_status_check;
+
+alter table if exists public.erp_documents
+  add constraint erp_documents_status_check
+  check (status in ('draft', 'sent', 'approved', 'cancelled'));
+
+alter table if exists public.erp_documents
+  drop constraint if exists erp_documents_payment_status_check;
+
+alter table if exists public.erp_documents
+  add constraint erp_documents_payment_status_check
+  check (payment_status is null or payment_status in ('unpaid', 'partial_paid', 'paid'));
+
 alter table if exists public.erp_document_items
   add column if not exists cost_unit text default 'piece',
   add column if not exists price_unit text default 'piece',

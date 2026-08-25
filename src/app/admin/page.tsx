@@ -359,12 +359,25 @@ const DOCUMENT_STATUS_VALUES = new Set(DOCUMENT_STATUS_KEYS);
 const PAYMENT_STATUS_KEYS = ["unpaid", "partial_paid", "paid"];
 const PAYMENT_STATUS_VALUES = new Set(PAYMENT_STATUS_KEYS);
 const normalizePaymentStatusForUi = (paymentStatus = "") => {
-  const raw = String(paymentStatus || "").trim();
+  const raw = String(paymentStatus || "").trim().toLowerCase();
+  if (raw === "partial" || raw === "partially_paid" || raw === "overdue") return "partial_paid";
+  if (raw === "completed" || raw === "complete") return "paid";
   return PAYMENT_STATUS_VALUES.has(raw) ? raw : "";
 };
 const normalizeDocumentStatusForDb = (status, docType = "", paymentStatus = "") => {
-  const raw = String(status || "").trim();
-  if (raw === "paid" || raw === "partial_paid") return "approved";
+  const raw = String(status || "").trim().toLowerCase();
+  if (raw === "cancelled" || raw === "canceled" || raw === "void") return "cancelled";
+  if (raw === "sent") return "sent";
+  if (
+    raw === "approved"
+    || raw === "paid"
+    || raw === "partial_paid"
+    || raw === "partial"
+    || raw === "partially_paid"
+    || raw === "overdue"
+    || raw === "completed"
+    || raw === "complete"
+  ) return "approved";
   return DOCUMENT_STATUS_VALUES.has(raw) ? raw : "draft";
 };
 const DOCUMENT_TYPE_ALIASES = {
@@ -390,8 +403,9 @@ const normalizeDocumentTypeForUi = (type = "") => {
 const normalizeDocumentStatusForUi = (status = "", docType = "", paymentStatus = "") => {
   const payment = normalizePaymentStatusForUi(paymentStatus);
   if (payment === "paid" || payment === "partial_paid") return payment;
-  const raw = String(status || "").trim();
-  if (raw === "paid" || raw === "partial_paid") return raw;
+  const raw = String(status || "").trim().toLowerCase();
+  if (raw === "paid" || raw === "completed" || raw === "complete") return "paid";
+  if (raw === "partial_paid" || raw === "partial" || raw === "partially_paid" || raw === "overdue") return "partial_paid";
   return normalizeDocumentStatusForDb(raw, normalizeDocumentTypeForUi(docType), payment);
 };
 
