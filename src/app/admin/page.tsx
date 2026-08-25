@@ -348,20 +348,25 @@ const DOC_TYPES = {
 };
 
 const STATUS_COLORS = {
-  draft: "#6B7280", sent: "#3B82F6", approved: "#10B981", cancelled: "#EF4444", paid: "#10B981",
+  draft: "#6B7280", sent: "#3B82F6", approved: "#10B981", cancelled: "#EF4444", unpaid: "#EF4444", paid: "#10B981", partial_paid: "#F59E0B",
 };
 const STATUS_LABELS = {
-  draft: "ฉบับร่าง", sent: "ส่งแล้ว", approved: "อนุมัติ", cancelled: "ยกเลิก", paid: "ชำระแล้ว",
+  draft: "ฉบับร่าง", sent: "ส่งแล้ว", approved: "อนุมัติ", cancelled: "ยกเลิก", unpaid: "ยังไม่ชำระ", paid: "ชำระแล้ว", partial_paid: "ชำระบางส่วน",
 };
-const DOCUMENT_STATUS_KEYS = ["draft", "sent", "approved", "paid", "cancelled"];
+const DOCUMENT_STATUS_KEYS = ["draft", "sent", "approved", "cancelled"];
+const DOCUMENT_STATUS_FILTER_KEYS = ["draft", "sent", "approved", "paid", "partial_paid", "cancelled"];
 const DOCUMENT_STATUS_VALUES = new Set(DOCUMENT_STATUS_KEYS);
-const normalizeDocumentStatusForDb = (status, docType = "", paymentStatus = "") => {
-  if (docType === "receipt" && paymentStatus && paymentStatus !== "unpaid") return "paid";
-  return DOCUMENT_STATUS_VALUES.has(status) ? status : "draft";
+const PAYMENT_STATUS_KEYS = ["unpaid", "partial_paid", "paid"];
+const PAYMENT_STATUS_VALUES = new Set(PAYMENT_STATUS_KEYS);
+const normalizePaymentStatusForUi = (paymentStatus = "") => {
+  const raw = String(paymentStatus || "").trim();
+  return PAYMENT_STATUS_VALUES.has(raw) ? raw : "";
 };
-STATUS_COLORS.partial_paid = "#F59E0B";
-STATUS_LABELS.partial_paid = "ชำระบางส่วน";
-
+const normalizeDocumentStatusForDb = (status, docType = "", paymentStatus = "") => {
+  const raw = String(status || "").trim();
+  if (raw === "paid" || raw === "partial_paid") return "approved";
+  return DOCUMENT_STATUS_VALUES.has(raw) ? raw : "draft";
+};
 const DOCUMENT_TYPE_ALIASES = {
   quote: "quote",
   quotation: "quote",
@@ -383,9 +388,11 @@ const normalizeDocumentTypeForUi = (type = "") => {
 };
 
 const normalizeDocumentStatusForUi = (status = "", docType = "", paymentStatus = "") => {
+  const payment = normalizePaymentStatusForUi(paymentStatus);
+  if (payment === "paid" || payment === "partial_paid") return payment;
   const raw = String(status || "").trim();
-  if (raw === "partial_paid") return "partial_paid";
-  return normalizeDocumentStatusForDb(raw, normalizeDocumentTypeForUi(docType), paymentStatus);
+  if (raw === "paid" || raw === "partial_paid") return raw;
+  return normalizeDocumentStatusForDb(raw, normalizeDocumentTypeForUi(docType), payment);
 };
 
 const getDocTypeMeta = (type = "") => DOC_TYPES[normalizeDocumentTypeForUi(type)] || DOC_TYPES.quote;
@@ -7074,10 +7081,11 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           if (deleteOldItemsError) throw deleteOldItemsError;
         }
       }
+      const savedUiStatus = normalizeDocumentStatusForUi(normalizedStatus, doc.type, paymentTotals.paymentStatus);
       const saved = {
         ...doc,
         id: docId,
-        status: normalizedStatus,
+        status: savedUiStatus,
         paymentAmount: normalizedPaymentAmount,
         paymentStatus: paymentTotals.paymentStatus,
         depositPaid: normalizedPaymentAmount,
@@ -7114,7 +7122,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     const { error } = await supabase.from("erp_documents").update({ status: safeStatus }).eq("id", id);
     if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
     setDocuments(prev => prev.map(d => d.id === id ? { ...d, status: safeStatus } : d));
-    showToast(`อัปเดตสถานะเป็น "${STATUS_LABELS[safeStatus]}"`);
+    showToast(`อัปเดตสถานะเป็น "${getDocStatusLabel(safeStatus)}"`);
   };
 
   const copyTextToClipboard = async (text: string) => {
@@ -7275,7 +7283,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 180 }} />
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width: 130 }}>
             <option value="all">ทุกสถานะ</option>
-            {DOCUMENT_STATUS_KEYS.map((k) => <option key={k} value={k}>{STATUS_LABELS[k]}</option>)}
+            {DOCUMENT_STATUS_FILTER_KEYS.map((k) => <option key={k} value={k}>{getDocStatusLabel(k)}</option>)}
           </select>
           <Btn onClick={newDoc} color={dt.color}>+ สร้างเอกสาร</Btn>
         </div>
