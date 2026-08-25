@@ -5499,7 +5499,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
     d.items.forEach((i: any) => {
       if (!productProfit[i.name]) productProfit[i.name] = { revenue: 0, cost: 0 };
       productProfit[i.name].revenue += lineAmount(i);
-      productProfit[i.name].cost    += lineCost(i, itemCost(i));
+      productProfit[i.name].cost    += lineCost(i, fallbackItemCost(products, i));
     });
   });
   const topProducts = Object.entries(productProfit)
