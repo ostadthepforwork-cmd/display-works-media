@@ -1499,17 +1499,19 @@ export default function AdminPage() {
               { id: "bill",      icon: "📄", label: "ใบวางบิล",       color: (DOC_TYPES as any).bill.color },
               { id: "invoice",   icon: "🧾", label: "ใบแจ้งหนี้",     color: (DOC_TYPES as any).invoice.color },
               { id: "receipt",   icon: "✅", label: "ใบเสร็จรับเงิน", color: (DOC_TYPES as any).receipt.color },
+              { id: "quick-expense", target: "receipt", icon: "💸", label: "เพิ่มค่าใช้จ่าย", color: "#EF4444" },
               { id: "customers", icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
               { id: "products",  icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
               { id: "suppliers", icon: "🏭", label: "Supplier",       color: "#F97316" },
               { id: "company",   icon: "🏢", label: "ตั้งค่าบริษัท",  color: "#34D399" },
               { id: "__cms__",   icon: "✏️", label: "ไปหน้า CMS",     color: "#F59E0B" },
             ] as any[]).map(item => {
-              const isActive = item.id !== "__cms__" && erpPage === item.id;
+              const targetPage = item.target || item.id;
+              const isActive = item.id !== "__cms__" && erpPage === targetPage;
               return (
                 <button type="button" key={item.id} onClick={() => {
                   if (item.id === "__cms__") setMainTab("cms");
-                  else setErpPage(item.id);
+                  else setErpPage(targetPage);
                   setShowMobileDrawer(false);
                 }} style={{
                   display: "flex", alignItems: "center", gap: 14, width: "100%",
@@ -5371,6 +5373,7 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
     { id: "bill", icon: "📄", label: "ใบวางบิล", count: docCounts.bill, color: DOC_TYPES.bill.color },
     { id: "invoice", icon: "🧾", label: "ใบแจ้งหนี้", count: docCounts.invoice, color: DOC_TYPES.invoice.color },
     { id: "receipt", icon: "✅", label: "ใบเสร็จรับเงิน", count: docCounts.receipt, color: DOC_TYPES.receipt.color },
+    { id: "quick-expense", target: "receipt", icon: "💸", label: "เพิ่มค่าใช้จ่าย", color: "#EF4444" },
     null,
     { id: "company", icon: "🏢", label: "ข้อมูลบริษัท" },
   ];
@@ -5385,12 +5388,12 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
           item === null ? (
             <div key={i} style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "8px 6px" }} />
           ) : (
-            <button type="button" key={item.id} onClick={() => setPage(item.id)} style={{
+            <button type="button" key={item.id} onClick={() => setPage((item as any).target || item.id)} style={{
               display: "flex", alignItems: "center", gap: 10, padding: "9px 12px",
               borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13,
-              background: page === item.id ? "rgba(255,107,0,0.15)" : "transparent",
-              color: page === item.id ? "#FF6B00" : "#A8B0C0", fontFamily: "inherit",
-              borderLeft: page === item.id ? "2px solid #FF6B00" : "2px solid transparent",
+              background: page === ((item as any).target || item.id) ? "rgba(255,107,0,0.15)" : "transparent",
+              color: page === ((item as any).target || item.id) ? "#FF6B00" : "#A8B0C0", fontFamily: "inherit",
+              borderLeft: page === ((item as any).target || item.id) ? "2px solid #FF6B00" : "2px solid transparent",
               width: "100%", textAlign: "left",
             }}>
               <span style={{ fontSize: 16, width: 20, textAlign: "center" }}>{item.icon}</span>
@@ -5484,6 +5487,32 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const revChange     = revLastMonth > 0 ? ((revThisMonth - revLastMonth) / revLastMonth) * 100 : null;
   const profitMarginAll = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : "0";
   const profitMarginPct = Math.max(0, Math.min(100, Number(profitMarginAll)));
+
+  // ─── Expense breakdown by type ────────────────────────────────
+  const expenseBucket: Record<string, { amount: number; count: number; kind: "product" | "internal" }> = {};
+  const addExpenseBucket = (label: string, amount: number, kind: "product" | "internal" = "internal") => {
+    const safeAmount = Number(amount) || 0;
+    if (safeAmount <= 0) return;
+    const key = (label || "ค่าใช้จ่ายอื่น").trim();
+    if (!expenseBucket[key]) expenseBucket[key] = { amount: 0, count: 0, kind };
+    expenseBucket[key].amount += safeAmount;
+    expenseBucket[key].count += 1;
+  };
+
+  thisMonthDocs.forEach((doc: any) => {
+    (Array.isArray(doc.items) ? doc.items : []).forEach((item: any) => {
+      addExpenseBucket("ต้นทุนสินค้า/บริการ", lineCost(item, fallbackItemCost(products, item)), "product");
+    });
+    normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || []).forEach((expense: any) => {
+      addExpenseBucket(expense.name || "ค่าใช้จ่ายอื่น", Number(expense.amount || 0), "internal");
+    });
+  });
+
+  const expenseBreakdown = Object.entries(expenseBucket)
+    .map(([name, value]) => ({ name, ...value }))
+    .sort((a, b) => b.amount - a.amount);
+  const expenseBreakdownTotal = expenseBreakdown.reduce((sum, row) => sum + row.amount, 0);
+  const maxExpenseBreakdown = Math.max(...expenseBreakdown.map((row) => row.amount), 1);
 
   // ─── Pending & alerts ─────────────────────────────────────────
   const pendingDocs = documents.filter((d: any) => ["draft","sent"].includes(d.status));
@@ -5825,6 +5854,61 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* ── EXPENSE BREAKDOWN ───────────────────────────────────── */}
+      <div style={{ ...card(), padding: "22px 24px", marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 4 }}>💸 ค่าใช้จ่ายตามประเภท</div>
+            <div style={{ fontSize: 12, color: "#94A3B8" }}>แยกจากต้นทุนสินค้า/บริการ และค่าใช้จ่ายอื่นในเอกสารช่วงที่เลือก</div>
+          </div>
+          <button type="button" onClick={() => setPage("receipt")} style={{
+            border: "1px solid rgba(255,107,0,0.35)", background: "rgba(255,107,0,0.14)",
+            color: "#FFB86B", borderRadius: 10, padding: "9px 13px", fontSize: 12,
+            fontWeight: 800, fontFamily: "inherit", cursor: "pointer", whiteSpace: "nowrap",
+          }}>
+            + เพิ่มค่าใช้จ่ายในเอกสาร
+          </button>
+        </div>
+        {expenseBreakdown.length === 0 ? (
+          <div style={{
+            border: "1px dashed rgba(148,163,184,0.25)", borderRadius: 12, padding: "18px",
+            color: "#94A3B8", fontSize: 13, textAlign: "center",
+          }}>
+            ยังไม่มีข้อมูลค่าใช้จ่ายในช่วงนี้
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+            {expenseBreakdown.slice(0, 6).map((row) => (
+              <div key={row.name} style={{
+                border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)",
+                borderRadius: 12, padding: "12px 14px",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: "#F8FAFC", fontSize: 13, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.name}</div>
+                    <div style={{ color: "#64748B", fontSize: 11, marginTop: 2 }}>
+                      {row.kind === "product" ? "ต้นทุนจากรายการสินค้า" : "ค่าใช้จ่ายภายใน"} · {row.count} รายการ
+                    </div>
+                  </div>
+                  <div style={{ color: "#EF4444", fontSize: 14, fontWeight: 900, whiteSpace: "nowrap" }}>฿{fmtMoney(row.amount)}</div>
+                </div>
+                <div style={{ height: 5, borderRadius: 99, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%", width: `${Math.max(4, (row.amount / maxExpenseBreakdown) * 100)}%`,
+                    background: row.kind === "product" ? "linear-gradient(90deg,#EF4444,#F59E0B)" : "linear-gradient(90deg,#F97316,#FDBA74)",
+                    borderRadius: 99,
+                  }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <span style={{ color: "#94A3B8", fontSize: 12 }}>ยอดค่าใช้จ่ายรวมในช่วงนี้</span>
+          <span style={{ color: "#EF4444", fontSize: 18, fontWeight: 900 }}>฿{fmtMoney(expenseBreakdownTotal)}</span>
         </div>
       </div>
 
