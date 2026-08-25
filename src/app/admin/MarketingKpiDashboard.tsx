@@ -1362,13 +1362,31 @@ export default function MarketingKpiDashboard({
     { label: "Quotation Sent", value: crmQuotationSent, source: "CRM quotation sent", color: "#f59e0b" },
     { label: "Closed Won", value: closedLeadCount, source: "CRM closed won", color: "#ff6b00" },
   ] : [];
-  const funnelWidth = (value: number, maxValue: number) => {
-    const numeric = Number(value || 0);
-    if (!maxValue || numeric <= 0) return 8;
-    return Math.max(16, Math.min(100, (numeric / maxValue) * 100));
+  const renderFunnelRows = (items: Array<{ label: string; value: number; source: string; color: string }>) => {
+    const maxValue = Math.max(1, ...items.map((item) => Number(item.value || 0)));
+
+    return (
+      <div className="mk-funnel-rows">
+        {items.map((item) => {
+          const numericValue = Number(item.value || 0);
+          const percent = Math.max(0, Math.min(100, (numericValue / maxValue) * 100));
+
+          return (
+            <div className="mk-funnel-row" key={item.label}>
+              <div className="mk-funnel-row-head">
+                <span>{item.label}</span>
+                <strong>{money(numericValue)}</strong>
+              </div>
+              <div className="mk-funnel-source">{item.source}</div>
+              <div className="mk-funnel-track" aria-hidden="true">
+                <span style={{ width: `${numericValue > 0 ? Math.max(6, percent) : 0}%`, background: item.color }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
-  const marketingFunnelMax = Math.max(1, ...marketingFunnel.map((item) => Number(item.value || 0)));
-  const salesFunnelMax = Math.max(1, ...salesFunnel.map((item) => Number(item.value || 0)));
 
   const trendLength = dateRangeMode === "7d" ? 7 : 30;
   const trendEnd = endDate || todayInput();
@@ -1445,11 +1463,11 @@ export default function MarketingKpiDashboard({
     <div className="mk-dashboard" id="marketing-dashboard">
       <style>{`
         /* Hallmark · macrostructure: Mobile Command Deck · tone: operational clarity · anchor hue: DWM orange */
-        .mk-dashboard{font-family:'Prompt',sans-serif;color:#f8fafc;min-height:100%;background:radial-gradient(circle at 80% 0%,rgba(255,107,0,.18),transparent 34%),#080d14;border:1px solid rgba(255,107,0,.2);border-radius:24px;overflow:hidden;box-shadow:0 24px 90px rgba(0,0,0,.28)}
+        .mk-dashboard{font-family:'Prompt',sans-serif;color:#f8fafc;min-height:100%;width:min(100%,1760px);max-width:calc(100vw - 48px);margin:0 auto;background:radial-gradient(circle at 80% 0%,rgba(255,107,0,.18),transparent 34%),#080d14;border:1px solid rgba(255,107,0,.2);border-radius:24px;overflow:hidden;box-shadow:0 24px 90px rgba(0,0,0,.28)}
         .mk-dashboard,.mk-dashboard *{box-sizing:border-box}
         .mk-dashboard h1,.mk-dashboard h2,.mk-dashboard h3,.mk-dashboard h4,.mk-dashboard strong,.mk-dashboard b{color:#f8fafc;-webkit-text-fill-color:currentColor}
         .mk-dashboard p,.mk-dashboard span,.mk-dashboard small,.mk-dashboard div,.mk-dashboard td,.mk-dashboard th{ -webkit-text-fill-color:currentColor}
-        .mk-shell{display:grid;grid-template-columns:260px 1fr;min-height:calc(100dvh - 92px)}
+        .mk-shell{display:grid;grid-template-columns:minmax(220px,260px) minmax(0,1fr);min-height:calc(100dvh - 92px)}
         .mk-sidebar{background:linear-gradient(180deg,rgba(0,0,0,.42),rgba(0,0,0,.28));border-right:1px solid rgba(255,107,0,.18);padding:26px;position:sticky;top:0;height:calc(100dvh - 92px)}
         .mk-brand{display:flex;gap:14px;align-items:center;margin-bottom:28px}
         .mk-logo{width:52px;height:42px;border-radius:12px;border:1px solid rgba(255,107,0,.35);display:grid;place-items:center;background:rgba(255,255,255,.04);overflow:hidden}
@@ -1461,7 +1479,7 @@ export default function MarketingKpiDashboard({
         .mk-nav-label{display:block;font-size:15px}
         .mk-nav-desc{display:block;margin-top:4px;font-size:11px;line-height:1.35;color:#718096;font-weight:700}
         .mk-nav button.active .mk-nav-desc,.mk-nav button:hover .mk-nav-desc{color:rgba(255,255,255,.78)}
-        .mk-main{padding:30px;overflow:auto}
+        .mk-main{padding:clamp(28px,2.2vw,44px);overflow:visible;min-width:0}
         .mk-main{scroll-behavior:smooth}
         .mk-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px}
         .mk-eyebrow{color:#ff6b00;font-size:12px;letter-spacing:.24em;font-weight:900;text-transform:uppercase}
@@ -1514,7 +1532,8 @@ export default function MarketingKpiDashboard({
         .mk-table-wrap{overflow:auto;overscroll-behavior-x:contain}.mk-table-wrap.compact{max-height:560px;border-radius:14px;border:1px solid rgba(255,255,255,.06)}.mk-table-wrap.compact .mk-table th{position:sticky;top:0;background:#111923;z-index:3}.mk-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}.mk-table th,.mk-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.mk-table th{color:#94a3b8;font-size:12px}.mk-table td{color:#e5e7eb}.mk-table th:first-child,.mk-table td:first-child{position:sticky;left:0;background:#111923;z-index:2;box-shadow:10px 0 22px rgba(0,0,0,.22)}.mk-table th:first-child{z-index:4}.mk-table td strong{color:#fff}.mk-dashboard .mk-table th{color:#94a3b8!important;-webkit-text-fill-color:#94a3b8!important}.mk-dashboard .mk-table td{color:#e5e7eb!important;-webkit-text-fill-color:#e5e7eb!important}.mk-dashboard .mk-table td strong{color:#fff!important;-webkit-text-fill-color:#fff!important}
         .mk-badge{display:inline-flex;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900}
         .mk-budget{height:18px;background:#1f2937;border-radius:999px;overflow:hidden;margin:18px 0}.mk-budget span{display:block;height:100%;background:linear-gradient(90deg,#ff6b00,#22c55e)}
-        .mk-funnel{display:grid;gap:10px;margin-top:16px}.mk-funnel div{border-radius:12px;padding:12px 16px;color:#fff;font-weight:900;display:flex;justify-content:space-between;gap:12px}.mk-funnel-label{display:grid;gap:2px;min-width:0}.mk-funnel-label small{font-size:11px;line-height:1.35;opacity:.78;font-weight:800}.mk-funnel-value{white-space:nowrap}
+        .mk-funnel-rows{display:grid;gap:10px;margin-top:16px}.mk-funnel-row{border:1px solid rgba(148,163,184,.14);background:rgba(15,23,42,.55);border-radius:14px;padding:12px 14px}.mk-funnel-row-head{display:flex;justify-content:space-between;gap:12px;align-items:center;font-weight:900}.mk-funnel-row-head span{min-width:0}.mk-funnel-row-head strong{white-space:nowrap}.mk-funnel-source{margin-top:4px;color:#94a3b8;font-size:12px;font-weight:700;line-height:1.35}.mk-funnel-track{height:9px;border-radius:999px;background:rgba(148,163,184,.16);overflow:hidden;margin-top:10px}.mk-funnel-track span{display:block;height:100%;border-radius:999px;min-width:8px}
+        @media(min-width:1280px){.mk-dashboard{width:min(100%,1760px);max-width:calc(100vw - 48px)}.mk-main{padding:clamp(30px,2.4vw,48px)}.mk-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.mk-row{grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);align-items:start}.mk-dashboard-secondary{grid-template-columns:minmax(0,1fr) minmax(360px,.75fr)}.mk-table-wrap{max-height:620px}}
         .mk-channel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mk-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px}
         .mk-decision-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.mk-decision{border:1px solid rgba(255,107,0,.18);background:linear-gradient(135deg,rgba(255,107,0,.12),rgba(255,255,255,.035));border-radius:16px;padding:16px}.mk-decision strong{display:block;margin-bottom:6px}.mk-decision span{color:#a8b0c0;font-size:13px;line-height:1.55}
         .mk-scroll-list{display:grid;gap:10px;max-height:520px;overflow:auto;padding-right:4px}.mk-source.compact{padding:13px 14px}.mk-source.compact strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-meter-grid{display:grid;gap:12px}.mk-meter-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(160px,2fr) auto;gap:12px;align-items:center;color:#cbd5e1}.mk-meter-track{height:12px;background:#1f2937;border-radius:999px;overflow:hidden}.mk-meter-track span{display:block;height:100%;border-radius:999px}
@@ -1766,9 +1785,17 @@ export default function MarketingKpiDashboard({
             color: #94a3b8 !important;
             line-height: 1.5 !important;
           }
-          .mk-funnel div {
-            min-height: 42px !important;
-            align-items: center !important;
+          .mk-funnel-rows {
+            gap: 8px !important;
+          }
+          .mk-funnel-row {
+            padding: 10px !important;
+          }
+          .mk-funnel-row-head {
+            font-size: 13px !important;
+          }
+          .mk-funnel-source {
+            font-size: 11px !important;
           }
           .mk-budget {
             height: 14px !important;
@@ -2396,13 +2423,7 @@ export default function MarketingKpiDashboard({
             <div className="mk-panel">
               <h2>Marketing Funnel</h2>
               <p>ใช้ Meta reach/click, GA4 visitor และ lead/message จริงในช่วงวันที่เลือก แยกจากใบเสร็จ ERP</p>
-              <div className="mk-funnel">
-                {marketingFunnel.map((item) => (
-                  <div key={item.label} style={{ background: item.color, width: `${funnelWidth(item.value, marketingFunnelMax)}%`, marginInline: "auto", opacity: Number(item.value || 0) > 0 ? 1 : 0.5 }}>
-                    <span className="mk-funnel-label">{item.label}<small>{item.source}</small></span><span className="mk-funnel-value">{money(item.value)}</span>
-                  </div>
-                ))}
-              </div>
+              {renderFunnelRows(marketingFunnel)}
               {crmFallbackLeadSignals > 0 && (
                 <div className="mk-empty" style={{ marginTop: 14 }}>
                   Meta API ยังไม่ส่ง Lead/Message action ในช่วงนี้ แต่มี CRM/manual lead {money(crmFallbackLeadSignals)} รายการ จึงแยกไว้ใน Sales/CRM เพื่อไม่ให้ Marketing Funnel นับปนกัน
@@ -2422,13 +2443,7 @@ export default function MarketingKpiDashboard({
               <p>เส้นทาง CRM จาก Lead ไปถึง Closed Won แยกจากใบเสร็จ ERP เพื่อไม่ให้นับงานที่ยังไม่ map ปนกัน</p>
               {hasSalesMapping ? (
                 <>
-                  <div className="mk-funnel">
-                    {salesFunnel.map((item) => (
-                      <div key={item.label} style={{ background: item.color, width: `${funnelWidth(item.value, salesFunnelMax)}%`, marginInline: "auto", opacity: Number(item.value || 0) > 0 ? 1 : 0.5 }}>
-                        <span className="mk-funnel-label">{item.label}<small>{item.source}</small></span><span className="mk-funnel-value">{money(item.value)}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {renderFunnelRows(salesFunnel)}
                   <div className="mk-empty" style={{ marginTop: 14 }}>
                     CRM Closed Won {money(mappedClosedJobs)} รายการ / ERP Receipts {money(erpReceiptJobs)} รายการ
                     {unmappedReceiptJobs > 0 ? ` (${money(unmappedReceiptJobs)} ใบเสร็จยังรอผูก lead/source)` : " (ผูกข้อมูลครบในช่วงนี้)"}
