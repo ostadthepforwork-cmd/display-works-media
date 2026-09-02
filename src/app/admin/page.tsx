@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import ExpensePage from './expenses/ExpensePage';
 import { blogCategories } from '@/lib/seo-content';
 import { loadLocal, saveLocal } from '@/lib/browser-storage';
 import { buildErpSaveArguments, erpSaveErrorCode, saveErpDocument } from '@/lib/erp-document-save';
@@ -1074,7 +1075,7 @@ export default function AdminPage() {
         <div className="show-mobile admin-mobile-top" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
           <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
             {mainTab === "home" ? "Admin" : mainTab === "erp"
-              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
+              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "expenses" ? "ค่าใช้จ่ายจริง" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
           </span>
           <button
@@ -1199,6 +1200,7 @@ export default function AdminPage() {
               {erpPage === "customers" && <CustomerPage customers={customers} setCustomers={setCustomers} documents={documents} products={catalogProducts} showToast={showToast} />}
               {erpPage === "products" && <ProductPage products={products} setProducts={setProducts} suppliers={suppliers} showToast={showToast} />}
               {erpPage === "suppliers" && <SupplierPage suppliers={suppliers} setSuppliers={setSuppliers} showToast={showToast} />}
+              {erpPage === "expenses" && <ExpensePage customers={customers} suppliers={suppliers} documents={documents} showToast={showToast} />}
               {erpPage === "company" && <CompanyPage company={company} setCompany={setCompany} showToast={showToast} />}
               {["quote","bill","invoice","receipt"].includes(erpPage) && (
                 <DocumentPage type={erpPage}
@@ -1397,7 +1399,7 @@ export default function AdminPage() {
               { id: "invoice",   icon: "🧾", label: "ใบแจ้งหนี้",     color: (DOC_TYPES as any).invoice.color },
               { id: "receipt",   icon: "✅", label: "ใบเสร็จรับเงิน", color: (DOC_TYPES as any).receipt.color },
               null,
-              { id: "quick-expense", target: "receipt", icon: "💸", label: "เพิ่มค่าใช้จ่าย", color: "#EF4444" },
+              { id: "expenses", icon: "฿", label: "ค่าใช้จ่ายจริง", color: "#EF4444" },
               null,
               { id: "customers", icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
               { id: "products",  icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
@@ -5274,7 +5276,7 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
     { id: "invoice", icon: "🧾", label: "ใบแจ้งหนี้", count: docCounts.invoice, color: DOC_TYPES.invoice.color },
     { id: "receipt", icon: "✅", label: "ใบเสร็จรับเงิน", count: docCounts.receipt, color: DOC_TYPES.receipt.color },
     null,
-    { id: "quick-expense", target: "receipt", icon: "💸", label: "เพิ่มค่าใช้จ่าย", color: "#EF4444" },
+    { id: "expenses", icon: "฿", label: "ค่าใช้จ่ายจริง", color: "#EF4444" },
     null,
     { id: "company", icon: "🏢", label: "ข้อมูลบริษัท" },
   ];
