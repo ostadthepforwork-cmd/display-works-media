@@ -11,6 +11,7 @@ import { blogCategories } from '@/lib/seo-content';
 import { loadLocal, saveLocal } from '@/lib/browser-storage';
 import { buildErpSaveArguments, erpSaveErrorCode, saveErpDocument } from '@/lib/erp-document-save';
 import { erpDocumentDisplayStatus, normalizeErpLifecycleStatus, normalizeErpPaymentStatus } from '@/lib/erp-document-status';
+import { buildBusinessProfitability, compareLegacyAndCanonical } from '@/lib/erp-profitability';
 import { isReportDoc, reportRootId, reportingDocuments } from '@/lib/erp-reporting';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { requestBlogRevalidation } from '@/lib/revalidation-client';
@@ -838,6 +839,8 @@ export default function AdminPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
+  const [financialExpenses, setFinancialExpenses] = useState<any[]>([]);
+  const [expenseDataAvailable, setExpenseDataAvailable] = useState(false);
   const [company, setCompany] = useState<any>({
     id: "", name: "", address: "", phone: "", email: "", taxId: "",
     salesPerson: "", bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", qrImage: "", signatureImage: "",
@@ -987,6 +990,37 @@ export default function AdminPage() {
           qrImage: compRes.data.qr_image || "",
           signatureImage: compRes.data.signature_image || "",
         });
+
+        // Batch 3 may not be deployed yet. This optional read must never block
+        // existing ERP screens or substitute document estimates for expenses.
+        try {
+          const { data: expenseRows, error: expenseError } = await withTimeout(
+            supabase
+              .from("erp_expenses")
+              .select("id,expense_date,expense_class,amount,vat_amount,payment_status,paid_at,customer_id,source_document_id,archived_at,voided_at"),
+            6000,
+            "โหลดข้อมูลค่าใช้จ่ายสำหรับ Batch 4",
+          );
+          if (expenseError) throw expenseError;
+          setFinancialExpenses((expenseRows || []).map((expense: any) => ({
+            id: expense.id,
+            expenseDate: expense.expense_date,
+            expenseClass: expense.expense_class,
+            amount: expense.amount,
+            vatAmount: expense.vat_amount,
+            paymentStatus: expense.payment_status,
+            paidAt: expense.paid_at,
+            customerId: expense.customer_id,
+            sourceDocumentId: expense.source_document_id,
+            archivedAt: expense.archived_at,
+            voidedAt: expense.voided_at,
+          })));
+          setExpenseDataAvailable(true);
+        } catch (error) {
+          console.info("Batch 4 actual-expense reporting remains unavailable until Batch 3 is deployed.", error);
+          setFinancialExpenses([]);
+          setExpenseDataAvailable(false);
+        }
       } catch (err) {
         console.error("ERP load error:", err);
         setErpLoadError(((err as any)?.message || String(err)));
@@ -1015,6 +1049,16 @@ export default function AdminPage() {
     }, 0);
   }, 0);
   const totalProfit = totalRevenue - totalCost;
+  const canonicalProfitability = buildBusinessProfitability({
+    documents,
+    expenses: financialExpenses,
+    expenseDataAvailable,
+  });
+  const profitabilityComparison = compareLegacyAndCanonical({
+    recognizedRevenue: totalRevenue,
+    estimatedCost: totalCost,
+    estimatedProfit: totalProfit,
+  }, canonicalProfitability);
 
   const cmsTabs = [
     { id: "blog", icon: "📝", label: "บทความ" },
@@ -1195,6 +1239,8 @@ export default function AdminPage() {
               {erpPage === "dashboard" && (
                 <Dashboard documents={documents} customers={customers} products={catalogProducts}
                   totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
+                  canonicalProfitability={canonicalProfitability}
+                  profitabilityComparison={profitabilityComparison}
                   docCounts={docCounts} setPage={setErpPage} />
               )}
               {erpPage === "customers" && <CustomerPage customers={customers} setCustomers={setCustomers} documents={documents} products={catalogProducts} showToast={showToast} />}
@@ -5317,7 +5363,7 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
 // ============================================================
 // DASHBOARD — เพิ่มกำไร/ขาดทุน
 // ============================================================
-function Dashboard({ documents, customers, products, totalRevenue, totalCost, totalProfit, docCounts, setPage }: any) {
+function Dashboard({ documents, customers, products, totalRevenue, totalCost, totalProfit, canonicalProfitability, profitabilityComparison, docCounts, setPage }: any) {
   const [chartRange, setChartRange] = useState<"7d"|"30d"|"12m">("30d");
   const localDateInput = (date: Date) => {
     const year = date.getFullYear();
@@ -5518,6 +5564,15 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
     fontFamily: "inherit",
     outline: "none",
   };
+  const completenessBadges = [
+    !canonicalProfitability?.revenueComplete && "LEGACY REVENUE UNCLASSIFIED",
+    !canonicalProfitability?.estimateComplete && "ESTIMATED COST INCOMPLETE",
+    !canonicalProfitability?.actualExpenseComplete && "ACTUAL EXPENSE UNCONFIRMED",
+    !canonicalProfitability?.paymentComplete && "PAYMENT DATA INCOMPLETE",
+    !canonicalProfitability?.jobLinkComplete && "JOB LINK INCOMPLETE",
+  ].filter(Boolean);
+  const comparisonReason = profitabilityComparison?.differences?.find((row: any) => row.field === "recognizedRevenue")?.reason
+    || "Canonical Batch 4 separates invoice revenue, receipt cash, estimates, and actual expenses.";
 
   return (
     <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
@@ -5568,6 +5623,52 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
           />
         </div>
       </div>
+
+      <section style={{
+        marginBottom: 20,
+        padding: "18px 20px",
+        border: "1px solid rgba(245,158,11,0.28)",
+        borderLeft: "3px solid #F59E0B",
+        background: "rgba(245,158,11,0.05)",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ color: "#F59E0B", fontSize: 11, fontWeight: 800, letterSpacing: 1.5 }}>BATCH 4 READ-ONLY COMPARISON</div>
+            <h2 style={{ margin: "5px 0 0", fontSize: 17, color: "#fff" }}>รายได้ · เงินรับ · ต้นทุน · กำไร แยกตามนโยบายที่อนุมัติ</h2>
+          </div>
+          <div style={{ color: "#94A3B8", fontSize: 11 }}>Policy: {canonicalProfitability?.policyVersion}</div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12, marginTop: 16 }}>
+          {[
+            ["Recognized Revenue (ไม่รวม VAT)", canonicalProfitability?.recognizedRevenue],
+            ["Cash Received", canonicalProfitability?.cashReceived],
+            ["Cash Outstanding", canonicalProfitability?.cashOutstanding],
+            ["Estimated Cost", canonicalProfitability?.estimatedCost],
+            ["Estimated Profit", canonicalProfitability?.estimatedProfit],
+            ["Known Actual Direct Expense", canonicalProfitability?.actualDirectExpense],
+            ["Provisional Actual Gross Profit", canonicalProfitability?.actualGrossProfit],
+            ["Operating Expense", canonicalProfitability?.operatingExpense],
+          ].map(([label, value]) => (
+            <div key={String(label)} style={{ minWidth: 0 }}>
+              <div style={{ color: "#94A3B8", fontSize: 10, lineHeight: 1.4 }}>{label}</div>
+              <strong style={{ color: "#fff", fontSize: 17, display: "block", marginTop: 4 }}>฿{fmtMoney(Number(value || 0))}</strong>
+            </div>
+          ))}
+        </div>
+        {completenessBadges.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 15 }}>
+            {completenessBadges.map((label) => (
+              <span key={String(label)} style={{ padding: "5px 8px", border: "1px solid rgba(245,158,11,0.35)", color: "#FBBF24", fontSize: 10, fontWeight: 800 }}>
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
+        <div style={{ marginTop: 14, color: "#94A3B8", fontSize: 11, lineHeight: 1.6 }}>
+          Current legacy receipt-based revenue: ฿{fmtMoney(profitabilityComparison?.old?.recognizedRevenue || 0)}. {comparisonReason}
+          {' '}Meta / Google spend remains attribution-only and is not subtracted from accounting profit here.
+        </div>
+      </section>
 
       {/* ── HERO KPI ─────────────────────────────────────────────── */}
       <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
