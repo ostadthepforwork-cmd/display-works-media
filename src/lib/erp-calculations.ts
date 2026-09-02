@@ -46,7 +46,7 @@ export const lineQtyForBasis = (item: ErpLineItemLike, basis?: string) => {
 export const lineAmount = (item: ErpLineItemLike) =>
   lineQtyForBasis(item, item.priceUnit || "piece") * Number(item.price || 0);
 
-export const lineCost = (item: ErpLineItemLike, unitCost = Number(item.costSnapshot || 0)) =>
-  lineQtyForBasis(item, item.costUnit || "piece") * Number(unitCost || 0);
+export const lineCost = (item: ErpLineItemLike, unitCost = Number(item.costSnapshot ?? 0)) =>
+  lineQtyForBasis(item, item.costUnit || "piece") * Number(unitCost ?? 0);
 
 export const docVatRate = (doc: ErpDocumentLike) => Number(doc.vatRate ?? doc.vat_rate ?? 7);

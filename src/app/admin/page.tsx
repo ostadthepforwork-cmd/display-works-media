@@ -8,6 +8,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { blogCategories } from '@/lib/seo-content';
 import { loadLocal, saveLocal } from '@/lib/browser-storage';
+import { buildErpSaveArguments, erpSaveErrorCode, saveErpDocument } from '@/lib/erp-document-save';
+import { erpDocumentDisplayStatus, normalizeErpLifecycleStatus, normalizeErpPaymentStatus } from '@/lib/erp-document-status';
 import { isReportDoc, reportRootId, reportingDocuments } from '@/lib/erp-reporting';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { requestBlogRevalidation } from '@/lib/revalidation-client';
@@ -139,15 +141,13 @@ const lineQtyForBasis = (item: any, basis?: string) => {
   return itemBillingBasis(item) === "sqm" && hasAreaDimensions(item) ? (pieces > 0 ? pieces : 1) : lineQty(item);
 };
 const lineAmount = (item: any) => lineQtyForBasis(item, item?.priceUnit || "piece") * Number(item.price || 0);
-const lineCost = (item: any, unitCost = Number(item.costSnapshot || 0)) =>
-  lineQtyForBasis(item, item?.costUnit || "piece") * Number(unitCost || 0);
-const isShippingItem = (item: any) =>
-  /ems|shipping|delivery|ขนส่ง|จัดส่ง|ค่าส่ง|ส่งของ|พัสดุ/i.test(String(item?.name || ""));
-const fallbackItemCost = (products: any[], item: any) => {
-  const snapshot = Number(item.costSnapshot || 0);
-  if (snapshot > 0) return snapshot;
-  if (isShippingItem(item)) return Number(item.price || 0);
-  return findProductForItem(products, item)?.cost || 0;
+const lineCost = (item: any, unitCost = Number(item.costSnapshot ?? 0)) =>
+  lineQtyForBasis(item, item?.costUnit || "piece") * Number(unitCost ?? 0);
+const fallbackItemCost = (_products: any[], item: any) => {
+  if (item.costSnapshot !== null && item.costSnapshot !== undefined && item.costSnapshot !== "") {
+    return Number(item.costSnapshot);
+  }
+  return 0;
 };
 const DEFAULT_INTERNAL_EXPENSE_OPTIONS = ["ค่าส่ง", "ค่าติดตั้ง", "ค่าออกแบบ", "ค่าเดินทาง", "ค่าแพ็กกิ้ง", "ค่าวัสดุเพิ่มเติม", "ค่าแรงเพิ่มเติม", "อื่นๆ"];
 const normalizeInternalExpenses = (expenses: any[] = []) => (Array.isArray(expenses) ? expenses : [])
@@ -175,19 +175,6 @@ const calcInternalItemsCost = (doc: any, products: any[] = []) =>
 const calcInternalDocumentCost = (doc: any, products: any[] = []) =>
   calcInternalItemsCost(doc, products) + calcInternalExtraCost(doc);
 const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
-const normalizeName = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
-const findProductForItem = (products: any[], item: any) => {
-  const itemName = normalizeName(item?.name);
-  if (!itemName) return null;
-  return products.find((product: any) => {
-    const productName = normalizeName(product?.name);
-    const itemTokens = itemName.split(" ").filter((token) => token.length >= 3);
-    return productName === itemName
-      || productName.includes(itemName)
-      || itemName.includes(productName)
-      || itemTokens.some((token) => productName.includes(token));
-  }) || null;
-};
 const supplierCatalogProducts = (suppliers: any[]) =>
   (suppliers || []).flatMap((supplier: any) =>
     (supplier.items || []).map((item: any) => {
@@ -357,31 +344,10 @@ const STATUS_LABELS = {
 };
 const DOCUMENT_STATUS_KEYS = ["draft", "sent", "approved", "cancelled"];
 const DOCUMENT_STATUS_FILTER_KEYS = ["draft", "sent", "approved", "paid", "partial_paid", "cancelled"];
-const DOCUMENT_STATUS_VALUES = new Set(DOCUMENT_STATUS_KEYS);
 const PAYMENT_STATUS_KEYS = ["unpaid", "partial_paid", "paid"];
-const PAYMENT_STATUS_VALUES = new Set(PAYMENT_STATUS_KEYS);
-const normalizePaymentStatusForUi = (paymentStatus = "") => {
-  const raw = String(paymentStatus || "").trim().toLowerCase();
-  if (raw === "partial" || raw === "partially_paid" || raw === "overdue") return "partial_paid";
-  if (raw === "completed" || raw === "complete") return "paid";
-  return PAYMENT_STATUS_VALUES.has(raw) ? raw : "";
-};
-const normalizeDocumentStatusForDb = (status, docType = "", paymentStatus = "") => {
-  const raw = String(status || "").trim().toLowerCase();
-  if (raw === "cancelled" || raw === "canceled" || raw === "void") return "cancelled";
-  if (raw === "sent") return "sent";
-  if (
-    raw === "approved"
-    || raw === "paid"
-    || raw === "partial_paid"
-    || raw === "partial"
-    || raw === "partially_paid"
-    || raw === "overdue"
-    || raw === "completed"
-    || raw === "complete"
-  ) return "approved";
-  return DOCUMENT_STATUS_VALUES.has(raw) ? raw : "draft";
-};
+const normalizePaymentStatusForUi = normalizeErpPaymentStatus;
+const normalizeDocumentStatusForDb = (status, _docType = "", _paymentStatus = "") =>
+  normalizeErpLifecycleStatus(status);
 const DOCUMENT_TYPE_ALIASES = {
   quote: "quote",
   quotation: "quote",
@@ -402,14 +368,8 @@ const normalizeDocumentTypeForUi = (type = "") => {
   return DOCUMENT_TYPE_ALIASES[raw] || "quote";
 };
 
-const normalizeDocumentStatusForUi = (status = "", docType = "", paymentStatus = "") => {
-  const payment = normalizePaymentStatusForUi(paymentStatus);
-  if (payment === "paid" || payment === "partial_paid") return payment;
-  const raw = String(status || "").trim().toLowerCase();
-  if (raw === "paid" || raw === "completed" || raw === "complete") return "paid";
-  if (raw === "partial_paid" || raw === "partial" || raw === "partially_paid" || raw === "overdue") return "partial_paid";
-  return normalizeDocumentStatusForDb(raw, normalizeDocumentTypeForUi(docType), payment);
-};
+const normalizeDocumentStatusForUi = (status = "", _docType = "", paymentStatus = "") =>
+  erpDocumentDisplayStatus(status, paymentStatus);
 
 const getDocTypeMeta = (type = "") => DOC_TYPES[normalizeDocumentTypeForUi(type)] || DOC_TYPES.quote;
 const getDocStatusColor = (status = "", docType = "", paymentStatus = "") =>
@@ -433,89 +393,6 @@ const INIT_PRODUCTS = [
   { id: genId(), name: "Backdrop 3x2m", unit: "ชุด", cost: 1200, price: 3500, costUnit: "piece", priceUnit: "piece" },
   { id: genId(), name: "ฉลากสินค้า A5", unit: "100 ชิ้น", cost: 150, price: 400, costUnit: "piece", priceUnit: "piece" },
 ];
-
-function loadStore(key: string, def: unknown) {
-  try {
-    const v = localStorage.getItem("dw_" + key);
-    return v ? JSON.parse(v) : def;
-  } catch { return def; }
-}
-function saveStore(key: string, val: unknown) {
-  try { localStorage.setItem("dw_" + key, JSON.stringify(val)); } catch {}
-}
-
-const ERP_DOCUMENT_SHADOW_KEY = "erp_document_field_shadow";
-
-function loadErpDocumentShadow() {
-  return loadStore(ERP_DOCUMENT_SHADOW_KEY, {}) as Record<string, any>;
-}
-
-function saveErpDocumentShadow(docId: string, doc: any) {
-  if (!docId) return;
-  const current = loadErpDocumentShadow();
-  current[docId] = {
-    updatedAt: Date.now(),
-    leadSource: doc.leadSource || "",
-    marketingCampaign: doc.marketingCampaign || "",
-    marketingAdSet: doc.marketingAdSet || "",
-    marketingAd: doc.marketingAd || "",
-    paymentType: doc.paymentType || "",
-    paymentAmount: doc.paymentAmount ?? 0,
-    paymentDate: doc.paymentDate || "",
-    paymentNote: doc.paymentNote || "",
-    depositPaid: doc.depositPaid ?? 0,
-    depositDate: doc.depositDate || "",
-    depositNote: doc.depositNote || "",
-    internalExpenses: normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || []),
-    vatRate: docVatRate(doc),
-    items: (doc.items || []).map((item: any, index: number) => ({
-      index,
-      costUnit: item.costUnit || "piece",
-      priceUnit: item.priceUnit || "piece",
-      supplierName: item.supplierName || "",
-      widthM: item.widthM ?? undefined,
-      heightM: item.heightM ?? undefined,
-      pieces: item.pieces ?? undefined,
-    })),
-  };
-  saveStore(ERP_DOCUMENT_SHADOW_KEY, current);
-}
-
-function applyErpDocumentShadow(doc: any) {
-  const shadow = loadErpDocumentShadow()[doc.id];
-  if (!shadow) return doc;
-  const shadowItems = Array.isArray(shadow.items) ? shadow.items : [];
-
-  return {
-    ...doc,
-    leadSource: doc.leadSource || shadow.leadSource || "",
-    marketingCampaign: doc.marketingCampaign || shadow.marketingCampaign || "",
-    marketingAdSet: doc.marketingAdSet || shadow.marketingAdSet || "",
-    marketingAd: doc.marketingAd || shadow.marketingAd || "",
-    paymentType: doc.paymentType || shadow.paymentType || "",
-    paymentAmount: Number(doc.paymentAmount || 0) > 0 ? doc.paymentAmount : (shadow.paymentAmount ?? doc.paymentAmount ?? 0),
-    paymentDate: doc.paymentDate || shadow.paymentDate || "",
-    paymentNote: doc.paymentNote || shadow.paymentNote || "",
-    depositPaid: Number(doc.depositPaid || 0) > 0 ? doc.depositPaid : (shadow.depositPaid ?? doc.depositPaid ?? 0),
-    depositDate: doc.depositDate || shadow.depositDate || "",
-    depositNote: doc.depositNote || shadow.depositNote || "",
-    internalExpenses: normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || shadow.internalExpenses || []),
-    vatRate: doc.vatRate ?? shadow.vatRate ?? 7,
-    items: (doc.items || []).map((item: any, index: number) => {
-      const meta = shadowItems.find((candidate: any) => candidate.index === index);
-      if (!meta) return item;
-      return {
-        ...item,
-        costUnit: item.costUnit || meta.costUnit || "piece",
-        priceUnit: item.priceUnit || meta.priceUnit || "piece",
-        supplierName: item.supplierName || meta.supplierName || "",
-        widthM: item.widthM ?? meta.widthM,
-        heightM: item.heightM ?? meta.heightM,
-        pieces: item.pieces ?? meta.pieces,
-      };
-    }),
-  };
-}
 
 // ============================================================
 // PRINT / PDF helper — Premium A4 Design (Display Works Media)
@@ -1054,8 +931,10 @@ export default function AdminPage() {
             const safePaymentStatus = d.payment_status || "";
             const safeStatus = normalizeDocumentStatusForUi(d.status, safeType, safePaymentStatus);
 
-            return applyErpDocumentShadow({
+            return {
             id: d.id, type: safeType, docNo: d.doc_no, status: safeStatus,
+            databaseStatus: d.status,
+            revision: d.revision ?? 1,
             customerId: d.customer_id, customerName: d.customer_name,
             projectName: d.project_name, orderId: d.order_id,
             reference: d.reference, salesPerson: d.sales_person,
@@ -1083,6 +962,8 @@ export default function AdminPage() {
             items: items.filter(i => i.document_id === d.id).map(i => ({
               id: i.id, name: i.name, subTitle: i.sub_title, detail: i.detail,
               unit: i.unit, qty: i.qty, price: i.price, costSnapshot: i.cost_snapshot,
+              productId: i.product_id || null,
+              supplierId: i.supplier_id || null,
               costUnit: i.cost_unit || "piece",
               priceUnit: i.price_unit || "piece",
               supplierName: i.supplier_name || "",
@@ -1090,7 +971,7 @@ export default function AdminPage() {
               heightM: i.height_m ?? undefined,
               pieces: i.pieces ?? undefined,
             })),
-          });
+          };
           }));
         }
 
@@ -7032,6 +6913,7 @@ function CompanyPage({ company, setCompany, showToast }: any) {
 // ============================================================
 function DocumentPage({ type, documents, allDocuments, setDocuments, customers, products, company, showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
+  const saveInFlight = useRef(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const docTypeKey = normalizeDocumentTypeForUi(type);
@@ -7041,38 +6923,27 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     (filterStatus === "all" || normalizeDocumentStatusForUi(d.status, d.type, d.paymentStatus) === filterStatus) &&
     ([d.docNo, d.customerName].some((value) => String(value || "").includes(search)))
   );
-  const nextDocNoForType = (targetType: string) => {
-    const year = new Date().getFullYear() + 543;
-    const safeTargetType = normalizeDocumentTypeForUi(targetType);
-    const targetDt = getDocTypeMeta(safeTargetType) || dt;
-    const prefix = `${targetDt.prefix}${year}-`;
-    // หา running number สูงสุดที่มีอยู่แล้วในปีนี้ แทนการนับ .length
-    const maxSeq = allDocuments
-      .filter(d => normalizeDocumentTypeForUi(d.type) === safeTargetType && d.docNo?.startsWith(prefix))
-      .reduce((max, d) => {
-        const seq = parseInt(d.docNo.replace(prefix, ""), 10);
-        return isNaN(seq) ? max : Math.max(max, seq);
-      }, 0);
-    return `${prefix}${String(maxSeq + 1).padStart(4, "0")}`;
-  };
-  const nextDocNo = () => nextDocNoForType(docTypeKey);
   const newDoc = () => {
-    setEditing({ id: "", type: docTypeKey, docNo: nextDocNo(), date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: docTypeKey === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: docTypeKey === "receipt" ? today() : "", paymentNote: "", items: [], internalExpenses: [], discount: 0, discountType: "percent", vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
+    setEditing({ id: "", type: docTypeKey, docNo: "", revision: 0, date: today(), dueDate: addDays(today(), 30), customerId: "", customerName: "", projectName: "", orderId: "", salesPerson: company?.salesPerson || "", reference: "", leadSource: "", marketingCampaign: "", marketingAdSet: "", marketingAd: "", paymentType: docTypeKey === "receipt" ? "deposit" : "", paymentAmount: 0, paymentDate: docTypeKey === "receipt" ? today() : "", paymentNote: "", items: [], internalExpenses: [], discount: 0, discountType: "percent", vat: true, vatRate: 7, wht: false, whtRate: 3, depositPaid: 0, depositDate: "", depositNote: "", status: "draft", notes: "", bankName: company?.bankName || "", bankBranch: company?.bankBranch || "", bankAccount: company?.bankAccount || "", bankType: company?.bankType || "ออมทรัพย์", qrImage: company?.qrImage || "" });
   };
   const save = async (doc) => {
     if (!doc.customerId) return showToast("กรุณาเลือกลูกค้า", "error");
     if (doc.items.length === 0) return showToast("กรุณาเพิ่มรายการสินค้า", "error");
     if (doc.items.some(i => i.qty < 0 || i.price < 0))
       return showToast("จำนวนและราคาต้องไม่ติดลบ", "error");
-    if (!doc.docNo?.trim()) return showToast("กรุณาระบุเลขที่เอกสาร", "error");
+    if (doc.id && !doc.docNo?.trim()) return showToast("ไม่พบเลขที่เอกสารเดิม", "error");
+    if (saveInFlight.current) return;
+
     const itemsWithCost = doc.items.map(item => {
-      const prod = findProductForItem(products, item);
+      const hasCapturedCost = item.costSnapshot !== null
+        && item.costSnapshot !== undefined
+        && item.costSnapshot !== "";
       const costedItem = {
         ...item,
-        costSnapshot: Number(item.costSnapshot || 0) > 0 ? item.costSnapshot : (prod ? prod.cost : 0),
-        costUnit: item.costUnit || prod?.costUnit || prod?.cost_unit || "piece",
-        priceUnit: item.priceUnit || prod?.priceUnit || prod?.price_unit || "piece",
-        supplierName: item.supplierName || prod?.supplierName || prod?.supplier_name || "",
+        costSnapshot: hasCapturedCost ? Number(item.costSnapshot) : null,
+        costUnit: item.costUnit || "piece",
+        priceUnit: item.priceUnit || "piece",
+        supplierName: item.supplierName ?? "",
       };
       return costedItem;
     });
@@ -7080,131 +6951,75 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     const normalizedInternalExpenses = normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || []);
     const docForTotals = { ...doc, paymentAmount: normalizedPaymentAmount };
     const paymentTotals = calcDocTotal(docForTotals, allDocuments);
-    const normalizedStatus = normalizeDocumentStatusForDb(doc.status, doc.type, paymentTotals.paymentStatus);
-    const docRow = {
-      type: doc.type, doc_no: doc.docNo, status: normalizedStatus,
-      customer_id: doc.customerId, customer_name: doc.customerName,
-      project_name: doc.projectName, order_id: doc.orderId || null,
-      reference: doc.reference, sales_person: doc.salesPerson,
-      lead_source: doc.leadSource || "",
-      marketing_campaign: doc.marketingCampaign || "",
-      marketing_adset: doc.marketingAdSet || "",
-      marketing_ad: doc.marketingAd || "",
-      payment_type: doc.paymentType || "",
-      payment_amount: normalizedPaymentAmount,
-      payment_date: doc.paymentDate || doc.depositDate || null,
-      payment_note: doc.paymentNote || "",
-      payment_status: paymentTotals.paymentStatus,
-      date: doc.date, due_date: doc.dueDate,
-      discount: doc.discount, discount_type: doc.discountType || "percent", vat: doc.vat, vat_rate: docVatRate(doc), wht: doc.wht, wht_rate: doc.whtRate,
-      deposit_paid: normalizedPaymentAmount,
-      deposit_date: doc.depositDate || doc.paymentDate || null,
-      deposit_note: doc.depositNote || doc.paymentNote || "",
-      internal_expenses: normalizedInternalExpenses,
-      notes: doc.notes, override_address: doc.overrideAddress,
-      bank_name: doc.bankName, bank_branch: doc.bankBranch,
-      bank_account: doc.bankAccount, bank_type: doc.bankType, qr_image: doc.qrImage,
-      deleted: false,
+    const normalizedStatus = doc.databaseStatus === "paid" && doc.status === "paid"
+      ? "paid"
+      : normalizeDocumentStatusForDb(doc.status, doc.type, paymentTotals.paymentStatus);
+    const docForSave = {
+      ...doc,
+      items: itemsWithCost,
+      clientRequestId: doc.clientRequestId || genId(),
     };
-    const { vat_rate, discount_type, lead_source, marketing_campaign, marketing_adset, marketing_ad, payment_type, payment_amount, payment_date, payment_note, payment_status, deposit_paid, deposit_date, deposit_note, internal_expenses, ...legacyDocRow } = docRow;
-    const isLegacyVatColumnError = (error: any) =>
-      error?.code === "42703" || /vat_rate|discount_type|lead_source|marketing_campaign|marketing_adset|marketing_ad|payment_type|payment_amount|payment_date|payment_note|payment_status|deposit_paid|deposit_date|deposit_note|internal_expenses|column/i.test(error?.message || "");
-    const requiresPersistentDocColumns =
-      docVatRate(doc) !== 7
-      || Boolean(doc.leadSource || doc.marketingCampaign || doc.marketingAdSet || doc.marketingAd)
-      || (doc.discountType || "percent") !== "percent"
-      || Number(doc.depositPaid || doc.paymentAmount || 0) > 0
-      || Boolean(doc.depositDate || doc.depositNote || doc.paymentType || doc.paymentDate || doc.paymentNote)
-      || normalizedInternalExpenses.length > 0;
-    const persistentFieldError = "ฐานข้อมูลยังไม่มีคอลัมน์สำหรับ VAT/Marketing/มัดจำ/ค่าใช้จ่ายภายใน กรุณารัน supabase/erp-persistent-document-fields.sql ใน Supabase Production แล้วบันทึกเอกสารอีกครั้ง";
+    const args = buildErpSaveArguments(docForSave, {
+      status: normalizedStatus,
+      paymentStatus: paymentTotals.paymentStatus,
+      paymentAmount: normalizedPaymentAmount,
+      internalExpenses: normalizedInternalExpenses,
+    });
+
+    saveInFlight.current = true;
     try {
-      let docId = doc.id;
-      if (doc.id) {
-        const { error } = await supabase.from("erp_documents").update(docRow).eq("id", doc.id);
-        if (error) {
-          if (!isLegacyVatColumnError(error)) throw error;
-          if (requiresPersistentDocColumns) throw new Error(persistentFieldError);
-          const { error: legacyError } = await supabase.from("erp_documents").update(legacyDocRow).eq("id", doc.id);
-          if (legacyError) throw legacyError;
-        }
-        // ลบ items เก่า แล้วใส่ใหม่
-      } else {
-        const { data, error } = await supabase.from("erp_documents").insert(docRow).select().single();
-        if (error) {
-          if (!isLegacyVatColumnError(error)) throw error;
-          if (requiresPersistentDocColumns) throw new Error(persistentFieldError);
-          const { data: legacyData, error: legacyError } = await supabase.from("erp_documents").insert(legacyDocRow).select().single();
-          if (legacyError) throw legacyError;
-          docId = legacyData.id;
-        } else {
-          docId = data.id;
-        }
-      }
-      // insert items ใหม่
-      if (itemsWithCost.length > 0) {
-        const itemRows = itemsWithCost.map((item, idx) => ({
-          document_id: docId, sort_order: idx,
-          name: item.name, sub_title: item.subTitle, detail: item.detail,
-          unit: item.unit, qty: item.qty, price: item.price, cost_snapshot: item.costSnapshot,
-          cost_unit: item.costUnit || "piece",
-          price_unit: item.priceUnit || "piece",
-          supplier_name: item.supplierName || "",
-          width_m: item.widthM ?? null,
-          height_m: item.heightM ?? null,
-          pieces: item.pieces ?? null,
-        }));
-        const legacyItemRows = itemRows.map(({ cost_unit, price_unit, supplier_name, width_m, height_m, pieces, ...row }) => row);
-        const isLegacyItemColumnError = (error: any) =>
-          error?.code === "42703" || /cost_unit|price_unit|supplier_name|width_m|height_m|pieces|column/i.test(error?.message || "");
-        const requiresPersistentItemColumns = itemsWithCost.some((item) =>
-          Boolean(item.supplierName)
-          || isSqmBasis(item.costUnit)
-          || isSqmBasis(item.priceUnit)
-          || Number(item.widthM || 0) > 0
-          || Number(item.heightM || 0) > 0
-          || Number(item.pieces || 0) > 0
-        );
-        let { data: insertedItems, error: itemErr } = await supabase
-          .from("erp_document_items")
-          .insert(itemRows)
-          .select("id");
-        if (itemErr && isLegacyItemColumnError(itemErr)) {
-          if (requiresPersistentItemColumns) throw new Error(persistentFieldError);
-          ({ data: insertedItems, error: itemErr } = await supabase
-            .from("erp_document_items")
-            .insert(legacyItemRows)
-            .select("id"));
-        }
-        if (itemErr) throw itemErr;
-        if (doc.id) {
-          const insertedIds = (insertedItems || []).map((item) => item.id).filter(Boolean);
-          const deleteQuery = supabase.from("erp_document_items").delete().eq("document_id", doc.id);
-          const { error: deleteOldItemsError } = insertedIds.length > 0
-            ? await deleteQuery.not("id", "in", `(${insertedIds.map((id) => `"${id}"`).join(",")})`)
-            : await deleteQuery;
-          if (deleteOldItemsError) throw deleteOldItemsError;
-        }
-      }
-      const savedUiStatus = normalizeDocumentStatusForUi(normalizedStatus, doc.type, paymentTotals.paymentStatus);
+      const result = await saveErpDocument(supabase, args);
+      const row: any = result.document;
+      const savedUiStatus = normalizeDocumentStatusForUi(row.status, row.type, row.payment_status);
       const saved = {
         ...doc,
-        id: docId,
+        id: row.id,
+        docNo: row.doc_no,
+        revision: row.revision,
+        databaseStatus: row.status,
         status: savedUiStatus,
-        paymentAmount: normalizedPaymentAmount,
-        paymentStatus: paymentTotals.paymentStatus,
-        depositPaid: normalizedPaymentAmount,
-        depositDate: doc.depositDate || doc.paymentDate || "",
-        depositNote: doc.depositNote || doc.paymentNote || "",
+        paymentAmount: row.payment_amount ?? 0,
+        paymentStatus: row.payment_status || "",
+        depositPaid: row.deposit_paid ?? 0,
+        depositDate: row.deposit_date || "",
+        depositNote: row.deposit_note || "",
         internalExpenses: normalizedInternalExpenses,
-        items: itemsWithCost,
+        updatedAt: new Date(row.updated_at).getTime(),
+        createdAt: new Date(row.created_at).getTime(),
+        items: result.items.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          subTitle: item.sub_title,
+          detail: item.detail,
+          unit: item.unit,
+          qty: item.qty,
+          price: item.price,
+          costSnapshot: item.cost_snapshot,
+          costUnit: item.cost_unit || "piece",
+          priceUnit: item.price_unit || "piece",
+          supplierName: item.supplier_name || "",
+          productId: item.product_id || null,
+          supplierId: item.supplier_id || null,
+          widthM: item.width_m ?? undefined,
+          heightM: item.height_m ?? undefined,
+          pieces: item.pieces ?? undefined,
+        })),
       };
-      saveErpDocumentShadow(docId, saved);
       if (doc.id) setDocuments(prev => prev.map(d => d.id === doc.id ? saved : d));
       else setDocuments(prev => [...prev, saved]);
       showToast(doc.id ? "บันทึกเอกสารแล้ว" : "สร้างเอกสารใหม่แล้ว");
       setEditing(null);
     } catch (err: any) {
-      showToast("เกิดข้อผิดพลาด: " + err.message, "error");
+      const code = erpSaveErrorCode(err);
+      if (code === "REVISION_CONFLICT") {
+        showToast("เอกสารถูกแก้ไขจากอีกหน้าต่าง กรุณาปิดฟอร์มแล้วโหลดข้อมูลล่าสุดเพื่อตรวจสอบก่อนบันทึก", "error");
+      } else if (code === "IDEMPOTENCY_CONFLICT") {
+        showToast("คำขอบันทึกนี้มีข้อมูลไม่ตรงกับครั้งก่อน กรุณาปิดฟอร์มแล้วลองใหม่", "error");
+      } else {
+        showToast("เกิดข้อผิดพลาด: " + err.message, "error");
+      }
+    } finally {
+      saveInFlight.current = false;
     }
   };
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -7223,9 +7038,19 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
   const changeStatus = async (id, status) => {
     const safeStatus = normalizeDocumentStatusForDb(status);
-    const { error } = await supabase.from("erp_documents").update({ status: safeStatus }).eq("id", id);
+    const { data, error } = await supabase
+      .from("erp_documents")
+      .update({ status: safeStatus })
+      .eq("id", id)
+      .select("status, revision")
+      .single();
     if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-    setDocuments(prev => prev.map(d => d.id === id ? { ...d, status: safeStatus } : d));
+    setDocuments(prev => prev.map(d => d.id === id ? {
+      ...d,
+      status: safeStatus,
+      databaseStatus: data.status,
+      revision: data.revision,
+    } : d));
     showToast(`อัปเดตสถานะเป็น "${getDocStatusLabel(safeStatus)}"`);
   };
 
@@ -7327,13 +7152,15 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
 
   const createFrom = (srcDoc, targetType, split = false) => {
-    const newDocNo = nextDocNoForType(targetType);
     const inheritedDeposit = resolveDepositInfo(srcDoc, allDocuments);
     const newDoc = {
       ...srcDoc,
       id: "",
       type: targetType,
-      docNo: newDocNo,
+      docNo: "",
+      revision: 0,
+      databaseStatus: undefined,
+      clientRequestId: undefined,
       date: today(),
       dueDate: addDays(today(), 30),
       status: "draft",
@@ -7509,7 +7336,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             }} />
                             {/* สร้างซ้ำ */}
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => {
-                              setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" });
+                              setEditing({ ...doc, id: "", docNo: "", revision: 0, databaseStatus: undefined, clientRequestId: undefined, date: today(), status: "draft" });
                               closeAll();
                             }} />
 
@@ -7625,7 +7452,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
                             <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` }); closeAll(); }} />
-                            <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" }); closeAll(); }} />
+                            <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { setEditing({ ...doc, id: "", docNo: "", revision: 0, databaseStatus: undefined, clientRequestId: undefined, date: today(), status: "draft" }); closeAll(); }} />
                             {(DOC_NEXT[normalizeDocumentTypeForUi(doc.type)] || []).length > 0 && <>
                               <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "6px 0" }} />
                               <div style={{ padding: "4px 14px", fontSize: 10, color: "#94A3B8", fontWeight: 700, textTransform: "uppercase" as const }}>สร้างเอกสารต่อ</div>
@@ -7797,11 +7624,13 @@ function SplitModal({ srcDoc, newDoc, onConfirm, onClose }: any) {
 // ============================================================
 function DocForm({ doc, type, customers, products, onSave, onCancel, allDocuments }: any) {
   const baseDoc = doc || {};
+  const [saving, setSaving] = useState(false);
   const [f, setF] = useState(() => ({
     salesPerson: "",
     orderId: "",
     overrideAddress: "",
     ...baseDoc,
+    clientRequestId: baseDoc.clientRequestId || genId(),
     items: Array.isArray(baseDoc.items) ? baseDoc.items : [],
     internalExpenses: normalizeInternalExpenses(baseDoc.internalExpenses || baseDoc.internal_expenses || []),
   }));
@@ -7820,7 +7649,15 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
   // ── รายการสินค้า ─────────────────────────────────────────
   const addItem = () => setF(prev => ({ ...prev, items: [...(Array.isArray(prev.items) ? prev.items : []), { id: genId(), name: "", subTitle: "", detail: "", unit: "ชิ้น", qty: 1, price: 0, costUnit: "piece", priceUnit: "piece", widthM: 1, heightM: 1, pieces: 1 }] }));
   const removeItem = (id) => setF(prev => ({ ...prev, items: (Array.isArray(prev.items) ? prev.items : []).filter(i => i.id !== id) }));
-  const setItem = (id, k, v) => setF(prev => ({ ...prev, items: (Array.isArray(prev.items) ? prev.items : []).map(i => i.id === id ? { ...i, [k]: (["qty", "price", "costSnapshot"].includes(k)) ? parseFloat(v) || 0 : v } : i) }));
+  const setItem = (id, k, v) => setF(prev => ({
+    ...prev,
+    items: (Array.isArray(prev.items) ? prev.items : []).map(i => {
+      if (i.id !== id) return i;
+      if (k === "costSnapshot") return { ...i, [k]: v === "" ? null : Number(v) };
+      if (["qty", "price"].includes(k)) return { ...i, [k]: parseFloat(v) || 0 };
+      return { ...i, [k]: v };
+    }),
+  }));
   const setItemDimension = (id, key, value) => setF(prev => ({
     ...prev,
     items: (Array.isArray(prev.items) ? prev.items : []).map(i => {
@@ -7848,10 +7685,12 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         name: p.name,
         unit: isSqm ? "ตร.ม." : p.unit,
         price: p.price,
-        costSnapshot: p.cost || 0,
+        costSnapshot: p.cost ?? null,
         costUnit,
         priceUnit,
-        supplierName: p.supplierName || p.supplier_name || "",
+        productId: p.fromSupplierCatalog ? null : p.id,
+        supplierId: p.fromSupplierCatalog ? p.supplierId : null,
+        supplierName: p.supplierName ?? p.supplier_name ?? "",
         widthM,
         heightM,
         pieces,
@@ -7888,6 +7727,15 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
       ...prev,
       internalExpenses: (Array.isArray(prev.internalExpenses) ? prev.internalExpenses : []).filter((expense: any) => expense.id !== id),
     }));
+  const submitDocument = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await onSave(f);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // ── เอกสารอ้างอิง (Order linking) ─────────────────────────
   const relatedOrders = (allDocuments || []).filter(d => d.id !== baseDoc.id && d.customerId === f.customerId);
@@ -7910,7 +7758,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
       <div style={card}>
         {secHead("1", "ข้อมูลเอกสาร")}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-          <Field label="เลขที่เอกสาร *"><input value={f.docNo} onChange={set("docNo")} /></Field>
+          <Field label="เลขที่เอกสาร"><input value={f.docNo || ""} readOnly placeholder="กำหนดอัตโนมัติเมื่อบันทึก" /></Field>
           <Field label="วันที่ออกเอกสาร"><input type="date" value={f.date} onChange={set("date")} /></Field>
           <Field label={dt?.prefix === "QT" ? "ยืนยันราคาถึงวันที่" : "วันครบกำหนด"}><input type="date" value={f.dueDate} onChange={set("dueDate")} /></Field>
         </div>
@@ -8077,7 +7925,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
               <Field label="หน่วย"><input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} style={{ textAlign: "center" }} /></Field>
               <Field label={`ต้นทุน (${priceBasisLabel(item.costUnit)})`}>
                 <div style={{ position: "relative" }}>
-                  <input type="number" value={item.costSnapshot || 0} onChange={e => setItem(item.id, "costSnapshot", e.target.value)} min="0" step="0.01" style={{ textAlign: "right", paddingRight: 36, color: "#ef4444", fontWeight: 700 }} />
+                  <input type="number" value={item.costSnapshot ?? ""} onChange={e => setItem(item.id, "costSnapshot", e.target.value)} min="0" step="0.01" placeholder="ไม่ทราบ" style={{ textAlign: "right", paddingRight: 36, color: "#ef4444", fontWeight: 700 }} />
                   <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#555" }}>THB</span>
                 </div>
               </Field>
@@ -8093,8 +7941,8 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
               <span>จำนวนคิดขาย: {fmtMoney(priceCalcQty)} {isSqmBasis(item.priceUnit) ? "ตร.ม." : "ชิ้น"}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 14, fontSize: 13, fontWeight: 700 }}>
-              {(item.supplierName || findProductForItem(products, item)?.supplierName) && (
-                <span style={{ color: "#F97316" }}>Supplier: {item.supplierName || findProductForItem(products, item)?.supplierName}</span>
+              {item.supplierName && (
+                <span style={{ color: "#F97316" }}>Supplier: {item.supplierName}</span>
               )}
               <span style={{ color: "#ef4444" }}>ต้นทุน: ฿{fmtMoney(lineCost(item, fallbackItemCost(products, item)))}</span>
               <span style={{ color: dt.color }}>รวม: ฿{fmtMoney(lineAmount(item))}</span>
@@ -8335,7 +8183,9 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
 
       {/* ── Actions ── */}
       <div style={{ display: "flex", gap: 10 }}>
-        <Btn onClick={() => onSave(f)} color={dt.color} style={{ flex: 1 }}>💾 บันทึกเอกสาร</Btn>
+        <Btn onClick={submitDocument} color={dt.color} style={{ flex: 1 }} disabled={saving}>
+          {saving ? "กำลังบันทึก..." : "💾 บันทึกเอกสาร"}
+        </Btn>
         <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
       </div>
     </div>

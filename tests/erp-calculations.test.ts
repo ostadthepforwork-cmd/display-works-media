@@ -42,3 +42,11 @@ test("uses custom document VAT rate before defaulting to 7 percent", () => {
   assert.equal(docVatRate({ vat_rate: 5 }), 5);
   assert.equal(docVatRate({}), 7);
 });
+
+test("preserves an intentional zero cost snapshot", () => {
+  assert.equal(lineCost({ qty: 3, costSnapshot: 0, costUnit: "piece" }), 0);
+});
+
+test("treats an unknown null cost as zero only for arithmetic", () => {
+  assert.equal(lineCost({ qty: 3, costSnapshot: null as unknown as number, costUnit: "piece" }), 0);
+});
