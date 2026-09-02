@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleSchema, BreadcrumbSchema } from "@/components/SchemaOrg";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { createPublicServerClient } from "@/lib/supabase-public-server";
 import { blogSlugCandidates, normalizeBlogSlug } from "@/lib/blog-slug";
 import { seoArticleBySlug, seoArticlePlans, seoArticlePlanToPost } from "@/lib/seo-content";
 import BlogPostClient from "./BlogPostClient";
@@ -138,7 +138,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const articleUrl = `https://displayworksmedia.com/blog/${slug}`;
 
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createPublicServerClient();
 
     const { data: posts } = await supabase
       .from("posts")
@@ -186,7 +186,7 @@ export default async function BlogPostPage({ params }: Props) {
   let related: any[] = [];
 
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createPublicServerClient();
 
     const { data: posts, error: postError } = await supabase
       .from("posts")

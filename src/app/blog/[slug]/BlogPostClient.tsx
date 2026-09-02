@@ -10,6 +10,7 @@ import { blogPostPath, blogSlugCandidates, normalizeBlogSlug } from "@/lib/blog-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { escapeHtml, sanitizeHtml } from "@/lib/sanitize-html";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 import {
   ArrowRight, Calendar, Clock, ChevronRight,
@@ -185,7 +186,7 @@ export default function BlogPostPage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: serializeJsonLd({
               "@context": "https://schema.org",
               "@type": "FAQPage",
               mainEntity: faqs.map((faq) => ({

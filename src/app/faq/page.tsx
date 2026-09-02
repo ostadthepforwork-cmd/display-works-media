@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import { CmsText } from "@/components/CmsSettingsProvider";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -84,7 +85,7 @@ export default function FAQPage() {
       <script
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD ปลอดภัย
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqSchema) }}
       />
       <Navbar />
       <section className="pt-[116px] pb-4 px-6 lg:px-8 bg-[#050806]">

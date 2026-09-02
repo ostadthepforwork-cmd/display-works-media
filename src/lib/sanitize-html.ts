@@ -38,6 +38,7 @@ const ALLOWED_TAGS = new Set([
   "th",
   "thead",
   "tr",
+  "u",
   "ul",
 ]);
 
@@ -54,7 +55,15 @@ export function escapeHtml(value: string) {
 }
 
 function isSafeUrl(value: string) {
-  const trimmed = value.trim().replace(/[\u0000-\u001F\u007F\s]+/g, "");
+  const decoded = value.replace(/&(?:#(\d+)|#x([0-9a-f]+)|colon|tab|newline|amp);?/gi, (entity, decimal, hex) => {
+    if (decimal) return String.fromCodePoint(Number(decimal));
+    if (hex) return String.fromCodePoint(Number.parseInt(hex, 16));
+    const named = String(entity).toLowerCase();
+    if (named.startsWith("&colon")) return ":";
+    if (named.startsWith("&amp")) return "&";
+    return "\t";
+  });
+  const trimmed = decoded.trim().replace(/[\u0000-\u001F\u007F\s]+/g, "");
   if (!trimmed) return false;
   if (/^(javascript|data|vbscript):/i.test(trimmed)) return false;
   if (/^(images|uploads|blog|portfolio|services)\//i.test(trimmed)) return true;

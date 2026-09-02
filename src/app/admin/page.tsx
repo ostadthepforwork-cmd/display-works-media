@@ -10,6 +10,8 @@ import { blogCategories } from '@/lib/seo-content';
 import { loadLocal, saveLocal } from '@/lib/browser-storage';
 import { isReportDoc, reportRootId, reportingDocuments } from '@/lib/erp-reporting';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
+import { requestBlogRevalidation } from '@/lib/revalidation-client';
+import { escapeHtml as escapeRichText, sanitizeHtml } from '@/lib/sanitize-html';
 import MarketingKpiDashboard from './MarketingKpiDashboard';
 
 const supabase = getSupabaseBrowserClient();
@@ -8463,8 +8465,9 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
 
   // sync ค่าเข้า editor เมื่อเปิดครั้งแรก
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value || "";
+    const safeValue = sanitizeHtml(value || "");
+    if (editorRef.current && editorRef.current.innerHTML !== safeValue) {
+      editorRef.current.innerHTML = safeValue;
     }
   }, []);
 
@@ -8474,8 +8477,24 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
     sync();
   };
 
-  const sync = () => {
-    if (editorRef.current) onChange(editorRef.current.innerHTML);
+  const sync = (cleanEditor = false) => {
+    if (!editorRef.current) return;
+    const safeHtml = sanitizeHtml(editorRef.current.innerHTML);
+    if (cleanEditor && editorRef.current.innerHTML !== safeHtml) {
+      editorRef.current.innerHTML = safeHtml;
+    }
+    onChange(safeHtml);
+  };
+
+  const pasteSafeHtml = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const clipboardHtml = event.clipboardData.getData("text/html");
+    const clipboardText = event.clipboardData.getData("text/plain");
+    const safeHtml = clipboardHtml
+      ? sanitizeHtml(clipboardHtml)
+      : escapeRichText(clipboardText).replace(/\r?\n/g, "<br />");
+    document.execCommand("insertHTML", false, safeHtml);
+    sync();
   };
 
   const insertEmoji = (emoji: string) => {
@@ -8610,7 +8629,8 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
         contentEditable
         suppressContentEditableWarning
         onInput={sync}
-        onBlur={sync}
+        onBlur={() => sync(true)}
+        onPaste={pasteSafeHtml}
         style={{
           minHeight: 320, padding: "16px 20px", color: "#e2e8f0", fontSize: 14,
           lineHeight: 1.8, outline: "none", fontFamily: "'Prompt', sans-serif",
@@ -8666,7 +8686,7 @@ function BlogManager({ showToast }: any) {
     const postData = {
       title: p.title, excerpt: p.excerpt, category: p.category,
       date: p.date, slug: p.slug, cover: p.cover, cover_alt: p.cover_alt || "",
-      published: p.published, body: p.body,
+      published: p.published, body: sanitizeHtml(p.body || ""),
       seo_title: p.seo_title || "", meta_desc: p.meta_desc || "",
       focus_keyword: p.focus_keyword || "", author: p.author || "Display Works Media",
       last_updated: new Date().toISOString().slice(0, 10),
@@ -8680,14 +8700,24 @@ function BlogManager({ showToast }: any) {
       // อัปเดต
       const { error } = await supabase.from("posts").update(postData).eq("id", p.id);
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
-      showToast("บันทึกบทความแล้ว");
-      await revalidateBlog(p.slug);
+      const revalidation = await revalidateBlog(p.slug);
+      showToast(
+        revalidation.ok
+          ? "บันทึกบทความแล้ว"
+          : "บันทึกบทความแล้ว แต่รีเฟรชแคชเว็บไซต์ไม่สำเร็จ กรุณาลองใหม่",
+        revalidation.ok ? "success" : "error",
+      );
     } else {
       // เพิ่มใหม่
       const { error } = await supabase.from("posts").insert(postData);
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
-      showToast("เพิ่มบทความใหม่แล้ว");
-      await revalidateBlog(p.slug);
+      const revalidation = await revalidateBlog(p.slug);
+      showToast(
+        revalidation.ok
+          ? "เพิ่มบทความใหม่แล้ว"
+          : "เพิ่มบทความแล้ว แต่รีเฟรชแคชเว็บไซต์ไม่สำเร็จ กรุณาลองใหม่",
+        revalidation.ok ? "success" : "error",
+      );
     }
     setEditing(null);
     fetchPosts();
@@ -8695,17 +8725,7 @@ function BlogManager({ showToast }: any) {
 
 
   // ── revalidate เว็บทันทีหลัง save/delete ──
-  const revalidateBlog = async (slug?: string) => {
-    try {
-      await fetch("/api/revalidate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, secret: process.env.NEXT_PUBLIC_REVALIDATE_SECRET || "" }),
-      });
-    } catch {
-      // revalidate ล้มเหลวไม่ให้ block UX
-    }
-  };
+  const revalidateBlog = (slug?: string) => requestBlogRevalidation(slug);
   const del = async (id) => {
     if (!confirm("ลบบทความนี้?")) return;
     const postToDelete = posts.find(p => p.id === id);

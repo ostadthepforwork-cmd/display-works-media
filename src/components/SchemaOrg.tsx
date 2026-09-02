@@ -3,6 +3,8 @@
  * วิธีใช้: ใส่ใน layout หรือ page ที่ต้องการ
  */
 
+import { serializeJsonLd } from "@/lib/json-ld";
+
 interface SchemaOrgProps {
   /** override schema ใดๆ เพิ่มเติมสำหรับหน้าเฉพาะ */
   extra?: Record<string, unknown>;
@@ -131,7 +133,7 @@ export default function SchemaOrg({ extra }: SchemaOrgProps) {
           key={i}
           type="application/ld+json"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD ปลอดภัย ไม่มี user input
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
         />
       ))}
     </>
@@ -160,7 +162,7 @@ export function BreadcrumbSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }}
     />
   );
 }
@@ -218,7 +220,7 @@ export function ArticleSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleSchema) }}
     />
   );
 }
@@ -293,16 +295,16 @@ export function ServiceSchema({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(serviceSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }}
       />
       {pageFaqSchema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(pageFaqSchema) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(pageFaqSchema) }}
         />
       )}
     </>

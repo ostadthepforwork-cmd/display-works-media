@@ -1,23 +1,10 @@
+import "server-only";
+
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-export async function createSupabaseServerClient() {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (serviceRoleKey) {
-    return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      serviceRoleKey,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      }
-    );
-  }
-
+export async function createAuthenticatedServerClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -39,6 +26,9 @@ export async function createSupabaseServerClient() {
     }
   );
 }
+
+/** Legacy name retained for compatibility; it is always a cookie-authenticated user client. */
+export const createSupabaseServerClient = createAuthenticatedServerClient;
 
 export function createSupabaseMiddlewareClient() {
   return createClient(

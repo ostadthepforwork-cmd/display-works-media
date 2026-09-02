@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Shared public documents render stored logo, QR, and signature image URLs directly for consistent browser print/PDF output. */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { createPrivilegedServerClient } from "@/lib/supabase-privileged-server";
 import DocActions from "./DocActions";
 import "./document.css";
 
@@ -24,7 +24,8 @@ const DOC_LABELS: Record<string, { en: string; th: string; due: string }> = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   try {
-    const supabase = await createSupabaseServerClient();
+    // Temporary Batch 1B exception: UUID document sharing is redesigned in Batch 8.
+    const supabase = createPrivilegedServerClient();
     const { data: doc } = await supabase
       .from("erp_documents")
       .select("type, doc_no, customer_name, project_name")
@@ -407,7 +408,8 @@ async function loadDocumentChain(supabase: any, orderId: string | null | undefin
 export default async function PublicDocumentPage({ params, searchParams }: PageProps) {
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
-  const supabase = await createSupabaseServerClient();
+  // Temporary Batch 1B exception: keep current exact-ID public document behavior.
+  const supabase = createPrivilegedServerClient();
 
   const [
     { data: rawDoc, error: docError },

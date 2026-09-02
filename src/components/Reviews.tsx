@@ -1,6 +1,7 @@
 "use client";
 
 import { SharedSectionTitle } from "@/components/SharedMarketingSections";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 type ReviewItem = {
   id?: string;
@@ -105,7 +106,7 @@ export default function Reviews({ items }: { items?: ReviewItem[] }) {
     <section className="brand-section py-20 lg:py-28 px-5 sm:px-6 lg:px-8" style={{ background: "#0D121A" }}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchemaJson) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(reviewSchemaJson) }}
       />
       <div className="max-w-[1380px] mx-auto">
         <div className="reveal-section reviews-heading flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
