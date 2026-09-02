@@ -11,6 +11,7 @@ import { blogCategories } from '@/lib/seo-content';
 import { loadLocal, saveLocal } from '@/lib/browser-storage';
 import { buildErpSaveArguments, erpSaveErrorCode, saveErpDocument } from '@/lib/erp-document-save';
 import { erpDocumentDisplayStatus, normalizeErpLifecycleStatus, normalizeErpPaymentStatus } from '@/lib/erp-document-status';
+import { findCustomerDuplicateWarnings, legacySupplierSourceFingerprint, normalizeProductCode, parseOptionalNonNegativeNumber, previewLegacySuppliers } from '@/lib/erp-master-data';
 import { buildBusinessProfitability, compareLegacyAndCanonical } from '@/lib/erp-profitability';
 import { isReportDoc, reportRootId, reportingDocuments } from '@/lib/erp-reporting';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
@@ -178,7 +179,7 @@ const calcInternalDocumentCost = (doc: any, products: any[] = []) =>
   calcInternalItemsCost(doc, products) + calcInternalExtraCost(doc);
 const docVatRate = (doc: any) => Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
 const supplierCatalogProducts = (suppliers: any[]) =>
-  (suppliers || []).flatMap((supplier: any) =>
+  (suppliers || []).filter((supplier: any) => !supplier.archivedAt && !supplier.archived_at).flatMap((supplier: any) =>
     (supplier.items || []).map((item: any) => {
       const basis = item.pricingBasis === "sqm" ? "sqm" : "piece";
       return {
@@ -860,7 +861,7 @@ export default function AdminPage() {
           supabase.from("erp_products").select("*").order("created_at"),
           supabase.from("erp_documents").select("*").eq("deleted", false).order("created_at", { ascending: false }),
           supabase.from("erp_document_items").select("*").order("sort_order"),
-          supabase.from("erp_company").select("*").limit(1).maybeSingle(),
+          supabase.from("erp_company").select("*").order("updated_at", { ascending: false }).order("id").limit(2),
         ]), 10000, "โหลดข้อมูล ERP");
         const loadError = [custRes, prodRes, docRes, itemRes, compRes].find((res) => res.error)?.error;
         if (loadError) throw loadError;
@@ -871,6 +872,7 @@ export default function AdminPage() {
           email: c.email, address: c.address, taxId: c.tax_id,
           customerSegment: c.customer_segment || "",
           businessType: c.business_type || "",
+          archivedAt: c.archived_at || null,
         })));
 
         // map products
@@ -879,6 +881,8 @@ export default function AdminPage() {
           supplierName: p.supplier_name || p.supplierName || "",
           costUnit: p.cost_unit || p.costUnit || "piece",
           priceUnit: p.price_unit || p.priceUnit || "piece",
+          code: p.code || "",
+          archivedAt: p.archived_at || null,
         })));
 
         try {
@@ -888,29 +892,7 @@ export default function AdminPage() {
             "โหลดข้อมูล Supplier",
           );
           if (error) throw error;
-          let supplierRows = data || [];
-          const localSuppliers = loadLocal("erp_suppliers", []) as any[];
-          if (!isLocalAdminBypass() && supplierRows.length === 0 && Array.isArray(localSuppliers) && localSuppliers.length > 0) {
-            const rows = localSuppliers
-              .filter((supplier: any) => String(supplier?.name || "").trim())
-              .map((supplier: any) => ({
-                name: String(supplier.name || "").trim(),
-                contact: supplier.contact || "",
-                phone: supplier.phone || "",
-                email: supplier.email || "",
-                address: supplier.address || "",
-                tax_id: supplier.taxId || supplier.tax_id || "",
-                notes: supplier.notes || supplier.note || "",
-                items: Array.isArray(supplier.items) ? supplier.items : [],
-              }));
-            if (rows.length > 0) {
-              const { data: migrated, error: migrateError } = await supabase.from("erp_suppliers").insert(rows).select("*");
-              if (migrateError) throw migrateError;
-              supplierRows = migrated || [];
-              saveLocal("erp_suppliers", []);
-              showToast("กู้ข้อมูล Supplier จากเครื่องและบันทึกลง database แล้ว");
-            }
-          }
+          const supplierRows = data || [];
           if (supplierRows) setSuppliers(supplierRows.map(s => ({
             id: s.id,
             name: s.name || "",
@@ -921,6 +903,7 @@ export default function AdminPage() {
             taxId: s.tax_id || s.taxId || "",
             note: s.notes || s.note || "",
             items: Array.isArray(s.items) ? s.items : [],
+            archivedAt: s.archived_at || null,
           })));
         } catch (error) {
           console.warn("Supplier load fallback:", error);
@@ -979,16 +962,20 @@ export default function AdminPage() {
           }));
         }
 
-        // map company
-        if (compRes.data) setCompany({
-          id: compRes.data.id,
-          name: compRes.data.name || "", address: compRes.data.address || "",
-          phone: compRes.data.phone || "", email: compRes.data.email || "",
-          taxId: compRes.data.tax_id || "", salesPerson: compRes.data.sales_person || "",
-          bankName: compRes.data.bank_name || "", bankBranch: compRes.data.bank_branch || "",
-          bankAccount: compRes.data.bank_account || "", bankType: compRes.data.bank_type || "ออมทรัพย์",
-          qrImage: compRes.data.qr_image || "",
-          signatureImage: compRes.data.signature_image || "",
+        // A company configuration must never be selected arbitrarily.
+        if ((compRes.data || []).length > 1) {
+          throw new Error("พบข้อมูลบริษัทมากกว่าหนึ่งรายการ โปรดตรวจสอบก่อนใช้งาน ERP");
+        }
+        const companyRow = compRes.data?.[0];
+        if (companyRow) setCompany({
+          id: companyRow.id,
+          name: companyRow.name || "", address: companyRow.address || "",
+          phone: companyRow.phone || "", email: companyRow.email || "",
+          taxId: companyRow.tax_id || "", salesPerson: companyRow.sales_person || "",
+          bankName: companyRow.bank_name || "", bankBranch: companyRow.bank_branch || "",
+          bankAccount: companyRow.bank_account || "", bankType: companyRow.bank_type || "ออมทรัพย์",
+          qrImage: companyRow.qr_image || "",
+          signatureImage: companyRow.signature_image || "",
         });
 
         // Batch 3 may not be deployed yet. This optional read must never block
@@ -6271,8 +6258,10 @@ function CustomerInsightDashboard({ customers = [], documents = [], products = [
 function CustomerPage({ customers, setCustomers, documents = [], products = [], showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "", customerSegment: "B2B", businessType: "" };
-  const filtered = customers.filter(c =>
+  const visibleCustomers = customers.filter(c => showArchived ? c.archivedAt : !c.archivedAt);
+  const filtered = visibleCustomers.filter(c =>
     [c.name, c.contact, c.phone, c.customerSegment, c.businessType].some((value) => String(value || "").includes(search))
   );
   const save = async (form) => {
@@ -6302,19 +6291,25 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
     }
     setEditing(null);
   };
-  const del = async (id) => {
-    if (!confirm("ลบลูกค้านี้?")) return;
-    const { error } = await supabase.from("erp_customers").delete().eq("id", id);
+  const setArchiveState = async (id, archived: boolean) => {
+    if (!confirm(archived ? "เก็บลูกค้านี้เข้าคลัง?" : "กู้คืนลูกค้านี้?")) return;
+    let user;
+    try { user = await requireErpSession(); } catch (error) { return showToast((error as any)?.message || String(error), "error"); }
+    const { error } = await supabase.from("erp_customers").update({
+      archived_at: archived ? new Date().toISOString() : null,
+      archived_by: archived ? user.id : null,
+    }).eq("id", id);
     if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-    setCustomers(prev => prev.filter(c => c.id !== id));
-    showToast("ลบลูกค้าแล้ว");
+    setCustomers(prev => prev.map(c => c.id === id ? { ...c, archivedAt: archived ? new Date().toISOString() : null } : c));
+    showToast(archived ? "เก็บลูกค้าเข้าคลังแล้ว" : "กู้คืนลูกค้าแล้ว");
   };
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div className="erp-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>ลูกค้า</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{customers.length} ราย</p></div>
+        <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>ลูกค้า</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{visibleCustomers.length} ราย</p></div>
         <div className="erp-page-actions" style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 220 }} />
+          <Btn onClick={() => setShowArchived(value => !value)} outline>{showArchived ? "รายการใช้งาน" : "คลัง"}</Btn>
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มลูกค้า</Btn>
         </div>
       </div>
@@ -6325,7 +6320,7 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
               <div><div style={{ fontWeight: 600, fontSize: 15 }}>{c.name}</div>{c.contact && <div style={{ fontSize: 12, color: "#A8B0C0" }}>{c.contact}</div>}</div>
               <div className="erp-card-actions" style={{ display: "flex", gap: 6 }}>
                 <IconBtn onClick={() => setEditing({ ...c })} title="แก้ไข">✏️</IconBtn>
-                <IconBtn onClick={() => del(c.id)} title="ลบ" danger>🗑️</IconBtn>
+                <IconBtn onClick={() => setArchiveState(c.id, !c.archivedAt)} title={c.archivedAt ? "กู้คืน" : "เก็บเข้าคลัง"} danger={!c.archivedAt}>{c.archivedAt ? "↩️" : "🗄️"}</IconBtn>
               </div>
             </div>
             <div style={{ fontSize: 12, color: "#888", lineHeight: 2 }}>
@@ -6341,13 +6336,14 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
           </div>
         ))}
       </div>
-      {editing && <Modal title={editing.id ? "แก้ไขลูกค้า" : "เพิ่มลูกค้า"} onClose={() => setEditing(null)} width={500}><CustomerForm data={editing} onSave={save} onCancel={() => setEditing(null)} /></Modal>}
+      {editing && <Modal title={editing.id ? "แก้ไขลูกค้า" : "เพิ่มลูกค้า"} onClose={() => setEditing(null)} width={500}><CustomerForm data={editing} customers={customers} onSave={save} onCancel={() => setEditing(null)} /></Modal>}
     </div>
   );
 }
-function CustomerForm({ data, onSave, onCancel }: any) {
+function CustomerForm({ data, customers = [], onSave, onCancel }: any) {
   const [f, setF] = useState(data);
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
+  const warnings = findCustomerDuplicateWarnings(f, customers);
   const businessTypes = ["ร้านค้า", "ร้านอาหาร", "คาเฟ่/เครื่องดื่ม", "คลินิก/ความงาม", "อีเวนต์/ออกบูธ", "แบรนด์สินค้า", "องค์กร/บริษัท", "โรงเรียน/สถาบัน", "อื่น ๆ"];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -6373,6 +6369,7 @@ function CustomerForm({ data, onSave, onCancel }: any) {
       </div>
       <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
       <Field label="เลขประจำตัวผู้เสียภาษี"><input value={f.taxId} onChange={set("taxId")} /></Field>
+      {warnings.map((warning) => <div key={warning.confidence} style={{ border: "1px solid rgba(245,158,11,0.35)", background: "rgba(245,158,11,0.10)", borderRadius: 8, padding: "9px 11px", color: "#FCD34D", fontSize: 12 }}>{warning.message}</div>)}
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
         <Btn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
         <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
@@ -6387,21 +6384,33 @@ function CustomerForm({ data, onSave, onCancel }: any) {
 function ProductPage({ products, setProducts, suppliers = [], showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const blank = { id: "", name: "", supplierName: "", unit: "ชิ้น", cost: "", price: "", costUnit: "piece", priceUnit: "piece" };
-  const catalogProducts = [...products, ...supplierCatalogProducts(suppliers)];
+  const [showArchived, setShowArchived] = useState(false);
+  const blank = { id: "", name: "", code: "", supplierName: "", unit: "ชิ้น", cost: "", price: "", costUnit: "piece", priceUnit: "piece" };
+  const catalogProducts = showArchived
+    ? products.filter((product: any) => product.archivedAt)
+    : [...products.filter((product: any) => !product.archivedAt), ...supplierCatalogProducts(suppliers)];
   const filtered = catalogProducts.filter(p =>
     [p.name, p.supplierName].some((value) => String(value || "").toLowerCase().includes(search.toLowerCase()))
   );
   const isLegacyProductColumnError = (error: any) =>
-    error?.code === "42703" || /cost_unit|price_unit|column/i.test(error?.message || "");
+    error?.code === "42703" || /cost_unit|price_unit|code|column/i.test(error?.message || "");
   const save = async (f) => {
     if (!f.name.trim()) return showToast("กรุณาใส่ชื่อสินค้า", "error");
+    let cost: number | null;
+    let price: number | null;
+    try {
+      cost = parseOptionalNonNegativeNumber(f.cost, "ต้นทุน");
+      price = parseOptionalNonNegativeNumber(f.price, "ราคาขาย");
+    } catch (error) {
+      return showToast((error as Error).message, "error");
+    }
     const row = {
       name: f.name,
+      code: normalizeProductCode(f.code),
       supplier_name: f.supplierName || "",
       unit: f.unit,
-      cost: parseFloat(f.cost) || 0,
-      price: parseFloat(f.price) || 0,
+      cost,
+      price: price ?? 0,
       cost_unit: f.costUnit || "piece",
       price_unit: f.priceUnit || "piece",
     };
@@ -6412,7 +6421,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
         ({ error } = await supabase.from("erp_products").update(legacyRow).eq("id", f.id));
       }
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-      setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...legacyRow, supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit } : p));
+      setProducts(prev => prev.map(p => p.id === f.id ? { ...f, ...legacyRow, code: row.code || "", supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit } : p));
       showToast("แก้ไขสินค้าแล้ว");
     } else {
       let { data, error } = await supabase.from("erp_products").insert(row).select().single();
@@ -6420,17 +6429,22 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
         ({ data, error } = await supabase.from("erp_products").insert(legacyRow).select().single());
       }
       if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-      setProducts(prev => [...prev, { ...f, id: data.id, ...legacyRow, supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit }]);
+      setProducts(prev => [...prev, { ...f, id: data.id, ...legacyRow, code: row.code || "", supplierName: row.supplier_name, costUnit: row.cost_unit, priceUnit: row.price_unit }]);
       showToast("เพิ่มสินค้าใหม่แล้ว");
     }
     setEditing(null);
   };
-  const del = async (id) => {
-    if (!confirm("ลบสินค้านี้?")) return;
-    const { error } = await supabase.from("erp_products").delete().eq("id", id);
+  const setArchiveState = async (id, archived: boolean) => {
+    if (!confirm(archived ? "เก็บสินค้านี้เข้าคลัง?" : "กู้คืนสินค้านี้?")) return;
+    let user;
+    try { user = await requireErpSession(); } catch (error) { return showToast((error as any)?.message || String(error), "error"); }
+    const { error } = await supabase.from("erp_products").update({
+      archived_at: archived ? new Date().toISOString() : null,
+      archived_by: archived ? user.id : null,
+    }).eq("id", id);
     if (error) return showToast("เกิดข้อผิดพลาด: " + error.message, "error");
-    setProducts(prev => prev.filter(p => p.id !== id));
-    showToast("ลบสินค้าแล้ว");
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, archivedAt: archived ? new Date().toISOString() : null } : p));
+    showToast(archived ? "เก็บสินค้าเข้าคลังแล้ว" : "กู้คืนสินค้าแล้ว");
   };
   return (
     <div style={{ animation: "fadeIn 0.3s ease" }}>
@@ -6438,6 +6452,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
         <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>สินค้า/บริการ</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{catalogProducts.length} รายการ</p></div>
         <div className="erp-page-actions" style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
+          <Btn onClick={() => setShowArchived(value => !value)} outline>{showArchived ? "รายการใช้งาน" : "คลัง"}</Btn>
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มสินค้า</Btn>
         </div>
       </div>
@@ -6475,7 +6490,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
                       ) : (
                         <>
                           <IconBtn onClick={() => setEditing({ ...p })} title="แก้ไข">✏️</IconBtn>
-                          <IconBtn onClick={() => del(p.id)} title="ลบ" danger>🗑️</IconBtn>
+                          <IconBtn onClick={() => setArchiveState(p.id, !p.archivedAt)} title={p.archivedAt ? "กู้คืน" : "เก็บเข้าคลัง"} danger={!p.archivedAt}>{p.archivedAt ? "↩️" : "🗄️"}</IconBtn>
                         </>
                       )}
                     </div>
@@ -6518,7 +6533,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
                 ) : (
                   <>
                     <button type="button" onClick={() => setEditing({ ...p })} style={{ background: "rgba(255,107,0,0.14)", border: "1px solid rgba(255,107,0,0.35)", color: "#FFB076", borderRadius: 10, fontWeight: 700, fontFamily: "inherit" }}>แก้ไข</button>
-                    <button type="button" onClick={() => del(p.id)} style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.28)", color: "#FCA5A5", borderRadius: 10, fontWeight: 700, fontFamily: "inherit" }}>ลบ</button>
+                    <button type="button" onClick={() => setArchiveState(p.id, !p.archivedAt)} style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.28)", color: "#FCA5A5", borderRadius: 10, fontWeight: 700, fontFamily: "inherit" }}>{p.archivedAt ? "กู้คืน" : "เก็บเข้าคลัง"}</button>
                   </>
                 )}
               </div>
@@ -6538,15 +6553,17 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
   const [f, setF] = useState({
     ...data,
     supplierName: data.supplierName || data.supplier_name || "",
-    cost: data.cost || "",
-    price: data.price || "",
+    code: data.code || "",
+    cost: data.cost ?? "",
+    price: data.price ?? "",
     costUnit: data.costUnit || data.cost_unit || "piece",
     priceUnit: data.priceUnit || data.price_unit || "piece",
   });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const margin = (parseFloat(f.price) || 0) - (parseFloat(f.cost) || 0);
   const pct = f.cost > 0 ? (margin / parseFloat(f.cost) * 100).toFixed(1) : 0;
-  const selectedSupplier = suppliers.find((supplier: any) => supplier.name === f.supplierName);
+  const activeSuppliers = suppliers.filter((supplier: any) => !supplier.archivedAt);
+  const selectedSupplier = activeSuppliers.find((supplier: any) => supplier.name === f.supplierName);
   const supplierItems = selectedSupplier?.items || [];
   const pickSupplierItem = (e) => {
     const item = supplierItems.find((entry: any) => entry.id === e.target.value);
@@ -6565,9 +6582,10 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <Field label="ชื่อสินค้า/บริการ *"><input value={f.name} onChange={set("name")} /></Field>
+      <Field label="รหัสสินค้า / SKU (ไม่บังคับ)"><input value={f.code} onChange={set("code")} placeholder="เช่น SIGN-001" /></Field>
       <Field label="Supplier">
         <input value={f.supplierName} onChange={set("supplierName")} list="supplier-list" placeholder="เลือกหรือพิมพ์ชื่อ Supplier" />
-        <datalist id="supplier-list">{suppliers.map((supplier: any) => <option key={supplier.id || supplier.name} value={supplier.name} />)}</datalist>
+        <datalist id="supplier-list">{activeSuppliers.map((supplier: any) => <option key={supplier.id || supplier.name} value={supplier.name} />)}</datalist>
       </Field>
       {supplierItems.length > 0 && (
         <Field label="รายการจาก Supplier">
@@ -6607,7 +6625,7 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
         </div>
       )}
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-        <Btn onClick={() => onSave({ ...f, cost: parseFloat(f.cost) || 0, price: parseFloat(f.price) || 0 })} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
+        <Btn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
         <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
       </div>
     </div>
@@ -6620,14 +6638,19 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
 function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
+  const [legacyPreview, setLegacyPreview] = useState<any[]>([]);
+  const [importingLegacy, setImportingLegacy] = useState(false);
   const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "", note: "", items: [] };
-  const filtered = suppliers.filter((supplier: any) => {
+  const visibleSuppliers = suppliers.filter((supplier: any) => showArchived ? supplier.archivedAt : !supplier.archivedAt);
+  const filtered = visibleSuppliers.filter((supplier: any) => {
     const q = search.toLowerCase();
     return [supplier.name, supplier.contact, supplier.phone, supplier.email]
       .some((value) => String(value || "").toLowerCase().includes(q));
   });
   const normalizeSupplier = (supplier: any, id?: string) => ({
     id: id || supplier.id || genId(),
+    archivedAt: supplier.archivedAt || supplier.archived_at || null,
     name: String(supplier.name || "").trim(),
     contact: supplier.contact || "",
     phone: supplier.phone || "",
@@ -6681,7 +6704,7 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
         console.warn("Supplier update fallback:", error);
         return showToast("บันทึก Supplier ลง database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
       }
-      commitLocal(suppliers.map((supplier: any) => supplier.id === form.id ? clean : supplier));
+      commitLocal(suppliers.map((supplier: any) => supplier.id === form.id ? { ...clean, archivedAt: supplier.archivedAt || null } : supplier));
       showToast(savedRemote ? "แก้ไข Supplier แล้ว" : "แก้ไข Supplier แล้ว (บันทึกสำรองในเครื่อง)");
     } else {
       let saved = clean;
@@ -6699,23 +6722,55 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
     }
     setEditing(null);
   };
-  const del = async (id: string) => {
-    if (!confirm("ลบ Supplier นี้?")) return;
+  const setArchiveState = async (id: string, archived: boolean) => {
+    if (!confirm(archived ? "เก็บ Supplier นี้เข้าคลัง?" : "กู้คืน Supplier นี้?")) return;
     try {
-      await requireErpSession();
-    } catch (error) {
-      return showToast((error as any)?.message || String(error), "error");
-    }
-    let savedRemote = true;
-    try {
-      const { error } = await supabase.from("erp_suppliers").delete().eq("id", id);
+      const user = await requireErpSession();
+      const { error } = await supabase.from("erp_suppliers").update({
+        archived_at: archived ? new Date().toISOString() : null,
+        archived_by: archived ? user.id : null,
+      }).eq("id", id);
       if (error) throw error;
     } catch (error) {
-      console.warn("Supplier delete fallback:", error);
-      return showToast("ลบ Supplier จาก database ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
+      return showToast("เปลี่ยนสถานะ Supplier ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
     }
-    commitLocal(suppliers.filter((supplier: any) => supplier.id !== id));
-    showToast(savedRemote ? "ลบ Supplier แล้ว" : "ลบ Supplier แล้ว (บันทึกสำรองในเครื่อง)");
+    commitLocal(suppliers.map((supplier: any) => supplier.id === id ? { ...supplier, archivedAt: archived ? new Date().toISOString() : null } : supplier));
+    showToast(archived ? "เก็บ Supplier เข้าคลังแล้ว" : "กู้คืน Supplier แล้ว");
+  };
+  const previewLegacyImport = () => {
+    const source = loadLocal("erp_suppliers", []);
+    if (!Array.isArray(source) || source.length === 0) {
+      return showToast("ไม่พบข้อมูล Supplier เดิมในเบราว์เซอร์นี้", "error");
+    }
+    setLegacyPreview(previewLegacySuppliers(source, suppliers));
+  };
+  const importLegacy = async () => {
+    const source = loadLocal("erp_suppliers", []);
+    if (!Array.isArray(source) || source.length === 0) return showToast("ไม่พบข้อมูล Supplier เดิม", "error");
+    if (!confirm("นำเข้าข้อมูล Supplier เดิมตามรายการ preview? ข้อมูลในเบราว์เซอร์จะไม่ถูกลบ")) return;
+    try {
+      setImportingLegacy(true);
+      await requireErpSession();
+      const fingerprint = await legacySupplierSourceFingerprint(source);
+      const { data, error } = await supabase.rpc("import_legacy_suppliers_v1", {
+        p_source_fingerprint: fingerprint,
+        p_suppliers: source,
+      });
+      if (error) throw error;
+      const { data: rows, error: reloadError } = await supabase.from("erp_suppliers").select("*").order("created_at");
+      if (reloadError) throw reloadError;
+      setSuppliers((rows || []).map((supplier: any) => ({
+        id: supplier.id, name: supplier.name || "", contact: supplier.contact || "", phone: supplier.phone || "",
+        email: supplier.email || "", address: supplier.address || "", taxId: supplier.tax_id || "",
+        note: supplier.notes || "", items: Array.isArray(supplier.items) ? supplier.items : [], archivedAt: supplier.archived_at || null,
+      })));
+      setLegacyPreview([]);
+      showToast(`นำเข้าเสร็จแล้ว: ใหม่ ${data?.new_count || 0}, มีอยู่แล้ว ${data?.existing_count || 0}, ต้องตรวจสอบ ${data?.conflict_count || 0}`);
+    } catch (error) {
+      showToast("นำเข้า Supplier ไม่สำเร็จ: " + ((error as any)?.message || error), "error");
+    } finally {
+      setImportingLegacy(false);
+    }
   };
 
   return (
@@ -6723,10 +6778,12 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>Supplier</h2>
-          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{suppliers.length} รายการ</p>
+          <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{visibleSuppliers.length} รายการ</p>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ค้นหา Supplier..." style={{ width: 220 }} />
+          <Btn onClick={() => setShowArchived(value => !value)} outline>{showArchived ? "รายการใช้งาน" : "คลัง"}</Btn>
+          <Btn onClick={previewLegacyImport} outline>ดูข้อมูลเดิม</Btn>
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่ม Supplier</Btn>
         </div>
       </div>
@@ -6744,7 +6801,7 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <IconBtn onClick={() => setEditing({ ...supplier, items: supplier.items || [] })} title="แก้ไข">✏️</IconBtn>
-                  <IconBtn onClick={() => del(supplier.id)} title="ลบ" danger>🗑️</IconBtn>
+                  <IconBtn onClick={() => setArchiveState(supplier.id, !supplier.archivedAt)} title={supplier.archivedAt ? "กู้คืน" : "เก็บเข้าคลัง"} danger={!supplier.archivedAt}>{supplier.archivedAt ? "↩️" : "🗄️"}</IconBtn>
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
@@ -6773,6 +6830,16 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
           );
         })}
       </div>
+
+      {legacyPreview.length > 0 && (
+        <div style={{ marginTop: 16, background: "#141A24", border: "1px solid rgba(59,130,246,0.35)", borderRadius: 10, padding: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 10 }}>
+            <div><div style={{ fontWeight: 800 }}>ตรวจสอบข้อมูล Supplier เดิม</div><div style={{ fontSize: 12, color: "#94A3B8" }}>ไม่มีการนำเข้าอัตโนมัติ และจะไม่ลบข้อมูลจากเบราว์เซอร์</div></div>
+            <Btn onClick={importLegacy} color="#2563eb" disabled={importingLegacy}>{importingLegacy ? "กำลังนำเข้า..." : "ยืนยันนำเข้า"}</Btn>
+          </div>
+          {legacyPreview.map((row) => <div key={row.sourceKey} style={{ fontSize: 12, padding: "7px 0", borderTop: "1px solid rgba(255,255,255,0.06)", color: row.classification === "conflict" || row.classification === "invalid" ? "#FCD34D" : "#CBD5E1" }}>{String(row.supplier.name || "(ไม่มีชื่อ)")} — {row.classification === "existing" ? "มีอยู่แล้ว" : row.classification === "conflict" ? "ต้องตรวจสอบ" : row.classification === "new" ? "รายการใหม่" : "ข้อมูลไม่สมบูรณ์"}</div>)}
+        </div>
+      )}
 
       {editing && (
         <Modal title={editing.id ? "แก้ไข Supplier" : "เพิ่ม Supplier"} onClose={() => setEditing(null)} width={860}>
@@ -6892,6 +6959,9 @@ function CompanyPage({ company, setCompany, showToast }: any) {
   const [f, setF] = useState({ bankName: "", bankBranch: "", bankAccount: "", bankType: "ออมทรัพย์", salesPerson: "", ...company });
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const save = async () => {
+    if (!String(f.name || "").trim()) {
+      return showToast("ต้องยืนยันชื่อบริษัทก่อนบันทึก เพื่อไม่ให้ singleton candidate ที่ชื่อว่างถูกแก้ไขโดยไม่ตั้งใจ", "error");
+    }
     let savedCompany = { ...f };
     const row = {
       name: f.name, address: f.address, phone: f.phone, email: f.email,
@@ -7932,7 +8002,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         <Field label="ลูกค้า *">
           <select value={f.customerId} onChange={e => setCust(e.target.value)}>
             <option value="">-- เลือกลูกค้า --</option>
-            {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {customers.filter(c => !c.archivedAt || c.id === f.customerId).map(c => <option key={c.id} value={c.id}>{c.name}{c.archivedAt ? " (เก็บเข้าคลัง)" : ""}</option>)}
           </select>
         </Field>
         {f.customerId && (() => {
@@ -7997,7 +8067,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
                 <div style={{ display: "flex", gap: 6 }}>
                   <select onChange={e => pickProduct(item.id, e.target.value)} style={{ width: 100, fontSize: 11, padding: "4px 6px" }} defaultValue="">
                     <option value="">เลือก</option>
-                    {products.map(p => <option key={p.id} value={p.id}>{p.supplierName ? `${p.name} — ${p.supplierName}` : p.name}</option>)}
+                    {products.filter(p => !p.archivedAt || p.id === item.productId).map(p => <option key={p.id} value={p.id}>{p.supplierName ? `${p.name} — ${p.supplierName}` : p.name}{p.archivedAt ? " (เก็บเข้าคลัง)" : ""}</option>)}
                   </select>
                   <input value={item.name} onChange={e => setItem(item.id, "name", e.target.value)} placeholder="ชื่อรายการ" style={{ flex: 1 }} />
                 </div>
