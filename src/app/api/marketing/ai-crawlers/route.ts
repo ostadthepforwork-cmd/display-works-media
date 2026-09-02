@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { checkAdminAuthorization } from "@/lib/admin-authorization";
 import { isSensitiveProbePath, sensitiveProbeIntentDetail } from "@/lib/sensitive-paths";
 
 type CrawlerVisit = {
@@ -150,11 +151,11 @@ export async function GET(request: Request) {
     },
   );
 
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) {
+  const authorization = await checkAdminAuthorization(supabase);
+  if (!authorization.user) {
     return NextResponse.json(
-      { success: false, connected: false, error: "Unauthorized" },
-      { status: 401, headers: { "Cache-Control": "no-store" } },
+      { success: false, connected: false, error: authorization.error },
+      { status: authorization.status, headers: { "Cache-Control": "no-store" } },
     );
   }
 

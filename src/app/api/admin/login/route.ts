@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { checkAdminAuthorization } from "@/lib/admin-authorization";
 
 export async function POST(req: Request) {
   const { email, password, access_token, refresh_token } = await req
@@ -62,5 +63,14 @@ export async function POST(req: Request) {
     );
   }
 
+  const authorization = await checkAdminAuthorization(supabase);
+  if (!authorization.user) {
+    return NextResponse.json(
+      { success: false, error: authorization.error },
+      { status: authorization.status, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+  response.headers.set("Cache-Control", "no-store");
   return response;
 }

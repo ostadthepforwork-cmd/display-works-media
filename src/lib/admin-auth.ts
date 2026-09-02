@@ -1,17 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { checkAdminAuthorization } from "./admin-authorization";
 
 export async function requireAdminUser() {
-  if (process.env.NODE_ENV !== "production" && process.env.LOCAL_ADMIN_BYPASS === "1") {
-    return {
-      user: {
-        id: "local-dev-admin",
-        email: "local-dev@displayworksmedia.test",
-      },
-      error: null,
-    };
-  }
-
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,6 +23,5 @@ export async function requireAdminUser() {
     },
   );
 
-  const { data, error } = await supabase.auth.getUser();
-  return { user: data.user, error };
+  return checkAdminAuthorization(supabase);
 }

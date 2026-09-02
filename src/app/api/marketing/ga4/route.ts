@@ -97,11 +97,11 @@ function dateRangesFromRequest(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const { user } = await requireAdminUser();
+  const { user, status, error } = await requireAdminUser();
   if (!user) {
     return NextResponse.json(
-      { success: false, connected: false, error: "Unauthorized" },
-      { status: 401, headers: { "Cache-Control": "no-store" } },
+      { success: false, connected: false, error },
+      { status, headers: { "Cache-Control": "no-store" } },
     );
   }
 

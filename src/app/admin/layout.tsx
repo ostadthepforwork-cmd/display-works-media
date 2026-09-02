@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { requireAdminUser } from "@/lib/admin-auth";
 
 export const metadata: Metadata = {
   title: "Admin | Display Works Media",
@@ -12,11 +14,12 @@ export const metadata: Metadata = {
   },
 };
 
-// layout.tsx ไม่ต้องเช็ค auth อีกแล้ว เพราะ middleware จัดการแล้ว
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user } = await requireAdminUser();
+  if (!user) redirect("/login");
   return <>{children}</>;
 }

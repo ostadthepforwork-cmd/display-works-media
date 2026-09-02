@@ -2,6 +2,7 @@ import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { detectAiBot } from "./lib/ai-bots";
 import { isSensitiveProbePath } from "./lib/sensitive-paths";
+import { checkAdminAuthorization } from "./lib/admin-authorization";
 
 const PUBLIC_FILE = /\.(js|css|png|jpg|jpeg|webp|avif|gif|svg|ico|woff|woff2|ttf|map)$/i;
 const PRIVATE_PATH = /^\/(admin|api|auth|doc)(\/|$)/i;
@@ -29,24 +30,6 @@ function crawlerPublicPath(req: NextRequest) {
   sensitiveParams.forEach((key) => url.searchParams.delete(key));
   const query = url.searchParams.toString();
   return `${url.pathname}${query ? `?${query}` : ""}`.slice(0, 300);
-}
-
-function isLocalAdminBypass(req: NextRequest) {
-  const hostname = req.nextUrl.hostname;
-  const localBypassValue = String(
-    process.env.LOCAL_ADMIN_BYPASS ||
-    process.env.NEXT_PUBLIC_LOCAL_ADMIN_BYPASS ||
-    "",
-  ).toLowerCase();
-  const enabled =
-    localBypassValue === "1" ||
-    localBypassValue === "true" ||
-    localBypassValue === "yes";
-  return (
-    process.env.NODE_ENV !== "production" &&
-    enabled &&
-    (hostname === "127.0.0.1" || hostname === "localhost")
-  );
 }
 
 async function logAiCrawlerVisit(req: NextRequest, status = 200, responseSize: number | null = null) {
@@ -100,13 +83,6 @@ export async function proxy(req: NextRequest, event: NextFetchEvent) {
     return res;
   }
 
-  if (isLocalAdminBypass(req)) {
-    if (pathname === "/login") {
-      return NextResponse.redirect(new URL("/admin", req.url));
-    }
-    return res;
-  }
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -126,36 +102,20 @@ export async function proxy(req: NextRequest, event: NextFetchEvent) {
     },
   );
 
-  let user: any = null;
-  let authError: unknown = null;
-  try {
-    const result = await supabase.auth.getUser();
-    user = result.data.user;
-    authError = result.error;
-  } catch (error) {
-    authError = error;
+  const authorization = await checkAdminAuthorization(supabase);
+  let response = res;
+  if (pathname.startsWith("/admin") && !authorization.user) {
+    response = authorization.status === 401
+      ? NextResponse.redirect(new URL("/login", req.url))
+      : new NextResponse(authorization.error, { status: authorization.status });
+  } else if (pathname === "/login" && authorization.user) {
+    response = NextResponse.redirect(new URL("/admin", req.url));
   }
 
-  if (authError) {
-    const cleanRes = pathname === "/login"
-      ? res
-      : NextResponse.redirect(new URL("/login", req.url));
-    req.cookies
-      .getAll()
-      .filter((cookie) => cookie.name.startsWith("sb-"))
-      .forEach((cookie) => cleanRes.cookies.delete(cookie.name));
-    return cleanRes;
-  }
-
-  if (pathname.startsWith("/admin") && !user) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
-  if (pathname === "/login" && user) {
-    return NextResponse.redirect(new URL("/admin", req.url));
-  }
-
-  return res;
+  // Redirect/denial responses must retain any refreshed session cookies.
+  res.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+  response.headers.set("Cache-Control", "private, no-store");
+  return response;
 }
 
 export const config = {
