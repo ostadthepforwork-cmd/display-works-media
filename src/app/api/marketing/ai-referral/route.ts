@@ -1,37 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-
-const AI_HOSTS: Record<string, string[]> = {
-  chatgpt: ["chatgpt.com", "chat.openai.com"],
-  openai: ["openai.com"],
-  perplexity: ["perplexity.ai"],
-  claude: ["claude.ai"],
-  copilot: ["copilot.microsoft.com", "bing.com"],
-  gemini: ["gemini.google.com", "bard.google.com"],
-  poe: ["poe.com"],
-  you: ["you.com"],
-  phind: ["phind.com"],
-};
-
-function isPublicLandingPage(path: string) {
-  return (
-    path &&
-    path.length <= 300 &&
-    !/^\/(admin|api|auth|doc|login)(\/|$)/i.test(path) &&
-    !/\.(js|css|png|jpg|jpeg|webp|avif|gif|svg|ico|woff|woff2|ttf|map)$/i.test(path)
-  );
-}
-
-function referrerMatchesPlatform(platform: string, referrer: string) {
-  const hosts = AI_HOSTS[platform] || [];
-  if (!hosts.length) return false;
-  try {
-    const host = new URL(referrer).hostname.replace(/^www\./, "").toLowerCase();
-    return hosts.some((knownHost) => host === knownHost || host.endsWith(`.${knownHost}`));
-  } catch {
-    return false;
-  }
-}
+import { detectAiReferrer, publicReferralPath } from "@/lib/ai-evidence";
 
 export async function POST(request: Request) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -43,12 +12,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = await request.json().catch(() => ({}));
+  const body = (await request.json().catch(() => null)) || {};
   const platform = String(body.platform || "").toLowerCase();
-  const landingPage = String(body.landing_page || "").slice(0, 300);
-  const referrer = String(body.referrer || "").slice(0, 500);
+  const landingPage = publicReferralPath(body.landing_page);
+  const referrer = typeof body.referrer === "string" ? body.referrer : "";
 
-  if (!AI_HOSTS[platform] || !isPublicLandingPage(landingPage) || !referrerMatchesPlatform(platform, referrer)) {
+  if (!landingPage || referrer.length > 500 || detectAiReferrer(referrer)?.platform !== platform) {
     return NextResponse.json(
       { success: false, error: "Invalid AI referral payload" },
       { status: 400, headers: { "Cache-Control": "no-store" } },
@@ -63,7 +32,7 @@ export async function POST(request: Request) {
   const { error } = await supabase.from("ai_referral_visits").insert({
     platform,
     landing_page: landingPage,
-    referrer,
+    referrer: new URL(referrer).origin,
     user_agent: userAgent,
   });
 
@@ -71,10 +40,9 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
-        hint: "กรุณารัน supabase/ai-citation-monitoring.sql ใน Supabase Production",
+        error: "AI referral storage unavailable",
       },
-      { headers: { "Cache-Control": "no-store" } },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 

@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { checkAdminAuthorization } from "@/lib/admin-authorization";
 import { isSensitiveProbePath, sensitiveProbeIntentDetail } from "@/lib/sensitive-paths";
+import { aiDateRange, bangkokDay } from "@/lib/ai-evidence";
 
 type CrawlerVisit = {
   id: string;
@@ -13,24 +14,6 @@ type CrawlerVisit = {
   country: string | null;
   created_at: string;
 };
-
-function dateRangeFromRequest(request: Request) {
-  const url = new URL(request.url);
-  const startDate = url.searchParams.get("startDate");
-  const endDate = url.searchParams.get("endDate");
-
-  if (startDate && endDate) {
-    return {
-      startIso: new Date(`${startDate}T00:00:00.000Z`).toISOString(),
-      endIso: new Date(`${endDate}T23:59:59.999Z`).toISOString(),
-    };
-  }
-
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 29);
-  return { startIso: start.toISOString(), endIso: end.toISOString() };
-}
 
 function countBy<T extends string>(rows: CrawlerVisit[], keyFn: (row: CrawlerVisit) => T) {
   return Object.entries(
@@ -121,7 +104,7 @@ function countReferrers(rows: CrawlerVisit[]) {
 function countDaily(rows: CrawlerVisit[]) {
   return Object.entries(
     rows.reduce<Record<string, number>>((acc, row) => {
-      const date = row.created_at ? row.created_at.slice(0, 10) : "Unknown";
+      const date = row.created_at ? bangkokDay(row.created_at) : "Unknown";
       acc[date] = (acc[date] || 0) + 1;
       return acc;
     }, {}),
@@ -159,10 +142,12 @@ export async function GET(request: Request) {
     );
   }
 
-  const { startIso, endIso } = dateRangeFromRequest(request);
-  const { data, error } = await supabase
+  const range = aiDateRange(request);
+  if (!range) return NextResponse.json({ success: false, connected: false, error: "Invalid date range" }, { status: 400, headers: { "Cache-Control": "no-store" } });
+  const { startIso, endIso } = range;
+  const { data, error, count } = await supabase
     .from("ai_crawler_visits")
-    .select("id, bot_name, path, user_agent, referrer, country, created_at")
+    .select("id, bot_name, path, user_agent, referrer, country, created_at", { count: "exact" })
     .gte("created_at", startIso)
     .lte("created_at", endIso)
     .order("created_at", { ascending: false })
@@ -173,10 +158,10 @@ export async function GET(request: Request) {
       {
         success: false,
         connected: false,
-        error: error.message,
-        hint: "กรุณารัน supabase/ai-crawler-visits.sql ใน Supabase Production ก่อนใช้งาน",
+        error: "AI crawler data unavailable",
+        hint: "ตรวจสอบการเชื่อมต่อและสิทธิ์ตารางก่อน ห้ามรัน SQL production โดยไม่ผ่าน review",
       },
-      { headers: { "Cache-Control": "no-store" } },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 
@@ -187,6 +172,8 @@ export async function GET(request: Request) {
     {
       success: true,
       connected: true,
+      range,
+      evidence: { type: "unverified_user_agent", truncated: (count ?? rows.length) > rows.length, totalRows: count, limit: 1000 },
       totals: {
         visits: rows.length,
         bots: new Set(rows.map((row) => row.bot_name)).size,

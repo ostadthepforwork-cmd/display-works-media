@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { calendarDate, calendarDays } from '@/lib/admin-display';
+import { citationRateLabel } from "@/lib/ai-evidence";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type MarketingKpiDashboardProps = {
@@ -939,8 +940,8 @@ export default function MarketingKpiDashboard({
   };
 
   const cards = [
-    { label: "AI Search Visits", value: money(Number(aiCrawlers?.totals?.visits ?? 0)), sub: aiCrawlers.connected ? `${money(Number(aiCrawlers?.totals?.bots ?? 0))} bots / ${money(Number(aiCrawlers?.totals?.pages ?? 0))} pages` : "รอข้อมูล AI crawler", tone: "teal" },
-    { label: "AI Citation Rate", value: aiCitations.connected ? percent(Number(aiCitations?.totals?.citationRate ?? 0)) : "-", sub: aiCitations.connected ? `${money(Number(aiCitations?.totals?.cited ?? 0))}/${money(Number(aiCitations?.totals?.promptsChecked ?? 0))} prompts cited` : "รอ citation monitor", tone: "purple" },
+    { label: "AI Bot Requests", value: aiCrawlers.connected && !aiCrawlers.loading ? money(Number(aiCrawlers?.totals?.visits ?? 0)) : "-", sub: aiCrawlers.evidence?.truncated ? "เฉพาะ 1,000 log ล่าสุด" : "User-Agent ยังไม่ยืนยันตัวตน", tone: "teal" },
+    { label: "Recorded Citation Rate", value: aiCitations.connected && !aiCitations.loading ? citationRateLabel(aiCitations?.totals?.citationRate) : "-", sub: aiCitations.evidence?.truncated ? "เฉพาะ 1,000 log ล่าสุด" : aiCitations.connected ? `${money(Number(aiCitations?.totals?.cited ?? 0))}/${money(Number(aiCitations?.totals?.promptsChecked ?? 0))} recorded checks` : "ข้อมูลไม่พร้อม", tone: "purple" },
     { label: "AI Referrals", value: money(Number(aiCitations?.totals?.referralVisits ?? 0)), sub: aiCitations.connected ? "Clicks from AI platforms" : "รอ referral tracker", tone: "blue" },
     { label: "Meta Reported Revenue", value: metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", sub: "action_values / purchase", tone: "orange" },
     { label: "Meta Reported ROAS", value: metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", sub: "purchase_roas from Meta", tone: "purple" },
@@ -1058,7 +1059,7 @@ export default function MarketingKpiDashboard({
       name: "AI Citation Monitor",
       account: "Synthetic prompts / AI referral tracking",
       detail: aiCitations.connected
-        ? `${percent(Number(aiCitations?.totals?.citationRate ?? 0))} citation rate / ${money(Number(aiCitations?.totals?.referralVisits ?? 0))} AI referrals`
+        ? `${citationRateLabel(aiCitations?.totals?.citationRate)} recorded citation rate / ${money(Number(aiCitations?.totals?.referralVisits ?? 0))} AI referrals`
         : aiCitations.error || "รอสร้างตาราง ai_citation_logs และ ai_referral_visits",
       ready: !!aiCitations.connected,
       error: aiCitations.error || "",
@@ -2722,44 +2723,49 @@ export default function MarketingKpiDashboard({
               <div className="mk-section-head">
                 <div>
                   <h2>AI Search Crawler Monitor</h2>
-                  <p>นับการเข้าเว็บจาก AI/Search bot บนหน้า public เท่านั้น ไม่รวม admin, API, doc link และไฟล์ภายในระบบ</p>
+                  <p>คำขอที่ระบุตัวเป็น AI/Search bot ผ่าน User-Agent ซึ่งปลอมแปลงได้ ยังไม่ยืนยันว่าอ่านสำเร็จหรือนำข้อมูลไปตอบ</p>
                 </div>
                 <span className={`mk-status ${aiCrawlers.connected ? "ready" : ""}`}>
-                  {aiCrawlers.connected ? "พร้อมใช้งาน" : "รอข้อมูล"}
+                  {aiCrawlers.loading ? "กำลังโหลด" : aiCrawlers.connected ? "อ่าน log ได้" : "ข้อมูลไม่พร้อม"}
                 </span>
               </div>
+              {aiCrawlers.error && <div className="mk-empty" role="status">{aiCrawlers.error}</div>}
+              {(aiCrawlers.evidence?.truncated || aiCitations.evidence?.truncated) && <div className="mk-empty" role="status">ข้อมูลไม่ครบช่วงวันที่: ตัวเลขและอันดับคำนวณจาก log ล่าสุดไม่เกิน 1,000 รายการต่อแหล่งข้อมูล</div>}
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
-                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.visits ?? 0))}</strong><div>AI/Search visits</div></div>
-                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.bots ?? 0))}</strong><div>Bot types</div></div>
-                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.pages ?? 0))}</strong><div>Public pages crawled</div></div>
-                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.securityProbes ?? 0))}</strong><div>Security probes blocked</div></div>
+                <div className="mk-mini"><strong>{aiCrawlers.connected && !aiCrawlers.loading ? money(Number(aiCrawlers?.totals?.visits ?? 0)) : "-"}</strong><div>AI/Search requests</div></div>
+                <div className="mk-mini"><strong>{aiCrawlers.connected && !aiCrawlers.loading ? money(Number(aiCrawlers?.totals?.bots ?? 0)) : "-"}</strong><div>Claimed bot types</div></div>
+                <div className="mk-mini"><strong>{aiCrawlers.connected && !aiCrawlers.loading ? money(Number(aiCrawlers?.totals?.pages ?? 0)) : "-"}</strong><div>Public paths requested</div></div>
+                <div className="mk-mini"><strong>{aiCrawlers.connected && !aiCrawlers.loading ? money(Number(aiCrawlers?.totals?.securityProbes ?? 0)) : "-"}</strong><div>Security probe requests</div></div>
               </div>
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <div className="mk-section-head">
                     <div>
                       <h2>AI Citation & Referral</h2>
-                      <p>แยกให้เห็นว่า AI แค่อ่านเว็บ หรือมีการอ้างอิงและส่งคนกลับมาจริง</p>
+                      <p>บันทึกผลตรวจคำตอบและ referral เป็นคนละหลักฐาน ไม่ใช่การตรวจทุกคำตอบของ AI และยังไม่ผ่านการยืนยันจากผู้ให้บริการ</p>
                     </div>
                     <span className={`mk-status ${aiCitations.connected ? "ready" : ""}`}>
-                      {aiCitations.connected ? "พร้อมใช้งาน" : "รอ SQL / Worker"}
+                      {aiCitations.loading ? "กำลังโหลด" : !aiCitations.connected ? "ข้อมูลไม่พร้อม" : aiCitations.totals?.promptsChecked ? "มีบันทึกผลตรวจ" : "ยังไม่มีผลตรวจคำตอบ"}
                     </span>
                   </div>
                   <div className="mk-channel-grid" style={{ marginTop: 12 }}>
-                    <div className="mk-mini"><strong>{aiCitations.connected ? percent(Number(aiCitations?.totals?.citationRate ?? 0)) : "-"}</strong><div>Citation visibility rate</div></div>
-                    <div className="mk-mini"><strong>{money(Number(aiCitations?.totals?.promptsChecked ?? 0))}</strong><div>Synthetic prompts checked</div></div>
-                    <div className="mk-mini"><strong>{money(Number(aiCitations?.totals?.referralVisits ?? 0))}</strong><div>AI referral visits</div></div>
-                    <div className="mk-mini"><strong>{money(Number(aiCitations?.totals?.competitorDomains ?? 0))}</strong><div>Competitor domains found</div></div>
+                    <div className="mk-mini"><strong>{aiCitations.connected && !aiCitations.loading ? citationRateLabel(aiCitations?.totals?.citationRate) : "-"}</strong><div>Recorded citation rate</div></div>
+                    <div className="mk-mini"><strong>{aiCitations.connected && !aiCitations.loading && aiCitations.sources?.citations !== false ? money(Number(aiCitations?.totals?.promptsChecked ?? 0)) : "-"}</strong><div>Recorded prompt checks</div></div>
+                    <div className="mk-mini"><strong>{aiCitations.connected && !aiCitations.loading && aiCitations.sources?.referrals !== false ? money(Number(aiCitations?.totals?.referralVisits ?? 0)) : "-"}</strong><div>AI referral events</div></div>
+                    <div className="mk-mini"><strong>{aiCitations.connected && !aiCitations.loading && aiCitations.sources?.citations !== false ? money(Number(aiCitations?.totals?.competitorDomains ?? 0)) : "-"}</strong><div>Recorded competitor domains</div></div>
                   </div>
                   {aiCitations.error && (
                     <div className="mk-empty" style={{ marginTop: 12 }}>
-                      {aiCitations.error} - รันไฟล์ supabase/ai-citation-monitoring.sql ก่อน แล้วค่อยต่อ API prompt automation
+                      {aiCitations.error} - ตรวจสอบการเชื่อมต่อและสิทธิ์ ห้ามรัน SQL production โดยไม่ผ่าน review
                     </div>
                   )}
+                  {!!aiCitations.evidence?.inconsistent && <div className="mk-empty" role="status">พบ {aiCitations.evidence.inconsistent} บันทึกที่ธง citation และ URL ไม่ตรงกัน ไม่นับเป็น citation</div>}
+                  {aiCitations.warning && <div className="mk-empty" role="status">{aiCitations.warning}</div>}
+                  {!!aiCitations.evidence?.excludedReferrals && <div className="mk-empty">ไม่นับ {aiCitations.evidence.excludedReferrals} referral ที่ยืนยันโดเมนแพลตฟอร์มไม่ได้ รวมถึง Bing ปกติ</div>}
                 </div>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h2>AI Referral Platforms</h2>
-                  <p>คนที่คลิกลิงก์จาก AI platform กลับเข้าเว็บไซต์หลังยอมรับ PDPA</p>
+                  <p>การเข้าเว็บที่ส่ง referrer จากแพลตฟอร์ม AI หลังยินยอม analytics ไม่ใช่จำนวนคนหรือหลักฐานการอ้างอิงคำตอบ</p>
                   <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiReferralPlatforms.length ? topAiReferralPlatforms.map((item: any) => (
                       <div className="mk-source compact mk-chart-row" key={item.name} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(item.count || 0) / maxAiReferralCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#22c55e,#2563eb)" }}>
@@ -2773,7 +2779,7 @@ export default function MarketingKpiDashboard({
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
                   <h2>Top Cited Pages</h2>
-                  <p>URL ของเว็บเราที่ระบบ prompt monitor พบว่า AI อ้างอิงในคำตอบ</p>
+                  <p>URL โดเมนเว็บเราที่บันทึกว่าถูกอ้างอิง นับ URL ซ้ำในบันทึกเดียวเพียงครั้งเดียว</p>
                   <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topCitedPages.length ? topCitedPages.map((item: any) => (
                       <div className="mk-source compact mk-chart-row" key={item.url} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(item.count || 0) / maxCitedPageCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#ff6b00,#22c55e)" }}>
@@ -2882,7 +2888,7 @@ export default function MarketingKpiDashboard({
                       <tr key={log.id}>
                         <td>{log.platform}</td>
                         <td>{String(log.prompt_text || "-").slice(0, 90)}</td>
-                        <td>{log.is_cited ? "Yes" : "No"}</td>
+                        <td>{log.evidence_status === "recorded" ? "บันทึกว่าอ้างอิง" : log.evidence_status === "inconsistent" ? "หลักฐานไม่ตรงกัน" : "ไม่พบบันทึกอ้างอิง"}<div>{log.source || "ไม่ระบุแหล่งบันทึก"}</div></td>
                         <td>{(log.cited_urls || []).slice(0, 2).join(" / ") || "-"}</td>
                         <td>{(log.competitor_urls || []).slice(0, 2).join(" / ") || "-"}</td>
                         <td>{log.timestamp ? new Date(log.timestamp).toLocaleString("th-TH") : "-"}</td>

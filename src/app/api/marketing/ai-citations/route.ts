@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { checkAdminAuthorization } from "@/lib/admin-authorization";
+import { aiDateRange, bangkokDay, citationEvidence, detectAiReferrer, ownCitationUrls, safeUrlList } from "@/lib/ai-evidence";
 
 type CitationLog = {
   id: string;
@@ -24,24 +25,6 @@ type AiReferral = {
   created_at: string;
 };
 
-function dateRangeFromRequest(request: Request) {
-  const url = new URL(request.url);
-  const startDate = url.searchParams.get("startDate");
-  const endDate = url.searchParams.get("endDate");
-
-  if (startDate && endDate) {
-    return {
-      startIso: new Date(`${startDate}T00:00:00.000Z`).toISOString(),
-      endIso: new Date(`${endDate}T23:59:59.999Z`).toISOString(),
-    };
-  }
-
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 29);
-  return { startIso: start.toISOString(), endIso: end.toISOString() };
-}
-
 function asArray(value: unknown): unknown[] {
   if (Array.isArray(value)) return value;
   if (typeof value === "string") {
@@ -53,16 +36,6 @@ function asArray(value: unknown): unknown[] {
     }
   }
   return [];
-}
-
-function normalizeUrlList(value: unknown) {
-  return asArray(value)
-    .map((item) => {
-      if (typeof item === "string") return item;
-      if (item && typeof item === "object" && "url" in item) return String((item as { url?: unknown }).url || "");
-      return "";
-    })
-    .filter(Boolean);
 }
 
 function hostname(value: string) {
@@ -86,7 +59,8 @@ function countBy<T>(rows: T[], keyFn: (row: T) => string) {
 function countUrls(rows: CitationLog[], key: "cited_urls" | "competitor_urls") {
   const counts: Record<string, number> = {};
   rows.forEach((row) => {
-    normalizeUrlList(row[key]).forEach((url) => {
+    const urls = key === "cited_urls" ? ownCitationUrls(row[key]) : safeUrlList(row[key]);
+    urls.forEach((url) => {
       const label = key === "competitor_urls" ? hostname(url) : url;
       counts[label] = (counts[label] || 0) + 1;
     });
@@ -99,12 +73,12 @@ function countUrls(rows: CitationLog[], key: "cited_urls" | "competitor_urls") {
 function countDaily(citations: CitationLog[], referrals: AiReferral[]) {
   const grouped: Record<string, { date: string; citations: number; referrals: number }> = {};
   citations.forEach((row) => {
-    const date = row.timestamp.slice(0, 10);
+    const date = bangkokDay(row.timestamp);
     grouped[date] = grouped[date] || { date, citations: 0, referrals: 0 };
-    if (row.is_cited) grouped[date].citations += 1;
+    if (citationEvidence(row) === "recorded") grouped[date].citations += 1;
   });
   referrals.forEach((row) => {
-    const date = row.created_at.slice(0, 10);
+    const date = bangkokDay(row.created_at);
     grouped[date] = grouped[date] || { date, citations: 0, referrals: 0 };
     grouped[date].referrals += 1;
   });
@@ -143,18 +117,20 @@ export async function GET(request: Request) {
     );
   }
 
-  const { startIso, endIso } = dateRangeFromRequest(request);
+  const range = aiDateRange(request);
+  if (!range) return NextResponse.json({ success: false, connected: false, error: "Invalid date range" }, { status: 400, headers: { "Cache-Control": "no-store" } });
+  const { startIso, endIso } = range;
   const [citationResult, referralResult] = await Promise.all([
     supabase
       .from("ai_citation_logs")
-      .select("id, timestamp, platform, prompt_text, is_cited, cited_urls, competitor_urls, brand_mentions, raw_response, source")
+      .select("id, timestamp, platform, prompt_text, is_cited, cited_urls, competitor_urls, brand_mentions, source", { count: "exact" })
       .gte("timestamp", startIso)
       .lte("timestamp", endIso)
       .order("timestamp", { ascending: false })
       .limit(1000),
     supabase
       .from("ai_referral_visits")
-      .select("id, platform, landing_page, referrer, created_at")
+      .select("id, platform, landing_page, referrer, created_at", { count: "exact" })
       .gte("created_at", startIso)
       .lte("created_at", endIso)
       .order("created_at", { ascending: false })
@@ -162,13 +138,13 @@ export async function GET(request: Request) {
   ]);
 
   const missingTableError = citationResult.error || referralResult.error;
-  if (missingTableError) {
+  if (citationResult.error && referralResult.error) {
     return NextResponse.json(
       {
         success: false,
         connected: false,
-        error: missingTableError.message,
-        hint: "กรุณารัน supabase/ai-citation-monitoring.sql ใน Supabase Production ก่อนใช้งาน",
+        error: "AI monitoring data unavailable",
+        hint: "ตรวจสอบการเชื่อมต่อและสิทธิ์ตารางก่อน ห้ามรัน SQL production โดยไม่ผ่าน review",
         totals: {},
         byPlatform: [],
         byCitedPage: [],
@@ -178,13 +154,14 @@ export async function GET(request: Request) {
         recent: [],
         recentReferrals: [],
       },
-      { headers: { "Cache-Control": "no-store" } },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 
   const citations = (citationResult.data || []) as CitationLog[];
-  const referrals = (referralResult.data || []) as AiReferral[];
-  const citedRows = citations.filter((row) => row.is_cited);
+  const referralRows = (referralResult.data || []) as AiReferral[];
+  const referrals = referralRows.filter(row => detectAiReferrer(row.referrer || "")?.platform === row.platform);
+  const citedRows = citations.filter((row) => citationEvidence(row) === "recorded");
   const citedPages = countUrls(citedRows, "cited_urls");
   const competitors = countUrls(citations, "competitor_urls");
 
@@ -192,12 +169,24 @@ export async function GET(request: Request) {
     {
       success: true,
       connected: true,
+      sources: { citations: !citationResult.error, referrals: !referralResult.error },
+      warning: missingTableError ? "บางแหล่งข้อมูลไม่พร้อม: ตรวจสอบ schema และสิทธิ์ก่อนเปิดใช้งาน ไม่ได้หมายความว่าไม่มี AI เข้าเว็บ" : null,
+      range,
+      evidence: {
+        type: "recorded_logs_not_independently_verified",
+        inconsistent: citations.filter(row => citationEvidence(row) === "inconsistent").length,
+        excludedReferrals: referralRows.length - referrals.length,
+        truncated: (citationResult.count ?? citations.length) > citations.length || (referralResult.count ?? referralRows.length) > referralRows.length,
+        limitPerSource: 1000,
+        totalCitationRows: citationResult.count,
+        totalReferralRows: referralResult.count,
+      },
       totals: {
-        promptsChecked: citations.length,
+        promptsChecked: citationResult.error ? null : citations.length,
         cited: citedRows.length,
-        citationRate: citations.length ? (citedRows.length / citations.length) * 100 : 0,
+        citationRate: citations.length ? (citedRows.length / citations.length) * 100 : null,
         platforms: new Set(citations.map((row) => row.platform)).size,
-        referralVisits: referrals.length,
+        referralVisits: referralResult.error ? null : referrals.length,
         topCitedPages: citedPages.length,
         competitorDomains: competitors.length,
       },
@@ -208,8 +197,9 @@ export async function GET(request: Request) {
       daily: countDaily(citations, referrals),
       recent: citations.slice(0, 20).map((row) => ({
         ...row,
-        cited_urls: normalizeUrlList(row.cited_urls),
-        competitor_urls: normalizeUrlList(row.competitor_urls),
+        evidence_status: citationEvidence(row),
+        cited_urls: ownCitationUrls(row.cited_urls),
+        competitor_urls: safeUrlList(row.competitor_urls),
         brand_mentions: asArray(row.brand_mentions),
       })),
       recentReferrals: referrals.slice(0, 20),

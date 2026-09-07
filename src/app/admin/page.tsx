@@ -5326,12 +5326,12 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
           item === null ? (
             <div key={i} style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "8px 6px" }} />
           ) : (
-            <button type="button" key={item.id} onClick={() => setPage((item as any).target || item.id)} style={{
+            <button type="button" key={item.id} onClick={() => setPage(item.id)} style={{
               display: "flex", alignItems: "center", gap: 10, padding: "9px 12px",
               borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13,
-              background: page === ((item as any).target || item.id) ? "rgba(255,107,0,0.15)" : "transparent",
-              color: page === ((item as any).target || item.id) ? "#FF6B00" : "#A8B0C0", fontFamily: "inherit",
-              borderLeft: page === ((item as any).target || item.id) ? "2px solid #FF6B00" : "2px solid transparent",
+              background: page === item.id ? "rgba(255,107,0,0.15)" : "transparent",
+              color: page === item.id ? "#FF6B00" : "#A8B0C0", fontFamily: "inherit",
+              borderLeft: page === item.id ? "2px solid #FF6B00" : "2px solid transparent",
               width: "100%", textAlign: "left",
             }}>
               <span style={{ fontSize: 16, width: 20, textAlign: "center" }}>{item.icon}</span>
