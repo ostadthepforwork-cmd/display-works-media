@@ -7326,6 +7326,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       { type: "bill",    label: "สร้างใบวางบิล / ใบส่งสินค้า (แบ่งจ่าย)", split: true },
       { type: "invoice", label: "สร้างใบแจ้งหนี้" },
       { type: "invoice", label: "สร้างใบแจ้งหนี้ (แบ่งจ่าย)", split: true },
+      { type: "receipt", label: "สร้างใบเสร็จรับเงิน" },
     ],
     bill:    [{ type: "invoice", label: "สร้างใบแจ้งหนี้" }, { type: "receipt", label: "สร้างใบเสร็จรับเงิน" }],
     invoice: [{ type: "receipt", label: "สร้างใบเสร็จรับเงิน" }],
@@ -7655,8 +7656,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
         </>)}
       </div>
       {editing && (
-        <Modal title={`${editing.id ? "แก้ไข" : "สร้าง"}${dt.label}`} onClose={() => setEditing(null)} width={760}>
-          <DocForm doc={editing} type={type} customers={customers} products={products} onSave={save} onCancel={() => setEditing(null)} allDocuments={allDocuments} />
+        <Modal title={`${editing.id ? "แก้ไข" : "สร้าง"}${getDocTypeMeta(editing.type || type)?.label}`} onClose={() => setEditing(null)} width={760}>
+          <DocForm doc={editing} type={editing.type || type} customers={customers} products={products} onSave={save} onCancel={() => setEditing(null)} allDocuments={allDocuments} />
         </Modal>
       )}
 
