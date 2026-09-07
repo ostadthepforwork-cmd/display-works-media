@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { calendarDate, calendarDays } from '@/lib/admin-display';
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type MarketingKpiDashboardProps = {
@@ -118,7 +119,7 @@ const money = (value: number) =>
 const percent = (value: number) =>
   `${new Intl.NumberFormat("th-TH", { maximumFractionDigits: 1 }).format(Number.isFinite(value) ? value : 0)}%`;
 
-const dateInputValue = (date: Date) => date.toISOString().slice(0, 10);
+const dateInputValue = calendarDate;
 
 const todayInput = () => dateInputValue(new Date());
 
@@ -1388,13 +1389,10 @@ export default function MarketingKpiDashboard({
     );
   };
 
-  const trendLength = dateRangeMode === "7d" ? 7 : 30;
   const trendEnd = endDate || todayInput();
-  const trendDates = Array.from({ length: trendLength }, (_, index) => {
-    const date = new Date(`${trendEnd}T00:00:00`);
-    date.setDate(date.getDate() - (trendLength - 1 - index));
-    return dateInputValue(date);
-  });
+  const earliestDate = [...documents.map(doc => safeDateValue(doc?.date || doc?.createdAt || doc?.created_at)), ...leads.map(lead => safeDateValue(leadDateValue(lead)))]
+    .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date) && date <= trendEnd).sort()[0];
+  const trendDates = calendarDays(dateRangeMode === 'all' ? earliestDate || trendEnd : startDate, trendEnd);
   const trendMap = (rows: any[], dateFn: (row: any) => unknown, valueFn: (row: any) => number): TrendPoint[] => {
     const values = new Map(trendDates.map((date) => [date, 0]));
     rows.forEach((row) => {

@@ -7,6 +7,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ExpensePage from './expenses/ExpensePage';
+import './audit-fixes.css';
+import { catalogProfit } from '@/lib/admin-display';
 import { blogCategories } from '@/lib/seo-content';
 import { loadLocal, saveLocal } from '@/lib/browser-storage';
 import { buildErpSaveArguments, erpSaveErrorCode, saveErpDocument } from '@/lib/erp-document-save';
@@ -1058,7 +1060,7 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="admin-app-shell" style={{ minHeight: "100vh", background: "#0B0F19", color: "#fff", fontFamily: "'Prompt','Sarabun',sans-serif", display: "flex", flexDirection: "column" }}>
+    <div className="admin-app-shell" data-admin-module={mainTab} style={{ minHeight: "100vh", background: "#0B0F19", color: "#fff", fontFamily: "'Prompt','Sarabun',sans-serif", display: "flex", flexDirection: "column" }}>
 
       {/* ─── TOP BAR ─── */}
       <div className="top-bar" style={{
@@ -5423,6 +5425,8 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const revChange     = revLastMonth > 0 ? ((revThisMonth - revLastMonth) / revLastMonth) * 100 : null;
   const profitMarginAll = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : "0";
   const profitMarginPct = Math.max(0, Math.min(100, Number(profitMarginAll)));
+  const selectedPeriodLabel = localDateInput(new Date(selectedRange.start)) + ' ถึง ' + localDateInput(new Date(selectedRange.end - 1));
+  const comparisonPeriodLabel = localDateInput(new Date(selectedRange.prevStart)) + ' ถึง ' + localDateInput(new Date(selectedRange.prevEnd - 1));
 
   // ─── Expense breakdown by type ────────────────────────────────
   const expenseBucket: Record<string, { amount: number; count: number; kind: "product" | "internal" }> = {};
@@ -5529,7 +5533,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   // ─── Alerts ───────────────────────────────────────────────────
   const alerts: { type: "warn"|"error"|"info"; text: string }[] = [];
   if (overdueCount > 0) alerts.push({ type: "error", text: `มีเอกสารค้างชำระเกินกำหนด ${overdueCount} รายการ` });
-  if (revChange !== null && revChange < -10) alerts.push({ type: "warn", text: `ยอดขายเดือนนี้ลดลง ${Math.abs(revChange).toFixed(1)}% จากเดือนก่อน` });
+  if (revChange !== null && revChange < -10) alerts.push({ type: "warn", text: `ยอดขายช่วงที่เลือกลดลง ${Math.abs(revChange).toFixed(1)}% จากช่วงเปรียบเทียบ` });
   if (+profitMarginAll < 20 && totalRevenue > 0) alerts.push({ type: "warn", text: `Margin รวม ${profitMarginAll}% ต่ำกว่าเกณฑ์ (20%)` });
   if (pendingDocs.length > 5) alerts.push({ type: "info", text: `มีเอกสารรอดำเนินการ ${pendingDocs.length} รายการ` });
 
@@ -5662,12 +5666,14 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         {/* Revenue */}
         <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #10B981", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>฿</div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#10B981", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>REVENUE / เดือนนี้</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#10B981", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>ยอดขาย / ช่วงที่เลือก</div>
           <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>฿{fmtB(revThisMonth)}</div>
+          <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 8 }}>{selectedPeriodLabel}</div>
+          <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 4 }}>เทียบ {comparisonPeriodLabel}</div>
           {revChange !== null && (
             <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, fontSize: 12 }}>
               <span style={{ color: revChange >= 0 ? "#10B981" : "#EF4444", fontWeight: 700 }}>{revChange >= 0 ? "▲" : "▼"} {Math.abs(revChange).toFixed(1)}%</span>
-              <span style={{ color: "#4B5563" }}>vs เดือนก่อน</span>
+              <span style={{ color: "#4B5563" }}>เทียบช่วงก่อนหน้า</span>
             </div>
           )}
         </div>
@@ -5675,9 +5681,9 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         {/* Net Profit */}
         <div style={{ ...card(), padding: "22px 24px", borderTop: `2px solid ${profitThis >= 0 ? "#10B981" : "#EF4444"}`, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>P</div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: profitThis >= 0 ? "#10B981" : "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>NET PROFIT</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: profitThis >= 0 ? "#10B981" : "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>กำไรจากเอกสาร / ก่อนค่าใช้จ่ายธุรกิจ</div>
           <div style={{ fontSize: 28, fontWeight: 800, color: profitThis >= 0 ? "#10B981" : "#EF4444", lineHeight: 1 }}>฿{fmtB(profitThis)}</div>
-          <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>Margin เดือนนี้ <span style={{ color: "#fff", fontWeight: 700 }}>{marginThis.toFixed(1)}%</span></div>
+          <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>Margin ช่วงที่เลือก <span style={{ color: "#fff", fontWeight: 700 }}>{marginThis.toFixed(1)}%</span></div>
         </div>
 
         {/* Expense */}
@@ -5691,7 +5697,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         {/* Margin All-time */}
         <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #F59E0B", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>%</div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#F59E0B", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>PROFIT MARGIN</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#F59E0B", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>Margin เอกสาร / ทุกช่วงเวลา</div>
           <div style={{ fontSize: 28, fontWeight: 800, color: "#F59E0B", lineHeight: 1 }}>{profitMarginAll}%</div>
           <div style={{ marginTop: 10 }}>
             <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
@@ -5855,12 +5861,12 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 4 }}>💸 ค่าใช้จ่ายตามประเภท</div>
             <div style={{ fontSize: 12, color: "#94A3B8" }}>แยกจากต้นทุนสินค้า/บริการ และค่าใช้จ่ายอื่นในเอกสารช่วงที่เลือก</div>
           </div>
-          <button type="button" onClick={() => setPage("receipt")} style={{
+          <button type="button" onClick={() => setPage("expenses")} style={{
             border: "1px solid rgba(255,107,0,0.35)", background: "rgba(255,107,0,0.14)",
             color: "#FFB86B", borderRadius: 10, padding: "9px 13px", fontSize: 12,
             fontWeight: 800, fontFamily: "inherit", cursor: "pointer", whiteSpace: "nowrap",
           }}>
-            + เพิ่มค่าใช้จ่ายในเอกสาร
+            + เพิ่มค่าใช้จ่ายจริง
           </button>
         </div>
         {expenseBreakdown.length === 0 ? (
@@ -6467,8 +6473,9 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
           </thead>
           <tbody>
             {filtered.map(p => {
-              const margin = p.price - p.cost;
-              const pct = p.cost > 0 ? (margin / p.cost * 100).toFixed(0) : 0;
+              const metrics = catalogProfit(p);
+              const margin = metrics?.profit;
+              const pct = metrics?.markup == null ? '-' : metrics.markup.toFixed(1);
               return (
                 <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                   <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 500 }}>
@@ -6480,8 +6487,8 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#ef4444" }}>฿{fmtMoney(p.cost)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.costUnit)}</span></td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 600 }}>฿{fmtMoney(p.price)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.priceUnit)}</span></td>
                   <td style={{ padding: "12px 16px", fontSize: 13 }}>
-                    <span style={{ color: margin > 0 ? "#10b981" : "#ef4444" }}>฿{fmtMoney(margin)}</span>
-                    <span style={{ fontSize: 11, color: "#555", marginLeft: 6 }}>({pct}%)</span>
+                    <span style={{ color: margin == null ? "#94A3B8" : margin > 0 ? "#10b981" : "#ef4444" }}>{margin == null ? 'ยังเปรียบเทียบไม่ได้' : `฿${fmtMoney(margin)}`}</span>
+                    {metrics && <span style={{ fontSize: 11, color: "#94A3B8", marginLeft: 6 }}>Markup {pct}{pct === '-' ? '' : '%'}</span>}
                   </td>
                   <td style={{ padding: "12px 16px" }}>
                     <div style={{ display: "flex", gap: 6 }}>
@@ -6503,8 +6510,9 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
       </div>
       <div className="erp-mobile-card-list">
         {filtered.map(p => {
-          const margin = p.price - p.cost;
-          const pct = p.cost > 0 ? (margin / p.cost * 100).toFixed(0) : 0;
+          const metrics = catalogProfit(p);
+          const margin = metrics?.profit;
+          const pct = metrics?.markup == null ? '-' : `${metrics.markup.toFixed(1)}%`;
           return (
             <div className="erp-mobile-card" key={`mobile-${p.id}`}>
               <div className="erp-mobile-card-head">
@@ -6516,12 +6524,12 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
                   </div>
                 </div>
                 <div style={{ color: margin > 0 ? "#10b981" : "#ef4444", fontSize: 14, fontWeight: 800, whiteSpace: "nowrap" }}>
-                  ฿{fmtMoney(margin)}
+                  {margin == null ? 'ยังเปรียบเทียบไม่ได้' : `฿${fmtMoney(margin)}`}
                 </div>
               </div>
               <div className="erp-mobile-stats">
                 <div className="erp-mobile-stat"><span>Unit</span><strong>{p.unit}</strong></div>
-                <div className="erp-mobile-stat"><span>Margin</span><strong>{pct}%</strong></div>
+                <div className="erp-mobile-stat"><span>Markup</span><strong>{pct}</strong></div>
                 <div className="erp-mobile-stat"><span>Cost</span><strong style={{ color: "#ef4444" }}>฿{fmtMoney(p.cost)} {priceBasisLabel(p.costUnit)}</strong></div>
                 <div className="erp-mobile-stat"><span>Sale</span><strong style={{ color: "#10b981" }}>฿{fmtMoney(p.price)} {priceBasisLabel(p.priceUnit)}</strong></div>
               </div>
