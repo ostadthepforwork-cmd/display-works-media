@@ -4,13 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
   ArchiveRestore,
+  ArrowDown,
   Download,
   FileText,
   FolderCog,
+  History,
   LoaderCircle,
   Pencil,
   Plus,
   ReceiptText,
+  RefreshCw,
+  RotateCcw,
   Save,
   Search,
   Upload,
@@ -25,6 +29,8 @@ import {
   saveErpExpense,
 } from "@/lib/erp-expense";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { expenseTotal, formatExpenseTotal, isCompleteResult } from "@/lib/expense-inspection";
+import ExpenseHistory from "./ExpenseHistory";
 
 type ExpensePageProps = {
   customers: Array<Record<string, any>>;
@@ -139,25 +145,65 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [dataComplete, setDataComplete] = useState(false);
+  const [loadedAt, setLoadedAt] = useState<string | null>(null);
+  const [historyId, setHistoryId] = useState<string | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const loadVersion = useRef(0);
   const [categoryPanel, setCategoryPanel] = useState(false);
   const [categoryForm, setCategoryForm] = useState({ code: "", name: "", defaultClass: "operating" });
   const saveInFlight = useRef(false);
+  const modalRef = useRef<HTMLElement>(null);
+  const categoryRef = useRef<HTMLElement>(null);
+  const editorOpen = Boolean(editor);
+  useEffect(() => {
+    const modal = editorOpen ? modalRef.current : categoryPanel ? categoryRef.current : null;
+    if (!modal) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const selector = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]';
+    modal.querySelector<HTMLElement>(selector)?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !saving) {
+        event.preventDefault();
+        setEditor(null);
+        setCategoryPanel(false);
+      }
+      if (event.key === "Tab") {
+        const nodes = Array.from(modal.querySelectorAll<HTMLElement>(selector)).filter((node) => node.getClientRects().length);
+        const first = nodes[0], last = nodes[nodes.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    };
+    modal.addEventListener("keydown", handleKey);
+    return () => { modal.removeEventListener("keydown", handleKey); previous?.focus(); };
+  }, [editorOpen, categoryPanel, saving]);
 
   const loadData = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
+    setDataComplete(false);
     setLoadError("");
+    try {
     const [expenseResult, categoryResult] = await Promise.all([
-      supabase.from("erp_expenses").select("*").order("expense_date", { ascending: false }).order("created_at", { ascending: false }),
-      supabase.from("erp_expense_categories").select("*").order("sort_order").order("name"),
+      supabase.from("erp_expenses").select("*", { count: "exact" }).order("expense_date", { ascending: false }).order("created_at", { ascending: false }),
+      supabase.from("erp_expense_categories").select("*", { count: "exact" }).order("sort_order").order("name"),
     ]);
+    if (version !== loadVersion.current) return;
     const error = expenseResult.error || categoryResult.error;
     if (error) {
       setLoadError(error.message);
     } else {
       setExpenses(expenseResult.data || []);
       setCategories(categoryResult.data || []);
+      setDataComplete(isCompleteResult((expenseResult.data || []).length, expenseResult.count) && isCompleteResult((categoryResult.data || []).length, categoryResult.count));
+      setLoadedAt(new Date().toLocaleString("th-TH"));
     }
-    setLoading(false);
+    } catch {
+      if (version === loadVersion.current) setLoadError("เชื่อมต่อข้อมูลไม่สำเร็จ");
+    } finally {
+      if (version === loadVersion.current) setLoading(false);
+    }
   }, [supabase]);
 
   useEffect(() => { void loadData(); }, [loadData]);
@@ -198,6 +244,9 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
     if (filters.state === "voided" && !row.voided_at) return false;
     return true;
   }), [expenses, filters]);
+  const filteredTotal = useMemo(() => expenseTotal(filtered), [filtered]);
+  const invalidRange = Boolean(filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo);
+  const totalReady = dataComplete && !invalidRange && filteredTotal !== null;
 
   const saveDraft = async (draft: ExpenseDraft, files = evidenceQueue) => {
     if (saveInFlight.current) return null;
@@ -206,6 +255,7 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
     try {
       const result = await saveErpExpense(supabase, buildErpExpenseSaveArguments(draft));
       const saved = result.expense as ExpenseRow;
+      setHistoryId(null);
       setExpenses((current) => current.some((row) => row.id === saved.id)
         ? current.map((row) => row.id === saved.id ? saved : row)
         : [saved, ...current]);
@@ -307,23 +357,20 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
     try { return addExpenseMoney(editor.amount, editor.vatAmount); } catch { return "-"; }
   })() : "0.00";
 
-  if (loading) return <div className="expense-state"><LoaderCircle className="expense-spin" size={22} /> กำลังโหลดค่าใช้จ่าย</div>;
-  if (loadError) return (
-    <div className="expense-state expense-error">
-      <strong>โหลด Expense Management ไม่สำเร็จ</strong>
-      <span>{loadError}</span>
-      <button type="button" onClick={() => void loadData()}>ลองใหม่</button>
-    </div>
-  );
-
   return (
     <div className="expense-page">
+      {loading ? <div className="expense-state" role="status"><LoaderCircle className="expense-spin" size={22} /> กำลังโหลดค่าใช้จ่าย</div>
+        : loadError ? <div className="expense-state expense-error" role="alert">
+          <strong>โหลดค่าใช้จ่ายไม่สำเร็จ</strong><span>ยังไม่สามารถยืนยันยอดค่าใช้จ่ายได้</span>
+          <button type="button" onClick={() => void loadData()}><RefreshCw size={16} /> ลองใหม่</button>
+        </div> : <>
       <header className="expense-header">
         <div>
           <span className="expense-kicker">ERP / ACTUAL EXPENSE</span>
           <h2>ค่าใช้จ่ายจริง</h2>
         </div>
         <div className="expense-actions">
+          <button type="button" title="โหลดข้อมูลใหม่" aria-label="โหลดข้อมูลใหม่" onClick={() => void loadData()}><RefreshCw size={17} /></button>
           <button type="button" className="secondary" onClick={() => setCategoryPanel(true)}><FolderCog size={17} /> หมวดค่าใช้จ่าย</button>
           <button type="button" className="primary" onClick={() => openEditor()}><Plus size={17} /> เพิ่มค่าใช้จ่าย</button>
         </div>
@@ -331,8 +378,8 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
 
       <div className="expense-filterbar">
         <label className="expense-search"><Search size={16} /><input aria-label="ค้นหาค่าใช้จ่าย" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} placeholder="ค้นหาเลขที่ รายละเอียด อ้างอิง" /></label>
-        <input aria-label="วันที่เริ่มต้น" type="date" value={filters.dateFrom} onChange={(event) => setFilters({ ...filters, dateFrom: event.target.value })} />
-        <input aria-label="วันที่สิ้นสุด" type="date" value={filters.dateTo} onChange={(event) => setFilters({ ...filters, dateTo: event.target.value })} />
+        <label className="date-filter">ตั้งแต่วันที่<input aria-label="วันที่เริ่มต้น" aria-invalid={invalidRange} type="date" value={filters.dateFrom} onChange={(event) => setFilters({ ...filters, dateFrom: event.target.value })} /></label>
+        <label className="date-filter">ถึงวันที่<input aria-label="วันที่สิ้นสุด" aria-invalid={invalidRange} type="date" value={filters.dateTo} onChange={(event) => setFilters({ ...filters, dateTo: event.target.value })} /></label>
         <select aria-label="กรองหมวด" value={filters.categoryId} onChange={(event) => setFilters({ ...filters, categoryId: event.target.value })}>
           <option value="all">ทุกหมวด</option>{categories.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
         </select>
@@ -347,7 +394,18 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
         </select>
       </div>
 
-      <div className="expense-table-wrap">
+      {invalidRange && <p role="alert" className="expense-warning">วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด</p>}
+      <div className={`expense-data-state ${dataComplete ? "" : "expense-warning"}`} role="status">
+        {dataComplete ? `โหลดรายการที่เข้าถึงได้ครบ ${expenses.length} รายการ` : "ข้อมูลไม่ครบหรือยืนยันจำนวนไม่ได้: ไม่แสดงยอดรวม"}
+        {loadedAt && <span> · โหลดเมื่อ {loadedAt}</span>}
+      </div>
+      <div className="expense-summary">
+        <div><span>ยอดตามตัวกรอง · รวม VAT</span><strong>{totalReady ? `฿${formatExpenseTotal(filteredTotal!)}` : "ไม่พร้อมแสดงยอด"}</strong><small>{filtered.length} รายการ · {filters.state === "active" ? "ไม่รวมรายการเก็บถาวรและยกเลิก" : "รวมเฉพาะสถานะที่เลือก"}</small></div>
+        <div className="summary-actions"><button type="button" title="ดูรายการที่มาของยอด" aria-label="ดูรายการที่มาของยอด" disabled={!totalReady}
+        onClick={() => { tableRef.current?.focus(); tableRef.current?.scrollIntoView({ block: "nearest" }); }}>
+        <ArrowDown size={18} />
+      </button><button type="button" title="ล้างตัวกรอง" aria-label="ล้างตัวกรอง" onClick={() => setFilters(initialFilters)}><RotateCcw size={18} /></button></div></div>
+      <div className="expense-table-wrap" ref={tableRef} tabIndex={-1} aria-label="รายการที่มาของยอดตามตัวกรอง">
         <table className="expense-table">
           <thead><tr><th>เลขที่ / วันที่</th><th>รายละเอียด</th><th>หมวด / ประเภท</th><th>การเชื่อมโยง</th><th className="number">ยอดรวม</th><th>สถานะ</th><th aria-label="การทำงาน" /></tr></thead>
           <tbody>
@@ -364,6 +422,7 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
                   <td className="number"><strong>฿{money(row.total_amount)}</strong><span>VAT ฿{money(row.vat_amount)}</span></td>
                   <td><b className={`status-${row.payment_status}`}>{row.payment_status === "paid" ? "ชำระแล้ว" : "ยังไม่ชำระ"}</b>{row.voided_at ? <span className="flag void">ยกเลิก</span> : row.archived_at ? <span className="flag">เก็บถาวร</span> : null}</td>
                   <td className="row-actions">
+                    <button type="button" title="ประวัติการแก้ไข" aria-expanded={historyId === row.id} onClick={() => setHistoryId(historyId === row.id ? null : row.id)}><History size={16} /></button>
                     <button type="button" title="แก้ไข" onClick={() => openEditor(row)}><Pencil size={16} /></button>
                     {!row.voided_at && <button type="button" title={row.archived_at ? "นำกลับมาใช้" : "เก็บถาวร"} onClick={() => void transitionExpense(row, row.archived_at ? "restore" : "archive")}>{row.archived_at ? <ArchiveRestore size={16} /> : <Archive size={16} />}</button>}
                     {!row.voided_at && <button type="button" title="ยกเลิกรายการ" className="danger" onClick={() => void transitionExpense(row, "void")}><X size={16} /></button>}
@@ -376,9 +435,10 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
         {filtered.length === 0 && <div className="expense-empty"><ReceiptText size={28} />ไม่พบรายการค่าใช้จ่าย</div>}
       </div>
 
+      {historyId && <ExpenseHistory key={historyId} expenseId={historyId} expenseNo={expenses.find((row) => row.id === historyId)?.expense_no || historyId} onClose={() => setHistoryId(null)} />}
       {editor && (
         <div className="expense-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setEditor(null); }}>
-          <section className="expense-modal" role="dialog" aria-modal="true" aria-label={editor.id ? "แก้ไขค่าใช้จ่าย" : "เพิ่มค่าใช้จ่าย"}>
+          <section ref={modalRef} className="expense-modal" role="dialog" aria-modal="true" aria-label={editor.id ? "แก้ไขค่าใช้จ่าย" : "เพิ่มค่าใช้จ่าย"}>
             <header><div><span>{editor.id ? "EDIT ACTUAL EXPENSE" : "NEW ACTUAL EXPENSE"}</span><h3>{editor.id ? "แก้ไขค่าใช้จ่าย" : "เพิ่มค่าใช้จ่าย"}</h3></div><button type="button" title="ปิด" onClick={() => setEditor(null)} disabled={saving}><X size={20} /></button></header>
             {editor.voidReason && <div className="void-banner">รายการนี้ถูกยกเลิก: {editor.voidReason}</div>}
             <div className="expense-form">
@@ -413,18 +473,22 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
 
       {categoryPanel && (
         <div className="expense-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCategoryPanel(false); }}>
-          <section className="category-modal" role="dialog" aria-modal="true" aria-label="จัดการหมวดค่าใช้จ่าย">
+          <section ref={categoryRef} className="category-modal" role="dialog" aria-modal="true" aria-label="จัดการหมวดค่าใช้จ่าย">
             <header><div><span>EXPENSE CATEGORIES</span><h3>หมวดค่าใช้จ่าย</h3></div><button type="button" title="ปิด" onClick={() => setCategoryPanel(false)}><X size={20} /></button></header>
             <div className="category-create"><input aria-label="รหัสหมวด" placeholder="CODE" value={categoryForm.code} onChange={(event) => setCategoryForm({ ...categoryForm, code: event.target.value })} /><input aria-label="ชื่อหมวด" placeholder="ชื่อหมวด" value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} /><select aria-label="ประเภทเริ่มต้น" value={categoryForm.defaultClass} onChange={(event) => setCategoryForm({ ...categoryForm, defaultClass: event.target.value })}><option value="direct">Direct</option><option value="operating">Operating</option></select><button type="button" className="primary" onClick={() => void createCategory()}><Plus size={16} /> เพิ่ม</button></div>
             <div className="category-list">{categories.map((row) => <div className={!row.active ? "archived" : ""} key={row.id}><span><strong>{row.name}</strong><small>{row.code}</small></span><select aria-label={`ประเภทเริ่มต้น ${row.name}`} value={row.default_expense_class} onChange={(event) => void setCategoryDefaultClass(row, event.target.value)} disabled={!row.active}><option value="direct">Direct</option><option value="operating">Operating</option></select><button type="button" title="เปลี่ยนชื่อ" onClick={() => void renameCategory(row)}><Pencil size={15} /></button><button type="button" title={row.active ? "เก็บถาวร" : "นำกลับมาใช้"} onClick={() => void toggleCategory(row)}>{row.active ? <Archive size={15} /> : <ArchiveRestore size={15} />}</button></div>)}</div>
           </section>
         </div>
       )}
-
+      </>}
       <style jsx>{`
         .expense-page{display:flex;flex-direction:column;gap:14px;color:#e5e7eb;min-width:0}.expense-header{display:flex;align-items:center;justify-content:space-between;gap:16px}.expense-kicker,.expense-modal header span,.category-modal header span{color:#ef4444;font-size:10px;font-weight:800;letter-spacing:0}.expense-header h2,.expense-modal h3,.category-modal h3{margin:4px 0 0;font-size:22px;letter-spacing:0}.expense-actions{display:flex;gap:8px}.expense-page button,.expense-modal button,.category-modal button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;border:1px solid rgba(255,255,255,.12);border-radius:7px;background:#161d29;color:#e5e7eb;font:inherit;font-weight:700;cursor:pointer}.expense-page button:disabled,.expense-modal button:disabled{opacity:.5;cursor:not-allowed}.expense-page .primary,.expense-modal .primary,.category-modal .primary{background:#dc2626;border-color:#dc2626;color:white;padding:0 14px}.secondary{padding:0 12px}.expense-filterbar{display:grid;grid-template-columns:minmax(210px,1.6fr) repeat(6,minmax(118px,1fr));gap:8px}.expense-filterbar input,.expense-filterbar select,.expense-form input,.expense-form select,.expense-form textarea,.category-create input,.category-create select{width:100%;min-height:40px;border:1px solid rgba(255,255,255,.12);border-radius:6px;background:#0d131d;color:#e5e7eb;padding:8px 10px;font:inherit;box-sizing:border-box}.expense-search{display:flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.12);border-radius:6px;background:#0d131d;padding-left:10px}.expense-search input{border:0;background:transparent;padding-left:0}.expense-table-wrap{border:1px solid rgba(255,255,255,.09);border-radius:8px;overflow:auto;background:#101620}.expense-table{width:100%;min-width:980px;border-collapse:collapse;font-size:12px}.expense-table th{text-align:left;color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:0;padding:11px 12px;background:#0b1018;border-bottom:1px solid rgba(255,255,255,.09)}.expense-table td{padding:12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:middle}.expense-table td>span,.expense-table td>strong{display:block}.expense-table td>span{color:#94a3b8;margin-top:3px}.expense-table tr.is-archived{opacity:.64}.expense-table tr.is-voided{text-decoration:line-through;opacity:.52}.number{text-align:right!important}.class-direct,.class-operating,.status-paid,.status-unpaid,.flag{display:inline-block;margin-top:5px;padding:3px 7px;border-radius:999px;font-size:10px;text-decoration:none}.class-direct{background:rgba(59,130,246,.14);color:#93c5fd}.class-operating{background:rgba(245,158,11,.14);color:#fcd34d}.status-paid{background:rgba(16,185,129,.14);color:#6ee7b7}.status-unpaid{background:rgba(239,68,68,.14);color:#fca5a5}.flag{background:rgba(148,163,184,.14);color:#cbd5e1}.flag.void{background:rgba(239,68,68,.16);color:#fca5a5}.row-actions{display:flex;gap:5px}.row-actions button{width:34px;min-height:34px}.row-actions .danger{color:#fca5a5}.expense-empty,.expense-state{min-height:180px;display:flex;align-items:center;justify-content:center;gap:9px;color:#94a3b8}.expense-state{flex-direction:column}.expense-error{color:#fca5a5}.expense-error button{padding:0 14px}.expense-modal-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:20px}.expense-modal,.category-modal{width:min(900px,100%);max-height:calc(100dvh - 40px);overflow:auto;background:#111823;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 24px 80px rgba(0,0,0,.5)}.category-modal{width:min(720px,100%)}.expense-modal>header,.category-modal>header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:#111823;border-bottom:1px solid rgba(255,255,255,.08)}.expense-modal>header button,.category-modal>header button{width:38px}.expense-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:18px}.expense-form label{display:flex;flex-direction:column;gap:6px;color:#a8b0c0;font-size:11px;font-weight:700}.expense-form .wide{grid-column:span 2}.expense-total{display:flex;flex-direction:column;justify-content:center;border-left:3px solid #ef4444;background:rgba(239,68,68,.08);border-radius:5px;padding:8px 12px}.expense-total span{font-size:10px;color:#94a3b8}.expense-total strong{font-size:19px;color:#fca5a5}.evidence-section{margin:0 18px 18px;border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:12px}.evidence-head,.evidence-head>div,.evidence-row{display:flex;align-items:center;justify-content:space-between;gap:8px}.evidence-head>div{justify-content:flex-start}.evidence-picker{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 10px;border:1px solid rgba(255,255,255,.12);border-radius:6px;cursor:pointer;font-size:11px}.evidence-picker input{display:none}.evidence-row{min-height:38px;margin-top:8px;padding:0 9px;background:#0d131d;border-radius:5px;font-size:11px}.evidence-row.queued b{color:#fbbf24}.evidence-row button{width:32px;min-height:30px}.evidence-empty{padding:18px 0 6px;text-align:center;color:#64748b;font-size:11px}.void-banner{margin:14px 18px 0;padding:10px 12px;border:1px solid rgba(239,68,68,.3);border-radius:6px;background:rgba(239,68,68,.09);color:#fca5a5}.expense-modal>footer{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:8px;padding:13px 18px;background:#111823;border-top:1px solid rgba(255,255,255,.08)}.category-create{display:grid;grid-template-columns:120px 1fr 140px auto;gap:8px;padding:16px}.category-list{padding:0 16px 16px}.category-list>div{display:grid;grid-template-columns:1fr 130px 36px 36px;align-items:center;gap:7px;min-height:52px;border-top:1px solid rgba(255,255,255,.07)}.category-list>div.archived{opacity:.55}.category-list span{display:flex;flex-direction:column}.category-list small{color:#94a3b8;margin-top:3px}.category-list select{min-height:34px;border:1px solid rgba(255,255,255,.12);border-radius:6px;background:#0d131d;color:#e5e7eb;padding:5px 7px}.category-list button{width:34px;min-height:34px}.expense-spin{animation:expense-spin 1s linear infinite}@keyframes expense-spin{to{transform:rotate(360deg)}}
+        .expense-page{--expense-text:#e5e7eb;--expense-muted:#b8c2d1;--expense-focus:#fbbf24;--expense-line:#3d495b;--expense-surface:#101620;--expense-warning:#fcd34d;background:var(--expense-surface);padding:16px;box-sizing:border-box;max-width:100%;border-radius:0}
+        .expense-page button{min-width:44px;min-height:44px;white-space:nowrap}.expense-page button:hover:not(:disabled){border-color:var(--expense-muted)}.expense-page button:active:not(:disabled){transform:translateY(1px)}.expense-page button:focus-visible,.expense-page input:focus-visible,.expense-page select:focus-visible,.expense-page textarea:focus-visible,.expense-table-wrap:focus{outline:2px solid var(--expense-focus);outline-offset:2px}.expense-page svg{flex-shrink:0}.expense-header>div{min-width:0}.expense-actions{flex-wrap:wrap}.expense-filterbar{align-items:end}.date-filter{font-size:12px;color:var(--expense-muted);display:grid;gap:6px;min-width:0}.expense-filterbar input,.expense-filterbar select,.expense-form input,.expense-form select{min-width:0;min-height:44px}.expense-data-state{font-size:12px;color:var(--expense-muted);overflow-wrap:anywhere}.expense-warning{color:var(--expense-warning);font-size:13px}.expense-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-block:1px solid var(--expense-line)}.expense-summary>div{min-width:0}.expense-summary span,.expense-summary small{display:block;color:var(--expense-muted);font-size:12px}.expense-summary strong{display:block;font-size:23px;margin:5px 0;overflow-wrap:anywhere}.summary-actions{display:flex;gap:8px;flex-shrink:0}.expense-table-wrap{max-width:100%;min-width:0}.expense-table td{max-width:280px;overflow-wrap:anywhere}.row-actions button{min-width:44px}.expense-table td>span,.expense-table th,.expense-form label,.evidence-empty,.category-list small{color:var(--expense-muted)}.expense-table tr.is-archived,.expense-table tr.is-voided{opacity:1}.expense-state{padding:24px;min-height:240px;text-align:center;color:var(--expense-muted)}.expense-state.expense-error{color:var(--expense-warning)}.expense-modal,.category-modal{box-sizing:border-box}.category-list>div{grid-template-columns:minmax(0,1fr) 130px 44px 44px}.category-list span{min-width:0;overflow-wrap:anywhere}.evidence-row span{min-width:0;overflow-wrap:anywhere}.evidence-picker:focus-within{outline:2px solid var(--expense-focus)}.evidence-picker{position:relative}.evidence-picker input{display:block;position:absolute;width:1px;height:1px;opacity:0}
+        @media(prefers-reduced-motion:reduce){.expense-spin{animation:none}.expense-page button:active:not(:disabled){transform:none}}
         @media(max-width:1100px){.expense-filterbar{grid-template-columns:repeat(3,minmax(0,1fr))}.expense-search{grid-column:span 3}}
         @media(max-width:700px){.expense-header{align-items:flex-start;flex-direction:column}.expense-actions{width:100%}.expense-actions button{flex:1}.expense-filterbar{grid-template-columns:1fr 1fr}.expense-search{grid-column:span 2}.expense-form{grid-template-columns:1fr 1fr;padding:14px}.expense-form .wide{grid-column:span 2}.category-create{grid-template-columns:1fr 1fr}.expense-modal-backdrop{padding:0;align-items:flex-end}.expense-modal,.category-modal{max-height:94dvh;border-radius:8px 8px 0 0}.expense-table-wrap{border-radius:6px}}
+        @media(max-width:414px){.expense-page{padding:12px}.expense-actions button:first-child{flex:0 0 44px}.expense-actions button{font-size:12px;padding:0 8px}.expense-form{grid-template-columns:minmax(0,1fr)}.expense-form .wide{grid-column:auto}.category-create{grid-template-columns:minmax(0,1fr)}.category-list>div{grid-template-columns:minmax(0,1fr) 44px 44px;padding:10px 0}.category-list>div>span{grid-column:1/-1}.expense-summary{align-items:flex-start}.expense-summary strong{font-size:20px}}
       `}</style>
     </div>
   );
