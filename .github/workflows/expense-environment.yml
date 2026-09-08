@@ -1,0 +1,44 @@
+# Environment readiness only; not expense acceptance.
+name: Expense isolated environment readiness
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/expense-environment-20260908]
+    paths: [.github/workflows/expense-environment.yml]
+permissions:
+  contents: read
+concurrency:
+  group: expense-environment-readiness
+  cancel-in-progress: false
+jobs:
+  environment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      DO_NOT_TRACK: '1'
+    steps:
+      # No repository checkout, project link, production secrets, cache or artifacts.
+      - name: Create disposable environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/expense-supabase"
+          npx --yes supabase@2.116.0 init --workdir "$RUNNER_TEMP/expense-supabase"
+          test ! -e "$RUNNER_TEMP/expense-supabase/supabase/.temp/project-ref"
+      - name: Start local Supabase on runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Suppress CLI output because local-only keys are printed on successful start.
+          if ! npx --yes supabase@2.116.0 start --workdir "$RUNNER_TEMP/expense-supabase" > "$RUNNER_TEMP/expense-start.log" 2>&1; then
+            echo 'Local Supabase startup failed; raw log withheld to avoid key disclosure.'
+            exit 1
+          fi
+          npx --yes supabase@2.116.0 status --workdir "$RUNNER_TEMP/expense-supabase" > /dev/null 2>&1
+          printf '## Environment readiness\nLocal Supabase started on disposable runner.\n\nExpense migration, RLS, concurrency, storage acceptance: NOT EXECUTED.\n' >> "$GITHUB_STEP_SUMMARY"
+      - name: Stop disposable local environment
+        if: always()
+        shell: bash
+        run: |
+          npx --yes supabase@2.116.0 stop --workdir "$RUNNER_TEMP/expense-supabase" > /dev/null 2>&1
