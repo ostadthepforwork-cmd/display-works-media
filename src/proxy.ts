@@ -32,15 +32,20 @@ function crawlerPublicPath(req: NextRequest) {
   return `${url.pathname}${query ? `?${query}` : ""}`.slice(0, 300);
 }
 
-async function logAiCrawlerVisit(req: NextRequest, status = 200, responseSize: number | null = null) {
+async function logAiCrawlerVisit(req: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
   const userAgent = (req.headers.get("user-agent") || "").slice(0, 500);
   const botName = detectAiBot(userAgent);
-  if (!supabaseUrl || !serviceRoleKey || !botName) return;
+  if (!botName) return;
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.warn("AI crawler log unavailable: missing server configuration");
+    return;
+  }
 
-  await fetch(`${supabaseUrl}/rest/v1/ai_crawler_visits`, {
+  try {
+    const response = await fetch(`${supabaseUrl}/rest/v1/ai_crawler_visits`, {
     method: "POST",
     headers: {
       apikey: serviceRoleKey,
@@ -54,17 +59,21 @@ async function logAiCrawlerVisit(req: NextRequest, status = 200, responseSize: n
       user_agent: userAgent,
       referrer: (req.headers.get("referer") || "").slice(0, 300) || null,
       country: req.headers.get("x-vercel-ip-country") || null,
-      http_status: status,
-      response_size: responseSize,
     }),
-  }).catch(() => undefined);
+    signal: AbortSignal.timeout(5000),
+    });
+    // Do not log response bodies, URLs, or credentials on ingestion failure.
+    if (!response.ok) console.warn("AI crawler log rejected", { status: response.status });
+  } catch {
+    console.warn("AI crawler log unavailable: network error or timeout");
+  }
 }
 
 export async function proxy(req: NextRequest, event: NextFetchEvent) {
   const pathname = req.nextUrl.pathname;
 
   if (shouldLogCrawler(req)) {
-    event.waitUntil(logAiCrawlerVisit(req, isSensitiveProbePath(pathname) ? 404 : 200, 0));
+    event.waitUntil(logAiCrawlerVisit(req));
   }
 
   if (isSensitiveProbePath(pathname)) {
