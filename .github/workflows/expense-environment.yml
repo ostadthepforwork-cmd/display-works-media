@@ -1,10 +1,10 @@
-# Environment readiness only; not expense acceptance.
-name: Expense isolated environment readiness
+# Isolated contract tests; not production-equivalence or deployment acceptance.
+name: Expense isolated environment and SQL checks
 on:
   workflow_dispatch:
   push:
     branches: [ci/expense-environment-20260908]
-    paths: [.github/workflows/expense-environment.yml]
+    paths: [.github/workflows/expense-environment.yml, 'tests/expense-isolated/**']
 permissions:
   contents: read
 concurrency:
@@ -37,6 +37,18 @@ jobs:
           fi
           npx --yes supabase@2.116.0 status --workdir "$RUNNER_TEMP/expense-supabase" > /dev/null 2>&1
           printf '## Environment readiness\nLocal Supabase started on disposable runner.\n\nExpense migration, RLS, concurrency, storage acceptance: NOT EXECUTED.\n' >> "$GITHUB_STEP_SUMMARY"
+      - name: Fetch exact public test source without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'ostadthepforwork-cmd/display-works-media'
+          test "$GITHUB_REF" = 'refs/heads/ci/expense-environment-20260908'
+          git init "$RUNNER_TEMP/expense-source"
+          git -C "$RUNNER_TEMP/expense-source" fetch --depth=1 https://github.com/ostadthepforwork-cmd/display-works-media.git "$GITHUB_SHA"
+          git -C "$RUNNER_TEMP/expense-source" checkout --detach FETCH_HEAD
+      - name: Run synthetic expense SQL and independent-session tests
+        shell: bash
+        run: node "$RUNNER_TEMP/expense-source/tests/expense-isolated/run.mjs"
       - name: Stop disposable local environment
         if: always()
         shell: bash
