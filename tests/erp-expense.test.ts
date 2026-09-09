@@ -5,11 +5,19 @@ import {
   addExpenseMoney,
   buildErpExpenseSaveArguments,
   expenseSaveErrorCode,
+  expenseBangkokDate,
   saveErpExpense,
 } from "../src/lib/erp-expense";
 
 const categoryId = "11111111-1111-4111-8111-111111111111";
 const requestId = "22222222-2222-4222-8222-222222222222";
+
+test("payment date round trips Bangkok midnight without drifting on edits", () => {
+  assert.equal(expenseBangkokDate("2026-09-08T17:00:00+00:00"), "2026-09-09");
+  assert.equal(expenseBangkokDate("2026-09-09T00:00:00+07:00"), "2026-09-09");
+  assert.equal(expenseBangkokDate("2026-09-09"), "2026-09-09");
+  assert.equal(expenseBangkokDate(new Date("2026-12-31T17:01:00Z")), "2027-01-01");
+});
 
 function draft(overrides: Record<string, unknown> = {}) {
   return {

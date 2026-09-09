@@ -26,6 +26,7 @@ import {
   addExpenseMoney,
   buildErpExpenseSaveArguments,
   expenseSaveErrorCode,
+  expenseBangkokDate,
   saveErpExpense,
 } from "@/lib/erp-expense";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -54,7 +55,7 @@ const initialFilters = {
 };
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return expenseBangkokDate(new Date());
 }
 
 function newDraft(): ExpenseDraft {
@@ -92,7 +93,7 @@ function rowToDraft(row: ExpenseRow): ExpenseDraft {
     vatAmount: String(row.vat_amount ?? "0.00"),
     withholdingAmount: String(row.withholding_amount ?? "0.00"),
     paymentStatus: row.payment_status,
-    paidAt: row.paid_at ? String(row.paid_at).slice(0, 10) : null,
+    paidAt: row.paid_at ? expenseBangkokDate(String(row.paid_at)) : null,
     supplierId: row.supplier_id,
     customerId: row.customer_id,
     sourceDocumentId: row.source_document_id,

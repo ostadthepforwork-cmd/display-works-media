@@ -214,6 +214,6 @@ await test('numbering boundary 9999 to 10000 retains all digits', async () => {
   assert.equal(c.expense_no, `EXP${year}-10001`);
 });
 
-const summary = '## Expense isolated SQL results\n\nSynthetic FK contract + actual Batch 1A membership and expense candidate. Not a production baseline clone.\n\n' + results.map(r => `- ${r.status}: ${r.name}${r.error ? ': ' + r.error.replaceAll('\n', ' ') : ''}`).join('\n') + '\n\nNOT EXECUTED: production baseline equivalence, real Storage HTTP upload/signed URLs, browser acceptance, production migrations/deployment.\n';
+const summary = '## Expense isolated SQL results\n\nSynthetic FK contract + actual Batch 1A membership and expense candidate. Not a production baseline clone.\n\n' + results.map(r => `- ${r.status}: ${r.name}${r.error ? ': ' + r.error.replaceAll('\n', ' ') : ''}`).join('\n') + '\n\nNOT EXECUTED by this step: production baseline equivalence, browser acceptance, production migrations/deployment. Real Storage HTTP results are listed above.\n';
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
 if (results.some(r => r.status !== 'PASS')) process.exitCode = 1;

@@ -3,6 +3,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type ExpenseClass = "direct" | "operating";
 export type ExpensePaymentStatus = "unpaid" | "paid";
 
+export function expenseBangkokDate(value: string | Date): string {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(value));
+  const part = (type: string) => parts.find((item) => item.type === type)!.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
 export type ExpenseDraft = {
   id?: string | null;
   clientRequestId: string;

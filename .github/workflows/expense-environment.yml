@@ -36,7 +36,7 @@ jobs:
             exit 1
           fi
           npx --yes supabase@2.116.0 status --workdir "$RUNNER_TEMP/expense-supabase" > /dev/null 2>&1
-          printf '## Environment readiness\nLocal Supabase started on disposable runner.\n\nExpense migration, RLS, concurrency, storage acceptance: NOT EXECUTED.\n' >> "$GITHUB_STEP_SUMMARY"
+          printf '## Environment readiness\nLocal Supabase started on disposable runner. See subsequent SQL and browser test results.\n' >> "$GITHUB_STEP_SUMMARY"
       - name: Fetch exact public test source without credentials
         shell: bash
         run: |
@@ -49,6 +49,15 @@ jobs:
       - name: Run synthetic expense SQL and independent-session tests
         shell: bash
         run: node "$RUNNER_TEMP/expense-source/tests/expense-isolated/run.mjs"
+      - name: Install isolated browser test tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix "$RUNNER_TEMP/expense-browser" --no-save --ignore-scripts --no-audit --no-fund playwright@1.51.1
+          node "$RUNNER_TEMP/expense-browser/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Validate built expense application in real browser
+        shell: bash
+        run: node "$RUNNER_TEMP/expense-source/tests/expense-isolated/browser.mjs"
       - name: Stop disposable local environment
         if: always()
         shell: bash
