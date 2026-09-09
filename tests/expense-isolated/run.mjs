@@ -63,12 +63,17 @@ async function concurrent(commands) {
 
 const candidate = readFileSync(new URL('candidate.sql', root), 'utf8');
 console.log('Candidate SHA256 ' + createHash('sha256').update(candidate).digest('hex'));
-await sql(readFileSync(new URL('fixture.sql', root), 'utf8'));
+await sql(readFileSync(new URL('dependency-baseline.sql', root), 'utf8'));
 await sql(readFileSync(new URL('../../supabase/batch-1a-admin-membership.sql', root), 'utf8'));
-// Reproduce the observed postgres public sequence default ACL from production metadata.
-await sql('alter default privileges for role postgres in schema public grant all on sequences to anon, authenticated, service_role;');
+const dependencies = ['erp_company', 'erp_customers', 'erp_documents', 'erp_document_items', 'erp_products', 'erp_suppliers'];
+for (const table of dependencies) await sql(`create policy "active admins manage ERP" on public.${table} for all to authenticated using ((select private.is_admin())) with check ((select private.is_admin()));`);
+// Reproduce the relevant migration executor defaults, not only sequence privileges.
+await sql('alter default privileges for role postgres in schema public grant all on tables to anon, authenticated, service_role; alter default privileges for role postgres in schema public grant execute on functions to anon, authenticated, service_role; alter default privileges for role postgres in schema public grant all on sequences to anon, authenticated, service_role;');
+await sql('begin;\n' + candidate + '\nrollback;');
+assert.equal(await sql("select to_regclass('public.erp_expenses') is null;"), 't');
+console.log('PASS migration rollback rehearsal leaves no expense table');
 await sql('begin;\n' + candidate + '\ncommit;');
-console.log('PASS migration on synthetic dependency contract (NOT production-equivalence acceptance)');
+console.log('PASS migration on reconstructed relevant ERP dependency schema (no production data)');
 await sql(`insert into auth.users(id,email) values ('${owner}','owner@example.invalid'),('${nonadmin}','reader@example.invalid'),('${inactive}','inactive@example.invalid');
 insert into public.admin_users(user_id,email,role,active) values ('${owner}','owner@example.invalid','owner',true),('${inactive}','inactive@example.invalid','admin',false);
 insert into public.erp_expense_categories(id,code,name,default_expense_class) values ('${category}','RENT','Synthetic rent','operating');`);
@@ -85,6 +90,15 @@ await test('independent expense, exact money and no document link', async () => 
   assert.equal(r.expense.source_document_id, null);
   assert.equal(r.expense.customer_id, null);
   assert.equal(r.expense.supplier_id, null);
+});
+await test('legacy ERP writes remain compatible and FK deletion preserves expense', async () => {
+  const customer = randomUUID(), supplier = randomUUID(), document = randomUUID();
+  await sql(auth() + `insert into public.erp_customers(id,name) values ('${customer}','Synthetic customer'); insert into public.erp_suppliers(id,name) values ('${supplier}','Synthetic supplier'); insert into public.erp_documents(id,type,doc_no,customer_id) values ('${document}','receipt','SYNTHETIC-ONLY','${customer}'); commit;`);
+  const saved = await save(payload({ customer_id: customer, supplier_id: supplier, source_document_id: document }));
+  await sql(auth() + `update public.erp_documents set notes='Synthetic legacy update' where id='${document}'; delete from public.erp_documents where id='${document}'; delete from public.erp_customers where id='${customer}'; delete from public.erp_suppliers where id='${supplier}'; commit;`);
+  const row = lastJson(await sql(`select row_to_json(e) from public.erp_expenses e where id='${saved.expense_id}';`));
+  assert.equal(row.customer_id, null); assert.equal(row.supplier_id, null); assert.equal(row.source_document_id, null);
+  assert.equal(row.total_amount, 1070);
 });
 await test('eight concurrent creates and unique numbers', async () => {
   const rs = await concurrent(Array.from({ length: 8 }, (_, i) => rpc(payload({ description: `Synthetic concurrent ${i}` }))));

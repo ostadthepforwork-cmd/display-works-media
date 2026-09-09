@@ -12,7 +12,7 @@ assert.equal(info.Name, '/' + container);
 assert.equal(info.State.Running, true);
 const root = new URL('../../', import.meta.url);
 const sql = input => execFileSync('docker', ['exec', '-i', container, 'psql', '-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1', '-U', 'postgres', '-d', 'postgres'], { input, encoding: 'utf8', timeout: 30000 });
-sql(readFileSync(new URL('browser-fixture.sql', import.meta.url), 'utf8'));
+sql("notify pgrst, 'reload schema';");
 const local = JSON.parse(execFileSync('npx', ['--yes', 'supabase@2.116.0', 'status', '--workdir', process.env.RUNNER_TEMP + '/expense-supabase', '--output', 'json'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }));
 assert.equal(local.API_URL, 'http://127.0.0.1:54321');
 assert(local.ANON_KEY && local.SERVICE_ROLE_KEY);
@@ -67,6 +67,7 @@ try {
   page = await context.newPage();
   page.setDefaultTimeout(20000);
   await page.goto('http://127.0.0.1:3100/login');
+  await page.getByRole('button', { name: 'เฉพาะที่จำเป็น', exact: true }).click();
   await page.locator('input[type=email]').fill(email);
   await page.locator('input[type=password]').fill(password);
   await page.getByRole('button', { name: 'เข้าสู่ระบบ', exact: true }).click();

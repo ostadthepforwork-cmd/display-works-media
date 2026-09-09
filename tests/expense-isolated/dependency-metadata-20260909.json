@@ -1,0 +1,852 @@
+{
+  "scope": "Read-only catalog snapshot; no business rows. Columns, constraints and RLS policies only. Not a complete database backup.",
+  "columns": [
+    {
+      "name": "id",
+      "type": "uuid",
+      "table": "erp_company",
+      "default": "gen_random_uuid()",
+      "not_null": true
+    },
+    {
+      "name": "name",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "address",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "phone",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "email",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "tax_id",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "bank_name",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "bank_branch",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "bank_account",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "bank_type",
+      "type": "text",
+      "table": "erp_company",
+      "default": "'ออมทรัพย์'::text",
+      "not_null": false
+    },
+    {
+      "name": "sales_person",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "qr_image",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "table": "erp_company",
+      "default": "now()",
+      "not_null": false
+    },
+    {
+      "name": "signature_image",
+      "type": "text",
+      "table": "erp_company",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "id",
+      "type": "uuid",
+      "table": "erp_customers",
+      "default": "gen_random_uuid()",
+      "not_null": true
+    },
+    {
+      "name": "name",
+      "type": "text",
+      "table": "erp_customers",
+      "default": null,
+      "not_null": true
+    },
+    {
+      "name": "contact",
+      "type": "text",
+      "table": "erp_customers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "phone",
+      "type": "text",
+      "table": "erp_customers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "email",
+      "type": "text",
+      "table": "erp_customers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "address",
+      "type": "text",
+      "table": "erp_customers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "tax_id",
+      "type": "text",
+      "table": "erp_customers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "table": "erp_customers",
+      "default": "now()",
+      "not_null": false
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "table": "erp_customers",
+      "default": "now()",
+      "not_null": false
+    },
+    {
+      "name": "customer_segment",
+      "type": "text",
+      "table": "erp_customers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "business_type",
+      "type": "text",
+      "table": "erp_customers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "id",
+      "type": "uuid",
+      "table": "erp_document_items",
+      "default": "gen_random_uuid()",
+      "not_null": true
+    },
+    {
+      "name": "document_id",
+      "type": "uuid",
+      "table": "erp_document_items",
+      "default": null,
+      "not_null": true
+    },
+    {
+      "name": "sort_order",
+      "type": "integer",
+      "table": "erp_document_items",
+      "default": "0",
+      "not_null": false
+    },
+    {
+      "name": "name",
+      "type": "text",
+      "table": "erp_document_items",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "sub_title",
+      "type": "text",
+      "table": "erp_document_items",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "detail",
+      "type": "text",
+      "table": "erp_document_items",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "unit",
+      "type": "text",
+      "table": "erp_document_items",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "qty",
+      "type": "numeric(12,3)",
+      "table": "erp_document_items",
+      "default": "1",
+      "not_null": false
+    },
+    {
+      "name": "price",
+      "type": "numeric(12,2)",
+      "table": "erp_document_items",
+      "default": "0",
+      "not_null": false
+    },
+    {
+      "name": "cost_snapshot",
+      "type": "numeric(12,2)",
+      "table": "erp_document_items",
+      "default": "0",
+      "not_null": false
+    },
+    {
+      "name": "cost_unit",
+      "type": "text",
+      "table": "erp_document_items",
+      "default": "'piece'::text",
+      "not_null": false
+    },
+    {
+      "name": "price_unit",
+      "type": "text",
+      "table": "erp_document_items",
+      "default": "'piece'::text",
+      "not_null": false
+    },
+    {
+      "name": "supplier_name",
+      "type": "text",
+      "table": "erp_document_items",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "width_m",
+      "type": "numeric",
+      "table": "erp_document_items",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "height_m",
+      "type": "numeric",
+      "table": "erp_document_items",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "pieces",
+      "type": "numeric",
+      "table": "erp_document_items",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "id",
+      "type": "uuid",
+      "table": "erp_documents",
+      "default": "gen_random_uuid()",
+      "not_null": true
+    },
+    {
+      "name": "type",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": true
+    },
+    {
+      "name": "doc_no",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": true
+    },
+    {
+      "name": "status",
+      "type": "text",
+      "table": "erp_documents",
+      "default": "'draft'::text",
+      "not_null": true
+    },
+    {
+      "name": "customer_id",
+      "type": "uuid",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "customer_name",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "project_name",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "order_id",
+      "type": "uuid",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "reference",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "sales_person",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "date",
+      "type": "date",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "due_date",
+      "type": "date",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "discount",
+      "type": "numeric(5,2)",
+      "table": "erp_documents",
+      "default": "0",
+      "not_null": false
+    },
+    {
+      "name": "vat",
+      "type": "boolean",
+      "table": "erp_documents",
+      "default": "true",
+      "not_null": false
+    },
+    {
+      "name": "wht",
+      "type": "boolean",
+      "table": "erp_documents",
+      "default": "false",
+      "not_null": false
+    },
+    {
+      "name": "wht_rate",
+      "type": "numeric(5,2)",
+      "table": "erp_documents",
+      "default": "3",
+      "not_null": false
+    },
+    {
+      "name": "notes",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "override_address",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "bank_name",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "bank_branch",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "bank_account",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "bank_type",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "qr_image",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "deleted",
+      "type": "boolean",
+      "table": "erp_documents",
+      "default": "false",
+      "not_null": false
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "table": "erp_documents",
+      "default": "now()",
+      "not_null": false
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "table": "erp_documents",
+      "default": "now()",
+      "not_null": false
+    },
+    {
+      "name": "vat_rate",
+      "type": "numeric",
+      "table": "erp_documents",
+      "default": "7",
+      "not_null": false
+    },
+    {
+      "name": "lead_source",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "marketing_campaign",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "marketing_adset",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "marketing_ad",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "payment_type",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "payment_amount",
+      "type": "numeric",
+      "table": "erp_documents",
+      "default": "0",
+      "not_null": false
+    },
+    {
+      "name": "payment_date",
+      "type": "date",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "payment_note",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "payment_status",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "deposit_paid",
+      "type": "numeric",
+      "table": "erp_documents",
+      "default": "0",
+      "not_null": false
+    },
+    {
+      "name": "deposit_date",
+      "type": "date",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "deposit_note",
+      "type": "text",
+      "table": "erp_documents",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "discount_type",
+      "type": "text",
+      "table": "erp_documents",
+      "default": "'percent'::text",
+      "not_null": false
+    },
+    {
+      "name": "internal_expenses",
+      "type": "jsonb",
+      "table": "erp_documents",
+      "default": "'[]'::jsonb",
+      "not_null": true
+    },
+    {
+      "name": "id",
+      "type": "uuid",
+      "table": "erp_products",
+      "default": "gen_random_uuid()",
+      "not_null": true
+    },
+    {
+      "name": "name",
+      "type": "text",
+      "table": "erp_products",
+      "default": null,
+      "not_null": true
+    },
+    {
+      "name": "unit",
+      "type": "text",
+      "table": "erp_products",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "cost",
+      "type": "numeric(12,2)",
+      "table": "erp_products",
+      "default": "0",
+      "not_null": false
+    },
+    {
+      "name": "price",
+      "type": "numeric(12,2)",
+      "table": "erp_products",
+      "default": "0",
+      "not_null": false
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "table": "erp_products",
+      "default": "now()",
+      "not_null": false
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "table": "erp_products",
+      "default": "now()",
+      "not_null": false
+    },
+    {
+      "name": "cost_unit",
+      "type": "text",
+      "table": "erp_products",
+      "default": "'piece'::text",
+      "not_null": false
+    },
+    {
+      "name": "price_unit",
+      "type": "text",
+      "table": "erp_products",
+      "default": "'piece'::text",
+      "not_null": false
+    },
+    {
+      "name": "supplier_name",
+      "type": "text",
+      "table": "erp_products",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "id",
+      "type": "uuid",
+      "table": "erp_suppliers",
+      "default": "gen_random_uuid()",
+      "not_null": true
+    },
+    {
+      "name": "name",
+      "type": "text",
+      "table": "erp_suppliers",
+      "default": null,
+      "not_null": true
+    },
+    {
+      "name": "contact",
+      "type": "text",
+      "table": "erp_suppliers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "phone",
+      "type": "text",
+      "table": "erp_suppliers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "email",
+      "type": "text",
+      "table": "erp_suppliers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "tax_id",
+      "type": "text",
+      "table": "erp_suppliers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "address",
+      "type": "text",
+      "table": "erp_suppliers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "notes",
+      "type": "text",
+      "table": "erp_suppliers",
+      "default": null,
+      "not_null": false
+    },
+    {
+      "name": "items",
+      "type": "jsonb",
+      "table": "erp_suppliers",
+      "default": "'[]'::jsonb",
+      "not_null": true
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "table": "erp_suppliers",
+      "default": "now()",
+      "not_null": true
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "table": "erp_suppliers",
+      "default": "now()",
+      "not_null": true
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT private.is_admin() AS is_admin)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "erp_company",
+      "permissive": "PERMISSIVE",
+      "policyname": "active admins manage ERP",
+      "schemaname": "public",
+      "with_check": "( SELECT private.is_admin() AS is_admin)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT private.is_admin() AS is_admin)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "erp_customers",
+      "permissive": "PERMISSIVE",
+      "policyname": "active admins manage ERP",
+      "schemaname": "public",
+      "with_check": "( SELECT private.is_admin() AS is_admin)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT private.is_admin() AS is_admin)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "erp_document_items",
+      "permissive": "PERMISSIVE",
+      "policyname": "active admins manage ERP",
+      "schemaname": "public",
+      "with_check": "( SELECT private.is_admin() AS is_admin)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT private.is_admin() AS is_admin)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "erp_documents",
+      "permissive": "PERMISSIVE",
+      "policyname": "active admins manage ERP",
+      "schemaname": "public",
+      "with_check": "( SELECT private.is_admin() AS is_admin)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT private.is_admin() AS is_admin)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "erp_products",
+      "permissive": "PERMISSIVE",
+      "policyname": "active admins manage ERP",
+      "schemaname": "public",
+      "with_check": "( SELECT private.is_admin() AS is_admin)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT private.is_admin() AS is_admin)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "erp_suppliers",
+      "permissive": "PERMISSIVE",
+      "policyname": "active admins manage ERP",
+      "schemaname": "public",
+      "with_check": "( SELECT private.is_admin() AS is_admin)"
+    }
+  ],
+  "constraints": [
+    {
+      "name": "erp_company_pkey",
+      "table": "erp_company",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "erp_customers_pkey",
+      "table": "erp_customers",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "erp_document_items_document_id_fkey",
+      "table": "erp_document_items",
+      "definition": "FOREIGN KEY (document_id) REFERENCES erp_documents(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "erp_document_items_pkey",
+      "table": "erp_document_items",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "erp_documents_customer_id_fkey",
+      "table": "erp_documents",
+      "definition": "FOREIGN KEY (customer_id) REFERENCES erp_customers(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "erp_documents_pkey",
+      "table": "erp_documents",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "erp_documents_status_check",
+      "table": "erp_documents",
+      "definition": "CHECK ((status = ANY (ARRAY['draft'::text, 'sent'::text, 'approved'::text, 'cancelled'::text, 'paid'::text])))"
+    },
+    {
+      "name": "erp_documents_type_check",
+      "table": "erp_documents",
+      "definition": "CHECK ((type = ANY (ARRAY['quote'::text, 'bill'::text, 'invoice'::text, 'receipt'::text])))"
+    },
+    {
+      "name": "erp_products_pkey",
+      "table": "erp_products",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "erp_suppliers_pkey",
+      "table": "erp_suppliers",
+      "definition": "PRIMARY KEY (id)"
+    }
+  ]
+}
