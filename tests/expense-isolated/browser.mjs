@@ -49,6 +49,7 @@ const require = createRequire(process.env.RUNNER_TEMP + '/expense-browser/packag
 const { chromium } = require('playwright');
 const server = spawn('node', ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', '3100'], { cwd: root, env, stdio: 'ignore' });
 let browser;
+let page;
 try {
   let ready = false;
   for (let i = 0; i < 60; i++) {
@@ -63,7 +64,7 @@ try {
     const url = new URL(route.request().url());
     return url.hostname === '127.0.0.1' && ['3100', '54321'].includes(url.port) ? route.continue() : route.abort();
   });
-  const page = await context.newPage();
+  page = await context.newPage();
   page.setDefaultTimeout(20000);
   await page.goto('http://127.0.0.1:3100/login');
   await page.locator('input[type=email]').fill(email);
@@ -79,12 +80,14 @@ try {
   const description = 'Synthetic rent browser ' + randomUUID();
   await page.getByRole('button', { name: 'เพิ่มค่าใช้จ่าย', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'เพิ่มค่าใช้จ่าย', exact: true });
-  await dialog.getByLabel('หมวด', { exact: true }).selectOption('44444444-4444-4444-8444-444444444444');
+  await dialog.waitFor();
+  const select = (scope, label) => scope.locator('label').filter({ hasText: new RegExp('^' + label) }).locator('select');
+  await select(dialog, 'หมวด').selectOption('44444444-4444-4444-8444-444444444444');
   await dialog.getByLabel('รายละเอียด', { exact: true }).fill(description);
   await dialog.getByLabel('ยอดก่อน VAT', { exact: true }).fill('12000');
-  await dialog.getByLabel('สถานะชำระ', { exact: true }).selectOption('paid');
+  await select(dialog, 'สถานะชำระ').selectOption('paid');
   await dialog.getByLabel('วันที่ชำระ', { exact: true }).fill('2026-09-09');
-  for (const label of ['Supplier', 'ลูกค้า', 'เอกสาร']) assert.equal(await dialog.getByLabel(label, { exact: true }).inputValue(), '');
+  for (const label of ['Supplier', 'ลูกค้า', 'เอกสาร']) assert.equal(await select(dialog, label).inputValue(), '');
   await dialog.locator('input[type=file]').setInputFiles({ name: 'synthetic.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% Synthetic only\n%%EOF\n') });
   const upload = page.waitForResponse(r => r.url().includes('/attachments') && r.request().method() === 'POST');
   await dialog.getByRole('button', { name: 'บันทึก', exact: true }).click();
@@ -122,6 +125,9 @@ try {
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Mobile page overflows horizontally');
   console.log('PASS real browser: normal owner login, separate expenses, rent, no receipt link, upload API, reload, Bangkok payment date, edit, archive/restore/void, mobile bounds');
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, '\n## Browser contract acceptance\nPASS: owner login, separate expense page, independent rent, application attachment upload, reload/edit/payment date, archive/restore/void, mobile bounds, build and privileged bundle scan.\nProduction schema equivalence and production deployment remain NOT EXECUTED.\n');
+} catch (error) {
+  if (page) console.log('Synthetic browser visible state: ' + (await page.locator('body').innerText()).slice(-8000));
+  throw error;
 } finally {
   await browser?.close();
   server.kill('SIGTERM');
