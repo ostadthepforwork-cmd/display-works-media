@@ -170,6 +170,7 @@ revoke all on table public.erp_expense_number_counters from public, anon, authen
 revoke all on table public.erp_expense_save_requests from public, anon, authenticated;
 revoke all on table public.erp_expense_attachments from public, anon, authenticated;
 revoke all on table public.erp_expense_events from public, anon, authenticated;
+revoke all on sequence public.erp_expense_events_id_seq from public, anon, authenticated;
 
 grant select, insert, update on table public.erp_expense_categories to authenticated;
 grant select on table public.erp_expenses to authenticated;

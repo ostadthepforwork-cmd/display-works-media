@@ -65,6 +65,8 @@ const candidate = readFileSync(new URL('candidate.sql', root), 'utf8');
 console.log('Candidate SHA256 ' + createHash('sha256').update(candidate).digest('hex'));
 await sql(readFileSync(new URL('fixture.sql', root), 'utf8'));
 await sql(readFileSync(new URL('../../supabase/batch-1a-admin-membership.sql', root), 'utf8'));
+// Reproduce the observed postgres public sequence default ACL from production metadata.
+await sql('alter default privileges for role postgres in schema public grant all on sequences to anon, authenticated, service_role;');
 await sql('begin;\n' + candidate + '\ncommit;');
 console.log('PASS migration on synthetic dependency contract (NOT production-equivalence acceptance)');
 await sql(`insert into auth.users(id,email) values ('${owner}','owner@example.invalid'),('${nonadmin}','reader@example.invalid'),('${inactive}','inactive@example.invalid');
@@ -117,6 +119,66 @@ await test('nonadmin RLS reads empty and direct owner writes denied', async () =
   assert.equal(r.n, 0);
   await assert.rejects(sql(auth() + 'delete from public.erp_expenses; commit;'), /permission denied/);
   await assert.rejects(sql(auth() + 'update public.erp_expense_number_counters set last_value=0; commit;'), /permission denied/);
+});
+await test('expense audit sequence cannot be changed by client roles', async () => {
+  for (const [id, role] of [['', 'anon'], [owner, 'authenticated'], [nonadmin, 'authenticated']]) {
+    await assert.rejects(sql(auth(id, role) + "select setval('public.erp_expense_events_id_seq',1); rollback;"), /permission denied/);
+  }
+});
+
+await test('real Storage HTTP upload, registration, private access and signed download', async () => {
+  const local = JSON.parse(execFileSync('npx', ['--yes', 'supabase@2.116.0', 'status', '--workdir', process.env.RUNNER_TEMP + '/expense-supabase', '--output', 'json'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }));
+  assert.equal(local.API_URL, 'http://127.0.0.1:54321');
+  assert(local.ANON_KEY && local.SERVICE_ROLE_KEY);
+  const base = local.API_URL;
+  async function request(path, token, method = 'GET', body, contentType = 'application/json') {
+    assert(path.startsWith('/') && !path.startsWith('//'));
+    return fetch(base + path, { method, redirect: 'error', signal: AbortSignal.timeout(15000), headers: { apikey: local.ANON_KEY, Authorization: 'Bearer ' + token, 'Content-Type': contentType }, body: body === undefined ? undefined : contentType === 'application/json' ? JSON.stringify(body) : body });
+  }
+  async function login(id) {
+    const password = randomUUID() + 'aA!9';
+    const updated = await request('/auth/v1/admin/users/' + id, local.SERVICE_ROLE_KEY, 'PUT', { password, email_confirm: true });
+    assert(updated.ok, 'Synthetic auth user setup failed: ' + updated.status);
+    const email = id === owner ? 'owner@example.invalid' : 'reader@example.invalid';
+    const signed = await request('/auth/v1/token?grant_type=password', local.ANON_KEY, 'POST', { email, password });
+    assert(signed.ok, 'Synthetic login failed: ' + signed.status);
+    const data = await signed.json();
+    assert(data.access_token);
+    return data.access_token;
+  }
+  const token = await login(owner);
+  const reader = await login(nonadmin);
+  await sql("notify pgrst, 'reload schema';");
+  const expense = await save(payload());
+  const id = randomUUID();
+  const path = `expenses/${expense.expense_id}/${id}.pdf`;
+  const objectPath = '/storage/v1/object/erp-expense-evidence/' + path;
+  const bytes = Buffer.from('%PDF-1.4\n% Synthetic expense evidence only\n%%EOF\n');
+  const deniedUpload = await request(objectPath, reader, 'POST', bytes, 'application/pdf');
+  assert(!deniedUpload.ok, 'Nonadmin upload allowed');
+  const uploaded = await request(objectPath, token, 'POST', bytes, 'application/pdf');
+  assert(uploaded.ok, 'Owner upload failed: ' + uploaded.status);
+  const register = await request('/rest/v1/rpc/register_erp_expense_attachment_v1', token, 'POST', { p_expense_id: expense.expense_id, p_attachment_id: id, p_storage_path: path, p_original_filename: 'synthetic.pdf', p_mime_type: 'application/pdf', p_size_bytes: bytes.length });
+  assert(register.ok, 'Attachment registration failed: ' + register.status);
+  assert.equal((await register.json()).id, id);
+  for (const forbidden of [local.ANON_KEY, reader]) {
+    const download = await request(objectPath, forbidden);
+    assert(!download.ok, 'Private download allowed');
+    const sign = await request('/storage/v1/object/sign/erp-expense-evidence/' + path, forbidden, 'POST', { expiresIn: 60 });
+    assert(!sign.ok, 'Private signing allowed');
+  }
+  const signed = await request('/storage/v1/object/sign/erp-expense-evidence/' + path, token, 'POST', { expiresIn: 60 });
+  assert(signed.ok, 'Owner signing failed: ' + signed.status);
+  const signedPath = (await signed.json()).signedURL;
+  assert(typeof signedPath === 'string' && signedPath.startsWith('/object/sign/'));
+  const download = await request('/storage/v1' + signedPath, local.ANON_KEY);
+  assert(download.ok, 'Signed download failed: ' + download.status);
+  assert.deepEqual(Buffer.from(await download.arrayBuffer()), bytes);
+  const publicRead = await request('/storage/v1/object/public/erp-expense-evidence/' + path, local.ANON_KEY);
+  assert(!publicRead.ok, 'Evidence is publicly readable');
+  // Exact synthetic object only; its disposable Auth/SQL fixtures disappear with the runner.
+  const removed = await request('/storage/v1/object/erp-expense-evidence', local.SERVICE_ROLE_KEY, 'DELETE', { prefixes: [path] });
+  assert(removed.ok, 'Synthetic object cleanup failed');
 });
 await test('invalid money rolls back request and number allocation', async () => {
   const before = await sql('select json_build_array((select count(*) from public.erp_expenses),(select count(*) from public.erp_expense_save_requests),(select sum(last_value) from public.erp_expense_number_counters));');
