@@ -143,8 +143,10 @@ await test('numbering boundary 9999 to 10000 retains all digits', async () => {
   const year = Number(await sql("select extract(year from timezone('Asia/Bangkok', now()))::integer+543;"));
   await sql(`update public.erp_expense_number_counters set last_value=9998 where buddhist_year=${year};`);
   const a = await save(payload()); const b = await save(payload());
+  const c = await save(payload());
   assert.equal(a.expense_no, `EXP${year}-9999`);
   assert.equal(b.expense_no, `EXP${year}-10000`);
+  assert.equal(c.expense_no, `EXP${year}-10001`);
 });
 
 const summary = '## Expense isolated SQL results\n\nSynthetic FK contract + actual Batch 1A membership and expense candidate. Not a production baseline clone.\n\n' + results.map(r => `- ${r.status}: ${r.name}${r.error ? ': ' + r.error.replaceAll('\n', ' ') : ''}`).join('\n') + '\n\nNOT EXECUTED: production baseline equivalence, real Storage HTTP upload/signed URLs, browser acceptance, production migrations/deployment.\n';

@@ -355,7 +355,8 @@ begin
     if v_sequence is null then
       raise exception using errcode = '55000', message = 'EXPENSE_NUMBER_ALLOCATION_FAILED';
     end if;
-    v_expense_no := 'EXP' || v_buddhist_year::text || '-' || lpad(v_sequence::text, 4, '0');
+    v_expense_no := 'EXP' || v_buddhist_year::text || '-'
+      || lpad(v_sequence::text, greatest(4, length(v_sequence::text)), '0');
 
     insert into public.erp_expenses(
       id, expense_no, expense_date, category_id, expense_class, description,
