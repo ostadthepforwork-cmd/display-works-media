@@ -13,6 +13,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { requestBlogRevalidation } from '@/lib/revalidation-client';
 import { escapeHtml as escapeRichText, sanitizeHtml } from '@/lib/sanitize-html';
 import MarketingKpiDashboard from './MarketingKpiDashboard';
+import ExpensePage from './expenses/ExpensePage';
 
 const supabase = getSupabaseBrowserClient();
 
@@ -1315,6 +1316,7 @@ export default function AdminPage() {
                   totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
                   docCounts={docCounts} setPage={setErpPage} />
               )}
+              {erpPage === "expenses" && <ExpensePage customers={customers} suppliers={suppliers} documents={documents} showToast={showToast} />}
               {erpPage === "customers" && <CustomerPage customers={customers} setCustomers={setCustomers} documents={documents} products={catalogProducts} showToast={showToast} />}
               {erpPage === "products" && <ProductPage products={products} setProducts={setProducts} suppliers={suppliers} showToast={showToast} />}
               {erpPage === "suppliers" && <SupplierPage suppliers={suppliers} setSuppliers={setSuppliers} showToast={showToast} />}
@@ -1516,7 +1518,7 @@ export default function AdminPage() {
               { id: "invoice",   icon: "🧾", label: "ใบแจ้งหนี้",     color: (DOC_TYPES as any).invoice.color },
               { id: "receipt",   icon: "✅", label: "ใบเสร็จรับเงิน", color: (DOC_TYPES as any).receipt.color },
               null,
-              { id: "quick-expense", target: "receipt", icon: "💸", label: "เพิ่มค่าใช้จ่าย", color: "#EF4444" },
+              { id: "expenses", icon: "💸", label: "ค่าใช้จ่าย", color: "#EF4444" },
               null,
               { id: "customers", icon: "👥", label: "ลูกค้า",          color: "#60A5FA" },
               { id: "products",  icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
@@ -5393,7 +5395,7 @@ function ErpSidebar({ page, setPage, docCounts }: any) {
     { id: "invoice", icon: "🧾", label: "ใบแจ้งหนี้", count: docCounts.invoice, color: DOC_TYPES.invoice.color },
     { id: "receipt", icon: "✅", label: "ใบเสร็จรับเงิน", count: docCounts.receipt, color: DOC_TYPES.receipt.color },
     null,
-    { id: "quick-expense", target: "receipt", icon: "💸", label: "เพิ่มค่าใช้จ่าย", color: "#EF4444" },
+    { id: "expenses", icon: "💸", label: "ค่าใช้จ่าย", color: "#EF4444" },
     null,
     { id: "company", icon: "🏢", label: "ข้อมูลบริษัท" },
   ];
