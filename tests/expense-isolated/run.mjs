@@ -137,9 +137,12 @@ await test('real Storage HTTP upload, registration, private access and signed do
   }
   async function login(id) {
     const password = randomUUID() + 'aA!9';
-    const updated = await request('/auth/v1/admin/users/' + id, local.SERVICE_ROLE_KEY, 'PUT', { password, email_confirm: true });
+    const email = `expense-${randomUUID()}@example.invalid`;
+    const updated = await request('/auth/v1/admin/users', local.SERVICE_ROLE_KEY, 'POST', { email, password, email_confirm: true });
     assert(updated.ok, 'Synthetic auth user setup failed: ' + updated.status);
-    const email = id === owner ? 'owner@example.invalid' : 'reader@example.invalid';
+    const user = await updated.json();
+    assert.match(user.id, /^[0-9a-f-]{36}$/);
+    if (id === owner) await sql(`insert into public.admin_users(user_id,email,role,active) values (${quote(user.id)},${quote(email)},'owner',true);`);
     const signed = await request('/auth/v1/token?grant_type=password', local.ANON_KEY, 'POST', { email, password });
     assert(signed.ok, 'Synthetic login failed: ' + signed.status);
     const data = await signed.json();
