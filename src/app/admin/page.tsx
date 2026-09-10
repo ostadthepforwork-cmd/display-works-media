@@ -5642,7 +5642,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   return (
     <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
 
-      <ExpenseDashboard start={localDateInput(new Date(selectedRange.start))} end={localDateInput(new Date(selectedRange.end))} />
+      <ExpenseDashboard start={localDateInput(new Date(selectedRange.start))} end={localDateInput(new Date(selectedRange.end))} revenue={thisMonthDocs.map((doc: any) => ({ date: doc.date, total: calcDocTotal(doc).total.toFixed(2) }))} />
       {/* ── HEADER ──────────────────────────────────────────────── */}
       <div className="erp-dashboard-header" style={{ marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
         <div>
@@ -5741,7 +5741,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         <div style={{ ...card(), padding: "22px 24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Revenue vs Expense vs Profit</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>ยอดเอกสาร / ต้นทุนประมาณการ / กำไรประมาณการ</div>
               <div style={{ fontSize: 11, color: "#4B5563", marginTop: 2 }}>ยอดขาย · ต้นทุน · กำไร</div>
             </div>
             <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
@@ -5885,7 +5885,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
       <div style={{ ...card(), padding: "22px 24px", marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 4 }}>💸 ค่าใช้จ่ายตามประเภท</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 4 }}>💸 ต้นทุนประมาณการในเอกสารตามประเภท</div>
             <div style={{ fontSize: 12, color: "#94A3B8" }}>แยกจากต้นทุนสินค้า/บริการ และค่าใช้จ่ายอื่นในเอกสารช่วงที่เลือก</div>
           </div>
           <button type="button" onClick={() => setPage("receipt")} style={{
