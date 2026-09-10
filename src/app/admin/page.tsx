@@ -14,6 +14,7 @@ import { requestBlogRevalidation } from '@/lib/revalidation-client';
 import { escapeHtml as escapeRichText, sanitizeHtml } from '@/lib/sanitize-html';
 import MarketingKpiDashboard from './MarketingKpiDashboard';
 import ExpensePage from './expenses/ExpensePage';
+import ExpenseDashboard from './expenses/ExpenseDashboard';
 
 const supabase = getSupabaseBrowserClient();
 
@@ -5641,6 +5642,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   return (
     <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
 
+      <ExpenseDashboard start={localDateInput(new Date(selectedRange.start))} end={localDateInput(new Date(selectedRange.end))} />
       {/* ── HEADER ──────────────────────────────────────────────── */}
       <div className="erp-dashboard-header" style={{ marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
         <div>
@@ -5706,7 +5708,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         {/* Net Profit */}
         <div style={{ ...card(), padding: "22px 24px", borderTop: `2px solid ${profitThis >= 0 ? "#10B981" : "#EF4444"}`, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>P</div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: profitThis >= 0 ? "#10B981" : "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>NET PROFIT</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: profitThis >= 0 ? "#10B981" : "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>กำไรประมาณการจากเอกสาร (ยังไม่หักค่าใช้จ่ายจริง)</div>
           <div style={{ fontSize: 28, fontWeight: 800, color: profitThis >= 0 ? "#10B981" : "#EF4444", lineHeight: 1 }}>฿{fmtB(profitThis)}</div>
           <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>Margin เดือนนี้ <span style={{ color: "#fff", fontWeight: 700 }}>{marginThis.toFixed(1)}%</span></div>
         </div>
@@ -5714,7 +5716,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
         {/* Expense */}
         <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #EF4444", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", right: -10, top: -10, fontSize: 56, opacity: 0.04 }}>E</div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>EXPENSE / ต้นทุน</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#EF4444", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>ต้นทุนประมาณการจากเอกสาร</div>
           <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>฿{fmtB(costThisMonth)}</div>
           <div style={{ marginTop: 10, fontSize: 12, color: "#4B5563" }}>รวมทั้งหมด <span style={{ color: "#EF4444", fontWeight: 700 }}>฿{fmtB(totalCost)}</span></div>
         </div>
