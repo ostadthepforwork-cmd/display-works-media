@@ -34,6 +34,8 @@ import { expenseTotal, formatExpenseTotal, isCompleteResult } from "@/lib/expens
 import ExpenseHistory from "./ExpenseHistory";
 
 type ExpensePageProps = {
+  initialPeriod?: { from: string; to: string };
+  initialFocus?: { category?: string; expenseClass?: string };
   customers: Array<Record<string, any>>;
   suppliers: Array<Record<string, any>>;
   documents: Array<Record<string, any>>;
@@ -135,12 +137,12 @@ function errorMessage(error: unknown) {
   return String((error as { message?: unknown })?.message || "บันทึกข้อมูลไม่สำเร็จ");
 }
 
-export default function ExpensePage({ customers, suppliers, documents, showToast }: ExpensePageProps) {
+export default function ExpensePage({ customers, suppliers, documents, showToast, initialPeriod, initialFocus }: ExpensePageProps) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [attachments, setAttachments] = useState<AttachmentRow[]>([]);
-  const [filters, setFilters] = useState(initialFilters);
+  const [filters, setFilters] = useState(() => initialPeriod ? { ...initialFilters, dateFrom: initialPeriod.from, dateTo: initialPeriod.to, state: 'report', categoryId: initialFocus?.category || 'all', expenseClass: initialFocus?.expenseClass || 'all' } : initialFilters);
   const [editor, setEditor] = useState<ExpenseDraft | null>(null);
   const [evidenceQueue, setEvidenceQueue] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
@@ -241,6 +243,7 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
     if (filters.expenseClass !== "all" && row.expense_class !== filters.expenseClass) return false;
     if (filters.paymentStatus !== "all" && row.payment_status !== filters.paymentStatus) return false;
     if (filters.state === "active" && (row.archived_at || row.voided_at)) return false;
+    if (filters.state === "report" && row.voided_at) return false;
     if (filters.state === "archived" && !row.archived_at) return false;
     if (filters.state === "voided" && !row.voided_at) return false;
     return true;
@@ -391,7 +394,7 @@ export default function ExpensePage({ customers, suppliers, documents, showToast
           <option value="all">ทุกสถานะชำระ</option><option value="unpaid">ยังไม่ชำระ</option><option value="paid">ชำระแล้ว</option>
         </select>
         <select aria-label="กรองสถานะรายการ" value={filters.state} onChange={(event) => setFilters({ ...filters, state: event.target.value })}>
-          <option value="all">ทั้งหมด</option><option value="active">ใช้งาน</option><option value="archived">เก็บถาวร</option><option value="voided">ยกเลิก</option>
+          <option value="all">ทั้งหมด</option><option value="report">รวมเก็บถาวร ไม่รวมยกเลิก</option><option value="active">ใช้งาน</option><option value="archived">เก็บถาวร</option><option value="voided">ยกเลิก</option>
         </select>
       </div>
 

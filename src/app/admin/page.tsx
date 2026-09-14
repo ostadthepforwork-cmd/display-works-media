@@ -15,6 +15,11 @@ import { escapeHtml as escapeRichText, sanitizeHtml } from '@/lib/sanitize-html'
 import MarketingKpiDashboard from './MarketingKpiDashboard';
 import ExpensePage from './expenses/ExpensePage';
 import ExpenseDashboard from './expenses/ExpenseDashboard';
+import ExecutiveDashboard from './dashboard/ExecutiveDashboard';
+import ErpNavigation from './dashboard/ErpNavigation';
+import erpNavigationStyle from './dashboard/ErpNavigation.module.css';
+import { Home as HomeIcon, Box as BoxIcon, PenLine, ChartNoAxesCombined } from 'lucide-react';
+import { completePages, inPeriod, periodFromSearch, periodSearch, quickPeriod } from '@/lib/dashboard-period';
 
 const supabase = getSupabaseBrowserClient();
 
@@ -958,6 +963,23 @@ export default function AdminPage() {
 
 // ─── ERP STATE ───────────────────────────────────────────────────────────────
   const [erpPage, setErpPage] = useState("dashboard");
+  const [dashboardPeriod, setDashboardPeriod] = useState(() => quickPeriod('month'));
+  const [dashboardReady, setDashboardReady] = useState(false);
+  const [dashboardEntry, setDashboardEntry] = useState(false);
+  const [dashboardDocumentId, setDashboardDocumentId] = useState<string | null>(null);
+  const [dashboardExpenseFocus, setDashboardExpenseFocus] = useState({});
+  const [erpLoadedAt, setErpLoadedAt] = useState<string | null>(null);
+  useEffect(() => {
+    const restore = () => setDashboardPeriod(periodFromSearch(window.location.search));
+    restore(); setDashboardReady(true);
+    window.addEventListener('popstate', restore);
+    return () => window.removeEventListener('popstate', restore);
+  }, []);
+  const changeDashboardPeriod = (next) => {
+    setDashboardPeriod(next);
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}?${periodSearch(window.location.search, next)}${window.location.hash}`);
+  };
+  const openDashboardList = (type, id = null) => { setDashboardEntry(true); setDashboardDocumentId(id); setErpPage(type); };
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -968,6 +990,7 @@ export default function AdminPage() {
   });
   const [erpLoading, setErpLoading] = useState(true);
   const [erpLoadError, setErpLoadError] = useState("");
+  const [erpReload, setErpReload] = useState(0);
 
   // ── โหลดข้อมูลจาก Supabase ครั้งแรก ──────────────────────
   useEffect(() => {
@@ -977,12 +1000,12 @@ export default function AdminPage() {
       try {
         await withTimeout(requireErpSession(), 8000, "ERP auth check");
         const [custRes, prodRes, docRes, itemRes, compRes] = await withTimeout(Promise.all([
-          supabase.from("erp_customers").select("*").order("created_at"),
-          supabase.from("erp_products").select("*").order("created_at"),
-          supabase.from("erp_documents").select("*").eq("deleted", false).order("created_at", { ascending: false }),
-          supabase.from("erp_document_items").select("*").order("sort_order"),
+          completePages((from, to) => supabase.from("erp_customers").select("*", { count: 'exact' }).order("id").range(from, to), row => row.id),
+          completePages((from, to) => supabase.from("erp_products").select("*", { count: 'exact' }).order("id").range(from, to), row => row.id),
+          completePages((from, to) => supabase.from("erp_documents").select("*", { count: 'exact' }).eq("deleted", false).order("created_at", { ascending: false }).order('id').range(from, to), row => row.id),
+          completePages((from, to) => supabase.from("erp_document_items").select("*", { count: 'exact' }).order("sort_order").order('id').range(from, to), row => row.id),
           supabase.from("erp_company").select("*").limit(1).maybeSingle(),
-        ]), 10000, "โหลดข้อมูล ERP");
+        ]), 30000, "โหลดข้อมูล ERP");
         const loadError = [custRes, prodRes, docRes, itemRes, compRes].find((res) => res.error)?.error;
         if (loadError) throw loadError;
 
@@ -1004,7 +1027,7 @@ export default function AdminPage() {
 
         try {
           const { data, error } = await withTimeout(
-            supabase.from("erp_suppliers").select("*").order("created_at"),
+            completePages((from, to) => supabase.from("erp_suppliers").select("*", { count: 'exact' }).order("created_at").order('id').range(from, to), row => row.id),
             6000,
             "โหลดข้อมูล Supplier",
           );
@@ -1107,6 +1130,7 @@ export default function AdminPage() {
           qrImage: compRes.data.qr_image || "",
           signatureImage: compRes.data.signature_image || "",
         });
+        setErpLoadedAt(new Date().toISOString());
       } catch (err) {
         console.error("ERP load error:", err);
         setErpLoadError(((err as any)?.message || String(err)));
@@ -1116,7 +1140,7 @@ export default function AdminPage() {
       }
     }
     loadAll();
-  }, []);
+  }, [erpReload]);
 
   const docCounts = Object.keys(DOC_TYPES).reduce((acc, t) => {
     acc[t] = documents.filter((d) => d.type === t && !d.deleted && d.status !== "cancelled").length;
@@ -1151,12 +1175,13 @@ export default function AdminPage() {
 
       {/* ─── TOP BAR ─── */}
       <div className="top-bar" style={{
-        background: "#141A24", borderBottom: "1px solid rgba(255,255,255,0.07)",
+        background: mainTab === 'erp' ? '#fff' : '#0e1926', color: mainTab === 'erp' ? '#18191b' : '#fff', borderBottom: mainTab === 'erp' ? '1px solid #e9ebed' : '1px solid #253441',
         display: "flex", alignItems: "center",
-        minHeight: 52,
-        padding: "0 16px",
+        minHeight: mainTab === 'erp' ? 60 : 52,
+        padding: mainTab === 'erp' ? "0 22px" : "0 16px",
         paddingTop: "max(env(safe-area-inset-top, 0px), 0px)",
         gap: 8, flexShrink: 0, zIndex: 100,
+        boxShadow: mainTab === 'erp' ? '0 8px 26px rgba(24,34,48,0.06)' : undefined,
       }}>
         <Image
           src="/images/logo.png"
@@ -1165,35 +1190,35 @@ export default function AdminPage() {
           height={28}
           style={{ width: 32, height: 28, objectFit: "contain", marginRight: 4, flexShrink: 0 }}
         />
-        <span className="hide-mobile" style={{ fontWeight: 600, fontSize: 13, color: "#fff", marginRight: 16 }}>Display Works</span>
+        <span className="hide-mobile" style={{ fontWeight: 700, fontSize: 16, color: 'inherit', marginRight: 20 }}>Display Works</span>
         <div className="hide-mobile" style={{ display: "flex", gap: 4 }}>
           <button type="button" onClick={() => setMainTab("home")} style={{
             padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
             background: mainTab === "home" ? "#FF6B00" : "transparent",
-            color: mainTab === "home" ? "#fff" : "#A8B0C0", transition: "all 0.2s",
+            color: mainTab === "home" ? "#fff" : mainTab === 'erp' ? '#353a42' : '#A8B0C0', transition: "all 0.2s",
           }}>
-            Home
+            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><HomeIcon size={16} /> Home</span>
           </button>
           {["erp","cms"].map(t => (
             <button type="button" key={t} onClick={() => setMainTab(t)} style={{
               padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
               background: mainTab === t ? "#FF6B00" : "transparent",
-              color: mainTab === t ? "#fff" : "#A8B0C0", transition: "all 0.2s",
+              color: mainTab === t ? "#fff" : mainTab === 'erp' ? '#353a42' : '#A8B0C0', transition: "all 0.2s",
             }}>
-              {t === "erp" ? "⚙️ ERP" : "✏️ CMS"}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>{t === "erp" ? <BoxIcon size={16} /> : <PenLine size={16} />}{t.toUpperCase()}</span>
             </button>
           ))}
           <button type="button" onClick={() => setMainTab("marketing")} style={{
             padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
             background: mainTab === "marketing" ? "#FF6B00" : "transparent",
-            color: mainTab === "marketing" ? "#fff" : "#A8B0C0", transition: "all 0.2s",
+            color: mainTab === "marketing" ? "#fff" : mainTab === 'erp' ? '#353a42' : '#A8B0C0', transition: "all 0.2s",
           }}>
-            Marketing
+            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><ChartNoAxesCombined size={16} /> Marketing</span>
           </button>
         </div>
         {/* Mobile: compact title + drawer trigger */}
         <div className="show-mobile admin-mobile-top" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-          <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
+          <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: mainTab === 'erp' ? '#18191b' : '#fff', flex: 1 }}>
             {mainTab === "home" ? "Admin" : mainTab === "erp"
               ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
@@ -1236,9 +1261,9 @@ export default function AdminPage() {
         {mainTab === "erp" && (
           <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
             <div className="hide-mobile" style={{ display: "flex" }}>
-              <ErpSidebar page={erpPage} setPage={setErpPage} docCounts={docCounts} />
+              <ErpNavigation page={erpPage} onPage={next => { setDashboardEntry(false); setDashboardDocumentId(null); setErpPage(next); }} counts={docCounts} />
             </div>
-            <div className="main-content-area erp-admin-content" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
+            <div className="main-content-area erp-admin-content" style={{ flex: 1, minWidth: 0, overflowY: "auto", padding: erpPage === 'dashboard' ? "0 16px 28px" : "18px 20px", paddingBottom: "clamp(80px,10vw,28px)", background: erpPage === 'dashboard' ? 'var(--color-canvas, #f5f7fa)' : '#0b141e', color: erpPage === 'dashboard' ? '#202b36' : undefined }}>
               {erpLoading ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "#888", fontSize: 14, gap: 10 }}>
                   <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span> กำลังโหลดข้อมูล...
@@ -1277,7 +1302,7 @@ export default function AdminPage() {
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 18 }}>
                     <button
                       type="button"
-                      onClick={() => window.location.reload()}
+                      onClick={() => setErpReload(value => value + 1)}
                       style={{
                         flex: "1 1 160px",
                         minHeight: 44,
@@ -1312,19 +1337,24 @@ export default function AdminPage() {
                   </div>
                 </div>
               ) : (<>
-              {erpPage === "dashboard" && (
-                <Dashboard documents={documents} customers={customers} products={catalogProducts}
-                  totalRevenue={totalRevenue} totalCost={totalCost} totalProfit={totalProfit}
-                  docCounts={docCounts} setPage={setErpPage} />
+              {dashboardEntry && erpPage !== 'dashboard' && <div style={{ padding: '12px 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" onClick={() => { setDashboardEntry(false); setErpPage('dashboard'); }}>กลับ Dashboard</button><span>{dashboardPeriod.from} ถึง {dashboardPeriod.to}</span><button type="button" onClick={() => setDashboardEntry(false)}>แสดงทุกช่วงวันที่</button></div>}
+              {erpPage === "dashboard" && dashboardReady && (
+                <ExecutiveDashboard key={`${dashboardPeriod.from}/${dashboardPeriod.to}`} period={dashboardPeriod} onPeriod={changeDashboardPeriod} loadedAt={erpLoadedAt}
+                  onRefresh={() => setErpReload(value => value + 1)} onExpenses={focus => { setDashboardExpenseFocus(focus || {}); openDashboardList('expenses'); }} onDocuments={openDashboardList}
+                  documents={documents.map(doc => ({ id: String(doc.id), type: doc.type, date: doc.date, dueDate: doc.dueDate || '', status: doc.status,
+                    deleted: Boolean(doc.deleted), docNo: doc.docNo, customerId: doc.customerId, customerName: doc.customerName || '', revenue: calcDocTotal(doc).total,
+                    estimatedCost: calcInternalDocumentCost(doc, catalogProducts), balanceDue: calcDocTotal(doc, documents).balanceDue,
+                    uncertainCost: (doc.items || []).some(item => !(Number(item.costSnapshot) > 0)),
+                    items: (doc.items || []).map(item => ({ productId: item.productId || item.product_id, name: item.name || 'ไม่ระบุสินค้า', revenue: lineAmount(item), cost: lineCost(item, fallbackItemCost(catalogProducts, item)) })) }))} />
               )}
-              {erpPage === "expenses" && <ExpensePage customers={customers} suppliers={suppliers} documents={documents} showToast={showToast} />}
+              {erpPage === "expenses" && <ExpensePage key={dashboardEntry ? `${dashboardPeriod.from}/${dashboardPeriod.to}/${JSON.stringify(dashboardExpenseFocus)}` : 'all'} initialPeriod={dashboardEntry ? dashboardPeriod : undefined} initialFocus={dashboardEntry ? dashboardExpenseFocus : undefined} customers={customers} suppliers={suppliers} documents={documents} showToast={showToast} />}
               {erpPage === "customers" && <CustomerPage customers={customers} setCustomers={setCustomers} documents={documents} products={catalogProducts} showToast={showToast} />}
               {erpPage === "products" && <ProductPage products={products} setProducts={setProducts} suppliers={suppliers} showToast={showToast} />}
               {erpPage === "suppliers" && <SupplierPage suppliers={suppliers} setSuppliers={setSuppliers} showToast={showToast} />}
               {erpPage === "company" && <CompanyPage company={company} setCompany={setCompany} showToast={showToast} />}
               {["quote","bill","invoice","receipt"].includes(erpPage) && (
                 <DocumentPage type={erpPage}
-                  documents={documents.filter(d => d.type === erpPage)}
+                  documents={documents.filter(d => d.type === erpPage && (!dashboardEntry || ((!dashboardDocumentId || d.id === dashboardDocumentId) && d.status !== 'cancelled' && inPeriod(d.date, dashboardPeriod))))}
                   allDocuments={documents} setDocuments={setDocuments}
                   customers={customers} products={catalogProducts} company={company} showToast={showToast} />
               )}
@@ -1379,7 +1409,7 @@ export default function AdminPage() {
       </div>
 
       {/* ─── MOBILE BOTTOM NAV ─── */}
-      <div className="show-mobile admin-bottom-nav" style={{
+      <div className={`show-mobile admin-bottom-nav ${mainTab==='erp'?erpNavigationStyle.mobileNav:''}`} style={{
         position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200,
         background: "rgba(20,26,36,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
         borderTop: "1px solid rgba(255,255,255,0.08)",
@@ -1426,7 +1456,7 @@ export default function AdminPage() {
             flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
             padding: "10px 2px 8px", border: "none", cursor: "pointer", fontFamily: "inherit",
             background: (erpPage === item.id && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "rgba(255,107,0,0.12)" : "transparent",
-            color: (erpPage === item.id && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "#FF6B00" : "#6B7280",
+            color: (erpPage === item.id && !showMobileDrawer) || (item.id === "__more__" && showMobileDrawer) ? "#FF9A43" : "#b7c4d0",
           }} className="nav-btn">
             <span style={{ fontSize: 22, lineHeight: 1 }}>{item.icon}</span>
             <span style={{ fontSize: 10, marginTop: 4, fontWeight: 600 }}>{item.label}</span>
@@ -5626,7 +5656,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   const axisTicks = [1, 0.75, 0.5, 0.25, 0];
   const candleHeight = (value: number) => `${Math.max(value > 0 ? 4 : 0, maxVal > 0 ? (Math.max(value, 0) / maxVal) * 100 : 0)}%`;
   const filterInputStyle = {
-    width: 128,
+    width: 180,
     minHeight: 34,
     padding: "6px 10px",
     borderRadius: 8,
@@ -5642,7 +5672,6 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   return (
     <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
 
-      <ExpenseDashboard start={localDateInput(new Date(selectedRange.start))} end={localDateInput(new Date(selectedRange.end))} revenue={thisMonthDocs.map((doc: any) => ({ date: doc.date, total: calcDocTotal(doc).total.toFixed(2) }))} />
       {/* ── HEADER ──────────────────────────────────────────────── */}
       <div className="erp-dashboard-header" style={{ marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
         <div>
@@ -5661,23 +5690,26 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
               cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s",
             }}>{l}</button>
           ))}
-          <input
+          <select aria-label="รูปแบบช่วงวันที่" value={dateFilterMode} onChange={(e) => setDateFilterMode(e.target.value as "quick" | "day" | "month" | "year")} style={{ ...filterInputStyle, width: 140 }}>
+            <option value="quick">ช่วงล่าสุด</option><option value="day">เลือกวัน</option><option value="month">เลือกเดือน</option><option value="year">เลือกปี</option>
+          </select>
+          {dateFilterMode === "day" && <input
             aria-label="เลือกวัน"
             type="date"
             value={dateFilter.day}
             onFocus={() => setDateFilterMode("day")}
             onChange={(e) => { setDateFilterMode("day"); setDateFilter((prev) => ({ ...prev, day: e.target.value })); }}
             style={{ ...filterInputStyle, borderColor: dateFilterMode === "day" ? "#FF6B00" : "rgba(255,255,255,0.08)" }}
-          />
-          <input
+          />}
+          {dateFilterMode === "month" && <input
             aria-label="เลือกเดือน"
             type="month"
             value={dateFilter.month}
             onFocus={() => setDateFilterMode("month")}
             onChange={(e) => { setDateFilterMode("month"); setDateFilter((prev) => ({ ...prev, month: e.target.value })); }}
             style={{ ...filterInputStyle, borderColor: dateFilterMode === "month" ? "#FF6B00" : "rgba(255,255,255,0.08)" }}
-          />
-          <input
+          />}
+          {dateFilterMode === "year" && <input
             aria-label="เลือกปี"
             type="number"
             min="2000"
@@ -5686,11 +5718,12 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
             onFocus={() => setDateFilterMode("year")}
             onChange={(e) => { setDateFilterMode("year"); setDateFilter((prev) => ({ ...prev, year: e.target.value })); }}
             style={{ ...filterInputStyle, width: 88, borderColor: dateFilterMode === "year" ? "#FF6B00" : "rgba(255,255,255,0.08)" }}
-          />
+          />}
         </div>
       </div>
 
       {/* ── HERO KPI ─────────────────────────────────────────────── */}
+      <ExpenseDashboard start={localDateInput(new Date(selectedRange.start))} end={localDateInput(new Date(selectedRange.end))} revenue={thisMonthDocs.map((doc: any) => ({ date: doc.date, total: calcDocTotal(doc).total.toFixed(2) }))} />
       <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
         {/* Revenue */}
         <div style={{ ...card(), padding: "22px 24px", borderTop: "2px solid #10B981", position: "relative", overflow: "hidden" }}>
@@ -8514,7 +8547,7 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
     setUploading(true);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const path = `blog/content-${Date.now()}.${ext}`;
+      const path = `blog/content-${genId()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("cms-media").upload(path, file, { contentType: file.type });
       if (uploadError) { showToast("อัปโหลดไม่ได้: " + uploadError.message, "error"); return; }

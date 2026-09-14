@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   allowedDevOrigins: ["127.0.0.1"],
   poweredByHeader: false,
+  experimental: {
+    staticGenerationRetryCount: 1,
+    staticGenerationMaxConcurrency: 4,
+    staticGenerationMinPagesPerWorker: 20,
+  },
   async headers() {
     return [
       {

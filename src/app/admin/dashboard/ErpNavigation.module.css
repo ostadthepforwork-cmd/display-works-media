@@ -1,0 +1,16 @@
+.sidebar{width:228px;min-height:100%;background:var(--color-paper-strong,#fff);border-right:1px solid var(--color-rule,#e9ebed);padding:14px 10px;color:var(--color-ink,#353a42);font:inherit;flex-shrink:0;display:flex;flex-direction:column;box-shadow:6px 0 24px color-mix(in oklch,var(--color-panel-shadow,#11182712) 35%,transparent);position:relative;z-index:2;}
+.navigation{flex:1;}
+.sidebar p{margin:17px 10px 8px;font-size:12px;color:#626973;}
+.sidebar button{border:1px solid transparent;border-radius:8px;background:none;color:inherit;display:flex;align-items:center;gap:11px;width:100%;padding:11px 10px;text-align:left;font:inherit;font-size:12px;cursor:pointer;min-height:42px;transition:background-color 140ms ease,color 140ms ease,transform 140ms ease;}
+.sidebar button span{flex:1;}.sidebar button svg{flex-shrink:0;stroke-width:2;}.sidebar small{color:inherit;font-size:12px;}
+.sidebar button small{min-width:24px;padding:2px 7px;border-radius:999px;background:var(--color-paper-soft,#f3f4f6);text-align:center;font-variant-numeric:tabular-nums;}
+.sidebar button[aria-current=page] small{background:var(--color-paper-strong,#fff);color:var(--color-accent-ink,#9a4100);}
+.sidebar button[aria-current=page]{background:var(--color-accent-soft,#fff0e7);border-color:var(--color-accent-border,#ffe1cf);color:var(--color-accent-ink,#c34f00);font-weight:750;box-shadow:inset 3px 0 var(--color-accent,#ff7900),0 6px 16px var(--color-shadow,#1118270a);}
+.sidebar button:hover{background:var(--color-accent-soft,#fff0e2);color:var(--color-accent-ink,#663000);transform:translateX(2px);}.sidebar button:focus-visible{outline:2px solid var(--color-focus,#a94700);outline-offset:-2px;}
+.topNav{display:flex;align-items:center;gap:5px;}.topNav button{display:inline-flex;align-items:center;gap:7px;}
+.mobileNav{background:#fff!important;border-top:1px solid #e5e7eb!important;box-shadow:0 -3px 16px #11182706!important;}
+.mobileNav button{color:#4b5563!important;background:transparent!important;}
+.mobileNav button[style*="rgba(255,107,0,0.12)"]{color:#9a4100!important;background:#fff1e7!important;}
+.mobileNav button span:last-child{font-size:12px!important;}
+.sidebar footer{display:grid;gap:3px;margin:24px 8px 8px;padding:14px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafb;color:#354150;}
+.sidebar footer span{font-size:12px;font-weight:700;}.sidebar footer small{font-size:10px;color:#6b7280;}.sidebar footer b{margin-top:14px;font-size:11px;}.sidebar footer em{font-style:normal;font-weight:500;color:#94a3b8;margin-left:6px;}

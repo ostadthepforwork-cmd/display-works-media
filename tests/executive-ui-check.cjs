@@ -1,0 +1,17 @@
+const {build}=require('esbuild');
+const fs=require('node:fs'), path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+(async()=>{
+ const out=path.resolve('output/playwright/executive');fs.mkdirSync(out,{recursive:true});
+ await build({entryPoints:['tests/executive-preview.tsx'],outfile:path.join(out,'preview.js'),bundle:true,jsx:'automatic',define:{'process.env.NODE_ENV':'"test"','process.env.NEXT_PUBLIC_SUPABASE_URL':'"http://127.0.0.1:54321"','process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY':'"synthetic-only"'}});
+ const server=http.createServer((req,res)=>{if(['/preview.js','/preview.css'].includes(req.url)){res.setHeader('Content-Type',req.url.endsWith('.css')?'text/css':'text/javascript');res.end(fs.readFileSync(path.join(out,req.url.slice(1))));}else res.end('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/preview.css"><style>body{margin:0;background:#0b0f19;color:white;font-family:Arial}</style><div id="root"></div><script src="/preview.js"></script>');});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser;
+ try{browser=await chromium.launch({channel:'msedge',headless:true});const page=await browser.newPage();let fail=false;
+ await page.route('**/*',async route=>{const url=new URL(route.request().url());if(url.port===String(server.address().port))return route.continue();if(url.hostname!=='127.0.0.1')throw Error('External request');if(fail)return route.fulfill({status:503,body:'{}'});const data=url.pathname.includes('categories')?[{id:'ads',name:'Synthetic ads'}]:[{id:'x',expense_date:'2026-09-10',total_amount:'10000.00',payment_status:'paid',voided_at:null,category_id:'ads',expense_class:'operating'}];await route.fulfill({status:200,contentType:'application/json',headers:{'content-range':'0-0/1','access-control-allow-origin':'*','access-control-expose-headers':'content-range'},body:JSON.stringify(data)});});
+ const url=`http://127.0.0.1:${server.address().port}`;
+ for(const width of [320,375,414,768,1280]){await page.setViewportSize({width,height:1000});await page.goto(url);await page.getByText('Synthetic ads',{exact:true}).waitFor();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(out,`dashboard-${width}.png`),fullPage:true});await page.getByRole('button',{name:'ดูรายละเอียด ยอดใบเสร็จรวม VAT',exact:true}).click();await page.getByRole('dialog').waitFor();await page.getByRole('button',{name:'ปิดรายละเอียด'}).click();await page.getByRole('button',{name:'ดูรายละเอียดค่าใช้จ่าย',exact:true}).click();await page.getByRole('button',{name:'Back'}).click();await page.getByRole('heading',{name:'ภาพรวมธุรกิจ'}).waitFor();}
+ await page.getByLabel('เริ่มวันที่').fill('2026-08-01');await page.getByLabel('ถึงวันที่').fill('2026-08-31');await page.getByRole('button',{name:'ใช้ช่วงวันที่'}).click();await page.reload();await page.getByText('ช่วงรายงาน 2026-08-01 ถึง 2026-08-31',{exact:true}).waitFor();
+ fail=true;await page.getByRole('button',{name:'รีเฟรชค่าใช้จ่าย'}).click();await page.getByRole('alert').waitFor();
+ console.log('PASS 5 widths, modal, expense drill-down/back, range persistence and error state; mocked network only');
+ }finally{if(browser)await browser.close();server.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});
