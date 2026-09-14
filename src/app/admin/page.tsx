@@ -17,6 +17,7 @@ import ExpensePage from './expenses/ExpensePage';
 import ExpenseDashboard from './expenses/ExpenseDashboard';
 import ExecutiveDashboard from './dashboard/ExecutiveDashboard';
 import ErpNavigation from './dashboard/ErpNavigation';
+import ErpDataExport from './dashboard/ErpDataExport';
 import erpNavigationStyle from './dashboard/ErpNavigation.module.css';
 import { Home as HomeIcon, Box as BoxIcon, PenLine, ChartNoAxesCombined } from 'lucide-react';
 import { completePages, inPeriod, periodFromSearch, periodSearch, quickPeriod } from '@/lib/dashboard-period';
@@ -1220,7 +1221,7 @@ export default function AdminPage() {
         <div className="show-mobile admin-mobile-top" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
           <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: mainTab === 'erp' ? '#18191b' : '#fff', flex: 1 }}>
             {mainTab === "home" ? "Admin" : mainTab === "erp"
-              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
+              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : erpPage === "export" ? "ส่งออกและสำรอง" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
           </span>
           <button
@@ -1263,7 +1264,7 @@ export default function AdminPage() {
             <div className="hide-mobile" style={{ display: "flex" }}>
               <ErpNavigation page={erpPage} onPage={next => { setDashboardEntry(false); setDashboardDocumentId(null); setErpPage(next); }} counts={docCounts} />
             </div>
-            <div className="main-content-area erp-admin-content" style={{ flex: 1, minWidth: 0, overflowY: "auto", padding: erpPage === 'dashboard' ? "0 16px 28px" : "18px 20px", paddingBottom: "clamp(80px,10vw,28px)", background: erpPage === 'dashboard' ? 'var(--color-canvas, #f5f7fa)' : '#0b141e', color: erpPage === 'dashboard' ? '#202b36' : undefined }}>
+            <div className="main-content-area erp-admin-content" style={{ flex: 1, minWidth: 0, overflowY: "auto", padding: ['dashboard','export'].includes(erpPage) ? "0 16px 28px" : "18px 20px", paddingBottom: "clamp(80px,10vw,28px)", background: ['dashboard','export'].includes(erpPage) ? 'var(--color-canvas, #f5f7fa)' : '#0b141e', color: ['dashboard','export'].includes(erpPage) ? '#202b36' : undefined }}>
               {erpLoading ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "#888", fontSize: 14, gap: 10 }}>
                   <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span> กำลังโหลดข้อมูล...
@@ -1341,12 +1342,14 @@ export default function AdminPage() {
               {erpPage === "dashboard" && dashboardReady && (
                 <ExecutiveDashboard key={`${dashboardPeriod.from}/${dashboardPeriod.to}`} period={dashboardPeriod} onPeriod={changeDashboardPeriod} loadedAt={erpLoadedAt}
                   onRefresh={() => setErpReload(value => value + 1)} onExpenses={focus => { setDashboardExpenseFocus(focus || {}); openDashboardList('expenses'); }} onDocuments={openDashboardList}
+                  onExport={() => setErpPage('export')}
                   documents={documents.map(doc => ({ id: String(doc.id), type: doc.type, date: doc.date, dueDate: doc.dueDate || '', status: doc.status,
                     deleted: Boolean(doc.deleted), docNo: doc.docNo, customerId: doc.customerId, customerName: doc.customerName || '', revenue: calcDocTotal(doc).total,
                     estimatedCost: calcInternalDocumentCost(doc, catalogProducts), balanceDue: calcDocTotal(doc, documents).balanceDue,
                     uncertainCost: (doc.items || []).some(item => !(Number(item.costSnapshot) > 0)),
                     items: (doc.items || []).map(item => ({ productId: item.productId || item.product_id, name: item.name || 'ไม่ระบุสินค้า', revenue: lineAmount(item), cost: lineCost(item, fallbackItemCost(catalogProducts, item)) })) }))} />
               )}
+              {erpPage === "export" && <ErpDataExport showToast={showToast} />}
               {erpPage === "expenses" && <ExpensePage key={dashboardEntry ? `${dashboardPeriod.from}/${dashboardPeriod.to}/${JSON.stringify(dashboardExpenseFocus)}` : 'all'} initialPeriod={dashboardEntry ? dashboardPeriod : undefined} initialFocus={dashboardEntry ? dashboardExpenseFocus : undefined} customers={customers} suppliers={suppliers} documents={documents} showToast={showToast} />}
               {erpPage === "customers" && <CustomerPage customers={customers} setCustomers={setCustomers} documents={documents} products={catalogProducts} showToast={showToast} />}
               {erpPage === "products" && <ProductPage products={products} setProducts={setProducts} suppliers={suppliers} showToast={showToast} />}
@@ -1555,6 +1558,7 @@ export default function AdminPage() {
               { id: "products",  icon: "📦", label: "สินค้า/บริการ",  color: "#A78BFA" },
               { id: "suppliers", icon: "🏭", label: "Supplier",       color: "#F97316" },
               { id: "company",   icon: "🏢", label: "ตั้งค่าบริษัท",  color: "#34D399" },
+              { id: "export",    icon: "⇩", label: "ส่งออกและสำรอง", color: "#60A5FA" },
               { id: "__cms__",   icon: "✏️", label: "ไปหน้า CMS",     color: "#F59E0B" },
             ] as any[]).map((item, index) => {
               if (!item) return <div key={`erp-drawer-separator-${index}`} style={{ height: 1, margin: "8px 24px", background: "rgba(255,255,255,0.08)" }} />;

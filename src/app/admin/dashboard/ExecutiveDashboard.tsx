@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Bell, CalendarDays, ChartColumnIncreasing, CheckCircle2, ChevronDown, ChartNoAxesColumnIncreasing, Banknote, FileText, Info, MoreHorizontal, Package, Percent, RefreshCw, Wallet } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Bell, CalendarDays, ChartColumnIncreasing, CheckCircle2, ChevronDown, ChartNoAxesColumnIncreasing, Banknote, DatabaseBackup, FileText, Info, MoreHorizontal, Package, Percent, RefreshCw, Wallet } from 'lucide-react';
 import { DashboardPeriod, Comparison, Resolution, comparisonFromSearch, comparisonPeriod, quickPeriod, validPeriod } from '@/lib/dashboard-period';
 import { businessTrend, ExecutiveDocument, executiveModel, financialReport, metricDelta } from '@/lib/executive-dashboard';
 import { useExpenseReport } from './useExpenseReport';
@@ -11,7 +11,7 @@ import s from './ExecutiveDashboard.module.css';
 
 export type ExpenseFocus = { category?: string; expenseClass?: string };
 type Props = { documents: ExecutiveDocument[]; period: DashboardPeriod; onPeriod: (period: DashboardPeriod) => void;
-  loadedAt: string | null; onExpenses: (focus?: ExpenseFocus) => void; onDocuments: (type: string, id?: string) => void; onRefresh?: () => void };
+  loadedAt: string | null; onExpenses: (focus?: ExpenseFocus) => void; onDocuments: (type: string, id?: string) => void; onExport: () => void; onRefresh?: () => void };
 const comparisons: Record<Comparison, string> = { previous: 'ช่วงก่อนหน้า', month: 'เดือนก่อน', year: 'ช่วงเดียวกันปีก่อน', none: 'ไม่เปรียบเทียบ' };
 function Help({ children }: { children: string }) { return <details className={s.help}><summary aria-label="คำอธิบาย"><Info size={14}/></summary><p>{children}</p></details>; }
 function Delta({ current, previous, margin=false, inverse=false, enabled }: { current:number|null;previous:number|null;margin?:boolean;inverse?:boolean;enabled:boolean }) {
@@ -23,7 +23,7 @@ function Delta({ current, previous, margin=false, inverse=false, enabled }: { cu
     {!margin&&delta.percent===null&&<small> ฐานเดิม ≤ 0</small>}</span>;
 }
 
-export default function ExecutiveDashboard({ documents, period, onPeriod, loadedAt, onExpenses, onDocuments, onRefresh }:Props) {
+export default function ExecutiveDashboard({ documents, period, onPeriod, loadedAt, onExpenses, onDocuments, onExport, onRefresh }:Props) {
   const [comparison,setComparison]=useState<Comparison>(()=>typeof window==='undefined'?'previous':comparisonFromSearch(location.search));
   const [resolution,setResolution]=useState<Resolution>('auto'),[sort,setSort]=useState('profit');
   const [draft,setDraft]=useState(period),[dateMode,setDateMode]=useState('range');
@@ -64,7 +64,7 @@ export default function ExecutiveDashboard({ documents, period, onPeriod, loaded
         {(dateMode==='range'||dateMode==='day')&&<label>เริ่มวันที่<input type="date" required value={draft.from} onChange={e=>setDraft({...draft,from:e.target.value})}/></label>}{dateMode==='range'&&<label>ถึงวันที่<input type="date" required value={draft.to} onChange={e=>setDraft({...draft,to:e.target.value})}/></label>}
         {dateMode==='month'&&<label>เดือน<input type="month" required value={month} onChange={e=>setMonth(e.target.value)}/></label>}{dateMode==='year'&&<label>ปี ค.ศ.<input type="number" required min="2000" max="2100" value={year} onChange={e=>setYear(e.target.value)}/></label>}
         {invalid&&<p role="alert">ช่วงวันที่ไม่ถูกต้อง</p>}<button className={s.primary}>ใช้ช่วงวันที่</button></form></details>
-      <select aria-label="เปรียบเทียบกับ" value={comparison} onChange={e=>changeComparison(e.target.value as Comparison)}>{Object.entries(comparisons).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select><button title="รีเฟรชข้อมูล" aria-label="รีเฟรชข้อมูล" onClick={()=>{setRevision(v=>v+1);onRefresh?.();}}><RefreshCw size={17}/></button>
+      <select aria-label="เปรียบเทียบกับ" value={comparison} onChange={e=>changeComparison(e.target.value as Comparison)}>{Object.entries(comparisons).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select><button title="ส่งออกและสำรองข้อมูล" aria-label="ส่งออกและสำรองข้อมูล" onClick={onExport}><DatabaseBackup size={17}/></button><button title="รีเฟรชข้อมูล" aria-label="รีเฟรชข้อมูล" onClick={()=>{setRevision(v=>v+1);onRefresh?.();}}><RefreshCw size={17}/></button>
     </div><div className={s.metadata}><span>{earliest?`ข้อมูลล่าสุด ${new Date(earliest).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})}`:current?.error?'ข้อมูลค่าใช้จ่ายไม่พร้อม':'กำลังโหลดค่าใช้จ่าย...'}</span>{priorPeriod&&<span>เทียบ {rangeText(priorPeriod)}</span>}</div></header>
     {current?.error&&<div role="alert" className={s.error}>โหลดค่าใช้จ่ายไม่สำเร็จ <button onClick={()=>setRevision(v=>v+1)}>ลองใหม่</button></div>}{previous?.error&&priorPeriod&&<p role="status" className={s.warning}>ค่าใช้จ่ายช่วงเปรียบเทียบไม่พร้อม <button onClick={()=>setRevision(v=>v+1)}>ลองใหม่</button></p>}{!hasData&&actual&&<p role="status" className={s.empty}>ไม่มีข้อมูลในช่วงวันที่เลือก</p>}
     <section aria-label="ตัวเลขสำคัญ" className={s.kpis}>{kpis.map(kpi=><article key={kpi.label} className={s.kpi} data-metric={kpi.key} data-priority={kpi.key==='revenue'||kpi.key==='after'?'primary':undefined}><div className={s.kpiTop}><span className={`${s.icon} ${s[kpi.color]}`}><kpi.icon size={20} strokeWidth={2.4}/></span><span>{kpi.label}</span><Help>{kpi.info}</Help></div><button className={s.kpiValue} aria-label={`ดูรายละเอียด ${kpi.label}`} onClick={kpi.action}><strong className={kpi.value!==null&&kpi.value<0?s.negative:''}>{!hasData&&actual?'—':kpi.margin?kpi.value===null?'—':`${kpi.value.toFixed(1)}%`:money(kpi.value)}</strong></button><div className={s.kpiBottom}><Delta current={kpi.value} previous={kpi.old} margin={kpi.margin} inverse={kpi.inverse} enabled={!!priorPeriod}/><Spark data={trend.buckets} field={kpi.key} red={kpi.inverse}/></div></article>)}</section>
