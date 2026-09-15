@@ -33,11 +33,15 @@ export async function GET(req: Request) {
     },
   );
 
-  const authorization = await checkAdminAuthorization(supabase);
+  const authorization = await checkAdminAuthorization(
+    supabase,
+    ["owner", "admin", "sales", "marketing"],
+  );
   const result = NextResponse.json({
     authenticated: authorization.authenticated,
     authorized: Boolean(authorization.user),
     userId: authorization.user ? `${authorization.user.id.slice(0, 8)}...` : null,
+    role: authorization.role,
     error: authorization.error,
   }, { status: authorization.status, headers: { "Cache-Control": "no-store" } });
   response.cookies.getAll().forEach((cookie) => result.cookies.set(cookie));

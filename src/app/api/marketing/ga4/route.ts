@@ -97,7 +97,7 @@ function dateRangesFromRequest(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const { user, status, error } = await requireAdminUser();
+  const { user, status, error } = await requireAdminUser(["owner", "admin", "marketing"]);
   if (!user) {
     return NextResponse.json(
       { success: false, connected: false, error },

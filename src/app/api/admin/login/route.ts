@@ -63,7 +63,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const authorization = await checkAdminAuthorization(supabase);
+  const authorization = await checkAdminAuthorization(
+    supabase,
+    ["owner", "admin", "sales", "marketing"],
+  );
   if (!authorization.user) {
     return NextResponse.json(
       { success: false, error: authorization.error },

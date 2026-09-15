@@ -111,7 +111,10 @@ export async function proxy(req: NextRequest, event: NextFetchEvent) {
     },
   );
 
-  const authorization = await checkAdminAuthorization(supabase);
+  const authorization = await checkAdminAuthorization(
+    supabase,
+    ["owner", "admin", "sales", "marketing"],
+  );
   let response = res;
   if (pathname.startsWith("/admin") && !authorization.user) {
     response = authorization.status === 401

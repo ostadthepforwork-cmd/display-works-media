@@ -307,7 +307,7 @@ function settledError(result: PromiseSettledResult<unknown>, label: string) {
 }
 
 export async function GET(request: Request) {
-  const { user, status, error } = await requireAdminUser();
+  const { user, status, error, supabase } = await requireAdminUser(["owner", "admin", "marketing"]);
   if (!user) {
     return NextResponse.json(
       { success: false, connected: false, error },
@@ -453,6 +453,25 @@ export async function GET(request: Request) {
     const adSetInsights = settledData(adSetResult, [] as any[]);
     const adInsights = settledData(adResult, [] as any[]);
 
+    const syncedAt = new Date().toISOString();
+    const metaEntities = [
+      ...campaignInsights.map((row: any) => ({
+        entity_type: "campaign", entity_id: row.campaign_id, entity_name: row.campaign_name,
+        campaign_id: row.campaign_id, campaign_name: row.campaign_name, adset_id: null, adset_name: null, synced_at: syncedAt,
+      })),
+      ...adSetInsights.map((row: any) => ({
+        entity_type: "adset", entity_id: row.adset_id, entity_name: row.adset_name,
+        campaign_id: row.campaign_id, campaign_name: row.campaign_name, adset_id: row.adset_id, adset_name: row.adset_name, synced_at: syncedAt,
+      })),
+      ...adInsights.map((row: any) => ({
+        entity_type: "ad", entity_id: row.ad_id, entity_name: row.ad_name,
+        campaign_id: row.campaign_id, campaign_name: row.campaign_name, adset_id: row.adset_id, adset_name: row.adset_name, synced_at: syncedAt,
+      })),
+    ].filter((row) => row.entity_id && row.entity_name);
+    const entitySync = metaEntities.length
+      ? await supabase.from("marketing_meta_entities").upsert(metaEntities, { onConflict: "entity_type,entity_id" })
+      : { error: null };
+
     if (
       sourceErrors.length === 4 &&
       !accountInsights.data?.length &&
@@ -505,6 +524,8 @@ export async function GET(request: Request) {
           adSetRows: adSetInsights.length,
           adRows: adInsights.length,
           totalsFrom: useCampaignFallback ? "campaign_fallback" : "account",
+          entitySync: entitySync.error ? "migration_required" : "ready",
+          entitySyncRows: entitySync.error ? 0 : metaEntities.length,
           partial: sourceErrors.length > 0,
           errors: sourceErrors,
         },

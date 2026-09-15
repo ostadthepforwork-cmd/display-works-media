@@ -20,6 +20,7 @@
 
 # Local UI preview and Playwright artifacts
 /output/
+/supabase/.temp/
 
 # debug
 npm-debug.log*

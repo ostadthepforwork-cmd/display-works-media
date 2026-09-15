@@ -19,7 +19,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = await requireAdminUser();
+  const { user } = await requireAdminUser(["owner", "admin", "sales", "marketing"]);
   if (!user) redirect("/login");
   return <>{children}</>;
 }

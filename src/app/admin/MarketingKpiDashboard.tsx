@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { buildMarketingExportFiles } from "@/lib/marketing-export";
 
 type MarketingKpiDashboardProps = {
   documents?: any[];
@@ -43,6 +44,47 @@ type Lead = {
   nextFollowUp?: string;
   owner?: string;
   note?: string;
+  customerId?: string;
+  campaignId?: string;
+  adSetId?: string;
+  adId?: string;
+  creativeId?: string;
+  referralId?: string;
+  fbclid?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+  sizeOrArea?: string;
+  quantity?: number | null;
+  deadlineOrUseDate?: string;
+  artworkStatus?: string;
+  useCase?: string;
+  installationRequired?: boolean | null;
+  location?: string;
+  qualifiedStatus?: "unreviewed" | "qualified" | "not_qualified";
+  suggestedQualified?: boolean;
+  lostReason?: string;
+  attributionMethod?: "automatic" | "manual" | "unattributed";
+  estimatedValue?: number;
+};
+
+type LeadMapping = {
+  mapping_id: string;
+  lead_id: string | null;
+  quote_id: string | null;
+  receipt_id: string | null;
+  mapping_method: "automatic" | "manual" | "imported" | "unattributed";
+  mapping_confidence: number | null;
+};
+
+type CampaignBudget = {
+  campaign_id: string;
+  daily_budget: number | null;
+  lifetime_budget: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  currency: string;
 };
 
 type MarketingSection =
@@ -86,6 +128,44 @@ const legacyDemoCampaignIds = new Set(["camp-line-vinyl", "camp-organic-sticker"
 
 const defaultLeads: Lead[] = [];
 
+const crmRowToLead = (row: any): Lead => ({
+  id: row.lead_id,
+  date: row.created_at,
+  name: `Lead ${String(row.lead_id || "").slice(0, 8)}`,
+  source: row.source || "unattributed",
+  campaign: row.campaign_name || "",
+  adSet: row.adset_name || "",
+  creative: row.ad_name || "",
+  service: row.product || "ไม่ระบุสินค้า",
+  customerType: row.customer_type || "",
+  status: row.lead_status,
+  value: 0,
+  nextFollowUp: row.next_follow_up_at || "",
+  customerId: row.customer_id || "",
+  campaignId: row.campaign_id || "",
+  adSetId: row.adset_id || "",
+  adId: row.ad_id || "",
+  creativeId: row.creative_id || "",
+  referralId: row.referral_id || "",
+  fbclid: row.fbclid || "",
+  utmSource: row.utm_source || "",
+  utmMedium: row.utm_medium || "",
+  utmCampaign: row.utm_campaign || "",
+  utmContent: row.utm_content || "",
+  sizeOrArea: row.size_or_area || "",
+  quantity: row.quantity,
+  deadlineOrUseDate: row.deadline_or_use_date || "",
+  artworkStatus: row.artwork_status || "",
+  useCase: row.use_case || "",
+  installationRequired: row.installation_required,
+  location: row.location || "",
+  qualifiedStatus: row.qualified_status,
+  suggestedQualified: Boolean(row.suggested_qualified),
+  lostReason: row.lost_reason || "",
+  attributionMethod: row.attribution_method,
+  estimatedValue: Number(row.estimated_value || 0),
+});
+
 const leadStatuses = [
   { value: "new", label: "New Lead" },
   { value: "contacted", label: "Contacted" },
@@ -98,19 +178,6 @@ const leadStatuses = [
   { value: "closed_lost", label: "Closed Lost" },
   { value: "not_qualified", label: "Not Qualified" },
 ] as const;
-
-const behaviorTagOptions = [
-  "ถามราคาเป็นอย่างแรก",
-  "มีขนาดแล้ว",
-  "ยังไม่รู้ขนาด",
-  "มีไฟล์พร้อมผลิต",
-  "ไม่มีไฟล์ ต้องการออกแบบ",
-  "มีวันใช้งานชัดเจน",
-  "ต้องการงานด่วน",
-  "ขอหลายขนาดเปรียบเทียบ",
-  "ขอราคาถูกที่สุด",
-  "กลับมาซื้อซ้ำ",
-];
 
 const money = (value: number) =>
   new Intl.NumberFormat("th-TH", { maximumFractionDigits: 2 }).format(Number.isFinite(value) ? value : 0);
@@ -351,18 +418,6 @@ function normalizeMatch(value?: string) {
   return String(value || "").trim().toLowerCase();
 }
 
-function isRevenueLead(lead: Lead) {
-  return lead.status === "closed_won" && Number(lead.value || 0) > 0;
-}
-
-function mappedLeadRevenue(leads: Lead[], field: "campaign" | "adSet" | "creative", value?: string) {
-  const target = normalizeMatch(value);
-  if (!target) return 0;
-  return leads
-    .filter((lead) => isRevenueLead(lead) && normalizeMatch(lead[field]) === target)
-    .reduce((sum, lead) => sum + Number(lead.value || 0), 0);
-}
-
 function mappedLeadCount(leads: Lead[], field: "campaign" | "adSet" | "creative", value?: string, statuses?: Lead["status"][]) {
   const target = normalizeMatch(value);
   if (!target) return 0;
@@ -374,9 +429,7 @@ function mappedLeadCount(leads: Lead[], field: "campaign" | "adSet" | "creative"
 
 function creativeRepeatAdvice(row: { spend: number; leads: number; cpl: number; revenue: number; clicks?: number; ctr?: number }) {
   if (row.revenue > 0) return "ควรทำซ้ำ: มีรายได้ที่ map แล้ว";
-  if (row.leads >= 20 && row.cpl > 0) return "ควรทำซ้ำ/แตก Hook เพิ่ม: Lead ดี";
-  if (row.leads > 0 && row.spend > 0) return "รอดูต่อ: มี Lead แล้ว";
-  if (row.spend > 0 && row.leads === 0) return "ควรเปลี่ยน Hook หรือ Artwork";
+  if (row.spend > 0) return "รอหลักฐาน Qualified, Quote, Won หรือ Revenue ก่อนแนะนำ";
   return "รอข้อมูลจาก Meta";
 }
 
@@ -397,25 +450,46 @@ export default function MarketingKpiDashboard({
     loadLocal<Campaign[]>(storageKeys.campaigns, defaultCampaigns).filter((campaign) => !legacyDemoCampaignIds.has(campaign.id)),
   );
   const [leads, setLeads] = useState<Lead[]>(() => loadLocal(storageKeys.leads, defaultLeads));
+  const [leadMappings, setLeadMappings] = useState<LeadMapping[]>([]);
+  const [campaignBudgets, setCampaignBudgets] = useState<CampaignBudget[]>([]);
+  const [crmBackend, setCrmBackend] = useState({ loading: true, ready: false, error: "", role: "" });
   const [apiExpiries, setApiExpiries] = useState<Record<string, ApiExpiryConfig>>(() =>
     loadLocal(storageKeys.apiExpiries, defaultApiExpiries()),
   );
   const [sourceLogs, setSourceLogs] = useState<string[]>([]);
   const [activeSourceLog, setActiveSourceLog] = useState<string>("ทั้งหมด");
   const [leadForm, setLeadForm] = useState({
-    name: "",
-    contact: "",
+    customerId: "",
     source: "LINE OA",
-    campaign: "",
+    sourceDetail: "",
+    campaignId: "",
+    adSetId: "",
+    adId: "",
+    creativeId: "",
+    referralId: "",
+    fbclid: "",
+    utmSource: "",
+    utmMedium: "",
+    utmCampaign: "",
+    utmContent: "",
     service: "ป้ายไวนิล",
+    sizeOrArea: "",
+    quantity: "",
+    deadlineOrUseDate: "",
+    artworkStatus: "",
+    useCase: "",
+    installationRequired: "unknown",
+    location: "",
     customerType: "SME",
-    buyingSituation: "",
-    behaviorTags: [] as string[],
     status: "new" as Lead["status"],
+    qualifiedStatus: "unreviewed" as "unreviewed" | "qualified" | "not_qualified",
+    lostReason: "",
     value: "",
     nextFollowUp: "",
-    owner: "Admin",
-    note: "",
+    forceUnattributed: false,
+    manualSelectionConfirmed: false,
+    quoteId: "",
+    receiptId: "",
   });
   const [ga4, setGa4] = useState<any>({ loading: true, connected: false, error: "", totals: {} });
   const [meta, setMeta] = useState<any>({ loading: true, connected: false, error: "", totals: {}, campaigns: [] });
@@ -469,8 +543,35 @@ export default function MarketingKpiDashboard({
   }, []);
 
   useEffect(() => saveLocal(storageKeys.campaigns, campaigns), [campaigns]);
-  useEffect(() => saveLocal(storageKeys.leads, leads), [leads]);
+  useEffect(() => {
+    if (!crmBackend.ready) saveLocal(storageKeys.leads, leads);
+  }, [crmBackend.ready, leads]);
   useEffect(() => saveLocal(storageKeys.apiExpiries, apiExpiries), [apiExpiries]);
+
+  const loadCrm = useCallback(async () => {
+    setCrmBackend((state) => ({ ...state, loading: true }));
+    try {
+      const [leadResponse, mappingResponse, budgetResponse] = await Promise.all([
+        fetch("/api/admin/crm/leads", { cache: "no-store" }),
+        fetch("/api/admin/crm/mappings", { cache: "no-store" }),
+        fetch("/api/admin/marketing/budgets", { cache: "no-store" }),
+      ]);
+      const leadPayload = await leadResponse.json().catch(() => ({}));
+      const mappingPayload = await mappingResponse.json().catch(() => ({}));
+      const budgetPayload = await budgetResponse.json().catch(() => ({}));
+      if (!leadResponse.ok) throw new Error(leadPayload.error || "โหลด CRM ไม่สำเร็จ");
+      if (!mappingResponse.ok) throw new Error(mappingPayload.error || "โหลด mapping ไม่สำเร็จ");
+      if (!budgetResponse.ok) throw new Error(budgetPayload.error || "โหลดงบ campaign ไม่สำเร็จ");
+      setLeads((leadPayload.leads || []).map(crmRowToLead));
+      setLeadMappings(mappingPayload.mappings || []);
+      setCampaignBudgets(budgetPayload.budgets || []);
+      setCrmBackend({ loading: false, ready: true, error: "", role: leadPayload.role || "" });
+    } catch (error) {
+      setCrmBackend({ loading: false, ready: false, error: error instanceof Error ? error.message : "CRM ไม่พร้อมใช้งาน", role: "" });
+    }
+  }, []);
+
+  useEffect(() => { void loadCrm(); }, [loadCrm]);
 
   const setPresetRange = (mode: DateRangeMode) => {
     setDateRangeMode(mode);
@@ -635,15 +736,20 @@ export default function MarketingKpiDashboard({
   const marketingLeadSignals = paidMarketingLeadSignals;
   const crmFallbackLeadSignals = meta.connected && metaLeadSignalCount === 0 ? crmLeads : 0;
   const contactedLeads = filteredLeads.filter((lead) => ["contacted", "waiting_detail", "detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
-  const qualifiedLeads = filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
-  const crmQuotationSent = filteredLeads.filter((lead) => ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
+  const qualifiedLeads = filteredLeads.filter((lead) => lead.qualifiedStatus === "qualified").length;
+  const filteredLeadIds = new Set(filteredLeads.map((lead) => lead.id));
+  const crmQuotationSent = new Set(leadMappings.filter((mapping) => mapping.lead_id && filteredLeadIds.has(mapping.lead_id)).map((mapping) => mapping.quote_id).filter(Boolean)).size;
   const erpQuotationDocs = filteredDocuments.filter((doc) => doc?.type === "quote" && !doc?.deleted && doc?.status !== "cancelled").length;
   const erpReceiptJobs = receipts.length;
   const closedJobs = erpReceiptJobs;
   const closedLeadCount = filteredLeads.filter((lead) => lead.status === "closed_won").length;
-  const mappedClosedJobs = closedLeadCount;
+  const mappedReceiptIds = new Set(leadMappings.map((mapping) => mapping.receipt_id).filter(Boolean));
+  const attributedReceipts = receipts.filter((doc) => mappedReceiptIds.has(String(doc.id)));
+  const attributedReceiptRevenue = attributedReceipts.reduce((sum, doc) => sum + documentTotal(doc), 0);
+  const unattributedReceiptRevenue = Math.max(0, receiptRevenue - attributedReceiptRevenue);
+  const mappedClosedJobs = attributedReceipts.length;
   const unmappedReceiptJobs = Math.max(0, erpReceiptJobs - mappedClosedJobs);
-  const closedLeadRevenue = filteredLeads.filter(isRevenueLead).reduce((sum, lead) => sum + Number(lead.value || 0), 0);
+  const closedLeadRevenue = attributedReceiptRevenue;
   const grossProfit = receiptRevenue - receiptCost;
   const cpl = paidMarketingLeadSignals > 0 ? marketingSpend / paidMarketingLeadSignals : 0;
   const cpql = qualifiedLeads > 0 ? marketingSpend / qualifiedLeads : 0;
@@ -651,11 +757,37 @@ export default function MarketingKpiDashboard({
   const canCalculateLeadToCustomer = crmLeads > 0 && closedLeadCount <= crmLeads;
   const conversionRate = canCalculateLeadToCustomer ? (closedLeadCount / crmLeads) * 100 : null;
   const quoteToCloseRate = crmQuotationSent > 0 && mappedClosedJobs <= crmQuotationSent ? (mappedClosedJobs / crmQuotationSent) * 100 : null;
-  const roas = marketingSpend > 0 ? receiptRevenue / marketingSpend : 0;
-  const profitRoas = marketingSpend > 0 ? grossProfit / marketingSpend : 0;
+  const roas = marketingSpend > 0 && attributedReceiptRevenue > 0 ? attributedReceiptRevenue / marketingSpend : 0;
   const grossMargin = receiptRevenue > 0 ? (grossProfit / receiptRevenue) * 100 : 0;
   const averageOrderValue = erpReceiptJobs > 0 ? receiptRevenue / erpReceiptJobs : 0;
-  const plannedBudget = filteredCampaigns.reduce((sum, campaign) => sum + Number(campaign.spend || 0), 0);
+  const budgetDays = startDate && endDate
+    ? Math.max(1, Math.floor((new Date(`${endDate}T00:00:00Z`).getTime() - new Date(`${startDate}T00:00:00Z`).getTime()) / 86400000) + 1)
+    : 1;
+  const plannedBudget = campaignBudgets.reduce((sum, budget) => sum + (
+    budget.lifetime_budget !== null ? Number(budget.lifetime_budget) : Number(budget.daily_budget || 0) * budgetDays
+  ), 0);
+  const approvedCampaignId = "120249760412250073";
+  const approvedBudget = campaignBudgets.find((budget) => budget.campaign_id === approvedCampaignId);
+
+  const mappedErpRevenueByLead = (
+    idField: "campaignId" | "adSetId" | "adId",
+    nameField: "campaign" | "adSet" | "creative",
+    entityId?: string,
+    entityName?: string,
+  ) => {
+    const matchingLeadIds = new Set(filteredLeads.filter((lead) => {
+      if (lead.attributionMethod === "unattributed") return false;
+      if (entityId && lead[idField] === entityId) return true;
+      return Boolean(entityName) && normalizeMatch(lead[nameField]) === normalizeMatch(entityName);
+    }).map((lead) => lead.id));
+    const receiptIds = new Set(leadMappings
+      .filter((mapping) => mapping.lead_id && matchingLeadIds.has(mapping.lead_id))
+      .map((mapping) => mapping.receipt_id)
+      .filter(Boolean));
+    return receipts
+      .filter((document) => receiptIds.has(String(document.id)))
+      .reduce((sum, document) => sum + documentTotal(document), 0);
+  };
 
   const metaCampaignRows = Array.isArray(meta?.campaigns) ? meta.campaigns : [];
   const hasMetaApiData = Boolean(
@@ -705,7 +837,7 @@ export default function MarketingKpiDashboard({
         formLeads: Number(row.formLeads || 0),
         engagementActions: Number(row.engagementActions || 0),
         conversions: Number(row.conversions || 0),
-        revenue: mappedLeadRevenue(filteredLeads, "campaign", row.name) || Number(row.revenue || 0),
+        revenue: mappedErpRevenueByLead("campaignId", "campaign", row.id, row.name),
         metaReportedRevenue: Number(row.metaReportedRevenue || 0),
         metaReportedRoas: Number(row.metaReportedRoas || 0),
         actionValues: Array.isArray(row.actionValues) ? row.actionValues : [],
@@ -721,7 +853,7 @@ export default function MarketingKpiDashboard({
       const qualifiedFromCampaign = filteredLeads.filter((lead) => lead.campaign === row.name && ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
       const quotationFromCampaign = filteredLeads.filter((lead) => lead.campaign === row.name && ["quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length;
       const closedFromCampaign = filteredLeads.filter((lead) => lead.campaign === row.name && lead.status === "closed_won").length;
-      const mappedRevenue = mappedLeadRevenue(filteredLeads, "campaign", row.name) || Number(row.revenue || 0);
+      const mappedRevenue = Number(row.revenue || 0);
       const rowProfit = Math.max(0, mappedRevenue - row.spend);
       return {
         ...row,
@@ -748,11 +880,11 @@ export default function MarketingKpiDashboard({
         recommendation: row.spend > 0 && row.leads === 0 ? "หยุด/ตรวจ Creative" : row.leads > 0 ? "รอดูต่อ" : "รอข้อมูล",
       };
     });
-  const facebookMappedRevenue = facebookRows.reduce((sum, row) => sum + Number(row.revenue || 0), 0);
-  const facebookErpRevenue = receipts
-    .filter((doc) => /facebook|meta/i.test(`${doc?.leadSource || doc?.lead_source || ""} ${doc?.marketingCampaign || doc?.marketing_campaign || ""}`))
-    .reduce((sum, doc) => sum + documentTotal(doc), 0);
-  const facebookAttributedRevenue = facebookErpRevenue || facebookMappedRevenue;
+  const facebookLeadIds = new Set(filteredLeads.filter((lead) => lead.attributionMethod !== "unattributed" && (lead.campaignId || lead.adId || /facebook|meta/i.test(lead.source))).map((lead) => lead.id));
+  const facebookReceiptIds = new Set(leadMappings.filter((mapping) => mapping.lead_id && facebookLeadIds.has(mapping.lead_id)).map((mapping) => mapping.receipt_id).filter(Boolean));
+  const facebookMappedRevenue = receipts.filter((doc) => facebookReceiptIds.has(String(doc.id))).reduce((sum, doc) => sum + documentTotal(doc), 0);
+  const facebookErpRevenue = facebookMappedRevenue;
+  const facebookAttributedRevenue = facebookMappedRevenue;
   const facebookMappedRoas = metaSpend > 0 && facebookMappedRevenue > 0 ? facebookMappedRevenue / metaSpend : 0;
   const facebookErpRoas = metaSpend > 0 && facebookAttributedRevenue > 0 ? facebookAttributedRevenue / metaSpend : 0;
 
@@ -769,7 +901,7 @@ export default function MarketingKpiDashboard({
         qualifiedLeads: mappedLeadCount(filteredLeads, "adSet", row.name, ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"]),
         closedJobs: mappedLeadCount(filteredLeads, "adSet", row.name, ["closed_won"]),
         closeRate: row.leads ? (Number(row.leads || 0) / Math.max(Number(row.clicks || 0), 1)) * 100 : 0,
-        revenue: mappedLeadRevenue(filteredLeads, "adSet", row.name),
+        revenue: mappedErpRevenueByLead("adSetId", "adSet", row.id, row.name),
         metaReportedRevenue: Number(row.metaReportedRevenue || 0),
         metaReportedRoas: Number(row.metaReportedRoas || 0),
       }))
@@ -803,14 +935,14 @@ export default function MarketingKpiDashboard({
           spend: Number(row.spend || 0),
           leads: Number(row.leads || 0),
           cpl: Number(row.cpl || 0),
-          revenue: mappedLeadRevenue(filteredLeads, "creative", row.name),
+          revenue: mappedErpRevenueByLead("adId", "creative", row.id, row.name),
           clicks: Number(row.clicks || 0),
           ctr: Number(row.ctr || 0),
         }),
         qualifiedLeads: mappedLeadCount(filteredLeads, "creative", row.name, ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"]),
         quotations: mappedLeadCount(filteredLeads, "creative", row.name, ["quotation_sent", "follow_up", "waiting_payment", "closed_won"]),
         closedJobs: mappedLeadCount(filteredLeads, "creative", row.name, ["closed_won"]),
-        revenue: mappedLeadRevenue(filteredLeads, "creative", row.name),
+        revenue: mappedErpRevenueByLead("adId", "creative", row.id, row.name),
         cpl: Number(row.cpl || 0),
         metaReportedRevenue: Number(row.metaReportedRevenue || 0),
         metaReportedRoas: Number(row.metaReportedRoas || 0),
@@ -840,46 +972,88 @@ export default function MarketingKpiDashboard({
         note: "รอเชื่อม creative id จาก Meta API",
       }));
 
-  const addLead = () => {
-    const nextLead: Lead = {
-      id: `lead-${Date.now()}`,
-      date: new Date().toISOString().slice(0, 10),
-      name: leadForm.name.trim() || `Lead #${leads.length + 1}`,
-      contact: leadForm.contact,
-      source: leadForm.source,
-      campaign: leadForm.campaign,
-      service: leadForm.service,
-      customerType: leadForm.customerType,
-      buyingSituation: leadForm.buyingSituation,
-      behaviorTags: leadForm.behaviorTags,
-      status: leadForm.status,
-      value: Number(leadForm.value || 0),
-      nextFollowUp: leadForm.nextFollowUp,
-      owner: leadForm.owner,
-      note: leadForm.note,
-    };
-    setLeads((prev) => [nextLead, ...prev]);
-    setLeadForm((prev) => ({ ...prev, name: "", contact: "", campaign: "", buyingSituation: "", value: "", note: "" }));
-    showToast?.("เพิ่ม Lead แล้ว", "success");
+  const addLead = async () => {
+    if (!crmBackend.ready) {
+      showToast?.(crmBackend.error || "ต้อง apply CRM migration ก่อนบันทึก Lead", "error");
+      return;
+    }
+    const campaign = (meta?.campaigns || []).find((row: any) => row.id === leadForm.campaignId);
+    const adSet = (meta?.adSets || []).find((row: any) => row.id === leadForm.adSetId);
+    const ad = (meta?.ads || []).find((row: any) => row.id === leadForm.adId);
+    const requestedStatus = leadForm.status;
+    const response = await fetch("/api/admin/crm/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customer_id: leadForm.customerId || null,
+        source: leadForm.forceUnattributed ? "unattributed" : leadForm.source,
+        source_detail: leadForm.sourceDetail,
+        campaign_id: leadForm.campaignId, campaign_name: campaign?.name || null,
+        adset_id: leadForm.adSetId, adset_name: adSet?.name || null,
+        ad_id: leadForm.adId, ad_name: ad?.name || null, creative_id: leadForm.creativeId,
+        referral_id: leadForm.referralId, fbclid: leadForm.fbclid,
+        utm_source: leadForm.utmSource, utm_medium: leadForm.utmMedium,
+        utm_campaign: leadForm.utmCampaign, utm_content: leadForm.utmContent,
+        product: leadForm.service, size_or_area: leadForm.sizeOrArea,
+        quantity: leadForm.quantity, deadline_or_use_date: leadForm.deadlineOrUseDate,
+        artwork_status: leadForm.artworkStatus, use_case: leadForm.useCase,
+        installation_required: leadForm.installationRequired === "unknown" ? null : leadForm.installationRequired === "yes",
+        location: leadForm.location, customer_type: leadForm.customerType,
+        lead_status: requestedStatus === "closed_won" ? "waiting_payment" : requestedStatus,
+        qualified_status: leadForm.qualifiedStatus, lost_reason: leadForm.lostReason,
+        estimated_value: leadForm.value, next_follow_up_at: leadForm.nextFollowUp,
+        force_unattributed: leadForm.forceUnattributed,
+        manual_selection_confirmed: leadForm.manualSelectionConfirmed,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      showToast?.(payload.error || "บันทึก Lead ไม่สำเร็จ", "error");
+      return;
+    }
+    if (leadForm.quoteId || leadForm.receiptId) {
+      const mappingResponse = await fetch("/api/admin/crm/mappings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lead_id: payload.lead.lead_id,
+          quote_id: leadForm.quoteId || null,
+          receipt_id: leadForm.receiptId || null,
+          mapping_method: "manual",
+          mapping_confidence: 1,
+          mapping_evidence: { confirmed_in_crm: true },
+          mark_won: requestedStatus === "closed_won",
+        }),
+      });
+      const mappingPayload = await mappingResponse.json().catch(() => ({}));
+      if (!mappingResponse.ok) {
+        showToast?.(`สร้าง Lead แล้ว แต่เชื่อมเอกสารไม่สำเร็จ: ${mappingPayload.error || "unknown error"}`, "error");
+        await loadCrm();
+        return;
+      }
+    }
+    setLeadForm((prev) => ({ ...prev, customerId: "", sourceDetail: "", campaignId: "", adSetId: "", adId: "", creativeId: "", referralId: "", fbclid: "", utmSource: "", utmMedium: "", utmCampaign: "", utmContent: "", sizeOrArea: "", quantity: "", deadlineOrUseDate: "", artworkStatus: "", useCase: "", location: "", lostReason: "", value: "", nextFollowUp: "", quoteId: "", receiptId: "", forceUnattributed: false, manualSelectionConfirmed: false }));
+    await loadCrm();
+    showToast?.("เพิ่ม Lead และบันทึกลง CRM แล้ว", "success");
   };
 
-  const deleteLead = (leadId: string) => {
-    const target = leads.find((lead) => lead.id === leadId);
-    const confirmed = typeof window === "undefined"
-      ? true
-      : window.confirm(`ลบ Lead "${target?.name || leadId}" ใช่ไหม?`);
-    if (!confirmed) return;
-    setLeads((prev) => prev.filter((lead) => lead.id !== leadId));
-    showToast?.("ลบ Lead แล้ว", "success");
-  };
-
-  const toggleLeadTag = (tag: string) => {
-    setLeadForm((prev) => ({
-      ...prev,
-      behaviorTags: prev.behaviorTags.includes(tag)
-        ? prev.behaviorTags.filter((item) => item !== tag)
-        : [...prev.behaviorTags, tag],
-    }));
+  const updateLead = async (leadId: string, changes: Record<string, unknown>) => {
+    if (!crmBackend.ready || !["owner", "admin", "sales"].includes(crmBackend.role)) {
+      showToast?.("Role นี้ดู CRM ได้ แต่ไม่มีสิทธิ์แก้ไข Lead", "error");
+      return;
+    }
+    const response = await fetch(`/api/admin/crm/leads/${leadId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(changes),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      showToast?.(payload.error || "อัปเดต Lead ไม่สำเร็จ", "error");
+      return;
+    }
+    await loadCrm();
+    showToast?.("อัปเดต Lead แล้ว", "success");
   };
 
   const updateApiExpiry = (id: string, updates: Partial<ApiExpiryConfig>) => {
@@ -893,48 +1067,61 @@ export default function MarketingKpiDashboard({
   };
 
   const exportMarketingCsv = () => {
-    const rows = [
-      ["Date Range", rangeLabel, meta.connected ? "Meta API connected" : meta.error || "Meta API not connected"],
-      ["Meta API Range", metaApiRangeLabel, metaSourceSummary || ""],
-      ["GA4 API Range", ga4ApiRangeLabel, ga4.connected ? "GA4 connected" : ga4.error || "GA4 not connected"],
-      [],
-      ["Metric", "Value", "Note"],
-      ...cards.map((card) => [card.label, card.value, card.sub]),
-      [],
-      ["Campaign", "Channel", "Spend", "Reach", "Clicks", "Leads", "Meta Reported Revenue", "Meta Reported ROAS", "ERP Mapped Revenue", "Recommendation"],
-      ...campaignRows.map((row: Campaign) => {
-        const richRow = facebookRows.find((item) => item.id === row.id);
-        return [
-          row.name,
-          row.channel,
-          row.spend,
-          richRow?.reach || 0,
-          richRow?.clicks || 0,
-          row.leads,
-          Number((row as any).metaReportedRevenue || 0),
-          Number((row as any).metaReportedRoas || 0),
-          row.revenue,
-          richRow?.recommendation || row.note,
-        ];
+    const files = buildMarketingExportFiles({
+      rangeLabel,
+      ads: (meta?.ads || []).map((row: any) => ({
+        id: row.id, name: row.name, campaignId: row.campaignId, campaignName: row.campaignName,
+        adSetId: row.adSetId, adSetName: row.adSetName, spend: row.spend, impressions: row.impressions,
+        reach: row.reach, clicks: row.clicks, leads: row.leads,
+      })),
+      leads: filteredLeads.map((lead) => ({
+        id: lead.id, adId: lead.adId, qualifiedStatus: lead.qualifiedStatus,
+        status: lead.status, creativeId: lead.creativeId,
+      })),
+      mappings: leadMappings,
+      receipts: receipts.map((doc: any) => {
+        const explicitActualCost = doc.actualJobCost ?? doc.actual_job_cost;
+        return {
+          id: String(doc.id),
+          revenue: documentTotal(doc),
+          actualCost: explicitActualCost === null || explicitActualCost === undefined || explicitActualCost === ""
+            ? null
+            : Number(explicitActualCost),
+        };
       }),
-      [],
-      ["Funnel", "Value", "Source"],
-      ...marketingFunnel.map((item) => [item.label, item.value, item.source]),
-      ...salesFunnel.map((item) => [item.label, item.value, item.source]),
-      ["ERP Receipts", erpReceiptJobs, "ERP receipts"],
-      ["Unmapped ERP Receipts", unmappedReceiptJobs, "ERP receipts waiting CRM mapping"],
-    ];
-    const csv = rows
-      .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `dwm-marketing-dashboard-${todayInput()}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast?.("Export CSV สำเร็จ", "success");
+    });
+    Object.entries(files).forEach(([filename, content], index) => {
+      window.setTimeout(() => {
+        const blob = new Blob([content], { type: filename.endsWith(".csv") ? "text/csv;charset=utf-8" : "text/markdown;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+      }, index * 120);
+    });
+    showToast?.("เตรียมไฟล์ Aggregate 4 ไฟล์แล้ว", "success");
+  };
+
+  const saveApprovedCampaignBudget = async () => {
+    const campaignId = "120249760412250073";
+    if (!(meta?.campaigns || []).some((campaign: any) => String(campaign.id) === campaignId)) {
+      showToast?.("ยังไม่พบ Campaign 120249760412250073 ใน Meta sync จึงยังไม่บันทึกงบ", "error");
+      return;
+    }
+    const response = await fetch("/api/admin/marketing/budgets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ campaign_id: campaignId, daily_budget: 200, currency: "THB", start_date: todayInput() }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      showToast?.(payload.error || "บันทึกงบ Campaign ไม่สำเร็จ", "error");
+      return;
+    }
+    await loadCrm();
+    showToast?.("บันทึกงบ Campaign 200 บาท/วันแล้ว", "success");
   };
 
   const cards = [
@@ -943,8 +1130,9 @@ export default function MarketingKpiDashboard({
     { label: "AI Referrals", value: money(Number(aiCitations?.totals?.referralVisits ?? 0)), sub: aiCitations.connected ? "Clicks from AI platforms" : "รอ referral tracker", tone: "blue" },
     { label: "Meta Reported Revenue", value: metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", sub: "action_values / purchase", tone: "orange" },
     { label: "Meta Reported ROAS", value: metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", sub: "purchase_roas from Meta", tone: "purple" },
-    { label: "Revenue", value: `฿${money(receiptRevenue)}`, sub: "ตรงกับ ERP: ใบเสร็จเท่านั้น", tone: "green" },
-    { label: "Gross Profit", value: `฿${money(grossProfit)}`, sub: `Margin ${percent(grossMargin)}`, tone: "teal" },
+    { label: "ERP Revenue ทั้งหมด", value: `฿${money(receiptRevenue)}`, sub: "ใบเสร็จทั้งหมด ไม่รวมยกเลิก", tone: "green" },
+    { label: "ERP Attributed Revenue", value: `฿${money(attributedReceiptRevenue)}`, sub: "ใบเสร็จที่มี Lead mapping", tone: "teal" },
+    { label: "ERP Unattributed Revenue", value: `฿${money(unattributedReceiptRevenue)}`, sub: "ยังให้เครดิตกับ Ad ไม่ได้", tone: "yellow" },
     { label: "Marketing Spend", value: `฿${money(marketingSpend)}`, sub: meta.connected ? "จาก Meta Ads" : "รอเชื่อมต่อ Meta API", tone: "pink" },
     { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected ? "Meta lead/message actions only" : "Manual campaign leads", tone: "blue" },
     { label: "Qualified Leads", value: money(qualifiedLeads), sub: "Lead ที่ข้อมูลพร้อมติดตาม", tone: "purple" },
@@ -955,19 +1143,19 @@ export default function MarketingKpiDashboard({
     { label: "Cost per Qualified Lead", value: cpql ? `฿${money(cpql)}` : "-", sub: "Spend / Qualified Lead", tone: "teal" },
     { label: "Cost per Closed Won", value: costPerClosedJob ? `฿${money(costPerClosedJob)}` : "-", sub: "Spend / CRM Closed Won", tone: "pink" },
     { label: "Lead to Customer", value: conversionRate === null ? "ยังคำนวณไม่ได้" : percent(conversionRate), sub: "ไม่รวมคนละ source แบบมั่ว", tone: "purple" },
-    { label: "Profit ROAS", value: profitRoas ? profitRoas.toFixed(2) : "-", sub: "Gross Profit / Spend", tone: "green" },
+    { label: "Profit ROAS", value: "ยังไม่มีข้อมูล", sub: "รอต้นทุนจริงของงานที่เชื่อมแล้ว", tone: "green" },
     { label: "Average Order Value", value: averageOrderValue ? `฿${money(averageOrderValue)}` : "-", sub: "Revenue / ERP Receipts", tone: "orange" },
   ];
 
   const overviewCards = cards.filter((card) => [
-    "Revenue",
+    "Meta Reported Revenue",
     "Marketing Spend",
     "Marketing Leads",
-    "Cost per Lead",
+    "ERP Attributed Revenue",
+    "ERP Unattributed Revenue",
+    "Qualified Leads",
     "Closed Won",
     "ROAS",
-    "Gross Profit",
-    "Average Order Value",
   ].includes(card.label));
 
   const maxKpiValue = Math.max(receiptRevenue, marketingSpend, Math.max(0, grossProfit), 1);
@@ -1093,7 +1281,7 @@ export default function MarketingKpiDashboard({
     aiCitations?.error ? `AI Citation API Error: ${aiCitations.error}` : "",
   ].filter(Boolean);
 
-  const hasSalesMapping = crmLeads > 0;
+  const hasSalesMapping = crmBackend.ready;
   const alerts = [
     hasInvalidDateRange ? "ช่วงวันที่ไม่ถูกต้อง: วันที่เริ่มต้นอยู่หลังวันที่สิ้นสุด ระบบอาจกรองข้อมูลผิดได้" : "",
     hasFutureDateRange ? "ช่วงวันที่อยู่ในอนาคต: Meta / GA4 / ERP อาจยังไม่มีข้อมูลในช่วงนี้" : "",
@@ -1357,10 +1545,11 @@ export default function MarketingKpiDashboard({
   ];
   const salesFunnel = hasSalesMapping ? [
     { label: "Lead", value: crmLeads, source: "CRM leads", color: "#2563eb" },
-    { label: "Contacted", value: contactedLeads, source: "CRM contacted status", color: "#06b6d4" },
-    { label: "Detail Completed", value: filteredLeads.filter((lead) => ["detail_completed", "quotation_sent", "follow_up", "waiting_payment", "closed_won"].includes(lead.status)).length, source: "CRM detail completed+", color: "#22c55e" },
-    { label: "Quotation Sent", value: crmQuotationSent, source: "CRM quotation sent", color: "#f59e0b" },
-    { label: "Closed Won", value: closedLeadCount, source: "CRM closed won", color: "#ff6b00" },
+    { label: "Qualified", value: qualifiedLeads, source: "Manual qualified decision", color: "#22c55e" },
+    { label: "Quotes", value: crmQuotationSent, source: "Mapped ERP quotes", color: "#f59e0b" },
+    { label: "Won", value: mappedClosedJobs, source: "Mapped ERP receipts", color: "#ff6b00" },
+    { label: "Lost", value: filteredLeads.filter((lead) => lead.status === "closed_lost").length, source: "CRM Closed Lost", color: "#ef4444" },
+    { label: "Revenue", value: attributedReceiptRevenue, source: "Mapped ERP receipt revenue", color: "#10b981" },
   ] : [];
   const renderFunnelRows = (items: Array<{ label: string; value: number; source: string; color: string }>) => {
     const maxValue = Math.max(1, ...items.map((item) => Number(item.value || 0)));
@@ -1941,9 +2130,9 @@ export default function MarketingKpiDashboard({
                   <span>ERP receipts</span>
                 </div>
                 <div className="mk-mobile-metric">
-                  <span>Profit</span>
+                  <span>ERP profit estimate</span>
                   <strong>THB {money(grossProfit)}</strong>
-                  <span>{percent(grossMargin)} margin</span>
+                  <span>{percent(grossMargin)} estimated margin</span>
                 </div>
                 <div className="mk-mobile-metric">
                   <span>Leads</span>
@@ -2281,8 +2470,8 @@ export default function MarketingKpiDashboard({
                 ["Qualified Leads", money(qualifiedLeads), "CRM mapped"],
                 ["CRM Closed Won", money(mappedClosedJobs), "CRM pipeline"],
                 ["ERP Receipts", money(erpReceiptJobs), "รายได้จริงจากใบเสร็จ"],
-                ["Mapped ERP Revenue", facebookAttributedRevenue ? `THB ${money(facebookAttributedRevenue)}` : "-", "ERP receipt source or closed-won CRM leads"],
-                ["Profit ROAS", profitRoas ? profitRoas.toFixed(2) : "-", "Gross Profit / Spend"],
+                ["Mapped ERP Revenue", facebookAttributedRevenue ? `THB ${money(facebookAttributedRevenue)}` : "-", "Mapped ERP receipts only"],
+                ["Profit ROAS", "ยังไม่มีข้อมูล", "รอต้นทุนจริงของงานที่เชื่อมแล้ว"],
               ].map(([label, value, sub]) => (
                 <article className="mk-card" key={label}>
                   <div><span>{label}</span><strong style={{ display: "block", marginTop: 10 }}>{value}</strong></div>
@@ -2418,7 +2607,28 @@ export default function MarketingKpiDashboard({
                 <div style={{ display: "flex", justifyContent: "space-between" }}><span>ใช้ไปแล้ว</span><strong>฿{money(marketingSpend)}</strong></div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}><span>งบคงเหลือ</span><strong>{plannedBudget ? `฿${money(Math.max(0, plannedBudget - marketingSpend))}` : "รอตั้งงบ"}</strong></div>
               </div>
-              {!plannedBudget && <div className="mk-empty" style={{ marginTop: 14 }}>ตอนนี้มี spend จาก API แต่ยังไม่ได้ตั้งงบ campaign ในระบบ จึงไม่ควรสรุปว่างบเกิน/งบเหลือ</div>}
+              {approvedBudget ? (
+                <div className="mk-empty" style={{ marginTop: 14 }}>
+                  Campaign {approvedCampaignId}: {approvedBudget.daily_budget !== null ? `฿${money(approvedBudget.daily_budget)}/วัน` : `฿${money(approvedBudget.lifetime_budget || 0)} ตลอดแคมเปญ`}
+                </div>
+              ) : (
+                <div className="mk-empty" style={{ marginTop: 14 }}>
+                  ตอนนี้มี spend จาก API แต่ยังไม่ได้ตั้งงบ campaign ในระบบ จึงไม่ควรสรุปว่างบเกิน/งบเหลือ
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      className="mk-btn orange"
+                      type="button"
+                      disabled={!metaCampaignRows.some((campaign: any) => String(campaign.id) === approvedCampaignId) || !["owner", "admin", "marketing"].includes(crmBackend.role)}
+                      onClick={() => void saveApprovedCampaignBudget()}
+                    >
+                      ตั้งงบ Campaign {approvedCampaignId} ที่ ฿200/วัน
+                    </button>
+                  </div>
+                  {!metaCampaignRows.some((campaign: any) => String(campaign.id) === approvedCampaignId) && (
+                    <div style={{ marginTop: 8 }}>ปุ่มจะเปิดเมื่อ Meta sync ยืนยัน Campaign ID นี้แล้ว</div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="mk-panel">
               <h2>Marketing Funnel</h2>
@@ -2474,36 +2684,55 @@ export default function MarketingKpiDashboard({
 
           {activeSection === "leads" && (
             <section className="mk-panel" id="marketing-crm" style={{ marginTop: 16 }}>
-              <h2>Lead Entry</h2>
-              <p>บันทึก Lead พร้อม Source, Campaign, พฤติกรรม, สถานะ และวันติดตาม</p>
+              <div className="mk-section-head">
+                <div><h2>Leads & CRM</h2><p>เก็บความต้องการและ attribution จากหลักฐาน โดยไม่ใช้ชื่อ เบอร์ หรือข้อความแชทเป็นกุญแจจับคู่</p></div>
+                <span className="mk-badge">{crmBackend.loading ? "กำลังเชื่อม CRM" : crmBackend.ready ? `Database พร้อม · ${crmBackend.role}` : "Database ยังไม่พร้อม"}</span>
+              </div>
+              {crmBackend.error && <div className="mk-empty" role="alert" style={{ marginTop: 12 }}>{crmBackend.error} · ต้อง apply migration ก่อนจึงจะบันทึกข้อมูลจริงได้</div>}
               <div className="mk-form-grid" style={{ marginTop: 14 }}>
-                <input className="mk-input" aria-label="Customer name" placeholder="Customer Name" value={leadForm.name} onChange={(event) => setLeadForm((prev) => ({ ...prev, name: event.target.value }))} />
-                <input className="mk-input" aria-label="Contact LINE or phone" placeholder="Contact / LINE / Phone" value={leadForm.contact} onChange={(event) => setLeadForm((prev) => ({ ...prev, contact: event.target.value }))} />
+                <select className="mk-input" aria-label="ลูกค้าใน ERP" value={leadForm.customerId} onChange={(event) => setLeadForm((prev) => ({ ...prev, customerId: event.target.value }))}><option value="">ยังไม่เชื่อมลูกค้า ERP</option>{customers.map((customer: any) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</select>
                 <select className="mk-input" aria-label="Lead source" value={leadForm.source} onChange={(event) => setLeadForm((prev) => ({ ...prev, source: event.target.value }))}>
-                  {["Facebook Ads", "LINE OA", "Website", "Organic", "Referral", "Phone"].map((source) => <option key={source}>{source}</option>)}
+                  {["Meta Messenger", "Facebook Ads", "LINE OA", "Website", "Organic", "Referral", "Phone", "unattributed"].map((source) => <option key={source}>{source}</option>)}
                 </select>
-                <input className="mk-input" aria-label="Campaign" placeholder="Campaign" value={leadForm.campaign} onChange={(event) => setLeadForm((prev) => ({ ...prev, campaign: event.target.value }))} />
+                <input className="mk-input" aria-label="Source detail" placeholder="รายละเอียดแหล่งที่มา" value={leadForm.sourceDetail} onChange={(event) => setLeadForm((prev) => ({ ...prev, sourceDetail: event.target.value }))} />
+                <select className="mk-input" aria-label="Meta campaign" value={leadForm.campaignId} disabled={leadForm.forceUnattributed} onChange={(event) => setLeadForm((prev) => ({ ...prev, campaignId: event.target.value, adSetId: "", adId: "", manualSelectionConfirmed: Boolean(event.target.value) }))}><option value="">เลือก Campaign จาก Meta sync</option>{(meta?.campaigns || []).map((row: any) => <option key={row.id} value={row.id}>{row.name} · {row.id}</option>)}</select>
+                <select className="mk-input" aria-label="Meta ad set" value={leadForm.adSetId} disabled={!leadForm.campaignId || leadForm.forceUnattributed} onChange={(event) => setLeadForm((prev) => ({ ...prev, adSetId: event.target.value, adId: "" }))}><option value="">เลือก Ad Set</option>{(meta?.adSets || []).filter((row: any) => row.campaignId === leadForm.campaignId).map((row: any) => <option key={row.id} value={row.id}>{row.name} · {row.id}</option>)}</select>
+                <select className="mk-input" aria-label="Meta ad" value={leadForm.adId} disabled={!leadForm.adSetId || leadForm.forceUnattributed} onChange={(event) => setLeadForm((prev) => ({ ...prev, adId: event.target.value }))}><option value="">เลือก Ad</option>{(meta?.ads || []).filter((row: any) => row.adSetId === leadForm.adSetId).map((row: any) => <option key={row.id} value={row.id}>{row.name} · {row.id}</option>)}</select>
+                <input className="mk-input" aria-label="Creative ID" placeholder="Creative ID (ถ้ามี)" value={leadForm.creativeId} onChange={(event) => setLeadForm((prev) => ({ ...prev, creativeId: event.target.value }))} />
+                <input className="mk-input" aria-label="Referral ID" placeholder="Referral ID (ถ้ามี)" value={leadForm.referralId} onChange={(event) => setLeadForm((prev) => ({ ...prev, referralId: event.target.value }))} />
+                <input className="mk-input" aria-label="fbclid" placeholder="fbclid (ถ้ามี)" value={leadForm.fbclid} onChange={(event) => setLeadForm((prev) => ({ ...prev, fbclid: event.target.value }))} />
+                <input className="mk-input" aria-label="UTM source" placeholder="utm_source" value={leadForm.utmSource} onChange={(event) => setLeadForm((prev) => ({ ...prev, utmSource: event.target.value }))} />
+                <input className="mk-input" aria-label="UTM medium" placeholder="utm_medium" value={leadForm.utmMedium} onChange={(event) => setLeadForm((prev) => ({ ...prev, utmMedium: event.target.value }))} />
+                <input className="mk-input" aria-label="UTM campaign" placeholder="utm_campaign" value={leadForm.utmCampaign} onChange={(event) => setLeadForm((prev) => ({ ...prev, utmCampaign: event.target.value }))} />
+                <input className="mk-input" aria-label="UTM content" placeholder="utm_content" value={leadForm.utmContent} onChange={(event) => setLeadForm((prev) => ({ ...prev, utmContent: event.target.value }))} />
                 <select className="mk-input" aria-label="Service interest" value={leadForm.service} onChange={(event) => setLeadForm((prev) => ({ ...prev, service: event.target.value }))}>
                   {["ป้ายไวนิล", "สติ๊กเกอร์", "PP Board / Standee", "Roll Up / X-Stand", "Backdrop", "งานพิมพ์อื่นๆ"].map((service) => <option key={service}>{service}</option>)}
                 </select>
+                <input className="mk-input" aria-label="Size or area" placeholder="ขนาด / พื้นที่" value={leadForm.sizeOrArea} onChange={(event) => setLeadForm((prev) => ({ ...prev, sizeOrArea: event.target.value }))} />
+                <input className="mk-input" aria-label="Quantity" type="number" min="0" placeholder="จำนวน" value={leadForm.quantity} onChange={(event) => setLeadForm((prev) => ({ ...prev, quantity: event.target.value }))} />
+                <input className="mk-input" aria-label="Deadline or use date" type="date" value={leadForm.deadlineOrUseDate} onChange={(event) => setLeadForm((prev) => ({ ...prev, deadlineOrUseDate: event.target.value }))} />
+                <select className="mk-input" aria-label="Artwork status" value={leadForm.artworkStatus} onChange={(event) => setLeadForm((prev) => ({ ...prev, artworkStatus: event.target.value }))}><option value="">สถานะ Artwork</option><option value="ready">ไฟล์พร้อมผลิต</option><option value="needs_design">ต้องการออกแบบ</option><option value="pending">ยังไม่พร้อม</option></select>
+                <input className="mk-input" aria-label="Use case" placeholder="วัตถุประสงค์การใช้งาน" value={leadForm.useCase} onChange={(event) => setLeadForm((prev) => ({ ...prev, useCase: event.target.value }))} />
+                <select className="mk-input" aria-label="Installation required" value={leadForm.installationRequired} onChange={(event) => setLeadForm((prev) => ({ ...prev, installationRequired: event.target.value }))}><option value="unknown">ยังไม่ระบุการติดตั้ง</option><option value="yes">ต้องติดตั้ง</option><option value="no">ไม่ต้องติดตั้ง</option></select>
+                <input className="mk-input" aria-label="Location" placeholder="สถานที่ / จังหวัด" value={leadForm.location} onChange={(event) => setLeadForm((prev) => ({ ...prev, location: event.target.value }))} />
                 <select className="mk-input" aria-label="Customer type" value={leadForm.customerType} onChange={(event) => setLeadForm((prev) => ({ ...prev, customerType: event.target.value }))}>
                   {["SME", "ร้านอาหาร", "คาเฟ่", "คลินิก", "อีเวนต์", "แบรนด์สินค้า", "องค์กร"].map((type) => <option key={type}>{type}</option>)}
                 </select>
-                <input className="mk-input" aria-label="Buying situation" placeholder="Buying Situation" value={leadForm.buyingSituation} onChange={(event) => setLeadForm((prev) => ({ ...prev, buyingSituation: event.target.value }))} />
-                <select className="mk-input" aria-label="Lead status" value={leadForm.status} onChange={(event) => setLeadForm((prev) => ({ ...prev, status: event.target.value as Lead["status"] }))}>
+                <select className="mk-input" aria-label="Lead status" value={leadForm.status} onChange={(event) => setLeadForm((prev) => ({ ...prev, status: event.target.value as Lead["status"], lostReason: event.target.value === "closed_lost" ? prev.lostReason : "" }))}>
                   {leadStatuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
                 </select>
+                <select className="mk-input" aria-label="Qualified status" value={leadForm.qualifiedStatus} onChange={(event) => setLeadForm((prev) => ({ ...prev, qualifiedStatus: event.target.value as "unreviewed" | "qualified" | "not_qualified" }))}><option value="unreviewed">ยังไม่ตัดสิน Qualified</option><option value="qualified">Qualified (เจ้าหน้าที่)</option><option value="not_qualified">Not Qualified (เจ้าหน้าที่)</option></select>
+                {leadForm.status === "closed_lost" && <select className="mk-input" required aria-label="Lost reason" value={leadForm.lostReason} onChange={(event) => setLeadForm((prev) => ({ ...prev, lostReason: event.target.value }))}><option value="">เลือก Lost Reason</option>{["ghost","price","deadline","competitor","budget","scope_mismatch","artwork_not_ready","cancelled","cannot_produce","no_response","unknown"].map((reason) => <option key={reason} value={reason}>{reason}</option>)}</select>}
                 <input className="mk-input" aria-label="Estimated value" placeholder="Estimated Value" inputMode="decimal" value={leadForm.value} onChange={(event) => setLeadForm((prev) => ({ ...prev, value: event.target.value }))} />
                 <input className="mk-input" aria-label="Next follow-up date" type="date" value={leadForm.nextFollowUp} onChange={(event) => setLeadForm((prev) => ({ ...prev, nextFollowUp: event.target.value }))} />
-                <input className="mk-input" aria-label="Owner" placeholder="Owner" value={leadForm.owner} onChange={(event) => setLeadForm((prev) => ({ ...prev, owner: event.target.value }))} />
-                <textarea className="mk-input mk-textarea" aria-label="Lead note" placeholder="Note" value={leadForm.note} onChange={(event) => setLeadForm((prev) => ({ ...prev, note: event.target.value }))} />
+                <select className="mk-input" aria-label="เชื่อมใบเสนอราคา" value={leadForm.quoteId} onChange={(event) => setLeadForm((prev) => ({ ...prev, quoteId: event.target.value }))}><option value="">ยังไม่เชื่อมใบเสนอราคา</option>{documents.filter((doc: any) => doc.type === "quote" && !doc.deleted && doc.status !== "cancelled").map((doc: any) => <option key={doc.id} value={doc.id}>{doc.docNo || doc.doc_no}</option>)}</select>
+                <select className="mk-input" aria-label="เชื่อมใบเสร็จ" value={leadForm.receiptId} onChange={(event) => setLeadForm((prev) => ({ ...prev, receiptId: event.target.value }))}><option value="">ยังไม่เชื่อมใบเสร็จ</option>{documents.filter((doc: any) => doc.type === "receipt" && !doc.deleted && doc.status !== "cancelled").map((doc: any) => <option key={doc.id} value={doc.id}>{doc.docNo || doc.doc_no}</option>)}</select>
               </div>
               <div className="mk-tag-row" style={{ marginTop: 14 }}>
-                {behaviorTagOptions.map((tag) => (
-                  <button key={tag} type="button" className={`mk-tag ${leadForm.behaviorTags.includes(tag) ? "active" : ""}`} onClick={() => toggleLeadTag(tag)}>{tag}</button>
-                ))}
+                <button type="button" className={`mk-tag ${leadForm.forceUnattributed ? "active" : ""}`} onClick={() => setLeadForm((prev) => ({ ...prev, forceUnattributed: !prev.forceUnattributed, campaignId: "", adSetId: "", adId: "", manualSelectionConfirmed: false }))}>ไม่สามารถระบุโฆษณาได้</button>
+                <span style={{ color: "#8b95a7", fontSize: 12 }}>Estimated Value ใช้กับ pipeline เท่านั้น ไม่ถูกนับเป็น Revenue</span>
               </div>
-              <button className="mk-btn orange" type="button" style={{ marginTop: 16 }} onClick={addLead}>+ เพิ่ม Lead</button>
+              <button className="mk-btn orange" type="button" disabled={!crmBackend.ready || (leadForm.status === "closed_lost" && !leadForm.lostReason) || (leadForm.status === "closed_won" && !leadForm.receiptId)} style={{ marginTop: 16 }} onClick={() => void addLead()}>+ เพิ่ม Lead ลงฐานข้อมูล</button>
             </section>
           )}
 
@@ -2523,7 +2752,7 @@ export default function MarketingKpiDashboard({
                   <h2>Leads / CRM</h2>
                   <p>บันทึก Lead เบื้องต้นก่อนเชื่อม LINE OA API</p>
                 </div>
-                <button className="mk-btn orange" type="button" onClick={addLead}>+ Add Lead</button>
+                <button className="mk-btn orange" type="button" onClick={() => setActiveSection("leads")}>+ Add Lead</button>
               </div>
               <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
                 {filteredLeads.slice(0, activeSection === "leads" ? filteredLeads.length : 4).map((lead) => {
@@ -2535,12 +2764,58 @@ export default function MarketingKpiDashboard({
                       <strong>{lead.name}</strong>
                       <div style={{ color: "#8b95a7", fontSize: 12 }}>{lead.source} • {lead.service} • {leadStatusLabel(lead.status)}</div>
                       {activeSection === "leads" && <div style={{ color: "#8b95a7", fontSize: 12, marginTop: 4 }}>
-                        {lead.contact || "-"} • {lead.customerType || "-"} • Follow-up: {lead.nextFollowUp || "-"}
+                        {lead.attributionMethod || "unattributed"} • {lead.customerType || "-"} • Follow-up: {lead.nextFollowUp ? safeDateValue(lead.nextFollowUp) : "-"}
+                        {lead.suggestedQualified && lead.qualifiedStatus === "unreviewed" ? " • ระบบแนะนำให้ตรวจ Qualified" : ""}
+                      </div>}
+                      {activeSection === "leads" && <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>
+                        Campaign {lead.campaignId || "unattributed"} • Ad {lead.adId || "-"} • Mapping {leadMappings.find((mapping) => mapping.lead_id === lead.id)?.mapping_method || "ยังไม่เชื่อมเอกสาร"}
                       </div>}
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <span className="mk-badge" style={{ background: "rgba(255,107,0,.14)", color: "#ff6b00" }}>{score}/100</span>
                       <div style={{ color: temperature.color, fontWeight: 900, marginTop: 6 }}>{temperature.label}</div>
+                      {activeSection === "leads" && (
+                        <div style={{ display: "grid", gap: 6, marginTop: 10, minWidth: 190 }}>
+                          <select
+                            className="mk-input"
+                            aria-label={`เปลี่ยนสถานะ ${lead.name}`}
+                            value={lead.status === "closed_lost" ? "closed_lost" : lead.status}
+                            disabled={!["owner", "admin", "sales"].includes(crmBackend.role)}
+                            onChange={(event) => {
+                              if (event.target.value !== "closed_lost") void updateLead(lead.id, { lead_status: event.target.value });
+                            }}
+                          >
+                            {leadStatuses.map((status) => (
+                              <option key={status.value} value={status.value} disabled={status.value === "closed_lost"}>
+                                {status.value === "closed_lost" ? "ใช้ Lost Reason ด้านล่าง" : status.label}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            className="mk-input"
+                            aria-label={`Qualified status ${lead.name}`}
+                            value={lead.qualifiedStatus || "unreviewed"}
+                            disabled={!["owner", "admin", "sales"].includes(crmBackend.role)}
+                            onChange={(event) => void updateLead(lead.id, { qualified_status: event.target.value })}
+                          >
+                            <option value="unreviewed">ยังไม่ตัดสิน</option>
+                            <option value="qualified">Qualified</option>
+                            <option value="not_qualified">Not Qualified</option>
+                          </select>
+                          <select
+                            className="mk-input"
+                            aria-label={`ปิด Lost ${lead.name}`}
+                            value={lead.status === "closed_lost" ? lead.lostReason || "" : ""}
+                            disabled={!["owner", "admin", "sales"].includes(crmBackend.role)}
+                            onChange={(event) => {
+                              if (event.target.value) void updateLead(lead.id, { lead_status: "closed_lost", lost_reason: event.target.value });
+                            }}
+                          >
+                            <option value="">ปิด Lost พร้อมเหตุผล...</option>
+                            {["ghost","price","deadline","competitor","budget","scope_mismatch","artwork_not_ready","cancelled","cannot_produce","no_response","unknown"].map((reason) => <option key={reason} value={reason}>{reason}</option>)}
+                          </select>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )})}
@@ -2703,7 +2978,7 @@ export default function MarketingKpiDashboard({
                   : activeSection === "products" ? "Products"
                   : "Reports"}
               </h2>
-              <p>ข้อมูลส่วนนี้อ้างอิงจาก ERP เพื่อใช้ดูภาพรวมการปิดการขายและกำไรจริง</p>
+              <p>ข้อมูลส่วนนี้อ้างอิงจาก ERP เพื่อดูการปิดการขาย โดยกำไรยังเป็นค่าประมาณจนกว่าจะมีต้นทุนงานจริงครบ</p>
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
                 <div className="mk-mini"><strong>{customers.length}</strong><div>Customers</div></div>
                 <div className="mk-mini"><strong>{crmQuotationSent}</strong><div>CRM Quotation Sent</div></div>
@@ -2713,7 +2988,7 @@ export default function MarketingKpiDashboard({
                 <div className="mk-mini"><strong>{products.length}</strong><div>Products / Supplier Catalog</div></div>
                 <div className="mk-mini"><strong>฿{money(receiptRevenue)}</strong><div>Receipt Revenue</div></div>
                 <div className="mk-mini"><strong>฿{money(receiptCost)}</strong><div>Expense / Cost</div></div>
-                <div className="mk-mini"><strong>฿{money(grossProfit)}</strong><div>Gross Profit</div></div>
+                <div className="mk-mini"><strong>฿{money(grossProfit)}</strong><div>Estimated Gross Profit</div></div>
                 <div className="mk-mini"><strong>{quoteToCloseRate === null ? "-" : percent(quoteToCloseRate)}</strong><div>Quote to Close Rate</div></div>
               </div>
             </section>

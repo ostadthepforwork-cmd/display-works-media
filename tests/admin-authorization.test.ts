@@ -65,6 +65,14 @@ for (const role of ["owner", "admin"]) {
   });
 }
 
+test("staff roles are allowed only when the caller explicitly requests them", async () => {
+  for (const role of ["sales", "marketing"]) {
+    const mock = client({ membership: { user_id: user.id, role, active: true } });
+    assert.equal((await checkAdminAuthorization(mock.supabase)).status, 403);
+    assert.equal((await checkAdminAuthorization(mock.supabase, ["owner", "admin", "sales", "marketing"])).status, 200);
+  }
+});
+
 test("unknown roles and mismatched membership identities fail closed", async () => {
   for (const membership of [
     { user_id: user.id, role: "editor", active: true },

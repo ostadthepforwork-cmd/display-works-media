@@ -135,7 +135,7 @@ async function makeSupabase() {
 
 export async function GET(request: Request) {
   const supabase = await makeSupabase();
-  const authorization = await checkAdminAuthorization(supabase);
+  const authorization = await checkAdminAuthorization(supabase, ["owner", "admin", "marketing"]);
   if (!authorization.user) {
     return NextResponse.json(
       { success: false, connected: false, error: authorization.error },

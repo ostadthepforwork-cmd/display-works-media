@@ -1,7 +1,7 @@
 import { createAuthenticatedServerClient } from "./supabase-server";
 import { checkAdminAuthorization } from "./admin-authorization";
 
-export async function requireAdminUser() {
+export async function requireAdminUser(allowedRoles?: readonly string[]) {
   const supabase = await createAuthenticatedServerClient();
-  return checkAdminAuthorization(supabase);
+  return { ...(await checkAdminAuthorization(supabase, allowedRoles)), supabase };
 }
