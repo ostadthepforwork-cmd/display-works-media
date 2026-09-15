@@ -22,6 +22,7 @@ const companyLinks = [
   { label: "ติดต่อเรา", href: "/contact" },
   { label: "นโยบายความเป็นส่วนตัว", href: "/privacy-policy" },
   { label: "ข้อกำหนดการใช้งาน", href: "/terms" },
+  { label: "คำแนะนำการลบข้อมูล", href: "/data-deletion" },
 ];
 
 export default function Footer() {
