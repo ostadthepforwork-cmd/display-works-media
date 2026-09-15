@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { checkAdminAuthorization } from "@/lib/admin-authorization";
 import { isSensitiveProbePath, sensitiveProbeIntentDetail } from "@/lib/sensitive-paths";
+import { bangkokDateFromTimestamp, marketingDateRangeFromUrl } from "@/lib/marketing-date-range";
 
 type CrawlerVisit = {
   id: string;
@@ -13,24 +14,6 @@ type CrawlerVisit = {
   country: string | null;
   created_at: string;
 };
-
-function dateRangeFromRequest(request: Request) {
-  const url = new URL(request.url);
-  const startDate = url.searchParams.get("startDate");
-  const endDate = url.searchParams.get("endDate");
-
-  if (startDate && endDate) {
-    return {
-      startIso: new Date(`${startDate}T00:00:00.000Z`).toISOString(),
-      endIso: new Date(`${endDate}T23:59:59.999Z`).toISOString(),
-    };
-  }
-
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 29);
-  return { startIso: start.toISOString(), endIso: end.toISOString() };
-}
 
 function countBy<T extends string>(rows: CrawlerVisit[], keyFn: (row: CrawlerVisit) => T) {
   return Object.entries(
@@ -121,7 +104,7 @@ function countReferrers(rows: CrawlerVisit[]) {
 function countDaily(rows: CrawlerVisit[]) {
   return Object.entries(
     rows.reduce<Record<string, number>>((acc, row) => {
-      const date = row.created_at ? row.created_at.slice(0, 10) : "Unknown";
+      const date = row.created_at ? bangkokDateFromTimestamp(row.created_at) : "Unknown";
       acc[date] = (acc[date] || 0) + 1;
       return acc;
     }, {}),
@@ -159,12 +142,12 @@ export async function GET(request: Request) {
     );
   }
 
-  const { startIso, endIso } = dateRangeFromRequest(request);
+  const { startIso, endExclusiveIso } = marketingDateRangeFromUrl(request.url);
   const { data, error } = await supabase
     .from("ai_crawler_visits")
     .select("id, bot_name, path, user_agent, referrer, country, created_at")
     .gte("created_at", startIso)
-    .lte("created_at", endIso)
+    .lt("created_at", endExclusiveIso)
     .order("created_at", { ascending: false })
     .limit(1000);
 

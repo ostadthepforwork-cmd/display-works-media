@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createPrivilegedServerClient } from "@/lib/supabase-privileged-server";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const AI_HOSTS: Record<string, string[]> = {
   chatgpt: ["chatgpt.com", "chat.openai.com"],
@@ -34,15 +37,6 @@ function referrerMatchesPlatform(platform: string, referrer: string) {
 }
 
 export async function POST(request: Request) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !anonKey) {
-    return NextResponse.json(
-      { success: false, error: "Supabase env is missing" },
-      { status: 500, headers: { "Cache-Control": "no-store" } },
-    );
-  }
-
   const body = await request.json().catch(() => ({}));
   const platform = String(body.platform || "").toLowerCase();
   const landingPage = String(body.landing_page || "").slice(0, 300);
@@ -56,9 +50,7 @@ export async function POST(request: Request) {
   }
 
   const userAgent = (request.headers.get("user-agent") || "").slice(0, 500);
-  const supabase = createClient(supabaseUrl, anonKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const supabase = createPrivilegedServerClient();
 
   const { error } = await supabase.from("ai_referral_visits").insert({
     platform,
@@ -72,9 +64,9 @@ export async function POST(request: Request) {
       {
         success: false,
         error: error.message,
-        hint: "กรุณารัน supabase/ai-citation-monitoring.sql ใน Supabase Production",
+        hint: "กรุณา apply migration 20260915151454_add_ai_referral_visits ใน Supabase Production",
       },
-      { headers: { "Cache-Control": "no-store" } },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 

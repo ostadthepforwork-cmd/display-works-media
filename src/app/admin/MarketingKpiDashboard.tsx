@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildMarketingExportFiles } from "@/lib/marketing-export";
+import { formatLocalDateInput, shiftDateInput } from "@/lib/local-date";
 
 type MarketingKpiDashboardProps = {
   documents?: any[];
@@ -106,6 +107,8 @@ type MarketingSection =
   | "ai";
 
 type DateRangeMode = "7d" | "30d" | "month" | "all" | "custom";
+type AdsPlatform = "all" | "meta" | "google" | "line";
+type MetaAdsView = "overview" | "campaigns" | "adsets" | "creative";
 
 type ApiExpiryConfig = {
   expiresAt: string;
@@ -185,7 +188,7 @@ const money = (value: number) =>
 const percent = (value: number) =>
   `${new Intl.NumberFormat("th-TH", { maximumFractionDigits: 1 }).format(Number.isFinite(value) ? value : 0)}%`;
 
-const dateInputValue = (date: Date) => date.toISOString().slice(0, 10);
+const dateInputValue = formatLocalDateInput;
 
 const todayInput = () => dateInputValue(new Date());
 
@@ -443,6 +446,9 @@ export default function MarketingKpiDashboard({
   showToast,
 }: MarketingKpiDashboardProps) {
   const [activeSection, setActiveSection] = useState<MarketingSection>("dashboard");
+  const [adsPlatform, setAdsPlatform] = useState<AdsPlatform>("all");
+  const [metaAdsView, setMetaAdsView] = useState<MetaAdsView>("overview");
+  const [showLeadForm, setShowLeadForm] = useState(false);
   const [dateRangeMode, setDateRangeMode] = useState<DateRangeMode>("30d");
   const [startDate, setStartDate] = useState(addDaysInput(-29));
   const [endDate, setEndDate] = useState(todayInput());
@@ -460,7 +466,7 @@ export default function MarketingKpiDashboard({
   const [activeSourceLog, setActiveSourceLog] = useState<string>("ทั้งหมด");
   const [leadForm, setLeadForm] = useState({
     customerId: "",
-    source: "LINE OA",
+    source: "unattributed",
     sourceDetail: "",
     campaignId: "",
     adSetId: "",
@@ -472,7 +478,7 @@ export default function MarketingKpiDashboard({
     utmMedium: "",
     utmCampaign: "",
     utmContent: "",
-    service: "ป้ายไวนิล",
+    service: "",
     sizeOrArea: "",
     quantity: "",
     deadlineOrUseDate: "",
@@ -1251,7 +1257,7 @@ export default function MarketingKpiDashboard({
       error: aiCitations.error || "",
       tokenType: "Citation worker",
       expiry: null,
-      envKeys: "supabase/ai-citation-monitoring.sql, OPENAI/PERPLEXITY/GEMINI/SERPAPI keys (Phase 2)",
+      envKeys: "migration 20260915151454, OPENAI/PERPLEXITY/GEMINI/SERPAPI keys (Phase 2)",
     },
     {
       id: "erp",
@@ -1507,15 +1513,16 @@ export default function MarketingKpiDashboard({
     const map = new Map<string, { label: string; docs: Set<string>; qty: number; revenue: number; profit: number }>();
     receipts.forEach((doc) => {
       (Array.isArray(doc?.items) ? doc.items : []).forEach((item: any) => {
-        const label = item?.name || "ไม่ระบุสินค้า/บริการ";
-        const entry = map.get(label) || { label, docs: new Set<string>(), qty: 0, revenue: 0, profit: 0 };
+        const label = String(item?.name || "ไม่ระบุสินค้า/บริการ").replace(/\s+/g, " ").trim();
+        const key = label.toLocaleLowerCase("th-TH");
+        const entry = map.get(key) || { label, docs: new Set<string>(), qty: 0, revenue: 0, profit: 0 };
         const revenue = marketingLineAmount(item);
         const cost = marketingLineCost(item);
         entry.docs.add(String(doc?.id || doc?.docNo || doc?.doc_no || label));
         entry.qty += Number(item?.qty || item?.quantity || 0);
         entry.revenue += revenue;
         entry.profit += revenue - cost;
-        map.set(label, entry);
+        map.set(key, entry);
       });
     });
     return [...map.values()]
@@ -1579,11 +1586,9 @@ export default function MarketingKpiDashboard({
 
   const trendLength = dateRangeMode === "7d" ? 7 : 30;
   const trendEnd = endDate || todayInput();
-  const trendDates = Array.from({ length: trendLength }, (_, index) => {
-    const date = new Date(`${trendEnd}T00:00:00`);
-    date.setDate(date.getDate() - (trendLength - 1 - index));
-    return dateInputValue(date);
-  });
+  const trendDates = Array.from({ length: trendLength }, (_, index) =>
+    shiftDateInput(trendEnd, -(trendLength - 1 - index)),
+  );
   const trendMap = (rows: any[], dateFn: (row: any) => unknown, valueFn: (row: any) => number): TrendPoint[] => {
     const values = new Map(trendDates.map((date) => [date, 0]));
     rows.forEach((row) => {
@@ -1637,7 +1642,7 @@ export default function MarketingKpiDashboard({
 
   const navItems: { id: MarketingSection; label: string; desc: string }[] = [
     { id: "dashboard", label: "Overview", desc: "Main KPI summary" },
-    { id: "facebook", label: "Ads Performance", desc: "Meta spend, campaigns, creatives" },
+    { id: "facebook", label: "Ads Performance", desc: "Compare paid media by platform" },
     { id: "leads", label: "Leads & CRM", desc: "Lead list and follow-up" },
     { id: "customers", label: "Customer Intel", desc: "Source, segment, service demand" },
     { id: "orders", label: "Sales Pipeline", desc: "Quotes, jobs, revenue from ERP" },
@@ -1647,6 +1652,12 @@ export default function MarketingKpiDashboard({
   ];
 
   const showDashboard = activeSection === "dashboard";
+  const showAdsOverview = activeSection === "facebook" && adsPlatform === "all";
+  const showMetaAds = activeSection === "facebook" && adsPlatform === "meta";
+  const showMetaOverview = showMetaAds && metaAdsView === "overview";
+  const showMetaCampaigns = showMetaAds && metaAdsView === "campaigns";
+  const showMetaAdSets = showMetaAds && metaAdsView === "adsets";
+  const showMetaCreative = showMetaAds && metaAdsView === "creative";
 
   return (
     <div className="mk-dashboard" id="marketing-dashboard">
@@ -1682,6 +1693,21 @@ export default function MarketingKpiDashboard({
         .mk-mobile-tabs::-webkit-scrollbar{display:none}
         .mk-mobile-tabs button{white-space:nowrap;border:1px solid rgba(255,255,255,.12);background:#101827;color:#cbd5e1;border-radius:999px;padding:10px 13px;font-weight:900}
         .mk-mobile-tabs button.active{background:#ff6b00;border-color:#ff6b00;color:#fff}
+        .mk-segmented{display:flex;gap:6px;flex-wrap:wrap;padding:5px;border:1px solid rgba(255,255,255,.1);background:#0b1220;border-radius:14px;width:max-content;max-width:100%}
+        .mk-segmented button{min-height:42px;border:0;background:transparent;color:#94a3b8;border-radius:10px;padding:9px 14px;font:inherit;font-weight:900;cursor:pointer}
+        .mk-segmented button.active{background:#f8fafc;color:#111827;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+        .mk-segmented button:disabled{cursor:not-allowed;opacity:.46}
+        .mk-platform-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+        .mk-platform-card{display:grid;gap:12px;text-align:left;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);border-radius:16px;padding:18px;color:#f8fafc;cursor:pointer}
+        .mk-platform-card.ready{border-color:rgba(34,197,94,.28)}
+        .mk-platform-card:disabled{cursor:not-allowed;opacity:.58}
+        .mk-platform-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+        .mk-platform-card strong{font-size:18px}.mk-platform-card span{color:#94a3b8;font-size:12px;line-height:1.5}
+        .mk-lead-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+        .mk-lead-form{margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:16px}
+        .mk-report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+        .mk-report-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);border-radius:16px;padding:18px}
+        .mk-report-card p{margin-top:5px!important}
         .mk-mobile-command{display:none}
         .mk-mobile-metrics,.mk-mobile-jump{display:grid}
         .mk-mobile-chart{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);border-radius:16px;padding:14px}
@@ -1729,11 +1755,12 @@ export default function MarketingKpiDashboard({
         .mk-chart-list{display:grid;gap:12px;max-height:520px;overflow:auto;padding-right:4px}.mk-chart-item{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);border-radius:16px;padding:14px}.mk-chart-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;font-weight:900}.mk-chart-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-chart-sub{color:#8b95a7;font-size:12px;line-height:1.5;margin-top:4px}.mk-chart-bar{height:12px;background:#1f2937;border-radius:999px;overflow:hidden;margin-top:10px}.mk-chart-bar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ff6b00,#f59e0b)}
         .mk-chart-row{position:relative;overflow:hidden;padding-bottom:22px}.mk-chart-row:before{content:"";position:absolute;left:14px;right:14px;bottom:10px;height:8px;border-radius:999px;background:#1f2937}.mk-chart-row:after{content:"";position:absolute;left:14px;bottom:10px;width:var(--chart-width,0%);height:8px;border-radius:999px;background:var(--chart-color,linear-gradient(90deg,#ff6b00,#f59e0b))}
         .mk-source{display:flex;justify-content:space-between;gap:16px;align-items:center;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;background:rgba(0,0,0,.18)}
-        .mk-status{font-weight:900;color:#f59e0b}.mk-status.ready{color:#22c55e}
+        .mk-status{font-weight:900;color:#f59e0b}.mk-status.ready{color:#22c55e}.mk-status.warning{color:#f59e0b}
+        .mk-empty-cell{text-align:center!important;color:#94a3b8!important;padding:28px 16px!important}
         .mk-expiry{display:inline-flex;align-items:center;width:max-content;border-radius:999px;padding:6px 10px;margin-top:8px;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.12);color:#cbd5e1}.mk-expiry.ready{border-color:rgba(34,197,94,.35);color:#86efac;background:rgba(34,197,94,.08)}.mk-expiry.warning{border-color:rgba(245,158,11,.45);color:#fcd34d;background:rgba(245,158,11,.1)}.mk-expiry.danger{border-color:rgba(239,68,68,.45);color:#fca5a5;background:rgba(239,68,68,.1)}.mk-expiry.unknown{border-color:rgba(148,163,184,.35);color:#cbd5e1;background:rgba(148,163,184,.08)}.mk-source-tools{display:grid;gap:8px;justify-items:end}.mk-expiry-editor{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.mk-expiry-editor input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:10px 12px;font:inherit;min-width:190px}
         .mk-log-list{display:grid;gap:8px;max-height:260px;overflow:auto}.mk-log-item{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;background:rgba(0,0,0,.18);color:#cbd5e1;font-size:13px;line-height:1.55}
         .mk-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mk-field{display:grid;gap:6px}.mk-field span{color:#94a3b8;font-size:12px;font-weight:800}.mk-input{background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#f8fafc;-webkit-text-fill-color:#f8fafc;padding:12px 14px;font:inherit;min-width:0;color-scheme:dark}.mk-input option{background:#0b1220;color:#f8fafc}.mk-textarea{grid-column:1/-1;min-height:86px;resize:vertical}.mk-tag-row{display:flex;flex-wrap:wrap;gap:8px}.mk-tag{border:1px solid rgba(255,107,0,.35);background:transparent;color:#f8fafc;border-radius:999px;padding:8px 10px;font-weight:800;cursor:pointer}.mk-tag.active{background:#c2410c;border-color:#c2410c;color:#fff}.mk-alert{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:#fde68a;border-radius:14px;padding:12px 14px;font-weight:800}
-        @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:flex;position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(8,13,20,.98),rgba(8,13,20,.9));backdrop-filter:blur(18px);padding:10px 0 12px}.mk-grid,.mk-growth-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid,.mk-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:1100px){.mk-shell{grid-template-columns:1fr}.mk-sidebar{display:none}.mk-mobile-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(8,13,20,.98),rgba(8,13,20,.9));backdrop-filter:blur(18px);padding:10px 0 12px}.mk-mobile-tabs button{white-space:normal;min-height:48px;padding:8px;font-size:12px}.mk-grid,.mk-growth-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-row{grid-template-columns:1fr}.mk-channel-grid,.mk-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
         @media(max-width:640px){
           .mk-dashboard{width:100%;max-width:100vw;border-radius:0;border-left:0;border-right:0;background:linear-gradient(180deg,rgba(255,107,0,.13),transparent 220px),#080d14;overflow:hidden}
           .mk-dashboard,
@@ -1811,7 +1838,7 @@ export default function MarketingKpiDashboard({
           .mk-date-fields input{width:100%;min-width:0;min-height:46px;font-size:13px}
           .mk-date-controls > div[style]{font-size:11px!important}
           .mk-date-controls .mk-btn.orange{width:100%;justify-content:center;text-align:center}
-          .mk-mobile-tabs{display:none!important}
+          .mk-mobile-tabs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;position:static!important;background:transparent!important;backdrop-filter:none!important;padding:0 0 12px!important}
           .mk-mobile-tabs button{min-height:42px;padding:10px 14px;border-radius:12px}
           .mk-mobile-command{display:grid;gap:12px;margin:12px 0 14px}
           .mk-mobile-command-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
@@ -1856,6 +1883,10 @@ export default function MarketingKpiDashboard({
           .mk-section-actions{justify-content:flex-start;margin-top:12px;overflow:auto;padding-bottom:3px;scrollbar-width:none}
           .mk-section-actions::-webkit-scrollbar{display:none}
           .mk-channel-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px}
+          .mk-segmented{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+          .mk-segmented button{width:100%;padding:9px 8px}
+          .mk-platform-grid,.mk-report-grid{grid-template-columns:1fr}
+          .mk-report-card{padding:14px}
           .mk-mini{padding:13px;border-radius:14px;min-width:0}
           .mk-mini strong{font-size:17px;word-break:break-word}
           .mk-decision-grid,.mk-form-grid{grid-template-columns:1fr!important}
@@ -2114,6 +2145,84 @@ export default function MarketingKpiDashboard({
             ))}
           </nav>
 
+          {activeSection === "facebook" && (
+            <section className="mk-panel" aria-labelledby="ads-platform-title">
+              <div className="mk-section-head">
+                <div>
+                  <div className="mk-eyebrow">Paid Media</div>
+                  <h2 id="ads-platform-title">Ads Performance</h2>
+                  <p>เลือกแพลตฟอร์มเพื่อดูข้อมูลโดยไม่ปน metric คนละความหมาย และใช้ช่วงวันที่เดียวกันทุกมุมมอง</p>
+                </div>
+                <span className={`mk-status ${meta.connected ? "ready" : ""}`}>{meta.connected ? "Meta พร้อมใช้งาน" : "รอข้อมูล Meta"}</span>
+              </div>
+              <div className="mk-segmented" role="tablist" aria-label="Ads platforms">
+                {([
+                  ["all", "ภาพรวม"],
+                  ["meta", "Meta Ads"],
+                  ["google", "Google Ads"],
+                  ["line", "LINE Ads"],
+                ] as [AdsPlatform, string][]).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={adsPlatform === id}
+                    className={adsPlatform === id ? "active" : ""}
+                    onClick={() => setAdsPlatform(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {adsPlatform === "meta" && (
+                <div className="mk-segmented" role="tablist" aria-label="Meta Ads detail" style={{ marginTop: 12 }}>
+                  {([
+                    ["overview", "ภาพรวม Meta"],
+                    ["campaigns", "Campaign"],
+                    ["adsets", "Ad Set"],
+                    ["creative", "Creative"],
+                  ] as [MetaAdsView, string][]).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      role="tab"
+                      aria-selected={metaAdsView === id}
+                      className={metaAdsView === id ? "active" : ""}
+                      onClick={() => setMetaAdsView(id)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {showAdsOverview && (
+                <div className="mk-platform-grid">
+                  <button type="button" className={`mk-platform-card${meta.connected ? " ready" : ""}`} onClick={() => setAdsPlatform("meta")}>
+                    <span className="mk-platform-card-head"><strong>Meta Ads</strong><span className={`mk-status${meta.connected ? " ready" : " warning"}`}>{meta.connected ? "เชื่อมแล้ว" : "รอตั้งค่า"}</span></span>
+                    <strong>฿{money(metaSpend)}</strong>
+                    <span>Spend · {money(metaLeadSignalCount)} lead/message signals · {facebookMappedRevenue > 0 ? `${facebookMappedRoas.toFixed(2)} ROAS` : "รอ Revenue mapping"}</span>
+                  </button>
+                  <button type="button" className="mk-platform-card" onClick={() => setAdsPlatform("google")}>
+                    <span className="mk-platform-card-head"><strong>Google Ads</strong><span>ยังไม่เชื่อม</span></span>
+                    <strong>-</strong>
+                    <span>ต้องเชื่อม Google Ads API ก่อนจึงจะเปรียบเทียบ Spend, Leads และ ROAS ได้</span>
+                  </button>
+                  <button type="button" className="mk-platform-card" onClick={() => setAdsPlatform("line")}>
+                    <span className="mk-platform-card-head"><strong>LINE Ads</strong><span>ยังไม่เชื่อม</span></span>
+                    <strong>-</strong>
+                    <span>ข้อมูล LINE OA ยังเป็นแหล่ง Lead และยังไม่มี LINE Ads spend ในระบบ</span>
+                  </button>
+                </div>
+              )}
+              {(adsPlatform === "google" || adsPlatform === "line") && (
+                <div className="mk-empty" role="status" style={{ marginTop: 16 }}>
+                  <strong>{adsPlatform === "google" ? "Google Ads" : "LINE Ads"} ยังไม่เชื่อมต่อ</strong>
+                  <div>ระบบจะไม่ประมาณตัวเลขหรือปนข้อมูลจาก GA4/Meta ให้แพลตฟอร์มนี้ เมื่อเชื่อม API แล้วจึงเปิด KPI และตารางรายละเอียด</div>
+                </div>
+              )}
+            </section>
+          )}
+
           {showDashboard && (
             <section className="mk-mobile-command" aria-label="Mobile marketing command summary">
               <div className="mk-mobile-command-head">
@@ -2280,7 +2389,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(showDashboard || activeSection === "reports" || activeSection === "facebook" || activeSection === "sources") && alerts.length > 0 && (
+          {(showDashboard || activeSection === "facebook" || activeSection === "sources") && alerts.length > 0 && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
               <h2>Marketing Alerts</h2>
               <p>แจ้งเตือนเรื่องข้อมูลและ API ที่ต้องตรวจสอบก่อนใช้ตัดสินใจ</p>
@@ -2386,7 +2495,7 @@ export default function MarketingKpiDashboard({
             </div>
           </section>}
 
-          {(activeSection === "facebook" || activeSection === "reports") && (metaStatusMessage || metaPartialWarning) && (
+          {showMetaOverview && (metaStatusMessage || metaPartialWarning) && (
             <section className="mk-empty" style={{ marginTop: 16, textAlign: "left" }}>
               <strong>{metaPartialWarning ? "Meta Ads API ดึงข้อมูลได้บางส่วน" : "Meta Ads data ยังไม่พร้อมแสดง"}</strong>
               {metaStatusMessage && <div>{metaStatusMessage}</div>}
@@ -2396,7 +2505,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "facebook" || activeSection === "reports" || activeSection === "sources") && (
+          {(showMetaOverview || activeSection === "sources") && (
             <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
               <div className="mk-section-head">
                 <div>
@@ -2434,7 +2543,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "facebook" || activeSection === "reports" || activeSection === "sources") && (
+          {(showAdsOverview || showMetaOverview || activeSection === "sources") && (
             <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
               <div className="mk-section-head">
                 <div>
@@ -2457,7 +2566,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "facebook" || activeSection === "reports") && (
+          {showMetaOverview && (
             <section className="mk-grid" style={{ marginTop: 16 }}>
               {[
                 ["Facebook Spend", `฿${money(meta.connected ? metaSpend : manualSpend)}`, meta.connected ? "Meta Ads spend" : "Manual campaign spend"],
@@ -2481,7 +2590,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "facebook" || activeSection === "reports") && (
+          {showMetaOverview && (
             <section className="mk-panel mk-dashboard-secondary" style={{ marginTop: 16 }}>
               <h2>Facebook Revenue Mapping</h2>
               <div className="mk-channel-grid" style={{ marginTop: 14, marginBottom: 14 }}>
@@ -2504,7 +2613,7 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "facebook" || activeSection === "campaigns" || activeSection === "reports") && <section className="mk-panel" id="marketing-campaigns" style={{ marginTop: 16 }}>
+          {showMetaCampaigns && <section className="mk-panel" id="marketing-campaigns" style={{ marginTop: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 12 }}>
               <div>
                 <h2>Campaign Performance</h2>
@@ -2568,36 +2677,42 @@ export default function MarketingKpiDashboard({
             </div>
           </section>}
 
-          {activeSection === "facebook" && (
+          {(showMetaAdSets || showMetaCreative) && (
             <section className="mk-row">
-              <div className="mk-panel">
+              {showMetaAdSets && <div className="mk-panel">
                 <h2>Ad Set Performance</h2>
-                <p>รอเชื่อม ad set id จาก Meta API เพื่อดู audience และต้นทุนต่อกลุ่มเป้าหมาย</p>
+                <p>เปรียบเทียบกลุ่มเป้าหมายจาก Ad Set ID ที่ Meta API ส่งกลับมา</p>
                 <div className="mk-table-wrap compact" style={{ marginTop: 12 }}>
                   <table className="mk-table">
                     <thead><tr><th>Ad Set</th><th>Campaign / Audience</th><th>Spend</th><th>Leads</th><th>CPL</th><th>Qualified</th><th>Closed</th><th>Revenue</th></tr></thead>
-                    <tbody>{topAdSetRows.map((row) => (
-                      <tr key={row.adSetName}><td>{row.adSetName}</td><td>{row.campaign}<div style={{ color: "#8b95a7", fontSize: 12 }}>{row.audience}</div></td><td>฿{money(row.spend)}</td><td>{money(row.leads)}</td><td>{row.cpl ? `฿${money(row.cpl)}` : "-"}</td><td>{money(row.qualifiedLeads)}</td><td>{money(row.closedJobs)}</td><td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td></tr>
-                    ))}</tbody>
+                    <tbody>
+                      {topAdSetRows.length === 0 && <tr><td colSpan={8} className="mk-empty-cell">ยังไม่มีข้อมูล Ad Set ในช่วงวันที่เลือก</td></tr>}
+                      {topAdSetRows.map((row) => (
+                        <tr key={row.adSetName}><td>{row.adSetName}</td><td>{row.campaign}<div style={{ color: "#8b95a7", fontSize: 12 }}>{row.audience}</div></td><td>฿{money(row.spend)}</td><td>{money(row.leads)}</td><td>{row.cpl ? `฿${money(row.cpl)}` : "-"}</td><td>{money(row.qualifiedLeads)}</td><td>{money(row.closedJobs)}</td><td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td></tr>
+                      ))}
+                    </tbody>
                   </table>
                 </div>
-              </div>
-              <div className="mk-panel">
+              </div>}
+              {showMetaCreative && <div className="mk-panel">
                 <h2>Creative Performance</h2>
                 <p>ดูว่า Artwork / Hook แบบไหนควรทำซ้ำ</p>
                 <div className="mk-table-wrap compact" style={{ marginTop: 12 }}>
                   <table className="mk-table">
                     <thead><tr><th>Creative</th><th>Type</th><th>Hook</th><th>Product</th><th>Spend</th><th>Leads</th><th>Revenue</th><th>ควรทำอะไรต่อ</th></tr></thead>
-                    <tbody>{topCreativeRows.map((row) => (
-                      <tr key={row.creativeName}><td>{row.creativeName}</td><td>{row.creativeType}</td><td>{row.hook}</td><td>{row.product}</td><td>฿{money(row.spend)}</td><td>{money(row.leads)}</td><td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td><td>{row.advice || row.note}</td></tr>
-                    ))}</tbody>
+                    <tbody>
+                      {topCreativeRows.length === 0 && <tr><td colSpan={8} className="mk-empty-cell">ยังไม่มีข้อมูล Creative ในช่วงวันที่เลือก</td></tr>}
+                      {topCreativeRows.map((row) => (
+                        <tr key={row.creativeName}><td>{row.creativeName}</td><td>{row.creativeType}</td><td>{row.hook}</td><td>{row.product}</td><td>฿{money(row.spend)}</td><td>{money(row.leads)}</td><td>{row.revenue > 0 ? `฿${money(row.revenue)}` : "รอ Mapping"}</td><td>{row.advice || row.note}</td></tr>
+                      ))}
+                    </tbody>
                   </table>
                 </div>
-              </div>
+              </div>}
             </section>
           )}
 
-          {(activeSection === "budget" || activeSection === "funnel" || activeSection === "reports") && <section className="mk-row" id="marketing-lead-funnel">
+          {(activeSection === "budget" || activeSection === "funnel") && <section className="mk-row" id="marketing-lead-funnel">
             <div className="mk-panel">
               <h2>Budget Monitoring</h2>
               <p>ติดตามงบที่ตั้งไว้และงบที่ใช้จริง</p>
@@ -2667,7 +2782,7 @@ export default function MarketingKpiDashboard({
             </div>
           </section>}
 
-          {(activeSection === "channels" || activeSection === "reports") && <section className="mk-panel" id="marketing-channels" style={{ marginTop: 16 }}>
+          {activeSection === "channels" && <section className="mk-panel" id="marketing-channels" style={{ marginTop: 16 }}>
             <h2>Channel Performance Comparison</h2>
             <p>เปรียบเทียบจากสัญญาณจริงของแต่ละช่องทาง ไม่แบ่งรายได้ ERP แบบเดาเอง</p>
             <div className="mk-channel-grid" style={{ marginTop: 14 }}>
@@ -2684,11 +2799,17 @@ export default function MarketingKpiDashboard({
 
           {activeSection === "leads" && (
             <section className="mk-panel" id="marketing-crm" style={{ marginTop: 16 }}>
-              <div className="mk-section-head">
+              <div className="mk-lead-toolbar">
                 <div><h2>Leads & CRM</h2><p>เก็บความต้องการและ attribution จากหลักฐาน โดยไม่ใช้ชื่อ เบอร์ หรือข้อความแชทเป็นกุญแจจับคู่</p></div>
-                <span className="mk-badge">{crmBackend.loading ? "กำลังเชื่อม CRM" : crmBackend.ready ? `Database พร้อม · ${crmBackend.role}` : "Database ยังไม่พร้อม"}</span>
+                <div className="mk-section-actions">
+                  <span className="mk-badge">{crmBackend.loading ? "กำลังเชื่อม CRM" : crmBackend.ready ? `Database พร้อม · ${crmBackend.role}` : "Database ยังไม่พร้อม"}</span>
+                  <button className={`mk-btn ${showLeadForm ? "" : "orange"}`} type="button" aria-expanded={showLeadForm} onClick={() => setShowLeadForm((visible) => !visible)}>
+                    {showLeadForm ? "ปิดแบบฟอร์ม" : "+ เพิ่ม Lead"}
+                  </button>
+                </div>
               </div>
-              {crmBackend.error && <div className="mk-empty" role="alert" style={{ marginTop: 12 }}>{crmBackend.error} · ต้อง apply migration ก่อนจึงจะบันทึกข้อมูลจริงได้</div>}
+              {showLeadForm && <div className="mk-lead-form">
+                {crmBackend.error && <div className="mk-empty" role="alert">{crmBackend.error} · ต้อง apply migration ก่อนจึงจะบันทึกข้อมูลจริงได้</div>}
               <div className="mk-form-grid" style={{ marginTop: 14 }}>
                 <select className="mk-input" aria-label="ลูกค้าใน ERP" value={leadForm.customerId} onChange={(event) => setLeadForm((prev) => ({ ...prev, customerId: event.target.value }))}><option value="">ยังไม่เชื่อมลูกค้า ERP</option>{customers.map((customer: any) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</select>
                 <select className="mk-input" aria-label="Lead source" value={leadForm.source} onChange={(event) => setLeadForm((prev) => ({ ...prev, source: event.target.value }))}>
@@ -2706,6 +2827,7 @@ export default function MarketingKpiDashboard({
                 <input className="mk-input" aria-label="UTM campaign" placeholder="utm_campaign" value={leadForm.utmCampaign} onChange={(event) => setLeadForm((prev) => ({ ...prev, utmCampaign: event.target.value }))} />
                 <input className="mk-input" aria-label="UTM content" placeholder="utm_content" value={leadForm.utmContent} onChange={(event) => setLeadForm((prev) => ({ ...prev, utmContent: event.target.value }))} />
                 <select className="mk-input" aria-label="Service interest" value={leadForm.service} onChange={(event) => setLeadForm((prev) => ({ ...prev, service: event.target.value }))}>
+                  <option value="">เลือกสินค้า / บริการ</option>
                   {["ป้ายไวนิล", "สติ๊กเกอร์", "PP Board / Standee", "Roll Up / X-Stand", "Backdrop", "งานพิมพ์อื่นๆ"].map((service) => <option key={service}>{service}</option>)}
                 </select>
                 <input className="mk-input" aria-label="Size or area" placeholder="ขนาด / พื้นที่" value={leadForm.sizeOrArea} onChange={(event) => setLeadForm((prev) => ({ ...prev, sizeOrArea: event.target.value }))} />
@@ -2732,12 +2854,13 @@ export default function MarketingKpiDashboard({
                 <button type="button" className={`mk-tag ${leadForm.forceUnattributed ? "active" : ""}`} onClick={() => setLeadForm((prev) => ({ ...prev, forceUnattributed: !prev.forceUnattributed, campaignId: "", adSetId: "", adId: "", manualSelectionConfirmed: false }))}>ไม่สามารถระบุโฆษณาได้</button>
                 <span style={{ color: "#8b95a7", fontSize: 12 }}>Estimated Value ใช้กับ pipeline เท่านั้น ไม่ถูกนับเป็น Revenue</span>
               </div>
-              <button className="mk-btn orange" type="button" disabled={!crmBackend.ready || (leadForm.status === "closed_lost" && !leadForm.lostReason) || (leadForm.status === "closed_won" && !leadForm.receiptId)} style={{ marginTop: 16 }} onClick={() => void addLead()}>+ เพิ่ม Lead ลงฐานข้อมูล</button>
+              <button className="mk-btn orange" type="button" disabled={!crmBackend.ready || !leadForm.service || (leadForm.status === "closed_lost" && !leadForm.lostReason) || (leadForm.status === "closed_won" && !leadForm.receiptId)} style={{ marginTop: 16 }} onClick={() => void addLead()}>บันทึก Lead</button>
+              </div>}
             </section>
           )}
 
-          {(activeSection === "insight" || activeSection === "leads" || activeSection === "reports") && <section className="mk-row" id="marketing-ai-insight">
-            <div className="mk-panel">
+          {(activeSection === "insight" || activeSection === "leads") && <section className="mk-row" id="marketing-ai-insight">
+            {activeSection === "insight" && <div className="mk-panel">
               <h2>AI Insight</h2>
               <p>สรุปแนวทางที่ควรทำต่อจากข้อมูลปัจจุบัน</p>
               <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
@@ -2745,14 +2868,14 @@ export default function MarketingKpiDashboard({
                 <div className="mk-mini">เชื่อม Meta Ads เพื่อคำนวณ Spend, CPL, CAC และ ROAS แบบอัตโนมัติ</div>
                 <div className="mk-mini">ใช้ใบเสร็จ ERP เป็นแหล่ง Revenue หลัก เพื่อไม่ให้ยอดขายซ้ำกับใบเสนอราคา</div>
               </div>
-            </div>
+            </div>}
             <div className="mk-panel">
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                 <div>
                   <h2>Leads / CRM</h2>
                   <p>บันทึก Lead เบื้องต้นก่อนเชื่อม LINE OA API</p>
                 </div>
-                <button className="mk-btn orange" type="button" onClick={() => setActiveSection("leads")}>+ Add Lead</button>
+                <button className="mk-btn orange" type="button" onClick={() => { setActiveSection("leads"); setShowLeadForm(true); }}>+ เพิ่ม Lead</button>
               </div>
               <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
                 {filteredLeads.slice(0, activeSection === "leads" ? filteredLeads.length : 4).map((lead) => {
@@ -2970,13 +3093,48 @@ export default function MarketingKpiDashboard({
             </section>
           )}
 
-          {(activeSection === "quotations" || activeSection === "orders" || activeSection === "products" || activeSection === "reports") && (
+          {activeSection === "reports" && (
+            <section className="mk-panel" style={{ marginTop: 16 }}>
+              <div className="mk-section-head">
+                <div>
+                  <div className="mk-eyebrow">Report Center</div>
+                  <h2>รายงานเพื่อการตัดสินใจ</h2>
+                  <p>เลือกมุมมองที่ต้องการตรวจ แทนการแสดงทุก dashboard ซ้ำในหน้าเดียว</p>
+                </div>
+                <button className="mk-btn orange" type="button" onClick={exportMarketingCsv}>ส่งออกข้อมูลช่วงนี้</button>
+              </div>
+              <div className="mk-channel-grid" style={{ marginTop: 14 }}>
+                <div className="mk-mini"><strong>฿{money(receiptRevenue)}</strong><div>ERP receipt revenue</div></div>
+                <div className="mk-mini"><strong>฿{money(marketingSpend)}</strong><div>Paid media spend</div></div>
+                <div className="mk-mini"><strong>{money(crmLeads)}</strong><div>CRM lead records</div></div>
+                <div className="mk-mini"><strong>{alerts.length}</strong><div>Data quality alerts</div></div>
+              </div>
+              <div className="mk-report-grid">
+                {[
+                  { title: "Executive summary", detail: "รายได้ ค่าโฆษณา กำไร และสิ่งที่ต้องตรวจสอบ", action: () => setActiveSection("dashboard") },
+                  { title: "Paid media", detail: "เปรียบเทียบแพลตฟอร์มก่อนเจาะ Meta Campaign, Ad Set และ Creative", action: () => { setAdsPlatform("all"); setActiveSection("facebook"); } },
+                  { title: "Funnel & attribution", detail: "ติดตาม Lead, Quote, Closed Won และรายได้ที่ map แล้ว", action: () => setActiveSection("orders") },
+                  { title: "Customer & product", detail: "ช่องทาง ลูกค้าซื้อซ้ำ พื้นที่ และสินค้า/บริการที่ขายจริง", action: () => setActiveSection("customers") },
+                  { title: "Data quality", detail: "สถานะ API, coverage, token expiry และข้อผิดพลาดที่ต้องแก้", action: () => setActiveSection("sources") },
+                ].map((report) => (
+                  <div className="mk-report-card" key={report.title}>
+                    <div><strong>{report.title}</strong><p>{report.detail}</p></div>
+                    <button className="mk-btn" type="button" onClick={report.action}>เปิดดู</button>
+                  </div>
+                ))}
+              </div>
+              <div className="mk-empty" style={{ marginTop: 16 }}>
+                ไฟล์ส่งออกประกอบด้วย Ads, Leads, Mapping และ Readme สำหรับช่วงวันที่ที่เลือก โดยไม่รวมข้อความแชทหรือข้อมูลส่วนตัวที่ไม่จำเป็น
+              </div>
+            </section>
+          )}
+
+          {(activeSection === "quotations" || activeSection === "orders" || activeSection === "products") && (
             <section className="mk-panel" style={{ marginTop: 16 }}>
               <h2>
                 {activeSection === "quotations" ? "Quotations"
                   : activeSection === "orders" ? "Orders / Jobs"
-                  : activeSection === "products" ? "Products"
-                  : "Reports"}
+                  : "Products"}
               </h2>
               <p>ข้อมูลส่วนนี้อ้างอิงจาก ERP เพื่อดูการปิดการขาย โดยกำไรยังเป็นค่าประมาณจนกว่าจะมีต้นทุนงานจริงครบ</p>
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
@@ -3030,7 +3188,7 @@ export default function MarketingKpiDashboard({
                   </div>
                   {aiCitations.error && (
                     <div className="mk-empty" style={{ marginTop: 12 }}>
-                      {aiCitations.error} - รันไฟล์ supabase/ai-citation-monitoring.sql ก่อน แล้วค่อยต่อ API prompt automation
+                      {aiCitations.error} - apply migration 20260915151454 ก่อน แล้วค่อยต่อ API prompt automation
                     </div>
                   )}
                 </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { checkAdminAuthorization } from "@/lib/admin-authorization";
+import { bangkokDateFromTimestamp, marketingDateRangeFromUrl } from "@/lib/marketing-date-range";
 
 type CitationLog = {
   id: string;
@@ -23,24 +24,6 @@ type AiReferral = {
   referrer: string | null;
   created_at: string;
 };
-
-function dateRangeFromRequest(request: Request) {
-  const url = new URL(request.url);
-  const startDate = url.searchParams.get("startDate");
-  const endDate = url.searchParams.get("endDate");
-
-  if (startDate && endDate) {
-    return {
-      startIso: new Date(`${startDate}T00:00:00.000Z`).toISOString(),
-      endIso: new Date(`${endDate}T23:59:59.999Z`).toISOString(),
-    };
-  }
-
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 29);
-  return { startIso: start.toISOString(), endIso: end.toISOString() };
-}
 
 function asArray(value: unknown): unknown[] {
   if (Array.isArray(value)) return value;
@@ -99,12 +82,12 @@ function countUrls(rows: CitationLog[], key: "cited_urls" | "competitor_urls") {
 function countDaily(citations: CitationLog[], referrals: AiReferral[]) {
   const grouped: Record<string, { date: string; citations: number; referrals: number }> = {};
   citations.forEach((row) => {
-    const date = row.timestamp.slice(0, 10);
+    const date = bangkokDateFromTimestamp(row.timestamp);
     grouped[date] = grouped[date] || { date, citations: 0, referrals: 0 };
     if (row.is_cited) grouped[date].citations += 1;
   });
   referrals.forEach((row) => {
-    const date = row.created_at.slice(0, 10);
+    const date = bangkokDateFromTimestamp(row.created_at);
     grouped[date] = grouped[date] || { date, citations: 0, referrals: 0 };
     grouped[date].referrals += 1;
   });
@@ -143,20 +126,20 @@ export async function GET(request: Request) {
     );
   }
 
-  const { startIso, endIso } = dateRangeFromRequest(request);
+  const { startIso, endExclusiveIso } = marketingDateRangeFromUrl(request.url);
   const [citationResult, referralResult] = await Promise.all([
     supabase
       .from("ai_citation_logs")
       .select("id, timestamp, platform, prompt_text, is_cited, cited_urls, competitor_urls, brand_mentions, raw_response, source")
       .gte("timestamp", startIso)
-      .lte("timestamp", endIso)
+      .lt("timestamp", endExclusiveIso)
       .order("timestamp", { ascending: false })
       .limit(1000),
     supabase
       .from("ai_referral_visits")
       .select("id, platform, landing_page, referrer, created_at")
       .gte("created_at", startIso)
-      .lte("created_at", endIso)
+      .lt("created_at", endExclusiveIso)
       .order("created_at", { ascending: false })
       .limit(1000),
   ]);
@@ -168,7 +151,7 @@ export async function GET(request: Request) {
         success: false,
         connected: false,
         error: missingTableError.message,
-        hint: "กรุณารัน supabase/ai-citation-monitoring.sql ใน Supabase Production ก่อนใช้งาน",
+        hint: "กรุณา apply migration 20260915151454_add_ai_referral_visits ใน Supabase Production ก่อนใช้งาน",
         totals: {},
         byPlatform: [],
         byCitedPage: [],
