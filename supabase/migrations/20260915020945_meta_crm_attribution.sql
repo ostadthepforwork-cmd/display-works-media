@@ -1,6 +1,8 @@
 -- Meta Ads -> CRM -> ERP attribution foundation.
 -- Additive only: no existing ERP or marketing rows are rewritten by this migration.
 
+begin;
+
 create schema if not exists private;
 revoke all on schema private from public, anon;
 revoke create on schema private from authenticated;
@@ -466,3 +468,5 @@ comment on table public.marketing_messenger_referrals is 'Minimal Messenger refe
 
 -- Campaign 120249760412250073 / THB 200 daily is intentionally not inserted here.
 -- The validation trigger permits it only after the campaign exists in marketing_meta_entities.
+
+commit;
