@@ -1,0 +1,45 @@
+/* Display Works Admin · shared design tokens */
+:root {
+  --color-admin-canvas: oklch(97.6% 0.006 245);
+  --color-admin-paper: oklch(99.2% 0.006 70);
+  --color-admin-paper-soft: oklch(96.4% 0.008 245);
+  --color-admin-ink: oklch(23% 0.025 250);
+  --color-admin-ink-strong: oklch(14% 0.02 250);
+  --color-admin-muted: oklch(49% 0.025 250);
+  --color-admin-rule: oklch(89% 0.009 245);
+  --color-admin-rule-strong: oklch(82% 0.016 245);
+  --color-admin-accent: oklch(69% 0.2 46);
+  --color-admin-accent-hover: oklch(62% 0.2 43);
+  --color-admin-accent-soft: oklch(96% 0.043 55);
+  --color-admin-accent-ink: oklch(42% 0.14 43);
+  --color-admin-positive: oklch(46% 0.12 157);
+  --color-admin-positive-soft: oklch(95% 0.035 157);
+  --color-admin-negative: oklch(54% 0.19 22);
+  --color-admin-negative-soft: oklch(96% 0.035 22);
+  --color-admin-info: oklch(55% 0.15 255);
+  --color-admin-info-soft: oklch(95% 0.028 255);
+  --color-admin-focus: oklch(60% 0.21 45);
+  --color-admin-shadow: oklch(20% 0.025 250 / 0.07);
+  --font-admin-display: "Kanit", "Prompt", "Noto Sans Thai", sans-serif;
+  --font-admin-body: "Prompt", "Noto Sans Thai", "Segoe UI", sans-serif;
+  --space-admin-3xs: 4px;
+  --space-admin-2xs: 8px;
+  --space-admin-xs: 12px;
+  --space-admin-sm: 16px;
+  --space-admin-md: 20px;
+  --space-admin-lg: 24px;
+  --space-admin-xl: 32px;
+  --text-admin-xs: 11px;
+  --text-admin-sm: 12px;
+  --text-admin-md: 14px;
+  --text-admin-lg: 18px;
+  --text-admin-xl: 26px;
+  --ease-admin-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-admin-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-admin-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-admin-short: 140ms;
+  --dur-admin-medium: 220ms;
+  --radius-admin-control: 7px;
+  --radius-admin-card: 8px;
+  --rule-admin-thin: 1px;
+}

@@ -19,7 +19,7 @@ import ExecutiveDashboard from './dashboard/ExecutiveDashboard';
 import ErpNavigation from './dashboard/ErpNavigation';
 import ErpDataExport from './dashboard/ErpDataExport';
 import erpNavigationStyle from './dashboard/ErpNavigation.module.css';
-import { Home as HomeIcon, Box as BoxIcon, PenLine, ChartNoAxesCombined } from 'lucide-react';
+import { Home as HomeIcon, Box as BoxIcon, PenLine, ChartNoAxesCombined, LayoutDashboard, ArrowRight, LogOut } from 'lucide-react';
 import { completePages, inPeriod, periodFromSearch, periodSearch, quickPeriod } from '@/lib/dashboard-period';
 
 const supabase = getSupabaseBrowserClient();
@@ -1172,54 +1172,30 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="admin-app-shell" style={{ minHeight: "100vh", background: "#0B0F19", color: "#fff", fontFamily: "'Prompt','Sarabun',sans-serif", display: "flex", flexDirection: "column" }}>
+    <div className="admin-app-shell" data-module={mainTab}>
 
       {/* ─── TOP BAR ─── */}
-      <div className="top-bar" style={{
-        background: mainTab === 'erp' ? '#fff' : '#0e1926', color: mainTab === 'erp' ? '#18191b' : '#fff', borderBottom: mainTab === 'erp' ? '1px solid #e9ebed' : '1px solid #253441',
-        display: "flex", alignItems: "center",
-        minHeight: mainTab === 'erp' ? 60 : 52,
-        padding: mainTab === 'erp' ? "0 22px" : "0 16px",
-        paddingTop: "max(env(safe-area-inset-top, 0px), 0px)",
-        gap: 8, flexShrink: 0, zIndex: 100,
-        boxShadow: mainTab === 'erp' ? '0 8px 26px rgba(24,34,48,0.06)' : undefined,
-      }}>
-        <Image
-          src="/images/logo.png"
-          alt="Display Works Media"
-          width={32}
-          height={28}
-          style={{ width: 32, height: 28, objectFit: "contain", marginRight: 4, flexShrink: 0 }}
-        />
-        <span className="hide-mobile" style={{ fontWeight: 700, fontSize: 16, color: 'inherit', marginRight: 20 }}>Display Works</span>
-        <div className="hide-mobile" style={{ display: "flex", gap: 4 }}>
-          <button type="button" onClick={() => setMainTab("home")} style={{
-            padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
-            background: mainTab === "home" ? "#FF6B00" : "transparent",
-            color: mainTab === "home" ? "#fff" : mainTab === 'erp' ? '#353a42' : '#A8B0C0', transition: "all 0.2s",
-          }}>
+      <div className="top-bar admin-topbar">
+        <div className="admin-brand-lockup">
+          <Image src="/images/logo.png" alt="Display Works Media" width={34} height={30} />
+          <span className="hide-mobile"><strong>Display Works</strong><small>BUSINESS OPERATIONS</small></span>
+        </div>
+        <nav className="hide-mobile admin-primary-nav" aria-label="ระบบหลังบ้านหลัก">
+          <button type="button" aria-current={mainTab === "home" ? "page" : undefined} onClick={() => setMainTab("home")}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><HomeIcon size={16} /> Home</span>
           </button>
           {["erp","cms"].map(t => (
-            <button type="button" key={t} onClick={() => setMainTab(t)} style={{
-              padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
-              background: mainTab === t ? "#FF6B00" : "transparent",
-              color: mainTab === t ? "#fff" : mainTab === 'erp' ? '#353a42' : '#A8B0C0', transition: "all 0.2s",
-            }}>
+            <button type="button" key={t} aria-current={mainTab === t ? "page" : undefined} onClick={() => setMainTab(t)}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>{t === "erp" ? <BoxIcon size={16} /> : <PenLine size={16} />}{t.toUpperCase()}</span>
             </button>
           ))}
-          <button type="button" onClick={() => setMainTab("marketing")} style={{
-            padding: "6px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
-            background: mainTab === "marketing" ? "#FF6B00" : "transparent",
-            color: mainTab === "marketing" ? "#fff" : mainTab === 'erp' ? '#353a42' : '#A8B0C0', transition: "all 0.2s",
-          }}>
+          <button type="button" aria-current={mainTab === "marketing" ? "page" : undefined} onClick={() => setMainTab("marketing")}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><ChartNoAxesCombined size={16} /> Marketing</span>
           </button>
-        </div>
+        </nav>
         {/* Mobile: compact title + drawer trigger */}
         <div className="show-mobile admin-mobile-top" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-          <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: mainTab === 'erp' ? '#18191b' : '#fff', flex: 1 }}>
+          <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-admin-ink-strong)', flex: 1 }}>
             {mainTab === "home" ? "Admin" : mainTab === "erp"
               ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : erpPage === "export" ? "ส่งออกและสำรอง" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
@@ -1234,14 +1210,14 @@ export default function AdminPage() {
             <b>{showMobileDrawer ? "Close" : "Menu"}</b>
           </button>
         </div>
-        <div style={{ flex: 1 }} className="hide-mobile" />
+        <div className="hide-mobile admin-topbar-spacer" />
         <LogoutButton />
       </div>
 
-      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+      <div className="admin-workspace">
         {mainTab === "home" && (
           <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-            <div className="main-content-area admin-home-content" style={{ flex: 1, overflowY: "auto", padding: "clamp(14px,3vw,28px)", paddingBottom: "clamp(80px,10vw,28px)" }}>
+            <div className="main-content-area admin-main-scroll admin-home-content">
               <AdminHome
                 customers={customers}
                 documents={documents}
@@ -1264,7 +1240,7 @@ export default function AdminPage() {
             <div className="hide-mobile" style={{ display: "flex" }}>
               <ErpNavigation page={erpPage} onPage={next => { setDashboardEntry(false); setDashboardDocumentId(null); setErpPage(next); }} counts={docCounts} />
             </div>
-            <div className="main-content-area erp-admin-content" style={{ flex: 1, minWidth: 0, overflowY: "auto", padding: ['dashboard','export'].includes(erpPage) ? "0 16px 28px" : "18px 20px", paddingBottom: "clamp(80px,10vw,28px)", background: ['dashboard','export'].includes(erpPage) ? 'var(--color-canvas, #f5f7fa)' : '#0b141e', color: ['dashboard','export'].includes(erpPage) ? '#202b36' : undefined }}>
+            <div className="main-content-area admin-main-scroll erp-admin-content" data-page={erpPage}>
               {erpLoading ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "#888", fontSize: 14, gap: 10 }}>
                   <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span> กำลังโหลดข้อมูล...
@@ -4593,6 +4569,7 @@ function AdminHome({
   const systemCards = [
     {
       key: "erp",
+      icon: LayoutDashboard,
       label: "ระบบ ERP",
       sub: "งานขาย ลูกค้า เอกสาร และการเงิน",
       color: "#FF6B00",
@@ -4605,6 +4582,7 @@ function AdminHome({
     },
     {
       key: "cms",
+      icon: PenLine,
       label: "ระบบ CMS",
       sub: "บทความ บริการ ผลงาน และเว็บไซต์",
       color: "#2563EB",
@@ -4617,6 +4595,7 @@ function AdminHome({
     },
     {
       key: "mkt",
+      icon: ChartNoAxesCombined,
       label: "Marketing",
       sub: "Leads โฆษณา ROAS และ Customer Insight",
       color: "#16A34A",
@@ -4630,9 +4609,9 @@ function AdminHome({
   ];
 
   const taskRows = [
-    { label: "ใบเสนอราคาที่ต้องติดตาม", value: pendingQuotes, color: "#F97316", onClick: () => goErp("quote") },
-    { label: "ใบแจ้งหนี้ / ใบวางบิลค้างชำระ", value: pendingPayments, color: "#EF4444", onClick: () => goErp("invoice") },
-    { label: "สินค้าและบริการในระบบ", value: products.length, color: "#2563EB", onClick: () => goErp("products") },
+    { label: "ใบเสนอราคาต้องติดตาม", value: pendingQuotes, color: "#F97316", onClick: () => goErp("quote") },
+    { label: "เอกสารค้างชำระ", value: pendingPayments, color: "#EF4444", onClick: () => goErp("invoice") },
+    { label: "สินค้าและบริการ", value: products.length, color: "#2563EB", onClick: () => goErp("products") },
   ];
 
   return (
@@ -4665,7 +4644,7 @@ function AdminHome({
         <h2>เลือกระบบที่ต้องการจัดการ</h2>
         {systemCards.map((card) => (
           <button key={card.key} type="button" className="admin-system-card" onClick={card.onClick} style={{ "--system-color": card.color } as any}>
-            <div className="admin-system-icon">{card.key.toUpperCase()}</div>
+            <div className="admin-system-icon"><card.icon aria-hidden="true" /></div>
             <div className="admin-system-body">
               <strong>{card.label}</strong>
               <span>{card.sub}</span>
@@ -4678,7 +4657,7 @@ function AdminHome({
                 ))}
               </div>
             </div>
-            <em>{card.action}</em>
+            <em>{card.action}<ArrowRight size={14} aria-hidden="true" /></em>
           </button>
         ))}
       </section>
@@ -8471,28 +8450,11 @@ function LogoutButton() {
   return (
     <button
       type="button" className="admin-logout-btn"
+      aria-label="ออกจากระบบ"
       onClick={handleLogout}
-      style={{
-        background: "rgba(239,68,68,0.1)",
-        border: "1px solid rgba(239,68,68,0.2)",
-        color: "#ef4444",
-        padding: "8px 16px",
-        borderRadius: 10,
-        fontSize: 13,
-        cursor: "pointer",
-        fontFamily: "inherit",
-        fontWeight: 600,
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-        transition: "all 0.15s",
-        flexShrink: 0,
-        minHeight: 40,
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.25)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.5)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)"; }}
     >
-      <span>🚪</span> <span className="admin-logout-text">ออกจากระบบ</span>
+      <LogOut size={15} aria-hidden="true" />
+      <span className="admin-logout-text">ออกจากระบบ</span>
     </button>
   );
 }

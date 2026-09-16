@@ -92,6 +92,15 @@ export async function proxy(req: NextRequest, event: NextFetchEvent) {
     return res;
   }
 
+  const requestHost = req.headers.get("host") ?? "";
+  const isLocalAdminPreview =
+    process.env.ENABLE_LOCAL_ADMIN_BYPASS === "1" &&
+    (requestHost.startsWith("127.0.0.1:") || requestHost.startsWith("localhost:"));
+
+  if (isLocalAdminPreview) {
+    return res;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

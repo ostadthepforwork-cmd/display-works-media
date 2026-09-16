@@ -4,6 +4,7 @@
 
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { LogOut } from "lucide-react";
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -18,23 +19,12 @@ export default function LogoutButton() {
   return (
     <button
       type="button"
+      className="admin-logout-btn"
       aria-label="ออกจากระบบ"
       onClick={handleLogout}
-      style={{
-        background: "rgba(239,68,68,0.1)",
-        border: "1px solid rgba(239,68,68,0.2)",
-        color: "#ef4444",
-        padding: "5px 12px",
-        borderRadius: 8,
-        fontSize: 12,
-        cursor: "pointer",
-        fontFamily: "'Prompt', sans-serif",
-        transition: "all 0.15s",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.2)")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.1)")}
     >
-      ออกจากระบบ
+      <LogOut size={15} aria-hidden="true" />
+      <span className="hide-mobile">ออกจากระบบ</span>
     </button>
   );
 }
