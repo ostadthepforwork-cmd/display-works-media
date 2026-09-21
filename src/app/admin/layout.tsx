@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin-auth";
+import "../../../tokens.css";
 import "./admin-system.css";
 
 export const metadata: Metadata = {
