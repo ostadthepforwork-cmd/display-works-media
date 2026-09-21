@@ -12,6 +12,7 @@ import { isReportDoc, reportRootId, reportingDocuments } from '@/lib/erp-reporti
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { requestBlogRevalidation } from '@/lib/revalidation-client';
 import { escapeHtml as escapeRichText, sanitizeHtml } from '@/lib/sanitize-html';
+import { maskContactName, maskEmail, maskPhone, maskTaxId } from '@/lib/admin-display';
 import MarketingKpiDashboard from './MarketingKpiDashboard';
 import ExpensePage from './expenses/ExpensePage';
 import ExpenseDashboard from './expenses/ExpenseDashboard';
@@ -19,7 +20,23 @@ import ExecutiveDashboard from './dashboard/ExecutiveDashboard';
 import ErpNavigation from './dashboard/ErpNavigation';
 import ErpDataExport from './dashboard/ErpDataExport';
 import erpNavigationStyle from './dashboard/ErpNavigation.module.css';
-import { Home as HomeIcon, Box as BoxIcon, PenLine, ChartNoAxesCombined, LayoutDashboard, ArrowRight, LogOut } from 'lucide-react';
+import {
+  Home as HomeIcon,
+  Box as BoxIcon,
+  PenLine,
+  ChartNoAxesCombined,
+  LayoutDashboard,
+  ArrowRight,
+  LogOut,
+  Activity,
+  CalendarDays,
+  CircleDollarSign,
+  Clock3,
+  PackageSearch,
+  ReceiptText,
+  TrendingUp,
+  WalletCards,
+} from 'lucide-react';
 import { completePages, inPeriod, periodFromSearch, periodSearch, quickPeriod } from '@/lib/dashboard-period';
 
 const supabase = getSupabaseBrowserClient();
@@ -4572,6 +4589,7 @@ function AdminHome({
       icon: LayoutDashboard,
       label: "ระบบ ERP",
       sub: "งานขาย ลูกค้า เอกสาร และการเงิน",
+      badge: "Core operations",
       color: "#FF6B00",
       stats: [
         { label: "รออนุมัติ", value: `${pendingQuotes} เอกสาร` },
@@ -4585,6 +4603,7 @@ function AdminHome({
       icon: PenLine,
       label: "ระบบ CMS",
       sub: "บทความ บริการ ผลงาน และเว็บไซต์",
+      badge: "Web content",
       color: "#2563EB",
       stats: [
         { label: "บทความ", value: "จัดการเว็บ" },
@@ -4598,6 +4617,7 @@ function AdminHome({
       icon: ChartNoAxesCombined,
       label: "Marketing",
       sub: "Leads โฆษณา ROAS และ Customer Insight",
+      badge: "Growth intelligence",
       color: "#16A34A",
       stats: [
         { label: "ใบเสร็จ", value: `${receiptCount} ฉบับ` },
@@ -4609,9 +4629,9 @@ function AdminHome({
   ];
 
   const taskRows = [
-    { label: "ใบเสนอราคาต้องติดตาม", value: pendingQuotes, color: "#F97316", onClick: () => goErp("quote") },
-    { label: "เอกสารค้างชำระ", value: pendingPayments, color: "#EF4444", onClick: () => goErp("invoice") },
-    { label: "สินค้าและบริการ", value: products.length, color: "#2563EB", onClick: () => goErp("products") },
+    { label: "ใบเสนอราคาต้องติดตาม", hint: "ติดตามโอกาสขายที่ยังเปิดอยู่", value: pendingQuotes, color: "#F97316", icon: Clock3, onClick: () => goErp("quote") },
+    { label: "เอกสารค้างชำระ", hint: `ยอดคงค้าง ${fmtMoney(pendingBalance)}`, value: pendingPayments, color: "#EF4444", icon: CircleDollarSign, onClick: () => goErp("invoice") },
+    { label: "สินค้าและบริการ", hint: "ตรวจสอบรายการขายและต้นทุน", value: products.length, color: "#2563EB", icon: PackageSearch, onClick: () => goErp("products") },
   ];
 
   return (
@@ -4628,24 +4648,52 @@ function AdminHome({
       </div>
 
       <section className="admin-home-summary">
-        <div>
-          <span>ภาพรวมวันนี้</span>
-          <h1>สวัสดี คุณผู้ดูแล</h1>
-          <p>เลือกจัดการ ERP, CMS หรือ Marketing จากการ์ดด้านล่าง</p>
+        <Image
+          className="admin-home-summary-image"
+          src="/images/erp-dashboard-facade.png"
+          alt="อาคารและพื้นที่ปฏิบัติงาน Display Works Media"
+          fill
+          sizes="(max-width: 860px) 100vw, 1180px"
+          priority
+        />
+        <div className="admin-home-summary-copy">
+          <span className="admin-home-live"><Activity aria-hidden="true" /> Business Command Center</span>
+          <h1>ภาพรวมธุรกิจ</h1>
+          <p>ศูนย์กลางสำหรับติดตามงานขาย เอกสาร การเงิน และการเติบโตของ Display Works Media</p>
+          <div className="admin-home-summary-date"><CalendarDays aria-hidden="true" />{today}</div>
         </div>
-        <div className="admin-home-money">
-          <span>ยอดจากใบเสร็จ</span>
-          <strong>{fmtMoney(totalRevenue)}</strong>
-          <small>กำไรขั้นต้น {fmtMoney(totalProfit)} / ต้นทุน {fmtMoney(totalCost)}</small>
+        <div className="admin-home-metrics" aria-label="ตัวเลขสรุปธุรกิจ">
+          <div>
+            <ReceiptText aria-hidden="true" />
+            <span>ยอดจากใบเสร็จ</span>
+            <strong>{fmtMoney(totalRevenue)}</strong>
+          </div>
+          <div>
+            <TrendingUp aria-hidden="true" />
+            <span>กำไรขั้นต้น</span>
+            <strong>{fmtMoney(totalProfit)}</strong>
+          </div>
+          <div>
+            <WalletCards aria-hidden="true" />
+            <span>ต้นทุนประมาณการ</span>
+            <strong>{fmtMoney(totalCost)}</strong>
+          </div>
         </div>
       </section>
 
       <section className="admin-home-systems">
-        <h2>เลือกระบบที่ต้องการจัดการ</h2>
+        <div className="admin-home-section-heading">
+          <div><h2>พื้นที่ทำงาน</h2><p>เลือกโมดูลเพื่อเริ่มจัดการข้อมูลและงานประจำวัน</p></div>
+          <span>3 ระบบพร้อมใช้งาน</span>
+        </div>
         {systemCards.map((card) => (
-          <button key={card.key} type="button" className="admin-system-card" onClick={card.onClick} style={{ "--system-color": card.color } as any}>
-            <div className="admin-system-icon"><card.icon aria-hidden="true" /></div>
+          <button key={card.key} type="button" className="admin-system-card" data-system={card.key} onClick={card.onClick} style={{ "--system-color": card.color } as any}>
+            <div className="admin-system-card-top">
+              <div className="admin-system-icon"><card.icon aria-hidden="true" /></div>
+              <span className="admin-system-ready"><i />พร้อมใช้งาน</span>
+            </div>
             <div className="admin-system-body">
+              <small className="admin-system-badge">{card.badge}</small>
               <strong>{card.label}</strong>
               <span>{card.sub}</span>
               <div className="admin-system-stats">
@@ -4663,13 +4711,16 @@ function AdminHome({
       </section>
 
       <section className="admin-home-tasks">
-        <h2>สิ่งที่ต้องจัดการ</h2>
+        <div className="admin-home-section-heading">
+          <div><h2>สิ่งที่ต้องจัดการ</h2><p>รายการสำคัญที่ควรตรวจสอบต่อ</p></div>
+        </div>
         <div>
           {taskRows.map((task) => (
             <button key={task.label} type="button" onClick={task.onClick}>
-              <span style={{ background: task.color }} />
-              <strong>{task.label}</strong>
+              <span className="admin-task-icon" style={{ "--task-color": task.color } as any}><task.icon aria-hidden="true" /></span>
+              <span className="admin-task-copy"><strong>{task.label}</strong><small>{task.hint}</small></span>
               <b>{task.value}</b>
+              <ArrowRight className="admin-task-arrow" aria-hidden="true" />
             </button>
           ))}
         </div>
@@ -5184,11 +5235,11 @@ function MarketingPage({ documents, showToast }: any) {
           <section id="marketing-dashboard" className="marketing-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 14, marginBottom: 18 }}>
             {[
               { label: "Campaign Revenue", value: `฿${fmtMoney(revenue)}`, sub: "From receipts only", formula: "Revenue = receipt totals", icon: "฿", color: "#10B981" },
-              { label: "Marketing Leads", value: marketingLeadCount.toLocaleString(), sub: "Meta lead/message + CRM view", formula: "Marketing Leads = Meta leads if connected, otherwise CRM leads", icon: "L", color: "#FF6B00" },
+              { label: "Marketing Signals", value: marketingLeadCount.toLocaleString(), sub: "Meta lead/message actions or CRM fallback", formula: "Signals = Meta lead/message actions when connected, otherwise CRM leads", icon: "L", color: "#FF6B00" },
               { label: "CRM to Customer Rate", value: `${conversionRate.toFixed(2)}%`, sub: "ERP receipts / CRM leads", formula: "Close Rate = Closed Jobs / CRM Leads x 100", icon: "%", color: "#8B5CF6" },
               { label: "Closed Jobs", value: closedJobs.toLocaleString(), sub: "Receipts in ERP", formula: "Closed Jobs = valid receipts", icon: "J", color: "#22C55E" },
               { label: "Marketing Spend", value: `฿${fmtMoney(marketingSpend)}`, sub: metaAds.connected ? "Meta Ads" : "Waiting Meta API", formula: "Spend from connected ad source", icon: "S", color: "#EC4899" },
-              { label: "Cost per Lead", value: cpl ? `฿${fmtMoney(cpl)}` : "-", sub: "CPL", formula: "CPL = Spend / Leads", icon: "C", color: "#EAB308" },
+              { label: "Cost per Signal", value: cpl ? `฿${fmtMoney(cpl)}` : "-", sub: "Spend / signal", formula: "Cost per Signal = Spend / lead-message actions", icon: "C", color: "#EAB308" },
               { label: "Gross Profit", value: `฿${fmtMoney(grossProfit)}`, sub: "Revenue - Cost", formula: "Gross Profit = Revenue - item cost", icon: "P", color: "#14B8A6" },
               { label: "ROAS", value: roas ? roas.toFixed(2) : "-", sub: "Revenue / Spend", formula: "ROAS = Revenue / Spend", icon: "R", color: "#F97316" },
             ].map((item) => (
@@ -6307,10 +6358,16 @@ function CustomerInsightDashboard({ customers = [], documents = [], products = [
 function CustomerPage({ customers, setCustomers, documents = [], products = [], showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
   const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "", customerSegment: "B2B", businessType: "" };
   const filtered = customers.filter(c =>
     [c.name, c.contact, c.phone, c.customerSegment, c.businessType].some((value) => String(value || "").includes(search))
   );
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const visibleCustomers = filtered.slice((page - 1) * pageSize, page * pageSize);
+  useEffect(() => setPage(1), [search]);
+  useEffect(() => setPage((current) => Math.min(current, pageCount)), [pageCount]);
   const save = async (form) => {
     if (!form.name.trim()) return showToast("กรุณาใส่ชื่อลูกค้า", "error");
     if (form.taxId && !/^\d{13}$/.test(form.taxId.replace(/-/g, "")))
@@ -6350,18 +6407,19 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
       <div className="erp-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>ลูกค้า</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{customers.length} ราย</p></div>
         <div className="erp-page-actions" style={{ display: "flex", gap: 10 }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ค้นหา..." style={{ width: 220 }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} aria-label="ค้นหาลูกค้า" placeholder="ค้นหาลูกค้า..." style={{ width: 220 }} />
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มลูกค้า</Btn>
         </div>
       </div>
+      <div className="erp-privacy-note" role="note">ข้อมูลติดต่อถูกปกปิดในหน้ารวม เปิดแก้ไขเพื่อดูรายละเอียดเต็ม</div>
       <div className="erp-card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
-        {filtered.map(c => (
+        {visibleCustomers.map(c => (
           <div className="erp-data-card" key={c.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 18px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-              <div><div style={{ fontWeight: 600, fontSize: 15 }}>{c.name}</div>{c.contact && <div style={{ fontSize: 12, color: "#A8B0C0" }}>{c.contact}</div>}</div>
+              <div><div style={{ fontWeight: 600, fontSize: 15 }}>{c.name}</div>{c.contact && <div style={{ fontSize: 12, color: "#A8B0C0" }}>ผู้ติดต่อ {maskContactName(c.contact)}</div>}</div>
               <div className="erp-card-actions" style={{ display: "flex", gap: 6 }}>
-                <IconBtn onClick={() => setEditing({ ...c })} title="แก้ไข">✏️</IconBtn>
-                <IconBtn onClick={() => del(c.id)} title="ลบ" danger>🗑️</IconBtn>
+                <IconBtn onClick={() => setEditing({ ...c })} title="แก้ไข" aria-label={`แก้ไขลูกค้า ${c.name}`}>✏️</IconBtn>
+                <IconBtn onClick={() => del(c.id)} title="ลบ" aria-label={`ลบลูกค้า ${c.name}`} danger>🗑️</IconBtn>
               </div>
             </div>
             <div style={{ fontSize: 12, color: "#888", lineHeight: 2 }}>
@@ -6371,12 +6429,19 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
                   {c.businessType && <span style={{ color: "#A7F3D0", border: "1px solid rgba(16,185,129,0.28)", background: "rgba(16,185,129,0.10)", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>{c.businessType}</span>}
                 </div>
               )}
-              {c.phone && <div>📞 {c.phone}</div>}{c.email && <div>✉️ {c.email}</div>}
-              {c.address && <div>📍 {c.address}</div>}{c.taxId && <div>🪪 {c.taxId}</div>}
+              {c.phone && <div>📞 {maskPhone(c.phone)}</div>}{c.email && <div>✉️ {maskEmail(c.email)}</div>}
+              {c.address && <div>📍 มีข้อมูลที่อยู่</div>}{c.taxId && <div>🪪 {maskTaxId(c.taxId)}</div>}
             </div>
           </div>
         ))}
       </div>
+      {filtered.length > pageSize && (
+        <div className="erp-pagination" aria-label="หน้ารายชื่อลูกค้า">
+          <Btn small disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>ก่อนหน้า</Btn>
+          <span>หน้า {page} / {pageCount} · {filtered.length} ราย</span>
+          <Btn small disabled={page === pageCount} onClick={() => setPage((current) => Math.min(pageCount, current + 1))}>ถัดไป</Btn>
+        </div>
+      )}
       {editing && <Modal title={editing.id ? "แก้ไขลูกค้า" : "เพิ่มลูกค้า"} onClose={() => setEditing(null)} width={500}><CustomerForm data={editing} onSave={save} onCancel={() => setEditing(null)} /></Modal>}
     </div>
   );
@@ -7415,7 +7480,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
       </div>
       <div className="doc-list-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "visible" }}>
         {filtered.length === 0 ? (
-          <div style={{ padding: 60, textAlign: "center", color: "#555" }}>
+          <div className="doc-empty-state" style={{ padding: 60, textAlign: "center", color: "#555" }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>📄</div>
             <div>ยังไม่มีเอกสาร</div>
             <Btn onClick={newDoc} color={dt.color} style={{ marginTop: 16 }}>+ สร้างเอกสารแรก</Btn>
@@ -7435,27 +7500,27 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
               {filtered.map(doc => {
                 const { total, depositPaid, balanceDue } = calcDocTotal(doc, allDocuments);
                 return (
-                  <tr key={doc.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <td style={{ padding: "12px 16px", fontSize: 13, fontFamily: "monospace", color: dt.color }}>{doc.docNo}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 13 }}>{doc.customerName || "-"}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.date)}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.dueDate)}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 600 }}>
+                  <tr className="doc-table-row" key={doc.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <td className="doc-number" style={{ padding: "12px 16px", fontSize: 13, fontFamily: "monospace", color: dt.color }}>{doc.docNo}</td>
+                    <td className="doc-customer" style={{ padding: "12px 16px", fontSize: 13 }}>{doc.customerName || "-"}</td>
+                    <td className="doc-date" style={{ padding: "12px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.date)}</td>
+                    <td className="doc-date" style={{ padding: "12px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.dueDate)}</td>
+                    <td className="doc-total" style={{ padding: "12px 16px", fontSize: 14, fontWeight: 600 }}>
                       <div>฿{fmtMoney(total)}</div>
                       {depositPaid > 0 && balanceDue > 0 && <div style={{ marginTop: 3, color: "#F59E0B", fontSize: 11 }}>ค้างชำระ ฿{fmtMoney(balanceDue)}</div>}
                     </td>
                     <td style={{ padding: "12px 16px" }}>
                       {/* ── Status Badge + Dropdown ── */}
                       <div style={{ position: "relative", display: "inline-block" }} data-status-dropdown="">
-                        <button type="button" onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
+                        <button className="doc-status-button" type="button" onClick={() => { setOpenStatus(openStatus === doc.id ? null : doc.id); setOpenMenu(null); setMenuPos(null); }}
                           style={{ display: "flex", alignItems: "center", gap: 6, background: getDocStatusColor(doc.status, doc.type, doc.paymentStatus) + "22", color: getDocStatusColor(doc.status, doc.type, doc.paymentStatus), border: `1px solid ${getDocStatusColor(doc.status, doc.type, doc.paymentStatus)}55`, padding: "5px 10px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                           {getDocStatusLabel(doc.status, doc.type, doc.paymentStatus)}
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5l3 3 3-3"/></svg>
                         </button>
                         {openStatus === doc.id && (
-                          <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 140, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                          <div className="doc-popover" style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 140, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
                             {DOCUMENT_STATUS_KEYS.map((k) => (
-                              <button type="button" key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
+                              <button className="doc-status-option" type="button" key={k} onClick={() => { changeStatus(doc.id, k); setOpenStatus(null); }}
                               style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: doc.status === k ? STATUS_COLORS[k] + "22" : "transparent", color: doc.status === k ? STATUS_COLORS[k] : "#F8FAFC", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", textAlign: "left", fontWeight: 700 }}>
                                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[k], flexShrink: 0, display: "inline-block" }} />
                                 {STATUS_LABELS[k]}
@@ -7471,6 +7536,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                           {/* ✅ อนุมัติ */}
                           <button
+                            className="doc-action-button doc-action-approve"
                             type="button"
                             disabled={doc.status === "approved" || doc.status === "cancelled"}
                             onClick={() => {
@@ -7495,12 +7561,12 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             ✅ อนุมัติ
                           </button>
                           {/* แก้ไข */}
-                          <button type="button" onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }} title="แก้ไข"
+                          <button className="doc-action-button" type="button" onClick={() => { if (doc.status === "approved") return showToast("ไม่สามารถแก้ไขเอกสารที่อนุมัติแล้ว", "error"); setEditing({ ...doc }); }} title="แก้ไข"
                             style={{ background: doc.status === "approved" ? "rgba(148,163,184,0.10)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: doc.status === "approved" ? "#94A3B8" : "#F8FAFC", borderRadius: 8, padding: "5px 10px", fontSize: 12, cursor: doc.status === "approved" ? "not-allowed" : "pointer", fontFamily: "inherit", fontWeight: 700 }}>
                             แก้ไข
                           </button>
                           {/* ⋮ More */}
-                          <button type="button" onClick={(e) => {
+                          <button className="doc-action-button doc-action-more" type="button" onClick={(e) => {
                             if (openMenu === doc.id) { closeAll(); return; }
                             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                             const menuWidth = Math.min(260, window.innerWidth - 24);
@@ -7514,7 +7580,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                           </button>
                         </div>
                         {openMenu === doc.id && menuPos && (
-                          <div data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
+                          <div className="doc-popover" data-dropdown-menu="" style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999, background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 0", minWidth: 240, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxHeight: "70vh", overflowY: "auto" }}>
                             {/* พิมพ์ */}
                             <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); }} />
@@ -8667,6 +8733,9 @@ function BlogManager({ showToast }: any) {
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   // โหลดบทความจาก Supabase
   const fetchPosts = async () => {
@@ -8741,24 +8810,34 @@ function BlogManager({ showToast }: any) {
   };
 
   const filtered = posts.filter(p =>
-    [p.title, p.category, p.excerpt].some((value) => String(value || "").includes(search))
+    [p.title, p.category, p.excerpt].some((value) => String(value || "").includes(search)) &&
+    (statusFilter === "all" || (statusFilter === "published" ? p.published : !p.published))
   );
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const visiblePosts = filtered.slice((page - 1) * pageSize, page * pageSize);
+  useEffect(() => setPage(1), [search, statusFilter]);
+  useEffect(() => setPage((current) => Math.min(current, pageCount)), [pageCount]);
 
   return (
     <div className="cms-blog-manager" style={{ animation: "fadeIn 0.3s ease" }}>
       <div className="cms-page-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 800 }}>จัดการบทความ</h1>
-          <p style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>{posts.length} บทความ</p>
+          <p className="cms-page-count" style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>{posts.length} บทความ</p>
         </div>
         <div className="cms-page-tools" style={{ display: "flex", gap: 10 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} aria-label="Search CMS articles" placeholder="🔍 ค้นหา..." style={{ width: 200 }} />
+          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="กรองสถานะบทความ">
+            <option value="all">ทุกสถานะ</option>
+            <option value="published">เผยแพร่แล้ว</option>
+            <option value="draft">ฉบับร่าง</option>
+          </select>
           <CBtn onClick={() => setEditing({ id: "", title: "", excerpt: "", category: "", date: new Date().toISOString().slice(0,10), slug: "", cover: "", cover_alt: "", published: true, body: "", seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media", last_updated: "", tags: "", ai_summary: "", key_takeaways: "", faqs: [], related_services: [] })} color="#FF6B00">+ เพิ่มบทความ</CBtn>
         </div>
       </div>
 
       <div className="cms-blog-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {filtered.map(p => (
+        {visiblePosts.map(p => (
           <div key={p.id} className="cms-blog-row" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
             {/* Cover */}
             <div className="cms-blog-cover" style={{ width: 80, height: 60, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#1A2233", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -8782,6 +8861,13 @@ function BlogManager({ showToast }: any) {
         ))}
         {filtered.length === 0 && <EmptyState icon="📝" text="ยังไม่มีบทความ" />}
       </div>
+      {filtered.length > pageSize && (
+        <div className="cms-pagination" aria-label="หน้ารายการบทความ">
+          <CBtn small disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>ก่อนหน้า</CBtn>
+          <span>หน้า {page} / {pageCount} · {filtered.length} บทความ</span>
+          <CBtn small disabled={page === pageCount} onClick={() => setPage((current) => Math.min(pageCount, current + 1))}>ถัดไป</CBtn>
+        </div>
+      )}
 
       {editing && (
         <CModal
@@ -10406,7 +10492,7 @@ function CModal({ title, onClose, children, width = 500, panelClassName = "", co
 }
 function EmptyState({ icon, text }: any) {
   return (
-    <div style={{ gridColumn: "1/-1", padding: 60, textAlign: "center", color: "#555" }}>
+    <div className="admin-empty-state" style={{ gridColumn: "1/-1", padding: 60, textAlign: "center", color: "#555" }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>{icon}</div>
       <div>{text}</div>
     </div>

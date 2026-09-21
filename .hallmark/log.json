@@ -1,6 +1,15 @@
 [
   {
     "date": "2026-09-16",
+    "macrostructure": "Operational Command Deck",
+    "theme": "custom",
+    "theme_axes": "cool-light / architectural-media / orange-charcoal",
+    "vibe": "modern tactile business control room",
+    "enrichment": "real brand-context facade with compact live metrics",
+    "brief": "Increase the Admin Home visual hierarchy and product character without changing operational behavior."
+  },
+  {
+    "date": "2026-09-16",
     "macrostructure": "Executive Workbench",
     "theme": "custom",
     "theme_axes": "light-paper / compact-humanist / orange",

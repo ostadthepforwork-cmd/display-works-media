@@ -2,10 +2,17 @@
 :root {
   --color-admin-canvas: oklch(97.6% 0.006 245);
   --color-admin-paper: oklch(99.2% 0.006 70);
+  --color-admin-paper-raised: oklch(100% 0 0);
   --color-admin-paper-soft: oklch(96.4% 0.008 245);
+  --color-admin-charcoal: oklch(17% 0.024 250);
+  --color-admin-charcoal-soft: oklch(23% 0.028 250);
   --color-admin-ink: oklch(23% 0.025 250);
   --color-admin-ink-strong: oklch(14% 0.02 250);
-  --color-admin-muted: oklch(49% 0.025 250);
+  --color-admin-muted: oklch(43% 0.025 250);
+  --color-admin-placeholder: oklch(46% 0.022 250);
+  --color-admin-on-dark: oklch(96% 0.008 245);
+  --color-admin-on-dark-muted: oklch(79% 0.018 245);
+  --color-admin-on-dark-subtle: oklch(71% 0.018 245);
   --color-admin-rule: oklch(89% 0.009 245);
   --color-admin-rule-strong: oklch(82% 0.016 245);
   --color-admin-accent: oklch(69% 0.2 46);
@@ -20,6 +27,7 @@
   --color-admin-info-soft: oklch(95% 0.028 255);
   --color-admin-focus: oklch(60% 0.21 45);
   --color-admin-shadow: oklch(20% 0.025 250 / 0.07);
+  --color-admin-shadow-deep: oklch(20% 0.025 250 / 0.14);
   --font-admin-display: "Kanit", "Prompt", "Noto Sans Thai", sans-serif;
   --font-admin-body: "Prompt", "Noto Sans Thai", "Segoe UI", sans-serif;
   --space-admin-3xs: 4px;

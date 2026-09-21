@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildMarketingExportFiles } from "@/lib/marketing-export";
 import { formatLocalDateInput, shiftDateInput } from "@/lib/local-date";
+import { classifyCrawler, crawlerCategoryLabel, type CrawlerCategory } from "@/lib/admin-display";
 
 type MarketingKpiDashboardProps = {
   documents?: any[];
@@ -1130,9 +1131,12 @@ export default function MarketingKpiDashboard({
     showToast?.("บันทึกงบ Campaign 200 บาท/วันแล้ว", "success");
   };
 
+  const marketingSignalLabel = meta.connected ? "Meta Lead/Message Signals" : "Campaign Lead Signals";
+  const citationSampleCount = Number(aiCitations?.totals?.promptsChecked ?? 0);
+  const hasCitationSamples = aiCitations.connected && citationSampleCount > 0;
   const cards = [
-    { label: "AI Search Visits", value: money(Number(aiCrawlers?.totals?.visits ?? 0)), sub: aiCrawlers.connected ? `${money(Number(aiCrawlers?.totals?.bots ?? 0))} bots / ${money(Number(aiCrawlers?.totals?.pages ?? 0))} pages` : "รอข้อมูล AI crawler", tone: "teal" },
-    { label: "AI Citation Rate", value: aiCitations.connected ? percent(Number(aiCitations?.totals?.citationRate ?? 0)) : "-", sub: aiCitations.connected ? `${money(Number(aiCitations?.totals?.cited ?? 0))}/${money(Number(aiCitations?.totals?.promptsChecked ?? 0))} prompts cited` : "รอ citation monitor", tone: "purple" },
+    { label: "Crawler Visits", value: money(Number(aiCrawlers?.totals?.visits ?? 0)), sub: aiCrawlers.connected ? `${money(Number(aiCrawlers?.totals?.bots ?? 0))} crawler types / ${money(Number(aiCrawlers?.totals?.pages ?? 0))} pages` : "รอข้อมูล crawler", tone: "teal" },
+    { label: "AI Citation Rate", value: hasCitationSamples ? percent(Number(aiCitations?.totals?.citationRate ?? 0)) : "-", sub: hasCitationSamples ? `${money(Number(aiCitations?.totals?.cited ?? 0))}/${money(citationSampleCount)} prompts cited` : aiCitations.connected ? "เชื่อมต่อแล้ว แต่ยังไม่มี prompt sample" : "รอ citation monitor", tone: "purple" },
     { label: "AI Referrals", value: money(Number(aiCitations?.totals?.referralVisits ?? 0)), sub: aiCitations.connected ? "Clicks from AI platforms" : "รอ referral tracker", tone: "blue" },
     { label: "Meta Reported Revenue", value: metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", sub: "action_values / purchase", tone: "orange" },
     { label: "Meta Reported ROAS", value: metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", sub: "purchase_roas from Meta", tone: "purple" },
@@ -1140,12 +1144,12 @@ export default function MarketingKpiDashboard({
     { label: "ERP Attributed Revenue", value: `฿${money(attributedReceiptRevenue)}`, sub: "ใบเสร็จที่มี Lead mapping", tone: "teal" },
     { label: "ERP Unattributed Revenue", value: `฿${money(unattributedReceiptRevenue)}`, sub: "ยังให้เครดิตกับ Ad ไม่ได้", tone: "yellow" },
     { label: "Marketing Spend", value: `฿${money(marketingSpend)}`, sub: meta.connected ? "จาก Meta Ads" : "รอเชื่อมต่อ Meta API", tone: "pink" },
-    { label: "Marketing Leads", value: money(marketingLeadSignals), sub: meta.connected ? "Meta lead/message actions only" : "Manual campaign leads", tone: "blue" },
+    { label: marketingSignalLabel, value: money(marketingLeadSignals), sub: meta.connected ? "Meta lead/message actions ไม่ใช่ CRM lead ที่ยืนยันแล้ว" : "Manual campaign lead signals", tone: "blue" },
     { label: "Qualified Leads", value: money(qualifiedLeads), sub: "Lead ที่ข้อมูลพร้อมติดตาม", tone: "purple" },
     { label: "Quotation Sent", value: money(crmQuotationSent), sub: `CRM pipeline / ERP quote docs ${money(erpQuotationDocs)}`, tone: "yellow" },
     { label: "Closed Won", value: money(mappedClosedJobs), sub: `CRM closed-won / ERP receipts ${money(erpReceiptJobs)}`, tone: "green" },
     { label: "ROAS", value: roas ? roas.toFixed(2) : "-", sub: "Revenue / Ad Spend", tone: "orange" },
-    { label: "Cost per Lead", value: cpl ? `฿${money(cpl)}` : "-", sub: "CPL", tone: "yellow" },
+    { label: "Cost per Signal", value: cpl ? `฿${money(cpl)}` : "-", sub: "Spend / Meta lead-message action", tone: "yellow" },
     { label: "Cost per Qualified Lead", value: cpql ? `฿${money(cpql)}` : "-", sub: "Spend / Qualified Lead", tone: "teal" },
     { label: "Cost per Closed Won", value: costPerClosedJob ? `฿${money(costPerClosedJob)}` : "-", sub: "Spend / CRM Closed Won", tone: "pink" },
     { label: "Lead to Customer", value: conversionRate === null ? "ยังคำนวณไม่ได้" : percent(conversionRate), sub: "ไม่รวมคนละ source แบบมั่ว", tone: "purple" },
@@ -1156,7 +1160,7 @@ export default function MarketingKpiDashboard({
   const overviewCards = cards.filter((card) => [
     "Meta Reported Revenue",
     "Marketing Spend",
-    "Marketing Leads",
+    marketingSignalLabel,
     "ERP Attributed Revenue",
     "ERP Unattributed Revenue",
     "Qualified Leads",
@@ -1171,7 +1175,7 @@ export default function MarketingKpiDashboard({
     { label: "Gross Profit", value: Math.max(0, grossProfit), color: "#22c55e" },
   ];
   const leadPipelineBars = [
-    { label: "Marketing Leads", value: marketingLeadSignals, color: "#2563eb" },
+    { label: marketingSignalLabel, value: marketingLeadSignals, color: "#2563eb" },
     { label: "Qualified", value: qualifiedLeads, color: "#14b8a6" },
     { label: "CRM Quotes", value: crmQuotationSent, color: "#f59e0b" },
     { label: "CRM Closed Won", value: mappedClosedJobs, color: "#ff6b00" },
@@ -1181,6 +1185,11 @@ export default function MarketingKpiDashboard({
   const topAdSetRows = adSetRows.slice(0, 8);
   const topCreativeRows = creativeRows.slice(0, 8);
   const topAiBots = (aiCrawlers.byBot || []).slice(0, 8);
+  const crawlerCategoryTotals = (aiCrawlers.byBot || []).reduce((totals: Record<CrawlerCategory, number>, item: any) => {
+    const category = classifyCrawler(item?.name);
+    totals[category] += Number(item?.count || 0);
+    return totals;
+  }, { ai: 0, search: 0, social: 0, other: 0 });
   const topAiPages = (aiCrawlers.byPath || []).slice(0, 8);
   const topAiSecurityProbes = (aiCrawlers.bySecurityProbe || []).slice(0, 8);
   const topAiIntents = (aiCrawlers.byIntent || []).slice(0, 8);
@@ -1637,7 +1646,7 @@ export default function MarketingKpiDashboard({
       : activeSection === "leads"
         ? [growthPanels[2], { title: "Quotation Growth", value: money(trendTotal(quoteTrend)), detail: "ERP quotation count by day", color: "#8b5cf6", points: quoteTrend }, growthPanels[3]]
         : activeSection === "ai"
-          ? [{ title: "AI Crawl Growth", value: money(trendTotal(aiVisitTrend)), detail: "Recent AI/Search bot visits", color: "#14b8a6", points: aiVisitTrend }]
+          ? [{ title: "Crawler Growth", value: money(trendTotal(aiVisitTrend)), detail: "Recent public-page crawler visits", color: "#14b8a6", points: aiVisitTrend }]
           : [];
 
   const navItems: { id: MarketingSection; label: string; desc: string }[] = [
@@ -1713,7 +1722,7 @@ export default function MarketingKpiDashboard({
         .mk-mobile-chart{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);border-radius:16px;padding:14px}
         .mk-mobile-chart h3{margin:0 0 10px;font-size:15px}
         .mk-mobile-chart .mk-bar-list{margin-top:0;gap:10px}
-        .mk-date-controls{display:grid;gap:10px;justify-items:end}.mk-date-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields input{background:#101827;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;-webkit-text-fill-color:#fff;padding:11px 12px;font:inherit;color-scheme:dark}
+        .mk-date-controls{display:grid;gap:10px;justify-items:end}.mk-date-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-fields{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mk-date-field{display:grid;gap:5px;color:#94a3b8;font-size:11px;font-weight:800}.mk-date-input-wrap{position:relative;display:flex;align-items:center;min-width:150px;min-height:44px;padding:0 40px 0 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:#101827;color:#fff;font-size:13px;font-weight:800}.mk-date-input-wrap:after{content:"";position:absolute;right:14px;width:9px;height:9px;border:2px solid #94a3b8;border-top-width:4px;border-radius:2px;pointer-events:none}.mk-date-input-wrap input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer}.mk-date-input-wrap input:disabled{cursor:not-allowed}
         .mk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
         .mk-growth-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:16px}
         .mk-growth-card{background:linear-gradient(180deg,rgba(17,25,35,.98),rgba(10,16,24,.98));border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:18px;min-width:0}
@@ -1835,7 +1844,7 @@ export default function MarketingKpiDashboard({
           .mk-date-presets::-webkit-scrollbar{display:none}
           .mk-date-presets .mk-btn{width:100%;min-width:0;font-size:12px;padding:10px 8px;text-align:center}
           .mk-date-fields{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:8px}
-          .mk-date-fields input{width:100%;min-width:0;min-height:46px;font-size:13px}
+          .mk-date-fields .mk-date-input-wrap{width:100%;min-width:0;min-height:46px;font-size:13px}
           .mk-date-controls > div[style]{font-size:11px!important}
           .mk-date-controls .mk-btn.orange{width:100%;justify-content:center;text-align:center}
           .mk-mobile-tabs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;position:static!important;background:transparent!important;backdrop-filter:none!important;padding:0 0 12px!important}
@@ -1857,9 +1866,9 @@ export default function MarketingKpiDashboard({
           .mk-mobile-jump button{border:1px solid rgba(255,107,0,.28);background:rgba(255,107,0,.08);color:#fff;border-radius:14px;min-height:46px;font-size:12px;font-weight:900;text-align:left;padding:10px 12px}
           .mk-mobile-jump button.active{background:linear-gradient(135deg,#ff6b00,#f97316);border-color:#ff6b00;box-shadow:0 10px 28px rgba(255,107,0,.2)}
           .mk-overview-grid,.mk-dashboard-secondary{display:none!important}
-          .mk-grid{display:grid!important;grid-auto-flow:column!important;grid-auto-columns:minmax(224px,82vw)!important;grid-template-columns:none!important;gap:10px!important;overflow-x:auto!important;padding:0 2px 8px!important;scroll-snap-type:x mandatory!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch}
+          .mk-grid{display:grid!important;grid-auto-flow:row!important;grid-auto-columns:auto!important;grid-template-columns:1fr!important;gap:10px!important;overflow:visible!important;padding:0!important;scroll-snap-type:none!important}
           .mk-grid::-webkit-scrollbar{display:none}
-          .mk-card{min-height:112px!important;padding:13px;border-radius:16px;scroll-snap-align:start}
+          .mk-card{min-height:112px!important;padding:13px;border-radius:16px;scroll-snap-align:none}
           .mk-card > div:first-child{margin-bottom:8px}
           .mk-card strong{font-size:19px;line-height:1.08;word-break:break-word}
           .mk-card span{font-size:11px;line-height:1.45}
@@ -2096,36 +2105,46 @@ export default function MarketingKpiDashboard({
                 </button>
               </div>
               <div className="mk-date-fields">
-                <label className="sr-only" htmlFor="mk-start-date">Start date</label>
-                <input
-                  id="mk-start-date"
-                  aria-label="Start date"
-                  type="date"
-                  value={startDate}
-                  max={todayIso}
-                  disabled={dateRangeMode === "all"}
-                  onChange={(event) => {
-                    const nextStart = event.target.value;
-                    setDateRangeMode("custom");
-                    setStartDate(nextStart);
-                    if (endDate && nextStart && nextStart > endDate) setEndDate(nextStart);
-                  }}
-                />
-                <label className="sr-only" htmlFor="mk-end-date">End date</label>
-                <input
-                  id="mk-end-date"
-                  aria-label="End date"
-                  type="date"
-                  value={endDate}
-                  max={todayIso}
-                  disabled={dateRangeMode === "all"}
-                  onChange={(event) => {
-                    const nextEnd = event.target.value;
-                    setDateRangeMode("custom");
-                    setEndDate(nextEnd);
-                    if (startDate && nextEnd && nextEnd < startDate) setStartDate(nextEnd);
-                  }}
-                />
+                <label className="mk-date-field" htmlFor="mk-start-date">
+                  <span>เริ่มวันที่</span>
+                  <span className="mk-date-input-wrap">
+                    <span aria-hidden="true">{startDate || "เลือกวันที่"}</span>
+                    <input
+                      id="mk-start-date"
+                      aria-label="Start date"
+                      type="date"
+                      value={startDate}
+                      max={todayIso}
+                      disabled={dateRangeMode === "all"}
+                      onChange={(event) => {
+                        const nextStart = event.target.value;
+                        setDateRangeMode("custom");
+                        setStartDate(nextStart);
+                        if (endDate && nextStart && nextStart > endDate) setEndDate(nextStart);
+                      }}
+                    />
+                  </span>
+                </label>
+                <label className="mk-date-field" htmlFor="mk-end-date">
+                  <span>สิ้นสุดวันที่</span>
+                  <span className="mk-date-input-wrap">
+                    <span aria-hidden="true">{endDate || "เลือกวันที่"}</span>
+                    <input
+                      id="mk-end-date"
+                      aria-label="End date"
+                      type="date"
+                      value={endDate}
+                      max={todayIso}
+                      disabled={dateRangeMode === "all"}
+                      onChange={(event) => {
+                        const nextEnd = event.target.value;
+                        setDateRangeMode("custom");
+                        setEndDate(nextEnd);
+                        if (startDate && nextEnd && nextEnd < startDate) setStartDate(nextEnd);
+                      }}
+                    />
+                  </span>
+                </label>
               </div>
               <div style={{ color: "#94a3b8", fontSize: 12 }}>ช่วงข้อมูล: {rangeLabel}</div>
               <button className="mk-btn orange" type="button" onClick={exportMarketingCsv}>Export CSV</button>
@@ -2244,7 +2263,7 @@ export default function MarketingKpiDashboard({
                   <span>{percent(grossMargin)} estimated margin</span>
                 </div>
                 <div className="mk-mobile-metric">
-                  <span>Leads</span>
+                  <span>Meta Signals</span>
                   <strong>{money(marketingLeadSignals)}</strong>
                   <span>{meta.connected ? "Meta actions" : "CRM / Manual"}</span>
                 </div>
@@ -2454,7 +2473,7 @@ export default function MarketingKpiDashboard({
               <div className="mk-channel-grid" style={{ marginTop: 18 }}>
                 <div className="mk-mini"><strong>฿{money(receiptRevenue)}</strong><div>ERP Receipt Revenue</div></div>
                 <div className="mk-mini"><strong>฿{money(marketingSpend)}</strong><div>Meta / Manual Spend</div></div>
-                <div className="mk-mini"><strong>{money(marketingLeadSignals)}</strong><div>Marketing Leads</div></div>
+                <div className="mk-mini"><strong>{money(marketingLeadSignals)}</strong><div>{marketingSignalLabel}</div></div>
                 <div className="mk-mini"><strong>{money(closedJobs)}</strong><div>ERP Receipts</div></div>
               </div>
               <div className="mk-empty" style={{ marginTop: 14 }}>
@@ -2477,8 +2496,8 @@ export default function MarketingKpiDashboard({
                   </div>
                 ))}
               </div>
-              <h2 style={{ marginTop: 22 }}>Channel Mix</h2>
-              <p>สัดส่วนจากข้อมูลที่มีจริง: Meta leads/clicks, CRM leads และ GA4 sessions</p>
+              <h2 style={{ marginTop: 22 }}>Channel Signal Mix</h2>
+              <p>เปรียบเทียบกิจกรรมจากคนละหน่วย: Meta actions/clicks, CRM leads และ GA4 sessions ใช้ดูปริมาณเท่านั้น ไม่ใช่ Conversion share หรือ ROAS</p>
               <div className="mk-donut" style={{ background: totalChannelMix ? undefined : "#1f2937" }}>
                 <div className="mk-donut-inner">
                   <div>
@@ -2572,9 +2591,9 @@ export default function MarketingKpiDashboard({
                 ["Facebook Spend", `฿${money(meta.connected ? metaSpend : manualSpend)}`, meta.connected ? "Meta Ads spend" : "Manual campaign spend"],
                 ["Meta Reported Revenue", metaReportedRevenue ? `THB ${money(metaReportedRevenue)}` : "-", "From Meta action_values"],
                 ["Meta Reported ROAS", metaReportedRoas ? metaReportedRoas.toFixed(2) : "-", "From Meta purchase_roas"],
-                ["Facebook Leads", money(meta.connected ? metaLeadSignalCount : campaignLeads), meta.connected ? "Messages / Lead forms" : "Manual campaign leads"],
+                ["Meta Lead/Message Signals", money(meta.connected ? metaLeadSignalCount : campaignLeads), meta.connected ? "Messages / lead-form actions; not verified CRM leads" : "Manual campaign lead signals"],
                 ["Meta Engagement", money(metaEngagementActions), "Post save / engagement ไม่ใช่ Lead"],
-                ["Facebook CPL", paidMarketingLeadSignals ? `฿${money((meta.connected ? metaSpend : manualSpend) / paidMarketingLeadSignals)}` : "-", "Spend / Leads"],
+                ["Meta Cost per Signal", paidMarketingLeadSignals ? `฿${money((meta.connected ? metaSpend : manualSpend) / paidMarketingLeadSignals)}` : "-", "Spend / lead-message actions"],
                 ["Facebook ROAS", facebookErpRoas ? facebookErpRoas.toFixed(2) : "รอ Mapping", "ใช้เฉพาะ ERP/CRM ที่ map กับ Facebook"],
                 ["Qualified Leads", money(qualifiedLeads), "CRM mapped"],
                 ["CRM Closed Won", money(mappedClosedJobs), "CRM pipeline"],
@@ -3156,16 +3175,18 @@ export default function MarketingKpiDashboard({
             <section className="mk-panel" id="marketing-ai" style={{ marginTop: 16 }}>
               <div className="mk-section-head">
                 <div>
-                  <h2>AI Search Crawler Monitor</h2>
-                  <p>นับการเข้าเว็บจาก AI/Search bot บนหน้า public เท่านั้น ไม่รวม admin, API, doc link และไฟล์ภายในระบบ</p>
+                  <h2>Crawler & AI Visibility</h2>
+                  <p>จำแนก AI assistant, search crawler และ social preview บนหน้า public ไม่รวม admin, API, doc link และไฟล์ภายในระบบ</p>
                 </div>
                 <span className={`mk-status ${aiCrawlers.connected ? "ready" : ""}`}>
                   {aiCrawlers.connected ? "พร้อมใช้งาน" : "รอข้อมูล"}
                 </span>
               </div>
               <div className="mk-channel-grid" style={{ marginTop: 14 }}>
-                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.visits ?? 0))}</strong><div>AI/Search visits</div></div>
-                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.bots ?? 0))}</strong><div>Bot types</div></div>
+                <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.visits ?? 0))}</strong><div>Total crawler visits</div></div>
+                <div className="mk-mini"><strong>{money(crawlerCategoryTotals.ai)}</strong><div>AI assistant crawls</div></div>
+                <div className="mk-mini"><strong>{money(crawlerCategoryTotals.search)}</strong><div>Search crawler visits</div></div>
+                <div className="mk-mini"><strong>{money(crawlerCategoryTotals.social)}</strong><div>Social preview fetches</div></div>
                 <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.pages ?? 0))}</strong><div>Public pages crawled</div></div>
                 <div className="mk-mini"><strong>{money(Number(aiCrawlers?.totals?.securityProbes ?? 0))}</strong><div>Security probes blocked</div></div>
               </div>
@@ -3176,12 +3197,12 @@ export default function MarketingKpiDashboard({
                       <h2>AI Citation & Referral</h2>
                       <p>แยกให้เห็นว่า AI แค่อ่านเว็บ หรือมีการอ้างอิงและส่งคนกลับมาจริง</p>
                     </div>
-                    <span className={`mk-status ${aiCitations.connected ? "ready" : ""}`}>
-                      {aiCitations.connected ? "พร้อมใช้งาน" : "รอ SQL / Worker"}
+                    <span className={`mk-status ${hasCitationSamples ? "ready" : ""}`}>
+                      {hasCitationSamples ? "พร้อมวัดผล" : aiCitations.connected ? "เชื่อมต่อแล้ว · ยังไม่มี prompt" : "รอ SQL / Worker"}
                     </span>
                   </div>
                   <div className="mk-channel-grid" style={{ marginTop: 12 }}>
-                    <div className="mk-mini"><strong>{aiCitations.connected ? percent(Number(aiCitations?.totals?.citationRate ?? 0)) : "-"}</strong><div>Citation visibility rate</div></div>
+                    <div className="mk-mini"><strong>{hasCitationSamples ? percent(Number(aiCitations?.totals?.citationRate ?? 0)) : "-"}</strong><div>Citation visibility rate</div></div>
                     <div className="mk-mini"><strong>{money(Number(aiCitations?.totals?.promptsChecked ?? 0))}</strong><div>Synthetic prompts checked</div></div>
                     <div className="mk-mini"><strong>{money(Number(aiCitations?.totals?.referralVisits ?? 0))}</strong><div>AI referral visits</div></div>
                     <div className="mk-mini"><strong>{money(Number(aiCitations?.totals?.competitorDomains ?? 0))}</strong><div>Competitor domains found</div></div>
@@ -3233,14 +3254,15 @@ export default function MarketingKpiDashboard({
               </div>
               <div className="mk-row" style={{ marginTop: 16 }}>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
-                  <h2>Top AI Bots</h2>
+                  <h2>Top Crawlers</h2>
+                  <p>แยกประเภทเพื่อไม่รวม social preview และ search crawler เป็น AI assistant</p>
                   <div className="mk-chart-list" style={{ marginTop: 12 }}>
                     {topAiBots.length ? topAiBots.map((bot: any) => (
                       <div className="mk-source compact mk-chart-row" key={bot.name} style={{ ["--chart-width" as any]: `${Math.max(3, (Number(bot.count || 0) / maxAiBotCount) * 100)}%`, ["--chart-color" as any]: "linear-gradient(90deg,#ff6b00,#f59e0b)" }}>
-                        <strong>{bot.name}</strong>
+                        <strong>{bot.name}<small style={{ display: "block", color: "#94a3b8", marginTop: 4 }}>{crawlerCategoryLabel(classifyCrawler(bot.name))}</small></strong>
                         <span className="mk-badge">{money(Number(bot.count || 0))} ครั้ง</span>
                       </div>
-                    )) : <div className="mk-empty">ยังไม่มี AI/Search bot เข้าในช่วงวันที่นี้</div>}
+                    )) : <div className="mk-empty">ยังไม่มี crawler เข้าในช่วงวันที่นี้</div>}
                   </div>
                 </div>
                 <div className="mk-panel" style={{ boxShadow: "none" }}>
@@ -3265,7 +3287,7 @@ export default function MarketingKpiDashboard({
                         <strong>{page.path || page.name || "Unknown"}</strong>
                         <span className="mk-badge">{money(Number(page.count || 0))} ครั้ง</span>
                       </div>
-                    )) : <div className="mk-empty">ยังไม่มีหน้า public ที่ถูก AI/Search bot อ่าน</div>}
+                    )) : <div className="mk-empty">ยังไม่มีหน้า public ที่ถูก crawler อ่าน</div>}
                   </div>
                 </div>
               </div>
