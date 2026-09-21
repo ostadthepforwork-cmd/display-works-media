@@ -586,4 +586,21 @@ body:has(.admin-app-shell) { overflow-x: clip; }
   .admin-app-shell .erp-pagination,
   .admin-app-shell .cms-pagination { justify-content: space-between; gap: 8px; }
   .admin-app-shell .cms-page-tools select { width: 100%; }
+
+  .admin-app-shell .erp-dashboard-header,
+  .admin-app-shell .erp-page-header,
+  .admin-app-shell .cms-page-head {
+    background: color-mix(in oklch, var(--color-admin-paper-raised) 96%, transparent)!important;
+    border-color: var(--color-admin-rule)!important;
+    color: var(--color-admin-ink)!important;
+    box-shadow: 0 8px 22px var(--color-admin-shadow);
+    backdrop-filter: blur(16px)!important;
+    -webkit-backdrop-filter: blur(16px)!important;
+  }
+
+  .admin-app-shell .erp-page-actions,
+  .admin-app-shell .cms-page-tools {
+    background: var(--color-admin-paper-soft)!important;
+    border-color: var(--color-admin-rule)!important;
+  }
 }

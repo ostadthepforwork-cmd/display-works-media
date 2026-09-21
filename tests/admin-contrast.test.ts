@@ -34,6 +34,8 @@ test("CMS and Marketing have surface-specific readable text rules", () => {
   assert.match(systemCss, /\.cms-page-tools input::placeholder/);
   assert.match(systemCss, /\.marketing-dashboard-shell \[style\*="#A8B0C0"\]/);
   assert.match(systemCss, /\.mk-dashboard \.mk-spark-caption/);
+  assert.match(systemCss, /\.admin-app-shell \.cms-page-head \{[\s\S]*?background: color-mix\(in oklch, var\(--color-admin-paper-raised\) 96%, transparent\)!important/);
+  assert.match(systemCss, /\.admin-app-shell \.cms-page-tools \{[\s\S]*?background: var\(--color-admin-paper-soft\)!important/);
 });
 
 test("admin layout loads shared tokens and dashboard controls stay bounded", () => {
