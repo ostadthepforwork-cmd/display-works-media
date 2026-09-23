@@ -255,8 +255,15 @@ const customerFacingLineItem = (item: any) => {
     costUnit: "piece",
   };
 };
+const INTERNAL_ONLY_DOCUMENT_TEXT_PATTERN = /ต้นทุน|ราคาทุน|กำไร|ผู้จำหน่าย|supplier|(?:^|\W)cost(?:\W|$)|(?:^|\W)margin(?:\W|$)/i;
+const customerFacingText = (value?: string) =>
+  String(value || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !INTERNAL_ONLY_DOCUMENT_TEXT_PATTERN.test(line))
+    .join("\n");
 const customerFacingDetail = (detail?: string) =>
-  String(detail || "")
+  customerFacingText(detail)
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line && !/(ตร\.?ม|ตารางเมตร|sqm|square\s*meter|พื้นที่รวม|คำนวณพื้นที่)/i.test(line));
@@ -560,6 +567,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
 
   // ── Calculations (shared utility) ─────────────────────────
   const { subtotal, discountAmt, afterDisc, vatAmt, total, whtAmt, netPay, depositPaid, depositDate, depositNote, paymentType, balanceDue } = calcDocTotal(doc, linkedDocuments);
+  const publicDepositNote = customerFacingText(depositNote);
   const paymentLabel = paymentType === "full" || paymentType === "final" ? "PAYMENT RECEIVED" : paymentType === "partial" ? "PARTIAL PAYMENT" : "DEPOSIT PAID";
   const finalTotalLabel = depositPaid > 0 ? (balanceDue > 0 ? "BALANCE DUE" : "PAID IN FULL") : "GRAND TOTAL";
 
@@ -579,8 +587,8 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     <tr style="border-bottom:1px solid #e5e7eb;vertical-align:top;">
       <td style="padding:9px 6px;text-align:center;font-weight:700;font-size:13px;color:#FF5500;border-right:1px solid #e5e7eb;">${String(i + 1).padStart(2, "0")}</td>
       <td style="padding:9px 10px;border-right:1px solid #e5e7eb;">
-        <div style="font-weight:700;font-size:11px;color:#1e293b;">${item.name}</div>
-        ${item.subTitle ? `<div style="font-size:9.5px;color:#94a3b8;margin-top:2px;">${item.subTitle}</div>` : ""}
+        <div style="font-weight:700;font-size:11px;color:#1e293b;">${customerFacingText(item.name) || "-"}</div>
+        ${customerFacingText(item.subTitle) ? `<div style="font-size:9.5px;color:#94a3b8;margin-top:2px;">${customerFacingText(item.subTitle)}</div>` : ""}
       </td>
       <td style="padding:9px 10px;border-right:1px solid #e5e7eb;">
         ${customerFacingDetail(item.detail).length ? `<ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.7;margin:0;">${customerFacingDetail(item.detail).map(d => `<li>${d}</li>`).join("")}</ul>` : ""}
@@ -622,9 +630,9 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       <td style="padding:7px 12px;color:#10b981;font-size:10px;font-weight:700;">${paymentLabel}${depositDate ? ` (${fmtDate(depositDate)})` : ""}</td>
       <td style="padding:7px 12px;text-align:right;font-size:11px;color:#10b981;font-weight:700;">- ${fmtMoney(depositPaid)}</td>
     </tr>
-    ${depositNote ? `
+    ${publicDepositNote ? `
     <tr style="border-bottom:1px solid #f1f5f9;">
-      <td colspan="2" style="padding:7px 12px;color:#64748b;font-size:9px;line-height:1.5;">${depositNote}</td>
+      <td colspan="2" style="padding:7px 12px;color:#64748b;font-size:9px;line-height:1.5;">${publicDepositNote}</td>
     </tr>` : ""}` : ""}
     <tr style="background:#FF5500;">
       <td style="padding:9px 12px;font-weight:800;font-size:12px;color:#fff;text-align:left;">
@@ -636,8 +644,9 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     </tr>`;
 
   // ── Notes list ────────────────────────────────────────────
-  const noteItems = doc.notes
-    ? doc.notes.split("\n").filter(Boolean).map(n =>
+  const publicNotes = customerFacingText(doc.notes);
+  const noteItems = publicNotes
+    ? publicNotes.split("\n").filter(Boolean).map(n =>
         `<li style="margin-bottom:3px;">${n}</li>`).join("")
     : "<li>ขอบคุณที่ไว้วางใจ Display Works Media</li>";
 
@@ -7587,7 +7596,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             {/* แชร์ลิงค์ */}
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
                             {/* ดาวน์โหลด */}
-                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
+                            <MenuBtn icon="⬇️" label="บันทึก PDF" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เลือก Save as PDF ในหน้าต่างพิมพ์"); }} />
                             {/* อีเมล */}
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => {
                               const cust = customers.find(c => c.id === doc.customerId);
@@ -7710,7 +7719,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                             <MenuBtn icon="👁️" label="ดูตัวอย่าง PDF" onClick={() => { previewDocumentPdf(doc); closeAll(); }} />
                             <MenuBtn icon="🖨️" label="พิมพ์" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); }} />
                             <MenuBtn icon="🔗" label="แชร์" onClick={() => { shareDocumentLink(doc); closeAll(); }} />
-                            <MenuBtn icon="⬇️" label="ดาวน์โหลด" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เปิดหน้าต่าง — กด Save as PDF"); }} />
+                            <MenuBtn icon="⬇️" label="บันทึก PDF" onClick={() => { printDocument(doc, customers, company, { allDocuments }); closeAll(); showToast("เลือก Save as PDF ในหน้าต่างพิมพ์"); }} />
                             <MenuBtn icon="✉️" label="อีเมล" onClick={() => { const cust = customers.find(c => c.id === doc.customerId); setEmailModal({ doc, toEmail: cust?.email || "", subject: `เอกสาร ${doc.docNo} - ${cust?.name || ""}`, body: `เรียนคุณ ${cust?.contact || cust?.name || "ลูกค้า"},\n\nกรุณาตรวจสอบเอกสาร ${doc.docNo} ที่แนบมาด้วยนี้\n\nขอบคุณครับ` }); closeAll(); }} />
                             <MenuBtn icon="📋" label="สร้างซ้ำ" onClick={() => { setEditing({ ...doc, id: "", docNo: nextDocNoForType(doc.type), date: today(), status: "draft" }); closeAll(); }} />
                             {(DOC_NEXT[normalizeDocumentTypeForUi(doc.type)] || []).length > 0 && <>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Printer, Share2 } from "lucide-react";
 
 type DocActionsProps = {
   title: string;
@@ -13,6 +14,8 @@ const A4_HEIGHT_PX = 1123; // 297mm @ 96dpi
 function clearDocumentScale() {
   document.documentElement.style.removeProperty("--doc-scale");
   document.documentElement.style.removeProperty("--doc-mobile-height");
+  document.documentElement.style.removeProperty("--doc-desktop-scale");
+  document.documentElement.style.removeProperty("--doc-desktop-offset");
 }
 
 function updateDocumentScale() {
@@ -28,6 +31,12 @@ function updateDocumentScale() {
     document.documentElement.style.setProperty("--doc-mobile-height", `${A4_HEIGHT_PX * scale}px`);
   } else {
     clearDocumentScale();
+    // Keep an A4 preview readable when the browser is zoomed below 100%.
+    const scale = Math.min(1.2, Math.max(1, 1 / window.devicePixelRatio));
+    if (scale > 1.01) {
+      document.documentElement.style.setProperty("--doc-desktop-scale", String(scale));
+      document.documentElement.style.setProperty("--doc-desktop-offset", `${A4_HEIGHT_PX * (scale - 1)}px`);
+    }
   }
 }
 
@@ -168,8 +177,14 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
         <span>เปิดดูเอกสาร และบันทึกเป็น PDF ได้จากหน้านี้</span>
       </div>
       <div className="doc-toolbar-actions">
-        <button type="button" onClick={shareLink} aria-label={`แชร์ลิงก์ ${title}`}>แชร์ลิงก์</button>
-        <button type="button" className="primary" onClick={() => void printDocument()} aria-label={`บันทึกหรือพิมพ์ PDF ${title}`}>บันทึก PDF</button>
+        <button type="button" onClick={shareLink} aria-label={`แชร์ลิงก์ ${title}`} title="แชร์หรือคัดลอกลิงก์เอกสาร">
+          <Share2 size={16} aria-hidden="true" />
+          <span className="doc-action-label">แชร์ลิงก์</span>
+        </button>
+        <button type="button" className="primary" onClick={() => void printDocument()} aria-label={`พิมพ์หรือบันทึก PDF ${title}`} title="เปิดหน้าต่างพิมพ์เพื่อบันทึกเป็น PDF">
+          <Printer size={16} aria-hidden="true" />
+          <span className="doc-action-label">พิมพ์ / PDF</span>
+        </button>
       </div>
       {statusMessage && <p className="doc-toolbar-status" role="status">{statusMessage}</p>}
     </div>

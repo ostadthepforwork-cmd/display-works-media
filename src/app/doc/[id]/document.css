@@ -70,6 +70,10 @@ body {
 }
 
 .doc-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   min-height: 40px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -82,10 +86,32 @@ body {
   padding: 0 14px;
 }
 
+.doc-toolbar button:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.doc-toolbar button:focus-visible {
+  outline: 3px solid rgba(255, 85, 0, 0.28);
+  outline-offset: 2px;
+}
+
 .doc-toolbar button.primary {
   border-color: #ff5500;
   background: #ff5500;
   color: #fff;
+}
+
+.doc-toolbar button.primary:hover {
+  border-color: #e84d00;
+  background: #e84d00;
+}
+
+.doc-toolbar .doc-action-label {
+  display: inline;
+  margin: 0;
+  color: inherit;
+  font-size: 13px;
 }
 
 /* ─── A4 PAGE ────────────────────────────────────────────────────────────── */
@@ -151,7 +177,7 @@ body {
   margin-top: 4px;
   max-width: 430px;
   color: #64748b;
-  font-size: 9pt;            /* meta เล็กกว่า body เล็กน้อย */
+  font-size: 9.5pt;          /* meta เล็กกว่า body เล็กน้อย */
   line-height: 1.5;
 }
 
@@ -212,7 +238,7 @@ body {
 .doc-small {
   margin-top: 3px;
   color: #334155;
-  font-size: 10pt;           /* 10-11pt ตามสเปก */
+  font-size: 10.5pt;         /* 10-11pt ตามสเปก */
   line-height: 1.5;
 }
 
@@ -228,7 +254,7 @@ body {
   gap: 8px;
   padding: 6px 0;
   border-bottom: 1px dashed #e2e8f0;
-  font-size: 10pt;           /* 10-11pt */
+  font-size: 10.5pt;         /* 10-11pt */
   line-height: 1.4;
 }
 
@@ -279,7 +305,7 @@ body {
   border-bottom: 1px solid #e5e7eb;
   vertical-align: top;
   color: #1e293b;
-  font-size: 10pt;           /* 10-11pt ตามสเปก */
+  font-size: 10.5pt;         /* 10-11pt ตามสเปก */
   line-height: 1.4;
 }
 
@@ -302,7 +328,7 @@ body {
 /* รายละเอียด: Sarabun สีอ่อน line-spacing넓 */
 .doc-table .detail {
   color: #64748b;
-  font-size: 9.5pt;
+  font-size: 10pt;
   line-height: 1.5;
 }
 
@@ -349,7 +375,7 @@ body {
   margin: 5px 0 0;
   padding-left: 14px;
   color: #64748b;
-  font-size: 9pt;            /* 8-9pt ตามสเปก */
+  font-size: 9.5pt;
   line-height: 1.8;
 }
 
@@ -360,7 +386,7 @@ body {
   gap: 12px;
   padding: 7px 12px;
   border-bottom: 1px solid #edf2f7;
-  font-size: 10pt;
+  font-size: 10.5pt;
   line-height: 1.4;
 }
 
@@ -485,6 +511,14 @@ body {
   background: #ff5500;
 }
 
+@media (min-width: 821px) {
+  .doc-a4 {
+    transform: scale(var(--doc-desktop-scale, 1));
+    transform-origin: top center;
+    margin-bottom: var(--doc-desktop-offset, 0px);
+  }
+}
+
 /* ─── ERROR ──────────────────────────────────────────────────────────────── */
 .doc-error {
   max-width: 720px;
@@ -510,6 +544,11 @@ body {
 
   .doc-toolbar span {
     display: none;
+  }
+
+  .doc-toolbar .doc-action-label {
+    display: inline;
+    font-size: 12px;
   }
 
   .doc-toolbar-actions {
@@ -573,6 +612,7 @@ html[data-doc-printing="true"] .doc-a4 {
   padding: 18mm 12mm 15mm !important;
   box-shadow: none !important;
   transform: none !important;
+  margin-bottom: 0 !important;
 }
 
 /* ─── PRINT ──────────────────────────────────────────────────────────────── */
@@ -615,6 +655,7 @@ html[data-doc-printing="true"] .doc-a4 {
     padding: 18mm 12mm 15mm !important;
     box-shadow: none !important;
     transform: none !important;
+    margin-bottom: 0 !important;
   }
 
   .doc-table th {
@@ -629,6 +670,13 @@ html[data-doc-printing="true"] .doc-a4 {
   .doc-summary-total {
     background: #ff5500 !important;
     color: #fff !important;
+  }
+
+  .doc-table tr,
+  .doc-bottom,
+  .doc-signatures {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .doc-footer-line {

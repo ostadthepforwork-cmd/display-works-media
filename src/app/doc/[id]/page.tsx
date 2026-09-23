@@ -14,6 +14,14 @@ const DEFAULT_COMPANY_NAME = "DISPLAY WORKS MEDIA";
 const SITE_URL = "https://displayworksmedia.com";
 const DOC_OG_IMAGE = `${SITE_URL}/images/logo.png`;
 
+// Public documents must use an allowlist. Never fetch cost, supplier, margin,
+// profit, internal expense, or marketing attribution fields into this route.
+const PUBLIC_DOCUMENT_FIELDS = "id,type,doc_no,customer_id,customer_name,project_name,order_id,reference,sales_person,payment_type,payment_amount,payment_date,payment_note,date,due_date,discount,discount_type,vat,vat_rate,wht,wht_rate,deposit_paid,deposit_date,deposit_note,notes,override_address,bank_name,bank_branch,bank_account,bank_type,qr_image";
+const PUBLIC_ITEM_FIELDS = "id,name,sub_title,detail,unit,qty,price,price_unit,width_m,height_m,pieces,sort_order";
+const PUBLIC_COMPANY_FIELDS = "name,address,tax_id,phone,email,signature_image";
+const PUBLIC_CUSTOMER_FIELDS = "address,phone";
+const PUBLIC_SOURCE_FIELDS = "id,order_id,doc_no,payment_type,payment_amount,payment_date,payment_note,deposit_paid,deposit_date,deposit_note,notes";
+
 const DOC_LABELS: Record<string, { en: string; th: string; due: string }> = {
   quote: { en: "QUOTATION", th: "ใบเสนอราคา", due: "ยืนยันราคาถึง" },
   bill: { en: "BILLING NOTE", th: "ใบวางบิล", due: "วันครบกำหนด" },
@@ -176,8 +184,7 @@ function isSqmBasis(value?: string) {
 
 function itemBillingBasis(item: any) {
   return isSqmBasis(item?.priceUnit)
-    || isSqmBasis(item?.costUnit)
-    || /(ตร\.?ม|ตารางเมตร|sqm|square\s*meter)/i.test(String(item?.unit || ""))
+    || /(ตร\.?ม|ตารางเมตร|sqm|square\s*meter)/i.test(`${item?.unit || ""}\n${item?.detail || ""}`)
     ? "sqm"
     : "piece";
 }
@@ -223,8 +230,18 @@ function customerFacingLineItem(item: any) {
   };
 }
 
+const INTERNAL_ONLY_TEXT_PATTERN = /ต้นทุน|ราคาทุน|กำไร|ผู้จำหน่าย|supplier|(?:^|\W)cost(?:\W|$)|(?:^|\W)margin(?:\W|$)/i;
+
+function customerFacingText(value?: string) {
+  return String(value || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !INTERNAL_ONLY_TEXT_PATTERN.test(line))
+    .join("\n");
+}
+
 function customerFacingDetail(detail?: string) {
-  return String(detail || "")
+  return customerFacingText(detail)
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line && !/(ตร\.?ม|ตารางเมตร|sqm|square\s*meter|พื้นที่รวม|คำนวณพื้นที่)/i.test(line));
@@ -234,7 +251,7 @@ function docVatRate(doc: any) {
   return Number(doc?.vatRate ?? doc?.vat_rate ?? 7);
 }
 
-function customerFacingLineItemWithMetadata(item: any) {
+function customerFacingLineItemWithGeometry(item: any) {
   if (itemBillingBasis(item) !== "sqm") return customerFacingLineItem(item);
 
   const amount = lineAmount(item);
@@ -251,7 +268,6 @@ function customerFacingLineItemWithMetadata(item: any) {
     unit: "\u0e0a\u0e34\u0e49\u0e19",
     price: amount / pieces,
     priceUnit: "piece",
-    costUnit: "piece",
   };
 }
 
@@ -336,8 +352,6 @@ function mapDocument(doc: any, items: any[]) {
     id: doc.id,
     type: doc.type || "quote",
     docNo: doc.doc_no || "-",
-    status: doc.status,
-    customerId: doc.customer_id,
     customerName: doc.customer_name || "-",
     projectName: doc.project_name || "",
     orderId: doc.order_id || "",
@@ -346,8 +360,7 @@ function mapDocument(doc: any, items: any[]) {
     paymentType: doc.payment_type || "",
     paymentAmount: Number(doc.payment_amount || 0),
     paymentDate: doc.payment_date || "",
-    paymentNote: doc.payment_note || "",
-    paymentStatus: doc.payment_status || "",
+    paymentNote: customerFacingText(doc.payment_note),
     date: doc.date,
     dueDate: doc.due_date,
     discount: Number(doc.discount || 0),
@@ -358,23 +371,22 @@ function mapDocument(doc: any, items: any[]) {
     whtRate: Number(doc.wht_rate || 0),
     depositPaid: Number(doc.deposit_paid || 0),
     depositDate: doc.deposit_date || "",
-    depositNote: doc.deposit_note || "",
-    notes: doc.notes || "",
+    depositNote: customerFacingText(doc.deposit_note),
+    notes: customerFacingText(doc.notes),
     overrideAddress: doc.override_address || "",
     bankName: doc.bank_name || "",
     bankBranch: doc.bank_branch || "",
     bankAccount: doc.bank_account || "",
     bankType: doc.bank_type || "",
     qrImage: doc.qr_image || "",
-    items: items.map((item) => customerFacingLineItemWithMetadata({
+    items: items.map((item) => customerFacingLineItemWithGeometry({
       id: item.id,
-      name: item.name || "-",
-      subTitle: item.sub_title || "",
-      detail: item.detail || "",
+      name: customerFacingText(item.name) || "-",
+      subTitle: customerFacingText(item.sub_title),
+      detail: customerFacingText(item.detail),
       unit: item.unit || "",
       qty: Number(item.qty || 0),
       price: Number(item.price || 0),
-      costUnit: item.cost_unit || "",
       priceUnit: item.price_unit || "",
       widthM: Number(item.width_m || 0),
       heightM: Number(item.height_m || 0),
@@ -392,7 +404,7 @@ async function loadDocumentChain(supabase: any, orderId: string | null | undefin
     seen.add(String(currentId));
     const { data } = await supabase
       .from("erp_documents")
-      .select("*")
+      .select(PUBLIC_SOURCE_FIELDS)
       .eq("id", currentId)
       .eq("deleted", false)
       .maybeSingle();
@@ -408,7 +420,8 @@ async function loadDocumentChain(supabase: any, orderId: string | null | undefin
 export default async function PublicDocumentPage({ params, searchParams }: PageProps) {
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
-  // Temporary Batch 1B exception: keep current exact-ID public document behavior.
+  // Exact-ID sharing remains supported, but the privileged read is constrained
+  // to the customer-facing allowlists above.
   const supabase = createPrivilegedServerClient();
 
   const [
@@ -416,9 +429,9 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
     { data: rawItems, error: itemsError },
     { data: company },
   ] = await Promise.all([
-    supabase.from("erp_documents").select("*").eq("id", id).eq("deleted", false).maybeSingle(),
-    supabase.from("erp_document_items").select("*").eq("document_id", id).order("sort_order"),
-    supabase.from("erp_company").select("*").limit(1).maybeSingle(),
+    supabase.from("erp_documents").select(PUBLIC_DOCUMENT_FIELDS).eq("id", id).eq("deleted", false).maybeSingle(),
+    supabase.from("erp_document_items").select(PUBLIC_ITEM_FIELDS).eq("document_id", id).order("sort_order"),
+    supabase.from("erp_company").select(PUBLIC_COMPANY_FIELDS).limit(1).maybeSingle(),
   ]);
 
   if (docError || !rawDoc) notFound();
@@ -428,7 +441,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
   const safeItems = !hasItemLoadError ? (rawItems ?? []) : [];
 
   const { data: customer } = rawDoc.customer_id
-    ? await supabase.from("erp_customers").select("*").eq("id", rawDoc.customer_id).maybeSingle()
+    ? await supabase.from("erp_customers").select(PUBLIC_CUSTOMER_FIELDS).eq("id", rawDoc.customer_id).maybeSingle()
     : { data: null };
 
   const sourceChain = await loadDocumentChain(supabase, rawDoc.order_id);
