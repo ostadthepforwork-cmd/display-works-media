@@ -5685,7 +5685,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   if (pendingDocs.length > 5) alerts.push({ type: "info", text: `มีเอกสารรอดำเนินการ ${pendingDocs.length} รายการ` });
 
   // ─── Styles ───────────────────────────────────────────────────
-  const card = (extra = {}) => ({ background: "rgba(20,26,36,0.8)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, ...extra });
+  const card = (extra = {}) => ({ background: "var(--color-admin-paper-raised)", border: "1px solid var(--color-admin-rule)", borderRadius: 8, boxShadow: "0 8px 24px var(--color-admin-shadow)", ...extra });
   const fmtB = (n: number) => n >= 1000000 ? `${(n/1000000).toFixed(2)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : fmtMoney(n);
   const axisTicks = [1, 0.75, 0.5, 0.25, 0];
   const candleHeight = (value: number) => `${Math.max(value > 0 ? 4 : 0, maxVal > 0 ? (Math.max(value, 0) / maxVal) * 100 : 0)}%`;
@@ -5694,9 +5694,9 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
     minHeight: 34,
     padding: "6px 10px",
     borderRadius: 8,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(11,15,25,0.75)",
-    color: "#fff",
+    border: "1px solid var(--color-admin-rule-strong)",
+    background: "var(--color-admin-paper-raised)",
+    color: "var(--color-admin-ink-strong)",
     fontSize: 12,
     fontWeight: 600,
     fontFamily: "inherit",
@@ -5704,7 +5704,7 @@ function Dashboard({ documents, customers, products, totalRevenue, totalCost, to
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
+    <div className="erp-dashboard-page" style={{ animation: "fadeIn 0.4s ease", maxWidth: 1100, margin: "0 auto" }}>
 
       {/* ── HEADER ──────────────────────────────────────────────── */}
       <div className="erp-dashboard-header" style={{ marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
@@ -6403,7 +6403,7 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
     showToast("ลบลูกค้าแล้ว");
   };
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div className="erp-operational-page erp-customer-page" style={{ animation: "fadeIn 0.3s ease" }}>
       <div className="erp-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>ลูกค้า</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{customers.length} ราย</p></div>
         <div className="erp-page-actions" style={{ display: "flex", gap: 10 }}>
@@ -6534,7 +6534,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
     showToast("ลบสินค้าแล้ว");
   };
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div className="erp-operational-page erp-product-page" style={{ animation: "fadeIn 0.3s ease" }}>
       <div className="erp-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div><h2 style={{ fontSize: 20, fontWeight: 700 }}>สินค้า/บริการ</h2><p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{catalogProducts.length} รายการ</p></div>
         <div className="erp-page-actions" style={{ display: "flex", gap: 10 }}>
@@ -6542,7 +6542,7 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
           <Btn onClick={() => setEditing({ ...blank })} color="#FF6B00">+ เพิ่มสินค้า</Btn>
         </div>
       </div>
-      <div className="erp-desktop-table" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
+      <div className="erp-desktop-table erp-product-table" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#1A2233" }}>
@@ -6556,13 +6556,13 @@ function ProductPage({ products, setProducts, suppliers = [], showToast }: any) 
               const margin = p.price - p.cost;
               const pct = p.cost > 0 ? (margin / p.cost * 100).toFixed(0) : 0;
               return (
-                <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                  <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 500 }}>
+                <tr className="erp-product-row" key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                  <td className="erp-product-name" style={{ padding: "12px 16px", fontSize: 14, fontWeight: 500 }}>
                     {p.name}
                     {p.fromSupplierCatalog && <span style={{ marginLeft: 8, fontSize: 10, color: "#F97316", background: "rgba(249,115,22,0.12)", padding: "1px 6px", borderRadius: 99 }}>Supplier</span>}
                   </td>
-                  <td style={{ padding: "12px 16px", fontSize: 12, color: "#A8B0C0" }}>{p.supplierName || "-"}</td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, color: "#A8B0C0" }}>{p.unit}</td>
+                  <td className="erp-product-secondary" style={{ padding: "12px 16px", fontSize: 12, color: "#A8B0C0" }}>{p.supplierName || "-"}</td>
+                  <td className="erp-product-secondary" style={{ padding: "12px 16px", fontSize: 13, color: "#A8B0C0" }}>{p.unit}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#ef4444" }}>฿{fmtMoney(p.cost)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.costUnit)}</span></td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 600 }}>฿{fmtMoney(p.price)} <span style={{ color: "#6B7280", fontSize: 11 }}>{priceBasisLabel(p.priceUnit)}</span></td>
                   <td style={{ padding: "12px 16px", fontSize: 13 }}>
@@ -6703,7 +6703,7 @@ function ProductForm({ data, suppliers = [], onSave, onCancel }: any) {
         </Field>
       </div>
       {f.price && f.cost && (
-        <div style={{ background: "#1A2233", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: margin > 0 ? "#10b981" : "#ef4444" }}>
+      <div className="erp-form-summary" style={{ background: "#1A2233", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: margin > 0 ? "#10b981" : "#ef4444" }}>
           กำไร: ฿{fmtMoney(margin)} ({pct}%)
         </div>
       )}
@@ -6820,7 +6820,7 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div className="erp-operational-page erp-supplier-page" style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700 }}>Supplier</h2>
@@ -6837,11 +6837,11 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
           const itemCount = supplier.items?.length || 0;
           const minSupplierPrice = itemCount ? Math.min(...supplier.items.map((item: any) => Number(item.supplierPrice || 0)).filter((price: number) => price >= 0)) : 0;
           return (
-            <div key={supplier.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 18 }}>
+            <div className="erp-supplier-card" key={supplier.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>{supplier.name}</div>
-                  <div style={{ fontSize: 12, color: "#A8B0C0", marginTop: 4 }}>{supplier.contact || supplier.phone || "ยังไม่มีข้อมูลติดต่อ"}</div>
+                  <div className="erp-supplier-name" style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>{supplier.name}</div>
+                  <div className="erp-supplier-contact" style={{ fontSize: 12, color: "#A8B0C0", marginTop: 4 }}>{supplier.contact || supplier.phone || "ยังไม่มีข้อมูลติดต่อ"}</div>
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <IconBtn onClick={() => setEditing({ ...supplier, items: supplier.items || [] })} title="แก้ไข">✏️</IconBtn>
@@ -6849,18 +6849,18 @@ function SupplierPage({ suppliers, setSuppliers, showToast }: any) {
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
-                <div style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
+                <div className="erp-supplier-stat" style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
                   <div style={{ fontSize: 11, color: "#6B7280" }}>สินค้า/บริการ</div>
                   <div style={{ fontSize: 18, color: "#FF6B00", fontWeight: 800 }}>{itemCount}</div>
                 </div>
-                <div style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
+                <div className="erp-supplier-stat" style={{ background: "#0F1420", borderRadius: 10, padding: 10 }}>
                   <div style={{ fontSize: 11, color: "#6B7280" }}>ราคา Supplier เริ่มต้น</div>
                   <div style={{ fontSize: 18, color: "#10b981", fontWeight: 800 }}>฿{fmtMoney(minSupplierPrice)}</div>
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {(supplier.items || []).slice(0, 3).map((item: any) => (
-                  <div key={item.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#CBD5E1", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>
+                  <div className="erp-supplier-item" key={item.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: "#CBD5E1", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>
                     <span>{item.name}</span>
                     <span style={{ color: "#A8B0C0" }}>
                       ฿{fmtMoney(item.supplierPrice)} → ฿{fmtMoney(item.salePrice)}
@@ -6916,10 +6916,10 @@ function SupplierForm({ data, onSave, onCancel }: any) {
       </div>
       <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
 
-      <div style={{ background: "#0F1420", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 14 }}>
+      <div className="erp-supplier-editor" style={{ background: "#0F1420", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 10 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>รายการสินค้า/บริการที่ Supplier จำหน่าย</div>
+            <div className="erp-supplier-editor-title" style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>รายการสินค้า/บริการที่ Supplier จำหน่าย</div>
             <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>ใส่ราคาจาก Supplier และราคาขายของเรา</div>
           </div>
           <Btn onClick={addItem} color="#2563eb">+ เพิ่มรายการ</Btn>
@@ -6931,7 +6931,7 @@ function SupplierForm({ data, onSave, onCancel }: any) {
             const multiplier = pricingBasis === "sqm" ? totalSqm : 1;
             const margin = (Number(item.salePrice || 0) - Number(item.supplierPrice || 0)) * multiplier;
             return (
-              <div key={item.id} style={{ background: "#141A24", borderRadius: 10, padding: 10 }}>
+              <div className="erp-supplier-editor-item" key={item.id} style={{ background: "#141A24", borderRadius: 10, padding: 10 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1.4fr .8fr .8fr .8fr .8fr .7fr auto", gap: 8, alignItems: "end" }}>
                   <Field label="ชื่อรายการ"><input value={item.name} onChange={(e) => setItem(item.id, "name", e.target.value)} /></Field>
                   <Field label="ประเภท">
@@ -7021,11 +7021,11 @@ function CompanyPage({ company, setCompany, showToast }: any) {
     </div>
   );
   return (
-    <div style={{ maxWidth: 580, animation: "fadeIn 0.3s ease", display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="erp-operational-page erp-company-page" style={{ maxWidth: 580, animation: "fadeIn 0.3s ease", display: "flex", flexDirection: "column", gap: 20 }}>
       <h2 style={{ fontSize: 20, fontWeight: 700 }}>⚙️ ตั้งค่าบริษัท</h2>
 
       {/* Section 1: บริษัท */}
-      <div style={secStyle}>
+      <div className="erp-company-section" style={secStyle}>
         {secTitle("🏢", "ข้อมูลบริษัทผู้เสนอราคา")}
         <Field label="ชื่อบริษัท / ร้านค้า"><input value={f.name} onChange={set("name")} /></Field>
         <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={3} style={{ resize: "vertical" }} /></Field>
@@ -7040,7 +7040,7 @@ function CompanyPage({ company, setCompany, showToast }: any) {
       </div>
 
       {/* Section 2: ธนาคาร */}
-      <div style={secStyle}>
+      <div className="erp-company-section" style={secStyle}>
         {secTitle("🏦", "ข้อมูลบัญชีรับชำระเงิน", "#3B82F6")}
         <Field label="ชื่อบัญชีรับเงิน"><input value={f.bankName || ""} onChange={set("bankName")} placeholder="ชื่อบัญชีธนาคาร" /></Field>
         <Field label="ธนาคาร & สาขา"><input value={f.bankBranch || ""} onChange={set("bankBranch")} placeholder="เช่น ธนาคารกสิกรไทย สาขาบางบัวทอง" /></Field>
@@ -7051,7 +7051,7 @@ function CompanyPage({ company, setCompany, showToast }: any) {
         <div>
           <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>QR Code ชำระเงิน (Default สำหรับเอกสารใหม่)</label>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 72, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+            <div className="erp-upload-preview" style={{ width: 72, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
               {f.qrImage ? <img src={f.qrImage} alt="QR" style={{ width: 64, height: 64, objectFit: "contain" }} /> : <span style={{ fontSize: 28 }}>📷</span>}
             </div>
             <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, flex: 1 }}>
@@ -7079,7 +7079,7 @@ function CompanyPage({ company, setCompany, showToast }: any) {
         <div>
           <label style={{ fontSize: 12, color: "#A8B0C0", fontWeight: 600, display: "block", marginBottom: 8 }}>✍️ ลายเซ็นผู้เสนอราคา (แสดงในเอกสาร)</label>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 140, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+            <div className="erp-upload-preview" style={{ width: 140, height: 72, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, background: "#0B0F19", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
               {f.signatureImage
                 ? <img src={f.signatureImage} alt="ลายเซ็น" style={{ maxWidth: 132, maxHeight: 64, objectFit: "contain" }} />
                 : <span style={{ fontSize: 12, color: "#555" }}>ยังไม่มีลายเซ็น</span>}
@@ -7461,7 +7461,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   }, [closeAll]);
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div className="erp-operational-page erp-document-page" style={{ animation: "fadeIn 0.3s ease" }}>
       <div className="doc-header-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
@@ -8406,7 +8406,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
       </div>
 
       {/* ── Summary ── */}
-      <div style={{ background: "#1A2233", borderRadius: 12, padding: "16px 20px", display: "flex", flexDirection: "column" as const, gap: 8 }}>
+      <div className="erp-document-summary" style={{ background: "#1A2233", borderRadius: 12, padding: "16px 20px", display: "flex", flexDirection: "column" as const, gap: 8 }}>
         <SumRow label="มูลค่ารวม (Subtotal)" value={subtotal} />
         {f.discount > 0 && <SumRow label={(f.discountType || "percent") === "amount" ? "ส่วนลด" : `ส่วนลด ${f.discount}%`} value={-discAmt} />}
         {f.discount > 0 && <SumRow label="หลังหักส่วนลด" value={afterDisc} />}
@@ -8453,12 +8453,12 @@ function SumRow({ label, value, bold, color, big }: any) {
   );
 }
 
-function Field({ label, children }: any) { return <div><label>{label}</label>{children}</div>; }
+function Field({ label, children }: any) { return <div className="admin-field"><label>{label}</label>{children}</div>; }
 
-function Btn({ onClick, children, color, outline, small, style, type = "button", ...rest }: any) {
+function Btn({ onClick, children, color, outline, small, style, type = "button", className = "", ...rest }: any) {
   const buttonColor = color === "#FF6B00" || color === "#FF7A00" || !color ? "#C2410C" : color;
   return (
-    <button type={type} onClick={onClick} {...rest} style={{
+    <button className={`admin-ui-button${outline ? " is-outline" : ""} ${className}`.trim()} type={type} onClick={onClick} {...rest} style={{
       background: outline ? "transparent" : buttonColor,
       border: `1px solid ${outline ? "rgba(255,255,255,0.15)" : buttonColor}`,
       color: outline ? "#A8B0C0" : "#fff",
@@ -8472,9 +8472,9 @@ function Btn({ onClick, children, color, outline, small, style, type = "button",
   );
 }
 
-function IconBtn({ onClick, children, danger, small, type = "button", ...rest }: any) {
+function IconBtn({ onClick, children, danger, small, type = "button", className = "", ...rest }: any) {
   return (
-    <button type={type} onClick={onClick} {...rest} style={{
+    <button className={`admin-icon-button${danger ? " is-danger" : ""} ${className}`.trim()} type={type} onClick={onClick} {...rest} style={{
       background: danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
       border: `1px solid ${danger ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)"}`,
       color: danger ? "#ef4444" : "#A8B0C0",
@@ -8490,13 +8490,13 @@ function IconBtn({ onClick, children, danger, small, type = "button", ...rest }:
 function Modal({ title, onClose, children, width = 500 }: any) {
   return (
     <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div className="modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
-        <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <div className="modal-panel admin-modal-panel" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+        <div className="admin-modal-handle" style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
+        <div className="admin-modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
           <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
-        <div style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
+        <div className="admin-modal-body" style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
       </div>
     </div>
   );
@@ -9349,7 +9349,7 @@ function HeroManager({ showToast }: any) {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 680 }}>
+    <div className="cms-manager-page cms-hero-page" style={{ animation: "fadeIn 0.3s ease", maxWidth: 680 }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>แก้ไข Hero Section</h2>
       <Card>
         <SectionTitle>รูปพื้นหลัง</SectionTitle>
@@ -9552,7 +9552,7 @@ function ServicesManager({ showToast }: any) {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div className="cms-manager-page cms-services-page" style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700 }}>จัดการบริการ</h2>
         <CBtn onClick={() => setEditing({ id: "", name: "", icon: "🛠️", desc: "", price: "", url: "" })} color="#FF6B00">+ เพิ่มบริการ</CBtn>
@@ -9697,14 +9697,14 @@ function ReviewsManager({ showToast }: any) {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div className="cms-manager-page cms-reviews-page" style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700 }}>จัดการรีวิว</h2>
         <CBtn onClick={() => setEditing({ id: "", name: "", company: "", stars: 5, text: "" })} color="#FF6B00">+ เพิ่มรีวิว</CBtn>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {reviews.map(r => (
-          <div key={r.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}>
+          <div className="cms-content-card cms-review-card" key={r.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                 <span style={{ fontWeight: 600 }}>{r.name}</span>
@@ -9867,14 +9867,14 @@ function PortfolioManager({ showToast }: any) {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div className="cms-manager-page cms-portfolio-page" style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700 }}>จัดการผลงาน</h2>
         <CBtn onClick={() => setEditing({ id: "", title: "", category: "", meta: "", alt: "", href: "", image: "", img: "" })} color="#FF6B00">+ เพิ่มผลงาน</CBtn>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
         {items.map(item => (
-          <div key={item.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
+          <div className="cms-content-card cms-portfolio-card" key={item.id} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, overflow: "hidden" }}>
             <div style={{ height: 140, background: "#1A2233", position: "relative" }}>
               {(item.image || item.img) ? <img src={item.image || item.img} alt={item.alt || item.title || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: 36 }}>🖼</div>}
             </div>
@@ -10280,10 +10280,10 @@ function PageContentManager({ showToast }: any) {
     : [];
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 760 }}>
+    <div className="cms-manager-page cms-page-content-page" style={{ animation: "fadeIn 0.3s ease", maxWidth: 760 }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>ข้อความรายหน้า</h2>
       <p style={{ color: "#888", fontSize: 13, marginBottom: 20 }}>แก้หัวข้อหลักและข้อความส่วนกลางที่แสดงบนเว็บไซต์</p>
-      <div style={{
+      <div className="cms-info-note" style={{
         background: "rgba(59,130,246,0.1)",
         border: "1px solid rgba(59,130,246,0.25)",
         color: "#BFDBFE",
@@ -10295,9 +10295,9 @@ function PageContentManager({ showToast }: any) {
       }}>
         หากยังไม่เคยบันทึก ระบบจะแสดงค่าตั้งต้นจากโค้ดก่อน ให้กด “บันทึกข้อความ” หนึ่งครั้งเพื่อสร้างข้อมูลชุดแรกใน database จากนั้นหน้าเว็บจะอ่านค่าจาก CMS หลัง refresh
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+      <div className="cms-section-tabs" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
         {sections.map(([id, label]) => (
-          <button type="button" key={id} onClick={() => setSection(id)} style={{
+          <button type="button" className={section === id ? "is-active" : ""} key={id} onClick={() => setSection(id)} style={{
             border: section === id ? "1px solid #FF6B00" : "1px solid rgba(255,255,255,0.12)",
             background: section === id ? "rgba(255,107,0,0.14)" : "#141A24",
             color: section === id ? "#FF6B00" : "#A8B0C0",
@@ -10414,7 +10414,7 @@ function ContactManager({ showToast }: any) {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease", maxWidth: 560 }}>
+    <div className="cms-manager-page cms-contact-page" style={{ animation: "fadeIn 0.3s ease", maxWidth: 560 }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>ข้อมูลติดต่อ</h2>
       <Card>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -10440,18 +10440,18 @@ function ContactManager({ showToast }: any) {
 // UI COMPONENTS
 // ============================================================
 function Card({ children }: any) {
-  return <div className="card-pad" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 24 }}>{children}</div>;
+  return <div className="card-pad cms-content-card" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 24 }}>{children}</div>;
 }
 function SectionTitle({ children }: any) {
   return <div style={{ fontSize: 12, fontWeight: 600, color: "#FF6B00", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>{children}</div>;
 }
 function CField({ label, children, style }: any) {
-  return <div style={style}><label>{label}</label>{children}</div>;
+  return <div className="admin-field" style={style}><label>{label}</label>{children}</div>;
 }
-function CBtn({ onClick, children, color, outline, small, style, disabled, type = "button", ...rest }: any) {
+function CBtn({ onClick, children, color, outline, small, style, disabled, type = "button", className = "", ...rest }: any) {
   const buttonColor = color === "#FF6B00" || color === "#FF7A00" || !color ? "#C2410C" : color;
   return (
-    <button type={type} onClick={onClick} disabled={disabled} {...rest} style={{
+    <button className={`admin-ui-button${outline ? " is-outline" : ""} ${className}`.trim()} type={type} onClick={onClick} disabled={disabled} {...rest} style={{
       background: outline ? "transparent" : buttonColor,
       border: `1px solid ${outline ? "rgba(255,255,255,0.15)" : buttonColor}`,
       color: outline ? "#A8B0C0" : "#fff",
@@ -10463,9 +10463,9 @@ function CBtn({ onClick, children, color, outline, small, style, disabled, type 
     }}>{children}</button>
   );
 }
-function CIconBtn({ onClick, children, danger, small, type = "button", ...rest }: any) {
+function CIconBtn({ onClick, children, danger, small, type = "button", className = "", ...rest }: any) {
   return (
-    <button type={type} onClick={onClick} {...rest} style={{
+    <button className={`admin-icon-button${danger ? " is-danger" : ""} ${className}`.trim()} type={type} onClick={onClick} {...rest} style={{
       background: danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
       border: `1px solid ${danger ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)"}`,
       color: danger ? "#ef4444" : "#A8B0C0",
@@ -10478,14 +10478,14 @@ function CIconBtn({ onClick, children, danger, small, type = "button", ...rest }
 function CModal({ title, onClose, children, width = 500, panelClassName = "", contentClassName = "" }: any) {
   return (
     <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div className={`modal-panel ${panelClassName}`.trim()} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+      <div className={`modal-panel admin-modal-panel ${panelClassName}`.trim()} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         {/* drag indicator */}
-        <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div className="admin-modal-handle" style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
+        <div className="admin-modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
           <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", fontSize: 18, cursor: "pointer", width: 34, height: 34, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
-        <div className={contentClassName} style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
+        <div className={`admin-modal-body ${contentClassName}`.trim()} style={{ overflowY: "auto", padding: "18px 20px", flex: 1 }}>{children}</div>
       </div>
     </div>
   );

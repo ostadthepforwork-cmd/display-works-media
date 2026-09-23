@@ -561,6 +561,317 @@ body:has(.admin-app-shell) { overflow-x: clip; }
   color: var(--color-admin-muted)!important;
 }
 
+/* Unified contrast contract for ERP and CMS operational surfaces. */
+.admin-app-shell .erp-operational-page,
+.admin-app-shell .cms-manager-page {
+  color: var(--color-admin-ink);
+}
+
+.admin-app-shell .erp-operational-page h1,
+.admin-app-shell .erp-operational-page h2,
+.admin-app-shell .erp-operational-page h3,
+.admin-app-shell .cms-manager-page h1,
+.admin-app-shell .cms-manager-page h2,
+.admin-app-shell .cms-manager-page h3 {
+  color: var(--color-admin-ink-strong)!important;
+}
+
+.admin-app-shell .erp-operational-page [style*="color: rgb(85, 85, 85)"],
+.admin-app-shell .erp-operational-page [style*="color: #555"],
+.admin-app-shell .erp-operational-page [style*="color: rgb(107, 114, 128)"],
+.admin-app-shell .erp-operational-page [style*="color: #6B7280"],
+.admin-app-shell .cms-manager-page [style*="color: rgb(85, 85, 85)"],
+.admin-app-shell .cms-manager-page [style*="color: #555"],
+.admin-app-shell .cms-manager-page [style*="color: rgb(107, 114, 128)"],
+.admin-app-shell .cms-manager-page [style*="color: #6B7280"] {
+  color: var(--color-admin-muted)!important;
+}
+
+.admin-app-shell .erp-product-table {
+  overflow-x: auto!important;
+  background: var(--color-admin-paper-raised)!important;
+  color: var(--color-admin-ink)!important;
+  border-color: var(--color-admin-rule)!important;
+  box-shadow: 0 8px 24px var(--color-admin-shadow);
+}
+
+.admin-app-shell .erp-product-table thead tr {
+  background: var(--color-admin-paper-soft)!important;
+}
+
+.admin-app-shell .erp-product-table th {
+  color: var(--color-admin-muted)!important;
+  border-bottom: var(--rule-admin-thin) solid var(--color-admin-rule);
+  font-weight: 700!important;
+}
+
+.admin-app-shell .erp-product-row {
+  border-bottom-color: var(--color-admin-rule)!important;
+}
+
+.admin-app-shell .erp-product-row:hover {
+  background: var(--color-admin-paper-soft);
+}
+
+.admin-app-shell .erp-product-name {
+  color: var(--color-admin-ink-strong)!important;
+  font-weight: 700!important;
+}
+
+.admin-app-shell .erp-product-secondary,
+.admin-app-shell .erp-product-table td span[style*="#6B7280"],
+.admin-app-shell .erp-product-table td span[style*="#555"] {
+  color: var(--color-admin-muted)!important;
+}
+
+.admin-app-shell .erp-supplier-card,
+.admin-app-shell .erp-company-section,
+.admin-app-shell .cms-content-card,
+.admin-app-shell .cms-service-card,
+.admin-app-shell .cms-review-card,
+.admin-app-shell .cms-portfolio-card {
+  background: var(--color-admin-paper-raised)!important;
+  color: var(--color-admin-ink)!important;
+  border-color: var(--color-admin-rule)!important;
+  box-shadow: 0 8px 24px var(--color-admin-shadow);
+}
+
+.admin-app-shell .erp-supplier-name,
+.admin-app-shell .erp-supplier-editor-title,
+.admin-app-shell .cms-content-card > div:not([class]) > div:first-child {
+  color: var(--color-admin-ink-strong)!important;
+}
+
+.admin-app-shell .erp-supplier-contact,
+.admin-app-shell .erp-supplier-item,
+.admin-app-shell .erp-supplier-item [style*="#A8B0C0"] {
+  color: var(--color-admin-muted)!important;
+}
+
+.admin-app-shell .erp-supplier-stat,
+.admin-app-shell .erp-supplier-editor,
+.admin-app-shell .erp-supplier-editor-item,
+.admin-app-shell .erp-form-summary,
+.admin-app-shell .erp-document-summary {
+  background: var(--color-admin-paper-soft)!important;
+  border-color: var(--color-admin-rule)!important;
+}
+
+.admin-app-shell .erp-supplier-item {
+  border-top-color: var(--color-admin-rule)!important;
+}
+
+.admin-app-shell .erp-upload-preview {
+  background: var(--color-admin-paper-soft)!important;
+  border-color: var(--color-admin-rule-strong)!important;
+}
+
+.admin-app-shell .cms-portfolio-card > div:first-child,
+.admin-app-shell .cms-blog-cover {
+  background: var(--color-admin-paper-soft)!important;
+}
+
+.admin-app-shell .cms-content-card [style*="#A8B0C0"],
+.admin-app-shell .cms-content-card [style*="#CBD5E1"],
+.admin-app-shell .cms-content-card [style*="#7B8496"],
+.admin-app-shell .cms-service-card [style*="#A8B0C0"],
+.admin-app-shell .cms-service-card [style*="#CBD5E1"] {
+  color: var(--color-admin-muted)!important;
+}
+
+.admin-app-shell .cms-service-card > div:nth-child(2) {
+  color: var(--color-admin-ink-strong)!important;
+}
+
+.admin-app-shell .cms-service-card > div:nth-child(3) {
+  color: var(--color-admin-muted)!important;
+}
+
+.admin-app-shell .cms-service-card > div:nth-child(4) {
+  color: var(--color-admin-accent-ink)!important;
+}
+
+.admin-app-shell .cms-info-note {
+  background: var(--color-admin-info-soft)!important;
+  border-color: color-mix(in oklch, var(--color-admin-info) 28%, var(--color-admin-rule))!important;
+  color: color-mix(in oklch, var(--color-admin-info) 78%, var(--color-admin-ink-strong))!important;
+}
+
+.admin-app-shell .cms-section-tabs button {
+  background: var(--color-admin-paper-raised)!important;
+  border-color: var(--color-admin-rule-strong)!important;
+  color: var(--color-admin-muted)!important;
+}
+
+.admin-app-shell .cms-section-tabs button.is-active {
+  background: var(--color-admin-accent-soft)!important;
+  border-color: color-mix(in oklch, var(--color-admin-accent) 45%, var(--color-admin-rule))!important;
+  color: var(--color-admin-accent-ink)!important;
+}
+
+.admin-app-shell .admin-field > label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--color-admin-muted)!important;
+  font-size: var(--text-admin-sm);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.admin-app-shell .erp-admin-content input,
+.admin-app-shell .erp-admin-content select,
+.admin-app-shell .erp-admin-content textarea,
+.admin-app-shell .cms-manager-page input,
+.admin-app-shell .cms-manager-page select,
+.admin-app-shell .cms-manager-page textarea,
+.admin-app-shell .cms-blog-manager input,
+.admin-app-shell .cms-blog-manager select,
+.admin-app-shell .cms-blog-manager textarea {
+  background: var(--color-admin-paper-raised)!important;
+  color: var(--color-admin-ink-strong)!important;
+  -webkit-text-fill-color: var(--color-admin-ink-strong)!important;
+  border-color: var(--color-admin-rule-strong)!important;
+  color-scheme: light!important;
+}
+
+.admin-app-shell .erp-admin-content input::placeholder,
+.admin-app-shell .erp-admin-content textarea::placeholder,
+.admin-app-shell .cms-manager-page input::placeholder,
+.admin-app-shell .cms-manager-page textarea::placeholder,
+.admin-app-shell .cms-blog-manager input::placeholder,
+.admin-app-shell .cms-blog-manager textarea::placeholder {
+  color: var(--color-admin-placeholder)!important;
+  -webkit-text-fill-color: var(--color-admin-placeholder)!important;
+  opacity: 1;
+}
+
+.admin-app-shell .admin-ui-button.is-outline {
+  background: var(--color-admin-paper-raised)!important;
+  border-color: var(--color-admin-rule-strong)!important;
+  color: var(--color-admin-ink)!important;
+}
+
+.admin-app-shell .admin-icon-button:not(.is-danger) {
+  background: var(--color-admin-paper-soft)!important;
+  border-color: var(--color-admin-rule)!important;
+  color: var(--color-admin-ink)!important;
+}
+
+.admin-app-shell .admin-icon-button.is-danger {
+  background: var(--color-admin-negative-soft)!important;
+  border-color: color-mix(in oklch, var(--color-admin-negative) 28%, var(--color-admin-rule))!important;
+  color: var(--color-admin-negative)!important;
+}
+
+.admin-app-shell .admin-modal-panel {
+  background: var(--color-admin-paper-raised)!important;
+  color: var(--color-admin-ink)!important;
+  border-color: var(--color-admin-rule)!important;
+  color-scheme: light!important;
+  box-shadow: 0 24px 80px var(--color-admin-shadow-deep)!important;
+}
+
+.admin-app-shell .admin-modal-handle {
+  background: var(--color-admin-rule-strong)!important;
+}
+
+.admin-app-shell .admin-modal-header {
+  background: var(--color-admin-paper-raised)!important;
+  color: var(--color-admin-ink-strong)!important;
+  border-bottom-color: var(--color-admin-rule)!important;
+}
+
+.admin-app-shell .admin-modal-header button[aria-label="Close dialog"] {
+  background: var(--color-admin-paper-soft)!important;
+  color: var(--color-admin-ink)!important;
+  border: var(--rule-admin-thin) solid var(--color-admin-rule)!important;
+}
+
+.admin-app-shell .admin-modal-body {
+  background: var(--color-admin-paper-raised)!important;
+  color: var(--color-admin-ink)!important;
+}
+
+.admin-app-shell .admin-modal-body input,
+.admin-app-shell .admin-modal-body select,
+.admin-app-shell .admin-modal-body textarea {
+  background: var(--color-admin-paper-soft)!important;
+  color: var(--color-admin-ink-strong)!important;
+  -webkit-text-fill-color: var(--color-admin-ink-strong)!important;
+  border-color: var(--color-admin-rule-strong)!important;
+  color-scheme: light!important;
+}
+
+.admin-app-shell .admin-modal-body [style*="background: rgb(11, 15, 25)"],
+.admin-app-shell .admin-modal-body [style*="background: rgb(15, 20, 32)"],
+.admin-app-shell .admin-modal-body [style*="background: rgb(20, 26, 36)"],
+.admin-app-shell .admin-modal-body [style*="background: rgb(26, 34, 51)"] {
+  background: var(--color-admin-paper-soft)!important;
+  border-color: var(--color-admin-rule)!important;
+}
+
+.admin-app-shell .admin-modal-body [style*="color: rgb(255, 255, 255)"],
+.admin-app-shell .admin-modal-body [style*="color: #fff"] {
+  color: var(--color-admin-ink-strong)!important;
+  -webkit-text-fill-color: var(--color-admin-ink-strong)!important;
+}
+
+.admin-app-shell .admin-modal-body .admin-ui-button:not(.is-outline),
+.admin-app-shell .admin-modal-body button[style*="background: rgb(194, 65, 12)"],
+.admin-app-shell .admin-modal-body button[style*="background: #C2410C"] {
+  color: var(--color-admin-paper-raised)!important;
+  -webkit-text-fill-color: var(--color-admin-paper-raised)!important;
+}
+
+.admin-app-shell .erp-dashboard-page {
+  color: var(--color-admin-ink);
+}
+
+.admin-app-shell .erp-dashboard-page h1,
+.admin-app-shell .erp-dashboard-page h2,
+.admin-app-shell .erp-dashboard-page h3,
+.admin-app-shell .erp-dashboard-page div[style*="color: rgb(255, 255, 255)"],
+.admin-app-shell .erp-dashboard-page div[style*="color: #fff"],
+.admin-app-shell .erp-dashboard-page span[style*="color: rgb(255, 255, 255)"],
+.admin-app-shell .erp-dashboard-page span[style*="color: #fff"],
+.admin-app-shell .erp-dashboard-page [style*="color: rgb(226, 232, 240)"],
+.admin-app-shell .erp-dashboard-page [style*="color: #E2E8F0"],
+.admin-app-shell .erp-dashboard-page [style*="color: rgb(248, 250, 252)"],
+.admin-app-shell .erp-dashboard-page [style*="color: #F8FAFC"] {
+  color: var(--color-admin-ink-strong)!important;
+}
+
+.admin-app-shell .erp-dashboard-page [style*="color: rgb(75, 85, 99)"],
+.admin-app-shell .erp-dashboard-page [style*="color: #4B5563"],
+.admin-app-shell .erp-dashboard-page [style*="color: rgb(100, 116, 139)"],
+.admin-app-shell .erp-dashboard-page [style*="color: #64748B"],
+.admin-app-shell .erp-dashboard-page [style*="color: rgb(148, 163, 184)"],
+.admin-app-shell .erp-dashboard-page [style*="color: #94A3B8"],
+.admin-app-shell .erp-dashboard-page [style*="color: rgb(203, 213, 225)"],
+.admin-app-shell .erp-dashboard-page [style*="color: #CBD5E1"] {
+  color: var(--color-admin-muted)!important;
+}
+
+.admin-app-shell .erp-dashboard-page button[style*="background: rgb(255, 107, 0)"],
+.admin-app-shell .erp-dashboard-page button[style*="background: #FF6B00"] {
+  color: var(--color-admin-paper-raised)!important;
+}
+
+.admin-app-shell .erp-dashboard-page .kpi-grid > div,
+.admin-app-shell .erp-dashboard-page .chart-panel > div,
+.admin-app-shell .erp-dashboard-page .insights-row > div,
+.admin-app-shell .erp-dashboard-page .erp-latest-panel {
+  background: var(--color-admin-paper-raised)!important;
+  color: var(--color-admin-ink)!important;
+  border-color: var(--color-admin-rule)!important;
+  box-shadow: 0 8px 24px var(--color-admin-shadow)!important;
+}
+
+.admin-app-shell .erp-dashboard-page .erp-date-controls button:not([style*="background: rgb(255, 107, 0)"]):not([style*="background: #FF6B00"]) {
+  border-color: var(--color-admin-rule-strong)!important;
+  color: var(--color-admin-muted)!important;
+}
+
 /* Marketing stays dark; secondary copy must remain readable at body sizes. */
 .admin-app-shell .marketing-dashboard-shell [style*="#A8B0C0"] {
   color: var(--color-admin-on-dark-muted)!important;

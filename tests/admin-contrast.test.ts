@@ -38,6 +38,53 @@ test("CMS and Marketing have surface-specific readable text rules", () => {
   assert.match(systemCss, /\.admin-app-shell \.cms-page-tools \{[\s\S]*?background: var\(--color-admin-paper-soft\)!important/);
 });
 
+test("ERP operational pages opt into the shared light-surface contrast contract", () => {
+  for (const className of [
+    "erp-dashboard-page",
+    "erp-customer-page",
+    "erp-product-page",
+    "erp-product-table",
+    "erp-supplier-page",
+    "erp-supplier-card",
+    "erp-company-page",
+    "erp-company-section",
+    "erp-document-page",
+  ]) {
+    assert.match(pageSource, new RegExp(className));
+  }
+
+  assert.match(systemCss, /\.erp-operational-page/);
+  assert.match(systemCss, /\.erp-dashboard-page/);
+  assert.match(systemCss, /\.erp-product-table/);
+  assert.match(systemCss, /\.erp-supplier-card/);
+  assert.match(systemCss, /\.erp-company-section/);
+  assert.match(systemCss, /\.erp-product-name\s*\{[\s\S]*?color:\s*var\(--color-admin-ink-strong\)!important/);
+  assert.match(systemCss, /\.erp-product-secondary[\s\S]*?color:\s*var\(--color-admin-muted\)!important/);
+  assert.match(systemCss, /\.erp-supplier-card,[\s\S]*?background:\s*var\(--color-admin-paper-raised\)!important/);
+});
+
+test("CMS cards, forms, and dialogs use readable semantic surfaces", () => {
+  for (const className of [
+    "cms-manager-page",
+    "cms-content-card",
+    "cms-review-card",
+    "cms-portfolio-card",
+    "cms-info-note",
+    "cms-section-tabs",
+    "admin-field",
+    "admin-modal-panel",
+    "admin-modal-header",
+    "admin-modal-body",
+  ]) {
+    assert.match(pageSource, new RegExp(className));
+    assert.match(systemCss, new RegExp(`\\.${className}`));
+  }
+
+  assert.match(systemCss, /\.admin-field > label\s*\{[\s\S]*?color:\s*var\(--color-admin-muted\)!important/);
+  assert.match(systemCss, /\.admin-modal-panel\s*\{[\s\S]*?background:\s*var\(--color-admin-paper-raised\)!important/);
+  assert.match(systemCss, /\.admin-modal-body input,[\s\S]*?color:\s*var\(--color-admin-ink-strong\)!important/);
+});
+
 test("admin layout loads shared tokens and dashboard controls stay bounded", () => {
   const layout = readFileSync("src/app/admin/layout.tsx", "utf8");
   const dashboardCss = readFileSync("src/app/admin/dashboard/ExecutiveDashboard.module.css", "utf8");
