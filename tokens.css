@@ -21,6 +21,8 @@
   --color-admin-accent-ink: oklch(42% 0.14 43);
   --color-admin-positive: oklch(46% 0.12 157);
   --color-admin-positive-soft: oklch(95% 0.035 157);
+  --color-admin-warning: oklch(45% 0.12 75);
+  --color-admin-warning-soft: oklch(96% 0.04 75);
   --color-admin-negative: oklch(54% 0.19 22);
   --color-admin-negative-soft: oklch(96% 0.035 22);
   --color-admin-info: oklch(55% 0.15 255);

@@ -5,6 +5,7 @@ import { test } from "node:test";
 const pageSource = readFileSync("src/app/admin/page.tsx", "utf8");
 const systemCss = readFileSync("src/app/admin/admin-system.css", "utf8");
 const tokens = readFileSync("tokens.css", "utf8");
+const erpNavigationCss = readFileSync("src/app/admin/dashboard/ErpNavigation.module.css", "utf8");
 
 test("admin design tokens separate light and dark surface text", () => {
   assert.match(tokens, /--color-admin-muted:/);
@@ -83,6 +84,46 @@ test("CMS cards, forms, and dialogs use readable semantic surfaces", () => {
   assert.match(systemCss, /\.admin-field > label\s*\{[\s\S]*?color:\s*var\(--color-admin-muted\)!important/);
   assert.match(systemCss, /\.admin-modal-panel\s*\{[\s\S]*?background:\s*var\(--color-admin-paper-raised\)!important/);
   assert.match(systemCss, /\.admin-modal-body input,[\s\S]*?color:\s*var\(--color-admin-ink-strong\)!important/);
+});
+
+test("document internal costs use semantic light-surface contrast", () => {
+  for (const className of [
+    "erp-internal-cost-panel",
+    "erp-internal-cost-help",
+    "erp-internal-cost-metric",
+    "erp-internal-cost-preset",
+    "erp-internal-cost-empty",
+    "erp-internal-cost-row",
+    "erp-internal-cost-remove",
+  ]) {
+    assert.match(pageSource, new RegExp(className));
+    assert.match(systemCss, new RegExp(`\\.${className}`));
+  }
+
+  assert.match(tokens, /--color-admin-warning:/);
+  assert.match(systemCss, /\.erp-internal-cost-metric,[\s\S]*?background:\s*var\(--color-admin-paper-raised\)!important/);
+  assert.match(systemCss, /\.erp-internal-cost-preset\s*\{[\s\S]*?color:\s*var\(--color-admin-ink\)!important/);
+  assert.match(systemCss, /\.admin-modal-body :is\(input, select, textarea, button\):disabled\s*\{[\s\S]*?opacity:\s*1!important/);
+});
+
+test("navigation and document actions keep accessible foregrounds", () => {
+  assert.match(systemCss, /\.admin-primary-nav button\[aria-current="page"\]\s*\{[\s\S]*?color:\s*var\(--color-admin-ink-strong\)/);
+  assert.match(pageSource, /className="doc-type-badge"/);
+  assert.match(systemCss, /\.erp-document-page \.doc-type-badge\s*\{[\s\S]*?color:\s*var\(--color-admin-accent-ink\)!important/);
+  assert.match(pageSource, /"#10B981": "#047857"/);
+  assert.match(pageSource, /"#3B82F6": "#1D4ED8"/);
+  assert.match(erpNavigationCss, /footer em\{[^}]*color:var\(--color-admin-muted/);
+});
+
+test("legacy status colors map to readable semantic ink on light surfaces", () => {
+  assert.match(systemCss, /\.erp-operational-page \[style\*="color: rgb\(148, 163, 184\)"\]/);
+  assert.match(systemCss, /\.cms-blog-manager \[style\*="color: rgb\(148, 163, 184\)"\]/);
+  assert.match(systemCss, /:is\(\.erp-operational-page, \.cms-manager-page, \.cms-blog-manager\) \[style\*="color: rgb\(249, 115, 22\)"\]/);
+  assert.match(systemCss, /:is\(\.erp-operational-page, \.cms-manager-page, \.cms-blog-manager\) \[style\*="color: rgb\(16, 185, 129\)"\]/);
+  assert.match(systemCss, /:is\(\.erp-operational-page, \.cms-manager-page, \.cms-blog-manager\) \[style\*="color: rgb\(239, 68, 68\)"\]/);
+  assert.match(systemCss, /\.mk-dashboard \.mk-dot\s*\{[\s\S]*?color:\s*var\(--color-admin-charcoal\)!important/);
+  assert.match(systemCss, /\.mk-dashboard \.mk-dot\.blue\s*\{[\s\S]*?color:\s*var\(--color-admin-on-dark\)!important/);
+  assert.match(pageSource, /color: "#047857"/);
 });
 
 test("admin layout loads shared tokens and dashboard controls stay bounded", () => {

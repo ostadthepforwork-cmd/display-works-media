@@ -13,4 +13,4 @@
 .mobileNav button[style*="rgba(255,107,0,0.12)"]{color:#9a4100!important;background:#fff1e7!important;}
 .mobileNav button span:last-child{font-size:12px!important;}
 .sidebar footer{display:grid;gap:3px;margin:24px 8px 8px;padding:14px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafb;color:#354150;}
-.sidebar footer span{font-size:12px;font-weight:700;}.sidebar footer small{font-size:10px;color:#6b7280;}.sidebar footer b{margin-top:14px;font-size:11px;}.sidebar footer em{font-style:normal;font-weight:500;color:#94a3b8;margin-left:6px;}
+.sidebar footer span{font-size:12px;font-weight:700;}.sidebar footer small{font-size:10px;color:#6b7280;}.sidebar footer b{margin-top:14px;font-size:11px;}.sidebar footer em{font-style:normal;font-weight:600;color:var(--color-admin-muted,#526071);margin-left:6px;}

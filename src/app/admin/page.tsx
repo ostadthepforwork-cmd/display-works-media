@@ -4618,7 +4618,7 @@ function AdminHome({
       label: "Marketing",
       sub: "Leads โฆษณา ROAS และ Customer Insight",
       badge: "Growth intelligence",
-      color: "#16A34A",
+      color: "#047857",
       stats: [
         { label: "ใบเสร็จ", value: `${receiptCount} ฉบับ` },
         { label: "กำไร", value: fmtMoney(totalProfit) },
@@ -7461,11 +7461,11 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   }, [closeAll]);
 
   return (
-    <div className="erp-operational-page erp-document-page" style={{ animation: "fadeIn 0.3s ease" }}>
+    <div className="erp-operational-page erp-document-page" data-doc-type={type} style={{ animation: "fadeIn 0.3s ease" }}>
       <div className="doc-header-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ background: dt.color + "22", color: dt.color, fontSize: 12, padding: "3px 10px", borderRadius: 99 }}>{dt.short}</span>{dt.label}
+            <span className="doc-type-badge" style={{ background: dt.color + "22", color: dt.color, fontSize: 12, padding: "3px 10px", borderRadius: 99 }}>{dt.short}</span>{dt.label}
           </h2>
           <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{documents.length} ฉบับ</p>
         </div>
@@ -8192,36 +8192,36 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
           </div>
         ))}
 
-        <div style={{ marginTop: 4, padding: 16, borderRadius: 12, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.22)", display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="erp-internal-cost-panel" style={{ marginTop: 4, padding: 16, borderRadius: 12, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.22)", display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
             <div>
-              <div style={{ color: "#10B981", fontSize: 13, fontWeight: 900 }}>ข้อมูลภายใน: กำไรและค่าใช้จ่ายอื่น</div>
-              <div style={{ color: "#94A3B8", fontSize: 12, marginTop: 3 }}>ใช้ใน ERP เท่านั้น ไม่แสดงใน PDF หรือลิงก์ที่แชร์ให้ลูกค้า</div>
+              <div className="erp-internal-cost-title" style={{ color: "#10B981", fontSize: 13, fontWeight: 900 }}>ข้อมูลภายใน: กำไรและค่าใช้จ่ายอื่น</div>
+              <div className="erp-internal-cost-help" style={{ color: "#94A3B8", fontSize: 12, marginTop: 3 }}>ใช้ใน ERP เท่านั้น ไม่แสดงใน PDF หรือลิงก์ที่แชร์ให้ลูกค้า</div>
             </div>
-            <button type="button" onClick={() => addInternalExpense("ค่าใช้จ่ายอื่น")} style={{ background: "#10B981", color: "#02130D", border: "none", borderRadius: 10, padding: "10px 14px", fontWeight: 900, cursor: "pointer" }}>
+            <button className="erp-internal-cost-add" type="button" onClick={() => addInternalExpense("ค่าใช้จ่ายอื่น")} style={{ background: "#10B981", color: "#02130D", border: "none", borderRadius: 10, padding: "10px 14px", fontWeight: 900, cursor: "pointer" }}>
               + เพิ่มค่าใช้จ่าย
             </button>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
-            <div style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
-              <div style={{ color: "#94A3B8", fontSize: 11 }}>ต้นทุนรายการ</div>
-              <div style={{ color: "#F87171", fontWeight: 900, fontSize: 20 }}>฿{fmtMoney(internalItemsCost)}</div>
+          <div className="erp-internal-cost-metrics" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+            <div className="erp-internal-cost-metric" style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
+              <div className="erp-internal-cost-label" style={{ color: "#94A3B8", fontSize: 11 }}>ต้นทุนรายการ</div>
+              <div className="erp-internal-cost-value is-negative" style={{ color: "#F87171", fontWeight: 900, fontSize: 20 }}>฿{fmtMoney(internalItemsCost)}</div>
             </div>
-            <div style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
-              <div style={{ color: "#94A3B8", fontSize: 11 }}>ค่าใช้จ่ายอื่น</div>
-              <div style={{ color: "#FBBF24", fontWeight: 900, fontSize: 20 }}>฿{fmtMoney(internalExtraCost)}</div>
+            <div className="erp-internal-cost-metric" style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
+              <div className="erp-internal-cost-label" style={{ color: "#94A3B8", fontSize: 11 }}>ค่าใช้จ่ายอื่น</div>
+              <div className="erp-internal-cost-value is-warning" style={{ color: "#FBBF24", fontWeight: 900, fontSize: 20 }}>฿{fmtMoney(internalExtraCost)}</div>
             </div>
-            <div style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
-              <div style={{ color: "#94A3B8", fontSize: 11 }}>กำไรภายใน</div>
-              <div style={{ color: internalProfit >= 0 ? "#10B981" : "#EF4444", fontWeight: 900, fontSize: 20 }}>฿{fmtMoney(internalProfit)}</div>
-              <div style={{ color: "#94A3B8", fontSize: 11 }}>{fmtMoney(internalMargin)}% margin</div>
+            <div className="erp-internal-cost-metric" style={{ background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
+              <div className="erp-internal-cost-label" style={{ color: "#94A3B8", fontSize: 11 }}>กำไรภายใน</div>
+              <div className={`erp-internal-cost-value ${internalProfit >= 0 ? "is-positive" : "is-negative"}`} style={{ color: internalProfit >= 0 ? "#10B981" : "#EF4444", fontWeight: 900, fontSize: 20 }}>฿{fmtMoney(internalProfit)}</div>
+              <div className="erp-internal-cost-margin" style={{ color: "#94A3B8", fontSize: 11 }}>{fmtMoney(internalMargin)}% margin</div>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="erp-internal-cost-presets" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {DEFAULT_INTERNAL_EXPENSE_OPTIONS.map((option) => (
-              <button key={option} type="button" onClick={() => addInternalExpense(option)} style={{ background: "rgba(255,255,255,0.06)", color: "#D1D5DB", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, padding: "7px 10px", fontSize: 12, cursor: "pointer" }}>
+              <button className="erp-internal-cost-preset" key={option} type="button" onClick={() => addInternalExpense(option)} style={{ background: "rgba(255,255,255,0.06)", color: "#D1D5DB", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, padding: "7px 10px", fontSize: 12, cursor: "pointer" }}>
                 + {option}
               </button>
             ))}
@@ -8229,11 +8229,11 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
 
           <div style={{ display: "grid", gap: 10 }}>
             {rawInternalExpenses.length === 0 ? (
-              <div style={{ border: "1px dashed rgba(255,255,255,0.18)", borderRadius: 10, padding: 12, color: "#94A3B8", fontSize: 12 }}>
+              <div className="erp-internal-cost-empty" style={{ border: "1px dashed rgba(255,255,255,0.18)", borderRadius: 10, padding: 12, color: "#94A3B8", fontSize: 12 }}>
                 ยังไม่มีค่าใช้จ่ายอื่น เช่น ค่าส่ง ค่าติดตั้ง หรือค่าแรงเพิ่มเติม
               </div>
             ) : rawInternalExpenses.map((expense: any) => (
-              <div key={expense.id} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, alignItems: "end", background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
+              <div className="erp-internal-cost-row" key={expense.id} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, alignItems: "end", background: "#0B0F19", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12 }}>
                 <Field label="ชื่อค่าใช้จ่าย">
                   <input value={expense.name || ""} onChange={(e) => updateInternalExpense(expense.id, { name: e.target.value })} placeholder="เช่น ค่าส่ง" />
                 </Field>
@@ -8243,7 +8243,7 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
                 <Field label="หมายเหตุ">
                   <input value={expense.note || ""} onChange={(e) => updateInternalExpense(expense.id, { note: e.target.value })} placeholder="ไม่แสดงในเอกสารลูกค้า" />
                 </Field>
-                <button type="button" onClick={() => removeInternalExpense(expense.id)} style={{ minHeight: 44, borderRadius: 10, border: "1px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)", color: "#FCA5A5", fontWeight: 800, cursor: "pointer" }}>
+                <button className="erp-internal-cost-remove" type="button" onClick={() => removeInternalExpense(expense.id)} style={{ minHeight: 44, borderRadius: 10, border: "1px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)", color: "#FCA5A5", fontWeight: 800, cursor: "pointer" }}>
                   ลบ
                 </button>
               </div>
@@ -8456,7 +8456,16 @@ function SumRow({ label, value, bold, color, big }: any) {
 function Field({ label, children }: any) { return <div className="admin-field"><label>{label}</label>{children}</div>; }
 
 function Btn({ onClick, children, color, outline, small, style, type = "button", className = "", ...rest }: any) {
-  const buttonColor = color === "#FF6B00" || color === "#FF7A00" || !color ? "#C2410C" : color;
+  const accessibleButtonColors: Record<string, string> = {
+    "#10B981": "#047857",
+    "#3B82F6": "#1D4ED8",
+    "#8B5CF6": "#6D28D9",
+    "#F59E0B": "#92400E",
+    "#EF4444": "#B91C1C",
+  };
+  const buttonColor = color === "#FF6B00" || color === "#FF7A00" || !color
+    ? "#C2410C"
+    : accessibleButtonColors[color.toUpperCase()] || color;
   return (
     <button className={`admin-ui-button${outline ? " is-outline" : ""} ${className}`.trim()} type={type} onClick={onClick} {...rest} style={{
       background: outline ? "transparent" : buttonColor,
