@@ -86,6 +86,15 @@ test("CMS cards, forms, and dialogs use readable semantic surfaces", () => {
   assert.match(systemCss, /\.admin-modal-body input,[\s\S]*?color:\s*var\(--color-admin-ink-strong\)!important/);
 });
 
+test("mobile admin lists and CMS media controls remain usable", () => {
+  assert.match(pageSource, /mobileVisibleCount/);
+  assert.match(pageSource, /filtered\.slice\(0, mobileVisibleCount\)/);
+  assert.match(pageSource, /className="doc-mobile-load-more"/);
+  assert.match(pageSource, /className="cms-hero-media"/);
+  assert.match(pageSource, /\.cms-manager-page button \{[\s\S]*?min-height: 44px !important/);
+  assert.match(systemCss, /\.admin-home-metrics strong \{ color: #f8fafc!important/);
+});
+
 test("document internal costs use semantic light-surface contrast", () => {
   for (const className of [
     "erp-internal-cost-panel",

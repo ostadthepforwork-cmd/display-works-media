@@ -1831,24 +1831,24 @@ export default function MarketingKpiDashboard({
             -webkit-text-fill-color:#fff!important;
           }
           .mk-shell,.mk-main{min-width:0;max-width:100%}
-          .mk-main{padding:12px 10px 112px;overflow-x:hidden}
-          .mk-top{display:block;margin:-2px 0 10px;padding:14px;border:1px solid rgba(255,107,0,.18);border-radius:18px;background:linear-gradient(135deg,rgba(255,107,0,.14),rgba(17,25,35,.84));overflow:hidden}
-          .mk-eyebrow{font-size:10px;letter-spacing:.18em}
-          .mk-title{font-size:23px;line-height:1.12;max-width:100%;margin:9px 0 8px;overflow-wrap:anywhere}
-          .mk-sub{font-size:12px;line-height:1.55;max-width:100%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+          .mk-main{padding:10px 10px calc(112px + env(safe-area-inset-bottom,0px));overflow-x:hidden}
+          .mk-top{display:block;margin:-2px 0 10px;padding:12px;border:1px solid rgba(255,107,0,.18);border-radius:8px;background:linear-gradient(135deg,rgba(255,107,0,.14),rgba(17,25,35,.84));overflow:hidden}
+          .mk-eyebrow{font-size:12px;letter-spacing:.12em}
+          .mk-title{font-size:21px;line-height:1.16;max-width:100%;margin:6px 0;overflow-wrap:anywhere}
+          .mk-sub{font-size:13px;line-height:1.5;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
           .mk-actions,.mk-date-controls,.mk-date-presets,.mk-date-fields{justify-content:flex-start;justify-items:start;width:100%}
-          .mk-actions{margin-top:14px}
-          .mk-btn{min-height:44px;border-radius:14px;padding:11px 13px}
+          .mk-actions{margin-top:10px}
+          .mk-btn{min-height:44px;border-radius:8px;padding:10px 12px}
           .mk-date-controls{gap:8px}
-          .mk-date-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;margin-top:12px;overflow:visible;padding-bottom:2px;scrollbar-width:none}
+          .mk-date-presets{display:flex;gap:8px;width:100%;margin-top:8px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
           .mk-date-presets::-webkit-scrollbar{display:none}
-          .mk-date-presets .mk-btn{width:100%;min-width:0;font-size:12px;padding:10px 8px;text-align:center}
+          .mk-date-presets .mk-btn{flex:0 0 auto;min-width:60px;font-size:12px;padding:9px 10px;text-align:center}
           .mk-date-fields{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:8px}
           .mk-date-fields .mk-date-input-wrap{width:100%;min-width:0;min-height:46px;font-size:13px}
           .mk-date-controls > div[style]{font-size:11px!important}
           .mk-date-controls .mk-btn.orange{width:100%;justify-content:center;text-align:center}
-          .mk-mobile-tabs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;position:static!important;background:transparent!important;backdrop-filter:none!important;padding:0 0 12px!important}
-          .mk-mobile-tabs button{min-height:42px;padding:10px 14px;border-radius:12px}
+          .mk-mobile-tabs{display:flex!important;grid-template-columns:none!important;position:static!important;background:transparent!important;backdrop-filter:none!important;overflow-x:auto!important;scroll-snap-type:x proximity;padding:0 0 10px!important}
+          .mk-mobile-tabs button{flex:0 0 auto;min-width:124px;min-height:44px;padding:9px 12px;border-radius:8px;scroll-snap-align:start}
           .mk-mobile-command{display:grid;gap:12px;margin:12px 0 14px}
           .mk-mobile-command-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
           .mk-mobile-command-head > div{display:grid;gap:4px}
@@ -1857,7 +1857,7 @@ export default function MarketingKpiDashboard({
           .mk-mobile-command-head > span{max-width:112px;text-align:right;line-height:1.35}
           .mk-mobile-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
           .mk-mobile-metric{border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(17,25,35,.96),rgba(9,15,23,.98));border-radius:16px;padding:13px;min-height:96px}
-          .mk-mobile-metric span{display:block;color:#94a3b8;font-size:11px;line-height:1.4}
+          .mk-mobile-metric span{display:block;color:#a8b4c5;font-size:12px;line-height:1.4}
           .mk-mobile-metric strong{display:block;margin-top:8px;font-size:20px;line-height:1.08;color:#fff;word-break:break-word}
           .mk-mobile-chart{padding:13px;border-radius:17px}
           .mk-mobile-chart .mk-bar-head{font-size:12px}
@@ -1871,19 +1871,19 @@ export default function MarketingKpiDashboard({
           .mk-card{min-height:112px!important;padding:13px;border-radius:16px;scroll-snap-align:none}
           .mk-card > div:first-child{margin-bottom:8px}
           .mk-card strong{font-size:19px;line-height:1.08;word-break:break-word}
-          .mk-card span{font-size:11px;line-height:1.45}
+          .mk-card span{font-size:12px;line-height:1.45}
           .mk-dot{width:30px;height:30px;border-radius:10px;font-size:11px}
           .mk-growth-grid{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;margin:12px 0 8px!important;padding:0!important;overflow:visible!important;scroll-snap-type:none!important}
           .mk-growth-grid::-webkit-scrollbar{display:none}
           .mk-growth-card{width:100%!important;flex:initial!important;scroll-snap-align:none!important;padding:15px;border-radius:18px;min-height:160px}
           .mk-growth-head{gap:10px}
           .mk-growth-head strong{font-size:15px}
-          .mk-growth-head span{font-size:11px}
+          .mk-growth-head span{font-size:12px}
           .mk-growth-value{font-size:20px;margin-top:7px}
-          .mk-growth-delta{font-size:11px;padding:5px 8px}
+          .mk-growth-delta{font-size:12px;padding:5px 8px}
           .mk-spark-bars{height:82px;gap:4px;margin-top:14px}
           .mk-spark-bars span{min-width:4px}
-          .mk-spark-caption{font-size:10px}
+          .mk-spark-caption{font-size:11px;color:#a8b4c5}
           .mk-row{grid-template-columns:1fr!important;gap:12px!important;margin-top:12px}
           .mk-panel{padding:15px;border-radius:17px}
           .mk-panel h2,.mk-panel h3{font-size:18px}
@@ -1910,7 +1910,7 @@ export default function MarketingKpiDashboard({
           .mk-bar-head{align-items:flex-start;font-size:13px}
           .mk-bar-track,.mk-chart-bar,.mk-meter-track{height:10px}
           .mk-source{display:grid!important;grid-template-columns:1fr!important;align-items:start;padding:13px;gap:10px}
-          .mk-source.compact strong{white-space:normal}
+          .mk-source.compact strong,.mk-source.compact span{max-width:100%;white-space:normal!important;overflow-wrap:anywhere}
           .mk-source-tools,.mk-expiry-editor{justify-items:start;justify-content:flex-start;width:100%}
           .mk-meter-row{grid-template-columns:1fr;gap:8px}
           .mk-chart-list,.mk-scroll-list{max-height:390px;overflow:auto;padding-right:2px}
@@ -1970,6 +1970,7 @@ export default function MarketingKpiDashboard({
             left: 13px !important;
             bottom: 10px !important;
             height: 7px !important;
+            max-width: calc(100% - 26px) !important;
           }
           .mk-log-list {
             max-height: 320px !important;

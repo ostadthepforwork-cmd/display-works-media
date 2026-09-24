@@ -29,3 +29,10 @@ test("expense UI does not calculate profitability or import document estimates",
   assert.doesNotMatch(source, /grossProfit|operatingProfit|ROAS|Meta Ads/);
   assert.doesNotMatch(source, /service.role|SUPABASE_SERVICE_ROLE_KEY/i);
 });
+
+test("expense UI replaces the wide table with readable cards on mobile", () => {
+  assert.match(source, /className="expense-mobile-list"/);
+  assert.match(source, /className=\{`expense-mobile-card/);
+  assert.match(source, /@media\(max-width:700px\)[\s\S]*?\.expense-table-wrap\{display:none\}/);
+  assert.match(source, /\.expense-mobile-footer \.row-actions button\{width:44px;min-width:44px;min-height:44px\}/);
+});

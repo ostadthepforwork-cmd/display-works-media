@@ -386,7 +386,8 @@ body:has(.admin-app-shell) { overflow-x: clip; }
   .admin-app-shell .admin-home-metrics > div { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 11px 13px; border-right: 0; border-bottom: var(--rule-admin-thin) solid color-mix(in oklch, var(--color-admin-paper-raised) 12%, transparent); }
   .admin-app-shell .admin-home-metrics > div:last-child { border-bottom: 0; }
   .admin-app-shell .admin-home-metrics svg { margin: 0; }
-  .admin-app-shell .admin-home-metrics strong { text-align: right; font-size: 17px; }
+  .admin-app-shell .admin-home-metrics span { color: #cbd5e1!important; }
+  .admin-app-shell .admin-home-metrics strong { color: #f8fafc!important; text-align: right; font-size: 17px; }
   .admin-app-shell .admin-home-section-heading { align-items: start; }
   .admin-app-shell .admin-home-section-heading > span { display: none; }
   .admin-app-shell .admin-home-systems { grid-template-columns: 1fr; }

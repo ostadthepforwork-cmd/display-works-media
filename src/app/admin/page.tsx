@@ -1223,7 +1223,7 @@ export default function AdminPage() {
         <div className="show-mobile admin-mobile-top" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
           <span className="admin-mobile-title" style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-admin-ink-strong)', flex: 1 }}>
             {mainTab === "home" ? "Admin" : mainTab === "erp"
-              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : erpPage === "export" ? "ส่งออกและสำรอง" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
+              ? (erpPage === "dashboard" ? "ภาพรวม" : erpPage === "customers" ? "ลูกค้า" : erpPage === "products" ? "สินค้า" : erpPage === "suppliers" ? "Supplier" : erpPage === "company" ? "บริษัท" : erpPage === "expenses" ? "ค่าใช้จ่าย" : erpPage === "export" ? "ส่งออกและสำรอง" : (DOC_TYPES as any)[erpPage]?.label || erpPage)
               : mainTab === "cms" ? (cmsTabs.find(t => t.id === tab)?.label || "CMS") : "Marketing"}
           </span>
           <button
@@ -4487,6 +4487,53 @@ export default function AdminPage() {
             -webkit-text-fill-color: #111827 !important;
             text-align: left !important;
           }
+          .doc-mobile-card {
+            content-visibility: auto;
+            contain-intrinsic-size: 290px;
+          }
+          .doc-mobile-load-more-wrap {
+            display: grid;
+            gap: 10px;
+            justify-items: center;
+            padding: 18px 12px 4px;
+            color: #64748b;
+            font-size: 12px;
+          }
+          .doc-mobile-load-more {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid #fdba74;
+            border-radius: 8px;
+            background: #fff7ed;
+            color: #c2410c;
+            font: inherit;
+            font-weight: 800;
+          }
+          .cms-manager-page {
+            padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
+          }
+          .cms-manager-page button {
+            min-height: 44px !important;
+          }
+          .cms-hero-media {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+          .cms-hero-preview {
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 16 / 9;
+          }
+          .cms-hero-media-controls {
+            width: 100% !important;
+            min-width: 0 !important;
+          }
+          .cms-hero-media-controls input,
+          .cms-hero-media-controls button {
+            width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+          }
         }
 
         /* ── iPhone 15 Pro specific (393px wide) ── */
@@ -7128,6 +7175,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(10);
   const docTypeKey = normalizeDocumentTypeForUi(type);
   const dt = getDocTypeMeta(docTypeKey);
   const filtered = documents.filter(d =>
@@ -7135,6 +7183,10 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
     (filterStatus === "all" || normalizeDocumentStatusForUi(d.status, d.type, d.paymentStatus) === filterStatus) &&
     ([d.docNo, d.customerName].some((value) => String(value || "").includes(search)))
   );
+  const mobileDocuments = filtered.slice(0, mobileVisibleCount);
+  useEffect(() => {
+    setMobileVisibleCount(10);
+  }, [docTypeKey, search, filterStatus]);
   const nextDocNoForType = (targetType: string) => {
     const year = new Date().getFullYear() + 543;
     const safeTargetType = normalizeDocumentTypeForUi(targetType);
@@ -7640,7 +7692,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
 
           {/* ── Mobile Cards ── */}
           <div className="doc-cards" style={{ display: "none", flexDirection: "column" as const }}>
-            {filtered.map(doc => {
+            {mobileDocuments.map(doc => {
               const { total, depositPaid, balanceDue } = calcDocTotal(doc, allDocuments);
               return (
                 <div className="doc-mobile-card" key={doc.id} style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -7739,6 +7791,18 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                 </div>
               );
             })}
+            {filtered.length > mobileDocuments.length && (
+              <div className="doc-mobile-load-more-wrap">
+                <span>แสดง {mobileDocuments.length} จาก {filtered.length} รายการ</span>
+                <button
+                  type="button"
+                  className="doc-mobile-load-more"
+                  onClick={() => setMobileVisibleCount((count) => count + 10)}
+                >
+                  แสดงเพิ่มอีก {Math.min(10, filtered.length - mobileDocuments.length)} รายการ
+                </button>
+              </div>
+            )}
           </div>
         </>)}
       </div>
@@ -9371,17 +9435,17 @@ function HeroManager({ showToast }: any) {
       <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>แก้ไข Hero Section</h2>
       <Card>
         <SectionTitle>รูปพื้นหลัง</SectionTitle>
-        <div style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 16 }}>
-          <div style={{ width: 200, height: 110, borderRadius: 10, overflow: "hidden", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0, position: "relative" }}>
+        <div className="cms-hero-media" style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 16 }}>
+          <div className="cms-hero-preview" style={{ width: 200, height: 110, borderRadius: 8, overflow: "hidden", background: "#1A2233", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0, position: "relative" }}>
             {hero.bgImage && <img src={hero.bgImage.startsWith("/") ? hero.bgImage : hero.bgImage} alt="รูปพื้นหลัง Hero Section" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => (e.target as HTMLImageElement).style.display="none"} />}
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ fontSize: 28, opacity: 0.3 }}>🖼️</span>
             </div>
           </div>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="cms-hero-media-controls" style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => uploadBg(e.target.files?.[0])} />
             <CBtn onClick={() => fileRef.current?.click()} color="#3B82F6" small disabled={uploading}>
-              {uploading ? "⏳ กำลังอัปโหลด..." : "📁 เปลี่ยนรูปพื้นหลัง"}
+              {uploading ? "กำลังอัปโหลด..." : "เปลี่ยนรูปพื้นหลัง"}
             </CBtn>
             <input value={hero.bgImage} onChange={set("bgImage")} placeholder="หรือวาง URL รูปภาพ" />
           </div>
@@ -9859,6 +9923,12 @@ function PortfolioManager({ showToast }: any) {
     alt: item.alt || item.altText || item.title || "",
     href: item.href || item.url || "",
   });
+  const portfolioSummary = (value: unknown) => String(value || "")
+    .replace(/\*\*/g, "")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
 
   const save = async (item) => {
     const normalized = normalizeItem(item);
@@ -9899,7 +9969,7 @@ function PortfolioManager({ showToast }: any) {
             <div style={{ padding: "12px 14px" }}>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{item.title || "ไม่มีชื่อ"}</div>
               <div style={{ fontSize: 11, color: "#555", marginBottom: 6 }}>{item.category}</div>
-              <div style={{ fontSize: 11, color: "#7B8496", marginBottom: 10, lineHeight: 1.5 }}>{item.meta}</div>
+              <div style={{ fontSize: 12, color: "#64748B", marginBottom: 10, lineHeight: 1.55 }}>{portfolioSummary(item.meta)}</div>
               <div style={{ display: "flex", gap: 6 }}>
                 <CIconBtn onClick={() => setEditing(normalizeItem(item))} small>✏️</CIconBtn>
                 <CIconBtn onClick={() => del(item.id)} danger small>🗑️</CIconBtn>

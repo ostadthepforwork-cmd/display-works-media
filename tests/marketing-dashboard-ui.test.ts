@@ -22,3 +22,10 @@ test("Reports is a compact report center and lead creation is progressive", () =
   assert.match(source, /source: "unattributed"/);
   assert.match(source, /service: ""/);
 });
+
+test("mobile marketing navigation stays compact and horizontally scrollable", () => {
+  assert.match(source, /\.mk-mobile-tabs\{display:flex!important/);
+  assert.match(source, /overflow-x:auto!important/);
+  assert.match(source, /\.mk-mobile-tabs button\{flex:0 0 auto;min-width:124px;min-height:44px/);
+  assert.match(source, /\.mk-sub\{font-size:13px/);
+});
