@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import type { AdminAuthorization } from "../src/lib/admin-authorization";
 import { handleRevalidate } from "../src/lib/revalidation-server";
 import { requestBlogRevalidation } from "../src/lib/revalidation-client";
+import { createCanonicalBlogSlug } from "../src/lib/blog-slug";
 
 const activeAdmin = {
   user: { id: "admin-user" },
@@ -45,6 +46,24 @@ test("active admin can revalidate only fixed paths and a canonical blog slug", a
 
   assert.equal(response.status, 200);
   assert.deepEqual(invalidated, ["/", "/blog", "/sitemap.xml", "/blog/บทความ-display-123"]);
+});
+
+test("Thai slugs with vowels and tone marks remain canonical", async () => {
+  const slug = createCanonicalBlogSlug("คู่มือ ป้ายไวนิล สำหรับร้านค้า ", 60);
+  const invalidated: string[] = [];
+  const response = await handleRevalidate(request({ slug }), {
+    authorize: async () => activeAdmin,
+    invalidate: (path) => invalidated.push(path),
+  });
+
+  assert.equal(slug, "คู่มือ-ป้ายไวนิล-สำหรับร้านค้า");
+  assert.equal(response.status, 200);
+  assert.deepEqual(invalidated, ["/", "/blog", "/sitemap.xml", `/blog/${slug}`]);
+});
+
+test("slug normalization removes unsafe path syntax and dangling separators", () => {
+  assert.equal(createCanonicalBlogSlug("  New / Product ? Guide --  "), "new-product-guide");
+  assert.equal(createCanonicalBlogSlug("ร้านค้า___ป้ายไวนิล---คู่มือ"), "ร้านค้า-ป้ายไวนิล-คู่มือ");
 });
 
 test("revalidate rejects noncanonical or hostile paths before invalidation", async () => {

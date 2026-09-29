@@ -11,6 +11,7 @@ import { loadLocal, saveLocal } from '@/lib/browser-storage';
 import { isReportDoc, reportRootId, reportingDocuments } from '@/lib/erp-reporting';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { requestBlogRevalidation } from '@/lib/revalidation-client';
+import { createCanonicalBlogSlug } from '@/lib/blog-slug';
 import { escapeHtml as escapeRichText, sanitizeHtml } from '@/lib/sanitize-html';
 import { maskContactName, maskEmail, maskPhone, maskTaxId } from '@/lib/admin-display';
 import MarketingKpiDashboard from './MarketingKpiDashboard';
@@ -8838,9 +8839,15 @@ function BlogManager({ showToast }: any) {
       ? p.tags
       : (p.tags || "").split(",").map((t: string) => t.trim()).filter(Boolean);
 
+    const normalizedSlug = createCanonicalBlogSlug(p.slug || p.title);
+    if (!normalizedSlug) {
+      showToast("กรุณาระบุ Slug หรือหัวข้อบทความที่ใช้สร้าง URL ได้", "error");
+      return;
+    }
+
     const postData = {
       title: p.title, excerpt: p.excerpt, category: p.category,
-      date: p.date, slug: p.slug, cover: p.cover, cover_alt: p.cover_alt || "",
+      date: p.date, slug: normalizedSlug, cover: p.cover, cover_alt: p.cover_alt || "",
       published: p.published, body: sanitizeHtml(p.body || ""),
       seo_title: p.seo_title || "", meta_desc: p.meta_desc || "",
       focus_keyword: p.focus_keyword || "", author: p.author || "Display Works Media",
@@ -8855,7 +8862,7 @@ function BlogManager({ showToast }: any) {
       // อัปเดต
       const { error } = await supabase.from("posts").update(postData).eq("id", p.id);
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
-      const revalidation = await revalidateBlog(p.slug);
+      const revalidation = await revalidateBlog(normalizedSlug);
       showToast(
         revalidation.ok
           ? "บันทึกบทความแล้ว"
@@ -8866,7 +8873,7 @@ function BlogManager({ showToast }: any) {
       // เพิ่มใหม่
       const { error } = await supabase.from("posts").insert(postData);
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
-      const revalidation = await revalidateBlog(p.slug);
+      const revalidation = await revalidateBlog(normalizedSlug);
       showToast(
         revalidation.ok
           ? "เพิ่มบทความใหม่แล้ว"
@@ -9010,7 +9017,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
   };
 
   const genSlug = () => {
-    const slug = f.title.toLowerCase().replace(/[^a-z0-9ก-๙\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
+    const slug = createCanonicalBlogSlug(f.title, 60);
     setF(p => ({ ...p, slug }));
   };
 

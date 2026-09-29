@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 import type { AdminAuthorization } from "./admin-authorization";
+import { isCanonicalBlogSlug } from "./blog-slug";
 
 const FIXED_REVALIDATION_PATHS = ["/", "/blog", "/sitemap.xml"] as const;
-const CANONICAL_BLOG_SLUG = /^[\p{L}\p{N}]+(?:[-_][\p{L}\p{N}]+)*$/u;
 
 export type RevalidateDependencies = {
   authorize: () => Promise<AdminAuthorization>;
   invalidate: (path: string) => void;
 };
-
-function isCanonicalBlogSlug(value: string) {
-  return value.length <= 200 && CANONICAL_BLOG_SLUG.test(value);
-}
 
 export async function handleRevalidate(request: Request, dependencies: RevalidateDependencies) {
   const authorization = await dependencies.authorize();
