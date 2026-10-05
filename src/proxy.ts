@@ -1,11 +1,12 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { authCookieOptions, REMEMBER_SESSION_COOKIE } from "@/lib/auth-cookie-options";
 import { detectAiBot } from "./lib/ai-bots";
 import { isSensitiveProbePath } from "./lib/sensitive-paths";
 import { checkAdminAuthorization } from "./lib/admin-authorization";
 
 const PUBLIC_FILE = /\.(js|css|png|jpg|jpeg|webp|avif|gif|svg|ico|woff|woff2|ttf|map)$/i;
-const PRIVATE_PATH = /^\/(admin|api|auth|doc)(\/|$)/i;
+const PRIVATE_PATH = /^\/(admin|api|auth|doc|login|reset-password)(\/|$)/i;
 
 function shouldLogCrawler(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
@@ -113,7 +114,7 @@ export async function proxy(req: NextRequest, event: NextFetchEvent) {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
           res = NextResponse.next({ request: req });
           cookiesToSet.forEach(({ name, value, options }) =>
-            res.cookies.set(name, value, options),
+            res.cookies.set(name, value, authCookieOptions(options, req.cookies.get(REMEMBER_SESSION_COOKIE)?.value, value)),
           );
         },
       },

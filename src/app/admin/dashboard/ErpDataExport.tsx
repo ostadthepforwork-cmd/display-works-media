@@ -119,7 +119,15 @@ export default function ErpDataExport({ showToast }: Props) {
     <header className={s.header}><div><span>ERP / DATA PORTABILITY</span><h1>ส่งออกและสำรองข้อมูล</h1><p>นำข้อมูลไปวิเคราะห์ภายนอก หรือเก็บ snapshot ของฐานข้อมูลธุรกิจในเวลานี้</p></div><div className={s.security}><ShieldCheck size={20}/><span><b>ใช้สิทธิ์ของบัญชีที่ล็อกอิน</b><small>ไม่มี service key อยู่ในไฟล์ดาวน์โหลด</small></span></div></header>
     <section className={s.grid}>
       <article className={s.panel}><div className={s.panelTitle}><span className={s.icon}><FileSpreadsheet size={22}/></span><div><h2>ไฟล์ CSV สำหรับวิเคราะห์</h2><p>เปิดด้วย Excel, Google Sheets หรือเครื่องมือ BI</p></div></div>
-        <div className={s.choices} role="radiogroup" aria-label="เลือกชุดข้อมูล CSV">{options.map(option=><button type="button" role="radio" aria-checked={selected===option.id} key={option.id} onClick={()=>setSelected(option.id)}><span className={s.radio}/><span><b>{option.title}</b><small>{option.description}</small></span></button>)}</div>
+        <div className={s.choices} role="radiogroup" aria-label="เลือกชุดข้อมูล CSV">{options.map((option,index)=><button type="button" role="radio" aria-checked={selected===option.id} tabIndex={selected===option.id?0:-1} key={option.id} onClick={()=>setSelected(option.id)} onKeyDown={event=>{
+          const direction = event.key==='ArrowRight'||event.key==='ArrowDown'?1:event.key==='ArrowLeft'||event.key==='ArrowUp'?-1:0;
+          if (!direction && event.key!=='Home' && event.key!=='End') return;
+          event.preventDefault();
+          const nextIndex=event.key==='Home'?0:event.key==='End'?options.length-1:(index+direction+options.length)%options.length;
+          setSelected(options[nextIndex].id);
+          const radios=event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+          radios?.[nextIndex]?.focus();
+        }}><span className={s.radio}/><span><b>{option.title}</b><small>{option.description}</small></span></button>)}</div>
         <button className={s.primary} type="button" disabled={busy!==null} onClick={()=>void exportCsv()}>{busy==='csv'?<LoaderCircle className={s.spin} size={18}/>:<Download size={18}/>}ดาวน์โหลด CSV</button>
       </article>
       <article className={s.panel}><div className={s.panelTitle}><span className={`${s.icon} ${s.backupIcon}`}><DatabaseBackup size={22}/></span><div><h2>JSON Data Backup</h2><p>เก็บข้อมูลสัมพันธ์ทั้งหมดพร้อมจำนวนแถวและ SHA-256</p></div></div>

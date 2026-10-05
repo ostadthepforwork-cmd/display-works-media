@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Printer, Share2 } from "lucide-react";
 
 type DocActionsProps = {
@@ -42,6 +42,23 @@ function updateDocumentScale() {
 
 export default function DocActions({ title, autoPrint = false }: DocActionsProps) {
   const [statusMessage, setStatusMessage] = useState("");
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+    const updateToolbarHeight = () => {
+      const height = toolbar.getBoundingClientRect().height;
+      if (height > 0) document.documentElement.style.setProperty("--doc-toolbar-height", `${Math.ceil(height)}px`);
+    };
+    updateToolbarHeight();
+    const observer = new ResizeObserver(updateToolbarHeight);
+    observer.observe(toolbar);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--doc-toolbar-height");
+    };
+  }, []);
 
   const copyText = useCallback(async (value: string) => {
     if (navigator.clipboard?.writeText && window.isSecureContext) {
@@ -171,7 +188,7 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
   };
 
   return (
-    <div className="doc-toolbar">
+    <div className="doc-toolbar" ref={toolbarRef}>
       <div>
         <strong>{title}</strong>
         <span>เปิดดูเอกสาร และบันทึกเป็น PDF ได้จากหน้านี้</span>

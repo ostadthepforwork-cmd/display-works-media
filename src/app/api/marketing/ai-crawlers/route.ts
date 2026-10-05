@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { authCookieOptions, REMEMBER_SESSION_COOKIE } from "@/lib/auth-cookie-options";
 import { cookies } from "next/headers";
 import { checkAdminAuthorization } from "@/lib/admin-authorization";
 import { isSensitiveProbePath, sensitiveProbeIntentDetail } from "@/lib/sensitive-paths";
 import { bangkokDateFromTimestamp, marketingDateRangeFromUrl } from "@/lib/marketing-date-range";
+import { readCrawlerPages } from "@/lib/crawler-pagination";
 
 type CrawlerVisit = {
   id: string;
@@ -126,7 +128,7 @@ export async function GET(request: Request) {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
+              cookieStore.set(name, value, authCookieOptions(options, cookieStore.get(REMEMBER_SESSION_COOKIE)?.value, value)),
             );
           } catch {}
         },
@@ -143,13 +145,14 @@ export async function GET(request: Request) {
   }
 
   const { startIso, endExclusiveIso } = marketingDateRangeFromUrl(request.url);
-  const { data, error } = await supabase
+  const { data, error } = await readCrawlerPages<CrawlerVisit>((from, to) => supabase
     .from("ai_crawler_visits")
     .select("id, bot_name, path, user_agent, referrer, country, created_at")
     .gte("created_at", startIso)
     .lt("created_at", endExclusiveIso)
     .order("created_at", { ascending: false })
-    .limit(1000);
+    .order("id", { ascending: false })
+    .range(from, to));
 
   if (error) {
     return NextResponse.json(
@@ -157,7 +160,7 @@ export async function GET(request: Request) {
         success: false,
         connected: false,
         error: error.message,
-        hint: "กรุณารัน supabase/ai-crawler-visits.sql ใน Supabase Production ก่อนใช้งาน",
+        hint: "ตรวจการเชื่อมต่อและสิทธิ์อ่านข้อมูล หรือลดช่วงวันที่แล้วลองใหม่",
       },
       { headers: { "Cache-Control": "no-store" } },
     );

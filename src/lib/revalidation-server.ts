@@ -45,7 +45,7 @@ export async function handleRevalidate(request: Request, dependencies: Revalidat
 
   const paths = [...FIXED_REVALIDATION_PATHS, ...(slug ? [`/blog/${slug}`] : [])];
   try {
-    paths.forEach(dependencies.invalidate);
+    for (const path of paths) dependencies.invalidate(path);
   } catch (error) {
     console.error("Revalidate failed:", error);
     return NextResponse.json({ ok: false, error: "Revalidate failed" }, { status: 500 });

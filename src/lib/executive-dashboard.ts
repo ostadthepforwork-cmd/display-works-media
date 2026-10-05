@@ -1,5 +1,6 @@
 import { DashboardPeriod, inPeriod, bangkokToday, shiftDate, reportResolution, Resolution } from './dashboard-period';
 import { DashboardExpense, actualExpenseReport } from './expense-dashboard';
+import { isReportDoc } from './erp-reporting';
 export type ExecutiveDocument = {
   id: string; type: string; date: string; dueDate: string; status: string;
   deleted: boolean; docNo: string; customerName: string; revenue: number;
@@ -10,7 +11,7 @@ export type ExecutiveDocument = {
 export const productKey = (item: ExecutiveDocument['items'][number]) => item.productId ? `id:${item.productId}` : `name:${item.name.trim()}`;
 export function executiveModel(documents: ExecutiveDocument[], period: DashboardPeriod, today = bangkokToday()) {
   const selected = documents.filter(doc => !doc.deleted && doc.status !== 'cancelled' && inPeriod(doc.date, period));
-  const receipts = selected.filter(doc => doc.type === 'receipt');
+  const receipts = selected.filter(isReportDoc);
   const revenue = receipts.reduce((sum, doc) => sum + doc.revenue, 0);
   const cost = receipts.reduce((sum, doc) => sum + doc.estimatedCost, 0);
   if (![revenue, cost].every(Number.isFinite)) throw new Error('INVALID_DOCUMENT_TOTAL');

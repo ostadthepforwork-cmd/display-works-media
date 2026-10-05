@@ -67,6 +67,7 @@ export default function PDPAConsent() {
       {/* Detail Modal */}
       {showDetail && (
         <div
+          className="pdpa-detail-modal"
           style={{
             position: 'fixed',
             top: '50%',
@@ -201,6 +202,12 @@ export default function PDPAConsent() {
         }}
       >
         <style>{`
+          @media print {
+            .pdpa-banner-wrap, .pdpa-backdrop, .pdpa-detail-modal {
+              display: none !important;
+            }
+          }
+
           @keyframes pdpa-slide-up {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }

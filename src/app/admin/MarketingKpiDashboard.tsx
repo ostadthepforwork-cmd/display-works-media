@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildMarketingExportFiles } from "@/lib/marketing-export";
 import { formatLocalDateInput, shiftDateInput } from "@/lib/local-date";
+import { isReportDoc } from "@/lib/erp-reporting";
 import { classifyCrawler, crawlerCategoryLabel, type CrawlerCategory } from "@/lib/admin-display";
 
 type MarketingKpiDashboardProps = {
@@ -265,15 +266,15 @@ const inferDistrict = (record: any) => {
 
 const defaultApiExpiries = (): Record<string, ApiExpiryConfig> => ({
   ga4: {
-    expiresAt: addDaysInput(90),
+    expiresAt: "",
     note: "Service Account Key ควร rotate ทุก 90 วัน แม้คีย์จะไม่หมดอายุอัตโนมัติ",
   },
   meta: {
-    expiresAt: addDaysInput(55),
+    expiresAt: "",
     note: "Meta long-lived access token มักมีอายุประมาณ 60 วัน ควรต่ออายุก่อนหมด",
   },
   line: {
-    expiresAt: addDaysInput(30),
+    expiresAt: "",
     note: "ตั้งวันตรวจสอบ LINE token หรือ Channel access token ตามรอบที่ใช้งานจริง",
   },
 });
@@ -625,9 +626,13 @@ export default function MarketingKpiDashboard({
     setSourceLogs((prev) => [`${timestamp} - ${message}`, ...prev].slice(0, 30));
   }, []);
 
+  const sourceRequest = useRef<AbortController | null>(null);
   const loadMarketingSources = useCallback(async (trigger = "auto") => {
+    sourceRequest.current?.abort();
+    const controller = new AbortController();
+    sourceRequest.current = controller;
     const load = async (name: string, url: string) => {
-      const response = await fetch(url, { cache: "no-store" });
+      const response = await fetch(url, { cache: "no-store", signal: controller.signal });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(data?.error || `${name} API failed with ${response.status}`);
@@ -646,6 +651,9 @@ export default function MarketingKpiDashboard({
       load("AI Crawlers", sourceUrl("/api/marketing/ai-crawlers", "ai")),
       load("AI Citations", sourceUrl("/api/marketing/ai-citations", "ai")),
     ]);
+
+    // A newer date range or an unmount must not publish stale results or errors.
+    if (controller.signal.aborted) return;
 
     if (ga4Data.status === "fulfilled") {
       setGa4({ loading: false, ...ga4Data.value });
@@ -690,6 +698,7 @@ export default function MarketingKpiDashboard({
 
   useEffect(() => {
     loadMarketingSources("date range");
+    return () => sourceRequest.current?.abort();
   }, [loadMarketingSources]);
 
   const filteredDocuments = useMemo(
@@ -698,7 +707,7 @@ export default function MarketingKpiDashboard({
   );
 
   const receipts = useMemo(
-    () => filteredDocuments.filter((doc) => doc?.type === "receipt" && !doc?.deleted && doc?.status !== "cancelled"),
+    () => filteredDocuments.filter(isReportDoc),
     [filteredDocuments],
   );
 
@@ -1211,6 +1220,7 @@ export default function MarketingKpiDashboard({
   const sources = [
     {
       id: "ga4",
+      loading: ga4.loading,
       name: "GA4",
       account: "G-GHBQ0VT4NE",
       detail: ga4.connected ? `${money(Number(ga4?.totals?.sessions ?? 0))} sessions` : ga4.error || "รอเชื่อมต่อ",
@@ -1222,6 +1232,7 @@ export default function MarketingKpiDashboard({
     },
     {
       id: "meta",
+      loading: meta.loading,
       name: "Facebook Pixel / Ads",
       account: "Meta App / Ad Account",
       detail: meta.connected ? `Spend ฿${money(metaSpend)} / Leads ${money(Number(meta?.totals?.leads ?? 0))}` : meta.error || "รอเชื่อมต่อ",
@@ -1233,6 +1244,7 @@ export default function MarketingKpiDashboard({
     },
     {
       id: "line",
+      loading: false,
       name: "LINE OA",
       account: "@displayworks",
       detail: "ใช้บันทึก Lead และ Source ใน CRM",
@@ -1244,6 +1256,7 @@ export default function MarketingKpiDashboard({
     },
     {
       id: "ai-crawlers",
+      loading: aiCrawlers.loading,
       name: "AI Search Crawlers",
       account: "OpenAI / Claude / Perplexity / Google / Meta / Apple / Common Crawl",
       detail: aiCrawlers.connected
@@ -1257,6 +1270,7 @@ export default function MarketingKpiDashboard({
     },
     {
       id: "ai-citations",
+      loading: aiCitations.loading,
       name: "AI Citation Monitor",
       account: "Synthetic prompts / AI referral tracking",
       detail: aiCitations.connected
@@ -1270,6 +1284,7 @@ export default function MarketingKpiDashboard({
     },
     {
       id: "erp",
+      loading: false,
       name: "ERP Receipts",
       account: "Supabase ERP",
       detail: `${receipts.length} ใบเสร็จ ใช้คำนวณ Revenue / Cost / Profit`,
@@ -1288,20 +1303,20 @@ export default function MarketingKpiDashboard({
       return { source, status };
     })
     .filter(({ status }) => status.tone === "warning" || status.tone === "danger" || status.tone === "unknown")
-    .map(({ source, status }) => `${source.name}: ${status.label}`);
+    .map(({ source, status }) => `${source.name}: ${status.label} (วันที่ตั้งไว้ในเครื่องนี้ ไม่ใช่ผลตรวจ token)`);
 
   const apiErrorAlerts = [
-    meta?.error ? `Meta API Error: ${meta.error}` : "",
-    ga4?.error ? `GA4 API Error: ${ga4.error}` : "",
-    aiCitations?.error ? `AI Citation API Error: ${aiCitations.error}` : "",
+    !meta.loading && meta?.error ? `Meta API Error: ${meta.error}` : "",
+    !ga4.loading && ga4?.error ? `GA4 API Error: ${ga4.error}` : "",
+    !aiCitations.loading && aiCitations?.error ? `AI Citation API Error: ${aiCitations.error}` : "",
   ].filter(Boolean);
 
   const hasSalesMapping = crmBackend.ready;
   const alerts = [
     hasInvalidDateRange ? "ช่วงวันที่ไม่ถูกต้อง: วันที่เริ่มต้นอยู่หลังวันที่สิ้นสุด ระบบอาจกรองข้อมูลผิดได้" : "",
     hasFutureDateRange ? "ช่วงวันที่อยู่ในอนาคต: Meta / GA4 / ERP อาจยังไม่มีข้อมูลในช่วงนี้" : "",
-    !meta.connected ? "Facebook Ads ยังไม่ได้เชื่อมต่อ หรือ API ยังไม่มีข้อมูลล่าสุด" : "",
-    !ga4.connected ? "GA4 ยังไม่ได้เชื่อมต่อกับ Dashboard data API" : "",
+    !meta.loading && !meta.connected ? "Facebook Ads ยังไม่ได้เชื่อมต่อ หรือ API ยังไม่มีข้อมูลล่าสุด" : "",
+    !ga4.loading && !ga4.connected ? "GA4 ยังไม่ได้เชื่อมต่อกับ Dashboard data API" : "",
     meta.connected && metaSpend > 0 && metaLeadSignalCount === 0 && metaEngagementActions > 0
       ? "Meta มีงบและ engagement แต่ยังไม่มี Lead/Message จริงในช่วงวันที่นี้ ระบบจึงไม่นับ post save เป็น lead"
       : "",
@@ -1507,7 +1522,7 @@ export default function MarketingKpiDashboard({
         const key = customerDocKey(doc);
         if (key) entry.customers.add(key);
         entry.docs += 1;
-        if (doc?.type === "receipt") entry.revenue += documentTotal(doc);
+        if (isReportDoc(doc)) entry.revenue += documentTotal(doc);
         map.set(label, entry);
       });
     return [...map.values()]
@@ -1636,7 +1651,7 @@ export default function MarketingKpiDashboard({
   );
   const growthPanels = [
     { title: "Revenue Growth", value: `THB ${money(trendTotal(revenueTrend))}`, detail: "ERP receipt revenue by day", color: "#ff6b00", points: revenueTrend },
-    { title: "Profit Growth", value: `THB ${money(trendTotal(profitTrend))}`, detail: "Revenue minus real cost", color: "#22c55e", points: profitTrend },
+    { title: "Profit Growth", value: `THB ${money(trendTotal(profitTrend))}`, detail: "ERP estimated gross profit; excludes operating expenses", color: "#22c55e", points: profitTrend },
     { title: "Lead Growth", value: money(trendTotal(leadTrend)), detail: "CRM leads by day", color: "#2563eb", points: leadTrend },
     { title: "ERP Receipt Growth", value: money(trendTotal(closedJobTrend)), detail: "Receipt count by day", color: "#f59e0b", points: closedJobTrend },
   ];
@@ -2868,7 +2883,7 @@ export default function MarketingKpiDashboard({
                 <input className="mk-input" aria-label="Estimated value" placeholder="Estimated Value" inputMode="decimal" value={leadForm.value} onChange={(event) => setLeadForm((prev) => ({ ...prev, value: event.target.value }))} />
                 <input className="mk-input" aria-label="Next follow-up date" type="date" value={leadForm.nextFollowUp} onChange={(event) => setLeadForm((prev) => ({ ...prev, nextFollowUp: event.target.value }))} />
                 <select className="mk-input" aria-label="เชื่อมใบเสนอราคา" value={leadForm.quoteId} onChange={(event) => setLeadForm((prev) => ({ ...prev, quoteId: event.target.value }))}><option value="">ยังไม่เชื่อมใบเสนอราคา</option>{documents.filter((doc: any) => doc.type === "quote" && !doc.deleted && doc.status !== "cancelled").map((doc: any) => <option key={doc.id} value={doc.id}>{doc.docNo || doc.doc_no}</option>)}</select>
-                <select className="mk-input" aria-label="เชื่อมใบเสร็จ" value={leadForm.receiptId} onChange={(event) => setLeadForm((prev) => ({ ...prev, receiptId: event.target.value }))}><option value="">ยังไม่เชื่อมใบเสร็จ</option>{documents.filter((doc: any) => doc.type === "receipt" && !doc.deleted && doc.status !== "cancelled").map((doc: any) => <option key={doc.id} value={doc.id}>{doc.docNo || doc.doc_no}</option>)}</select>
+                <select className="mk-input" aria-label="เชื่อมใบเสร็จ" value={leadForm.receiptId} onChange={(event) => setLeadForm((prev) => ({ ...prev, receiptId: event.target.value }))}><option value="">ยังไม่เชื่อมใบเสร็จ</option>{documents.filter(isReportDoc).map((doc: any) => <option key={doc.id} value={doc.id}>{doc.docNo || doc.doc_no}</option>)}</select>
               </div>
               <div className="mk-tag-row" style={{ marginTop: 14 }}>
                 <button type="button" className={`mk-tag ${leadForm.forceUnattributed ? "active" : ""}`} onClick={() => setLeadForm((prev) => ({ ...prev, forceUnattributed: !prev.forceUnattributed, campaignId: "", adSetId: "", adId: "", manualSelectionConfirmed: false }))}>ไม่สามารถระบุโฆษณาได้</button>
@@ -3412,8 +3427,8 @@ export default function MarketingKpiDashboard({
                   <div>
                     <strong>{source.name}</strong>
                     <div style={{ color: "#cbd5e1", marginTop: 4 }}>{source.account}</div>
-                    <div style={{ color: "#8b95a7", marginTop: 4 }}>{source.detail}</div>
-                    {source.error && <div style={{ color: "#fca5a5", marginTop: 4 }}>{source.error}</div>}
+                    <div style={{ color: "#8b95a7", marginTop: 4 }}>{source.loading ? "กำลังโหลดข้อมูลล่าสุด…" : source.detail}</div>
+                    {!source.loading && source.error && <div style={{ color: "#fca5a5", marginTop: 4 }}>{source.error}</div>}
                     {source.expiry && (() => {
                       const status = apiExpiryStatus(source.expiry.expiresAt);
                       return (
@@ -3425,7 +3440,7 @@ export default function MarketingKpiDashboard({
                     })()}
                   </div>
                   <div className="mk-source-tools">
-                    <span className={`mk-status ${source.ready ? "ready" : ""}`}>{source.ready ? "พร้อมใช้" : "รอเชื่อมต่อ"}</span>
+                    <span role="status" className={`mk-status ${!source.loading && source.ready ? "ready" : ""}`}>{source.loading ? "กำลังโหลด" : source.ready ? "พร้อมใช้" : "รอเชื่อมต่อ"}</span>
                     {source.expiry && (
                       <div className="mk-expiry-editor">
                         <input
@@ -3443,7 +3458,7 @@ export default function MarketingKpiDashboard({
                       </div>
                     )}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
-                        <button className="mk-btn" type="button" onClick={() => loadMarketingSources(`sync ${source.name}`)}>Sync Now</button>
+                        <button className="mk-btn" type="button" disabled={source.loading} onClick={() => loadMarketingSources(`sync ${source.name}`)}>Sync Now</button>
                         <button className="mk-btn" type="button" onClick={() => {
                           addSourceLog(`${source.name} connect checklist: ${source.envKeys}`);
                           setActiveSourceLog(source.name.includes("Facebook") ? "Meta" : source.name);

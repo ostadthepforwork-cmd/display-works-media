@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { checkAdminAuthorization } from "@/lib/admin-authorization";
+import { authCookieOptions, REMEMBER_SESSION_COOKIE } from "@/lib/auth-cookie-options";
 
 function parseRequestCookies(req: Request) {
   const cookieHeader = req.headers.get("cookie") || "";
@@ -26,7 +27,8 @@ export async function GET(req: Request) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
+            const preference = parseRequestCookies(req).find(cookie => cookie.name === REMEMBER_SESSION_COOKIE)?.value;
+            response.cookies.set(name, value, authCookieOptions(options, preference, value));
           });
         },
       },

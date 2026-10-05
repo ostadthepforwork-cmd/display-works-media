@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { REMEMBER_SESSION_COOKIE } from "@/lib/auth-cookie-options";
+import { parseCookieHeader, serializeCookieHeader } from "@supabase/ssr";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -28,23 +30,61 @@ function clearStaleSupabaseAuthState() {
 }
 
 export default function LoginPage() {
+  const loginPending = useRef(false);
+  const emailInput = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resetMessage, setResetMessage] = useState("");
 
   useEffect(() => {
     clearStaleSupabaseAuthState();
+    setRemember(parseCookieHeader(document.cookie).some(cookie => cookie.name === REMEMBER_SESSION_COOKIE && cookie.value === "1"));
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("recovery") === "invalid") setError("ลิงก์ตั้งรหัสผ่านหมดอายุหรือไม่ถูกต้อง กรุณาขอลิงก์ใหม่");
+    if (query.get("password") === "updated") setResetMessage("เปลี่ยนรหัสผ่านแล้ว กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่");
   }, []);
+
+  async function requestPasswordReset() {
+    if (!email.trim() || !emailInput.current?.reportValidity()) {
+      emailInput.current?.focus();
+      return;
+    }
+    if (loginPending.current) return;
+    loginPending.current = true;
+    setLoading(true);
+    setError("");
+    setResetMessage("");
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      });
+      if (resetError) throw resetError;
+      setResetMessage("หากอีเมลนี้มีบัญชี ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ กรุณาตรวจกล่องจดหมายและสแปม");
+    } catch {
+      setError("ส่งคำขอไม่สำเร็จ กรุณารอสักครู่แล้วลองใหม่");
+    } finally {
+      loginPending.current = false;
+      setLoading(false);
+    }
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    if (loginPending.current) return;
+    loginPending.current = true;
     setLoading(true);
     setError("");
+    setResetMessage("");
     clearStaleSupabaseAuthState();
-
+    document.cookie = serializeCookieHeader(REMEMBER_SESSION_COOKIE, remember ? "1" : "0", {
+      path: "/", sameSite: "lax", secure: window.location.protocol === "https:",
+      ...(remember ? { maxAge: 30 * 24 * 60 * 60 } : {}),
+    });
+    try {
     const { data, error: browserError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
@@ -67,6 +107,7 @@ export default function LoginPage() {
       body: JSON.stringify({
         access_token: data.session.access_token,
         refresh_token: data.session.refresh_token,
+        remember,
       }),
     });
     const result = await response.json().catch(() => ({}));
@@ -79,6 +120,12 @@ export default function LoginPage() {
 
     await supabase.auth.getSession().catch(() => undefined);
     window.location.assign("/admin");
+    } catch {
+      setError("เชื่อมต่อระบบไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่");
+    } finally {
+      loginPending.current = false;
+      setLoading(false);
+    }
   }
 
   return (
@@ -107,6 +154,7 @@ export default function LoginPage() {
               <div className="admin-login-input">
                 <Mail size={24} aria-hidden="true" />
                 <input
+                  ref={emailInput}
                   type="email"
                   required
                   value={email}
@@ -145,10 +193,11 @@ export default function LoginPage() {
                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
                 <span>จดจำฉันไว้</span>
               </label>
-              <span>ลืมรหัสผ่าน?</span>
+              <button type="button" disabled={loading} onClick={() => void requestPasswordReset()}>ลืมรหัสผ่าน?</button>
             </div>
 
-            {error && <div className="admin-login-error">{error}</div>}
+            {error && <div className="admin-login-error" role="alert">{error}</div>}
+            {resetMessage && <div className="admin-login-message" role="status">{resetMessage}</div>}
 
             <button type="submit" disabled={loading} className="admin-login-submit">
               <span>{loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}</span>
@@ -387,10 +436,18 @@ export default function LoginPage() {
           accent-color: #ff6b00;
         }
 
-        .admin-login-options > span {
-          color: #ff5a00;
+        .admin-login-options > button {
+          color: #a93600;
+          background: transparent;
+          border: 0;
+          min-height: 44px;
+          font: inherit;
           font-weight: 900;
+          cursor: pointer;
         }
+
+        .admin-login-options > button:disabled { cursor: wait; }
+        .admin-login-message { color: #166534; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px 14px; line-height: 1.55; }
 
         .admin-login-error {
           color: #b91c1c;
@@ -582,7 +639,7 @@ export default function LoginPage() {
             font-size: 14px;
           }
 
-          .admin-login-options > span {
+          .admin-login-options > button {
             margin-left: auto;
           }
 

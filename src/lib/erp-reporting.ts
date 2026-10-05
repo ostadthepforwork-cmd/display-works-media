@@ -8,7 +8,7 @@ export type ErpDocumentReportLike = {
 };
 
 export const isReportDoc = (doc: ErpDocumentReportLike) =>
-  doc?.type === "receipt" && !doc?.deleted && doc?.status !== "cancelled";
+  doc?.type === "receipt" && !doc?.deleted && doc?.status === "approved";
 
 export const reportRootId = (
   doc: ErpDocumentReportLike,

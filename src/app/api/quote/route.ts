@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { MAX_QUOTE_ATTACHMENT_BYTES, validateQuoteAttachment } from "@/lib/quote-attachment";
+import { consumeQuoteRateLimit } from "@/lib/quote-rate-limit";
 
 type QuotePayload = {
   name?: string;
@@ -14,11 +16,6 @@ type QuotePayload = {
   website?: string;
 };
 
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
-const RATE_LIMIT_MAX = 5;
-const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
-const ALLOWED_ATTACHMENT_EXTENSIONS = new Set(["ai", "pdf", "psd", "jpg", "jpeg", "png"]);
-const quoteRateLimits = new Map<string, { count: number; resetAt: number }>();
 
 function requiredEnv(name: string) {
   const value = process.env[name];
@@ -83,7 +80,11 @@ export async function POST(req: NextRequest) {
       const candidate = form.get("artwork");
       artwork = candidate instanceof File && candidate.size > 0 ? candidate : null;
     } else {
-      body = (await req.json()) as QuotePayload;
+      const payload: unknown = await req.json().catch(() => null);
+      if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+      }
+      body = payload as QuotePayload;
     }
 
     if (cleanText(body.website, 200)) {
@@ -92,31 +93,14 @@ export async function POST(req: NextRequest) {
 
     const forwardedFor = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
     const clientId = forwardedFor || req.headers.get("x-real-ip") || "unknown";
-    const now = Date.now();
-    if (quoteRateLimits.size > 1000) {
-      quoteRateLimits.forEach((entry, key) => {
-        if (entry.resetAt <= now) quoteRateLimits.delete(key);
-      });
-    }
-    const current = quoteRateLimits.get(clientId);
-    if (!current || current.resetAt <= now) {
-      quoteRateLimits.set(clientId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    } else if (current.count >= RATE_LIMIT_MAX) {
-      return NextResponse.json(
-        { error: "ส่งข้อมูลบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่" },
-        { status: 429, headers: { "Cache-Control": "no-store" } }
-      );
-    } else {
-      current.count += 1;
-    }
-
     const name = cleanText(body.name, 120);
     const phone = cleanText(body.phone, 40);
     const lineId = cleanText(body.lineId, 80);
     const serviceType = cleanText(body.serviceType, 120);
     const width = cleanText(body.width, 20);
     const height = cleanText(body.height, 20);
-    const quantity = Number(body.quantity) > 0 ? Number(body.quantity) : 1;
+    const requestedQuantity = Number(body.quantity);
+    const quantity = Number.isFinite(requestedQuantity) && requestedQuantity > 0 ? requestedQuantity : 1;
     const details = cleanText(body.details, 2000);
     const needDate = cleanText(body.needDate, 20);
 
@@ -128,20 +112,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let attachmentMimeType = "application/octet-stream";
+    if (artwork) {
+      const validation = validateQuoteAttachment({
+        name: artwork.name,
+        size: artwork.size,
+        bytes: artwork.size <= MAX_QUOTE_ATTACHMENT_BYTES
+          ? new Uint8Array(await artwork.slice(0, 1024).arrayBuffer())
+          : new Uint8Array(),
+      });
+      if (!validation.ok) {
+        return NextResponse.json(
+          { error: "ชนิดหรือเนื้อหาไฟล์ไม่ถูกต้อง รองรับ AI, PDF, PSD, JPG และ PNG ขนาดไม่เกิน 20 MB" },
+          { status: 400, headers: { "Cache-Control": "no-store" } }
+        );
+      }
+      attachmentMimeType = validation.mimeType;
+    }
+
+    const quota = await consumeQuoteRateLimit(clientId);
+    if (quota.state === "unavailable") {
+      return NextResponse.json({ error: "ระบบรับคำขอไม่พร้อมใช้งานชั่วคราว กรุณาติดต่อผ่าน LINE" }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    }
+    if (quota.state === "limited") {
+      return NextResponse.json({ error: "ส่งข้อมูลบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่" }, {
+        status: 429, headers: { "Cache-Control": "no-store", "Retry-After": String(quota.retryAfter) },
+      });
+    }
     const supabase = getSupabase();
     let attachmentPath: string | null = null;
     let attachmentName: string | null = null;
     let attachmentUrl: string | null = null;
 
     if (artwork) {
-      const extension = artwork.name.split(".").pop()?.toLowerCase() || "";
-      if (artwork.size > MAX_ATTACHMENT_SIZE || !ALLOWED_ATTACHMENT_EXTENSIONS.has(extension)) {
-        return NextResponse.json(
-          { error: "รองรับไฟล์ AI, PDF, PSD, JPG และ PNG ขนาดไม่เกิน 20 MB" },
-          { status: 400, headers: { "Cache-Control": "no-store" } }
-        );
-      }
-
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (!serviceRoleKey) {
         return NextResponse.json(
@@ -160,7 +163,7 @@ export async function POST(req: NextRequest) {
       const { error: uploadError } = await storageClient.storage
         .from("quote-attachments")
         .upload(attachmentPath, new Uint8Array(await artwork.arrayBuffer()), {
-          contentType: artwork.type || "application/octet-stream",
+          contentType: attachmentMimeType,
           upsert: false,
         });
 

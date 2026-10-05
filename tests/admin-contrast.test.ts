@@ -142,7 +142,12 @@ test("admin layout loads shared tokens and dashboard controls stay bounded", () 
 
   assert.match(layout, /import "\.\.\/\.\.\/\.\.\/tokens\.css"/);
   assert.match(dashboardCss, /\.filters>select \{width:auto!important;min-width:150px/);
-  assert.match(charts, /initialDimension=\{\{width:45,height:28\}\}/);
-  assert.match(charts, /initialDimension=\{\{width:640,height:260\}\}/);
-  assert.match(charts, /initialDimension=\{\{width:480,height:240\}\}/);
+  assert.match(charts, /size && <LineChart width=\{size\.width\} height=\{size\.height\}/);
+  assert.match(charts, /chartSize && <ComposedChart width=\{chartSize\.width\} height=\{chartSize\.height\}/);
+  assert.match(charts, /waterfallSize && <BarChart width=\{waterfallSize\.width\} height=\{waterfallSize\.height\}/);
+});
+
+test("Marketing form ink and surface stay paired inside the light ERP wrapper", () => {
+  assert.match(systemCss, /\.admin-app-shell \.mk-dashboard :is\(input, select, textarea\)\s*\{[^}]*background: #101827!important;[^}]*color: #f8fafc!important;[^}]*-webkit-text-fill-color: #f8fafc!important;/);
+  assert.match(systemCss, /\.admin-app-shell \.mk-dashboard :is\(input, textarea\)::placeholder\s*\{[^}]*color: #cbd5e1!important;/);
 });

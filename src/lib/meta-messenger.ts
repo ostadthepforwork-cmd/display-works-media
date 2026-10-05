@@ -21,7 +21,7 @@ function referralFrom(event: any) {
 }
 
 export function verifyMetaSignature(rawBody: string, signature: string | null, appSecret: string) {
-  if (!signature?.startsWith("sha256=") || !appSecret) return false;
+  if (!signature || !/^sha256=[a-f0-9]{64}$/i.test(signature) || !appSecret) return false;
   const supplied = Buffer.from(signature.slice(7), "hex");
   const expected = Buffer.from(createHmac("sha256", appSecret).update(rawBody).digest("hex"), "hex");
   return supplied.length === expected.length && timingSafeEqual(supplied, expected);
@@ -31,11 +31,15 @@ export function extractMessengerReferrals(payload: any, appSecret: string): Mess
   const rows: MessengerReferral[] = [];
   for (const entry of Array.isArray(payload?.entry) ? payload.entry : []) {
     for (const event of Array.isArray(entry?.messaging) ? entry.messaging : []) {
+      if (event?.message?.is_echo || event?.delivery || event?.read) continue;
       const senderId = value(event?.sender?.id);
       if (!senderId) continue;
       const referral = referralFrom(event);
-      const occurredAt = new Date(Number(event?.timestamp || Date.now())).toISOString();
-      const messageId = value(event?.message?.mid || event?.postback?.mid || event?.delivery?.mids?.[0]);
+      const timestamp = Number(event?.timestamp ?? Date.now());
+      const occurredDate = new Date(timestamp);
+      if (!Number.isFinite(occurredDate.getTime())) continue;
+      const occurredAt = occurredDate.toISOString();
+      const messageId = value(event?.message?.mid || event?.postback?.mid);
       const referralId = value(referral?.ref || referral?.referral_id);
       const adId = value(referral?.ad_id || event?.ad_id);
       const campaignId = value(referral?.campaign_id || event?.campaign_id);

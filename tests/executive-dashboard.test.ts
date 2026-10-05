@@ -12,13 +12,21 @@ test('Bangkok calendar, leap dates and URL preserve validated range and other pa
   assert(query.includes('tab=erp')); assert.deepEqual(periodFromSearch(query),range);
 });
 test('all executive sections use the same range and preserve receipt eligibility', () => {
-  const row: ExecutiveDocument = {id:'a',type:'receipt',date:'2026-09-01',dueDate:'',status:'draft',deleted:false,docNo:'RC1',customerName:'Synthetic',revenue:1100,estimatedCost:500,uncertainCost:true,balanceDue:0,items:[{name:'Print',revenue:1100,cost:500}]};
-  const model = executiveModel([row,{...row,id:'old',date:'2026-08-31'},{...row,id:'void',status:'cancelled'}, {...row,id:'q',type:'quote'}, {...row,id:'i',type:'invoice',dueDate:'2026-09-02',balanceDue:100}],{from:'2026-09-01',to:'2026-09-10'},'2026-09-10');
+  const row: ExecutiveDocument = {id:'a',type:'receipt',date:'2026-09-01',dueDate:'',status:'approved',deleted:false,docNo:'RC1',customerName:'Synthetic',revenue:1100,estimatedCost:500,uncertainCost:true,balanceDue:0,items:[{name:'Print',revenue:1100,cost:500}]};
+  const model = executiveModel([row,{...row,id:'old',date:'2026-08-31'},{...row,id:'void',status:'cancelled'}, {...row,id:'q',type:'quote',status:'draft'}, {...row,id:'i',type:'invoice',dueDate:'2026-09-02',balanceDue:100}],{from:'2026-09-01',to:'2026-09-10'},'2026-09-10');
   assert.equal(model.revenue,1100); assert.equal(model.cost,500); assert.equal(model.gross,600);
   assert.equal(model.pending.length,1); assert.equal(model.overdue.length,1);
   assert.equal(model.products[0].revenue,1100); assert.equal(model.selected.length,3);
   assert.equal(model.trend.reduce((sum,r)=>sum+r.revenue,0),model.revenue);
   assert.equal(model.uncertain,1); assert.equal(model.recent.length,3);
+});
+
+test('draft receipts remain visible operationally but never contribute revenue, cost or product profit', () => {
+  const row: ExecutiveDocument = {id:'draft',type:'receipt',date:'2026-09-01',dueDate:'',status:'draft',deleted:false,docNo:'QA',customerName:'Synthetic',revenue:9000,estimatedCost:3000,uncertainCost:false,balanceDue:0,items:[{name:'Print',revenue:9000,cost:3000}]};
+  const model = executiveModel([row], {from:'2026-09-01',to:'2026-09-10'});
+  assert.equal(model.revenue,0); assert.equal(model.cost,0); assert.equal(model.gross,0);
+  assert.equal(model.products.length,0); assert.equal(model.trend.length,0);
+  assert.equal(model.recent.length,1);
 });
 test('complete reads handle more than one page and reject truncation or changing counts', async () => {
   const rows = Array.from({length:1201},(_,id)=>({id:String(id)}));

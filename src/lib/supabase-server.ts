@@ -3,6 +3,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { authCookieOptions, REMEMBER_SESSION_COOKIE } from "./auth-cookie-options";
 
 export async function createAuthenticatedServerClient() {
   const cookieStore = await cookies();
@@ -18,7 +19,7 @@ export async function createAuthenticatedServerClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, authCookieOptions(options, cookieStore.get(REMEMBER_SESSION_COOKIE)?.value, value))
             );
           } catch {}
         },

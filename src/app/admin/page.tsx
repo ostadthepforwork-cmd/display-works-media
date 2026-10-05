@@ -256,7 +256,7 @@ const customerFacingLineItem = (item: any) => {
     costUnit: "piece",
   };
 };
-const INTERNAL_ONLY_DOCUMENT_TEXT_PATTERN = /ต้นทุน|ราคาทุน|กำไร|ผู้จำหน่าย|supplier|(?:^|\W)cost(?:\W|$)|(?:^|\W)margin(?:\W|$)/i;
+const INTERNAL_ONLY_DOCUMENT_TEXT_PATTERN = /ต้นทุน|ราคาทุน|กำไร|ผู้จำหน่าย|supplier|(?:^|\W)(?:cost(?:[_\s-]*(?:snapshot|price|unit))?|unit[_\s-]*cost|internal[_\s-]*expenses?|profit|margin)(?:\W|$)/i;
 const customerFacingText = (value?: string) =>
   String(value || "")
     .split("\n")
@@ -8812,6 +8812,9 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
 }
 
 function BlogManager({ showToast }: any) {
+  const savePending = useRef(false);
+  const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
   const [editing, setEditing] = useState<any>(null);
   const [search, setSearch] = useState("");
@@ -8823,17 +8826,32 @@ function BlogManager({ showToast }: any) {
   // โหลดบทความจาก Supabase
   const fetchPosts = async () => {
     setLoading(true);
+    setLoadError(false);
+    try {
     const { data, error } = await supabase
       .from("posts")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!error) setPosts((data as any[]) || []);
-    setLoading(false);
+    if (error) setLoadError(true);
+    else setPosts((data as any[]) || []);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchPosts(); }, []);
 
   const save = async (p) => {
+    if (savePending.current) return;
+    if (!String(p.title || "").trim()) {
+      showToast("กรุณาระบุหัวข้อบทความ", "error");
+      return;
+    }
+    savePending.current = true;
+    setSaving(true);
+    try {
     // แปลง tags จาก string "a,b,c" → array ["a","b","c"]
     const tagsArray = Array.isArray(p.tags)
       ? p.tags
@@ -8860,7 +8878,7 @@ function BlogManager({ showToast }: any) {
 
     if (p.id) {
       // อัปเดต
-      const { error } = await supabase.from("posts").update(postData).eq("id", p.id);
+      const { error } = await supabase.from("posts").update(postData).eq("id", p.id).select("id").single();
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
       const revalidation = await revalidateBlog(normalizedSlug);
       showToast(
@@ -8871,7 +8889,7 @@ function BlogManager({ showToast }: any) {
       );
     } else {
       // เพิ่มใหม่
-      const { error } = await supabase.from("posts").insert(postData);
+      const { error } = await supabase.from("posts").insert(postData).select("id").single();
       if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, "error"); return; }
       const revalidation = await revalidateBlog(normalizedSlug);
       showToast(
@@ -8882,7 +8900,13 @@ function BlogManager({ showToast }: any) {
       );
     }
     setEditing(null);
-    fetchPosts();
+    await fetchPosts();
+    } catch {
+      showToast("บันทึกบทความไม่สำเร็จ กรุณาลองใหม่", "error");
+    } finally {
+      savePending.current = false;
+      setSaving(false);
+    }
   };
 
 
@@ -8926,6 +8950,8 @@ function BlogManager({ showToast }: any) {
       </div>
 
       <div className="cms-blog-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {loading && <p role="status">กำลังโหลดบทความ...</p>}
+        {!loading && loadError && <div role="alert">โหลดบทความไม่สำเร็จ <CBtn small onClick={fetchPosts}>ลองใหม่</CBtn></div>}
         {visiblePosts.map(p => (
           <div key={p.id} className="cms-blog-row" style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
             {/* Cover */}
@@ -8948,7 +8974,7 @@ function BlogManager({ showToast }: any) {
             </div>
           </div>
         ))}
-        {filtered.length === 0 && <EmptyState icon="📝" text="ยังไม่มีบทความ" />}
+        {!loading && !loadError && filtered.length === 0 && <EmptyState icon="📝" text="ยังไม่มีบทความ" />}
       </div>
       {filtered.length > pageSize && (
         <div className="cms-pagination" aria-label="หน้ารายการบทความ">
@@ -8966,14 +8992,14 @@ function BlogManager({ showToast }: any) {
           panelClassName="article-editor-modal"
           contentClassName="article-editor-modal-content"
         >
-          <BlogForm data={editing} onSave={save} onCancel={() => setEditing(null)} showToast={showToast} />
+          <BlogForm data={editing} onSave={save} saving={saving} onCancel={() => setEditing(null)} showToast={showToast} />
         </CModal>
       )}
     </div>
   );
 }
 
-function BlogForm({ data, onSave, onCancel, showToast }: any) {
+function BlogForm({ data, onSave, onCancel, showToast, saving }: any) {
   const [f, setF] = useState({
     seo_title: "", meta_desc: "", focus_keyword: "", author: "Display Works Media",
     last_updated: "", tags: "", ai_summary: "", key_takeaways: "", cover_alt: "",
@@ -9127,6 +9153,14 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
         .article-editor-modal .blog-form-tabs {
           width: auto !important;
           padding: 10px 14px !important;
+          align-items: center !important;
+          background: #F1F5F9 !important;
+        }
+        .article-editor-modal .blog-form-tabs button {
+          height: 44px !important;
+          min-height: 44px !important;
+          flex-shrink: 0 !important;
+          white-space: nowrap;
         }
         .article-editor-modal .blog-form-content {
           padding: 16px !important;
@@ -9195,14 +9229,14 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
 
             <div style={fieldStyle}>
               <label style={labelStyle}>หัวข้อบทความ *</label>
-              <input value={f.title} onChange={set("title")} onBlur={genSlug} placeholder="หัวข้อบทความ" style={inputStyle} />
+              <input value={f.title} onChange={set("title")} onBlur={() => { if (!String(f.slug || "").trim()) genSlug(); }} placeholder="หัวข้อบทความ" style={inputStyle} />
             </div>
 
             <div style={fieldStyle}>
               <label style={labelStyle}>Slug (URL)</label>
               <div style={{ display: "flex", gap: 8 }}>
                 <input value={f.slug} onChange={set("slug")} placeholder="url-slug" style={{ ...inputStyle, flex: 1 }} />
-                <button type="button" onClick={genSlug} style={{ ...inputStyle, width: "auto", padding: "8px 14px", cursor: "pointer", background: "#374151", border: "none", flexShrink: 0 }}>สร้างอัตโนมัติ</button>
+                <button type="button" onClick={genSlug} style={{ ...inputStyle, width: "auto", padding: "8px 14px", cursor: "pointer", background: "#E2E8F0", color: "#0F172A", border: "1px solid #CBD5E1", flexShrink: 0 }}>สร้างอัตโนมัติ</button>
               </div>
             </div>
 
@@ -9367,7 +9401,7 @@ function BlogForm({ data, onSave, onCancel, showToast }: any) {
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button type="button" onClick={() => onSave(f)} style={{ flex: 1, padding: "12px", background: "#C2410C", border: "none", borderRadius: 8, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>💾 บันทึก</button>
+              <button type="button" disabled={saving || uploading} onClick={() => onSave(f)} style={{ flex: 1, padding: "12px", background: "#C2410C", border: "none", borderRadius: 8, color: "#fff", fontSize: 14, fontWeight: 700, cursor: saving ? "wait" : "pointer" }}>{saving ? "กำลังบันทึก..." : "💾 บันทึก"}</button>
               <button type="button" onClick={onCancel} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "#888", fontSize: 14, cursor: "pointer" }}>ยกเลิก</button>
             </div>
           </div>
@@ -10571,9 +10605,40 @@ function CIconBtn({ onClick, children, danger, small, type = "button", className
   );
 }
 function CModal({ title, onClose, children, width = 500, panelClassName = "", contentClassName = "" }: any) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  useEffect(() => { closeRef.current = onClose; }, [onClose]);
+  useEffect(() => {
+    const previousFocus = document.activeElement;
+    const panel = panelRef.current;
+    panel?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeRef.current();
+      }
+      if (event.key !== "Tab" || !panel) return;
+      const controls = Array.from(panel.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"], [contenteditable="true"]',
+      )).filter((element) => element.getClientRects().length > 0);
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (!first) { event.preventDefault(); panel.focus(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !panel.contains(document.activeElement) || document.activeElement === panel)) {
+        event.preventDefault(); first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
+  }, []);
   return (
     <div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div className={`modal-panel admin-modal-panel ${panelClassName}`.trim()} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} className={`modal-panel admin-modal-panel ${panelClassName}`.trim()} style={{ background: "#141A24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, width: "100%", maxWidth: width, maxHeight: "88dvh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 90px rgba(0,0,0,0.6)", animation: "scaleIn 0.2s ease", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         {/* drag indicator */}
         <div className="admin-modal-handle" style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)", borderRadius: 99, margin: "12px auto 4px" }} />
         <div className="admin-modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>

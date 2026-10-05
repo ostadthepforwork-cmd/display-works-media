@@ -61,6 +61,16 @@ test("Thai slugs with vowels and tone marks remain canonical", async () => {
   assert.deepEqual(invalidated, ["/", "/blog", "/sitemap.xml", `/blog/${slug}`]);
 });
 
+test("cache invalidation receives only the path, never the array index as a route type", async () => {
+  const calls: unknown[][] = [];
+  const response = await handleRevalidate(request({ slug: "article" }), {
+    authorize: async () => activeAdmin,
+    invalidate: (...args: unknown[]) => { calls.push(args); },
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(calls, [["/"], ["/blog"], ["/sitemap.xml"], ["/blog/article"]]);
+});
+
 test("slug normalization removes unsafe path syntax and dangling separators", () => {
   assert.equal(createCanonicalBlogSlug("  New / Product ? Guide --  "), "new-product-guide");
   assert.equal(createCanonicalBlogSlug("ร้านค้า___ป้ายไวนิล---คู่มือ"), "ร้านค้า-ป้ายไวนิล-คู่มือ");

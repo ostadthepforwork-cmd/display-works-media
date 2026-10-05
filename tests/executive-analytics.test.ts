@@ -4,7 +4,7 @@ import { comparisonPeriod, comparisonFromSearch, reportResolution } from '../src
 import { businessTrend, financialReport, metricDelta, executiveModel, ExecutiveDocument } from '../src/lib/executive-dashboard';
 import { readFileSync } from 'node:fs';
 const period={from:'2026-09-01',to:'2026-09-10'};
-const doc:ExecutiveDocument={id:'a',type:'receipt',date:period.from,dueDate:'',status:'draft',deleted:false,docNo:'RC',customerName:'Synthetic',revenue:1100,estimatedCost:500,uncertainCost:false,balanceDue:0,items:[{productId:'p',name:'Print',revenue:1100,cost:500}]};
+const doc:ExecutiveDocument={id:'a',type:'receipt',date:period.from,dueDate:'',status:'approved',deleted:false,docNo:'RC',customerName:'Synthetic',revenue:1100,estimatedCost:500,uncertainCost:false,balanceDue:0,items:[{productId:'p',name:'Print',revenue:1100,cost:500}]};
 const expense={expense_date:period.from,total_amount:'100.00',payment_status:'paid',voided_at:null,category_id:'ad',expense_class:'operating'};
 test('comparisons have explicit calendar boundaries, leap clamping and validated URL modes',()=>{
   assert.deepEqual(comparisonPeriod(period,'previous'),{from:'2026-08-22',to:'2026-08-31'});

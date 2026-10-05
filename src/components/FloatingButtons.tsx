@@ -33,7 +33,7 @@ const floatButtons = [
 export default function FloatingButtons() {
   const [visible, setVisible] = useState(false);
   const pathname = usePathname();
-  const hiddenOnThisPage = pathname?.startsWith("/admin") || pathname?.startsWith("/login") || pathname?.startsWith("/doc");
+  const hiddenOnThisPage = pathname?.startsWith("/admin") || pathname?.startsWith("/login") || pathname?.startsWith("/reset-password") || pathname?.startsWith("/doc");
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 300);

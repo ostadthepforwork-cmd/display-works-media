@@ -9,6 +9,22 @@ test("Messenger webhook signature is verified before parsing", () => {
   const signature = `sha256=${createHmac("sha256", secret).update(body).digest("hex")}`;
   assert.equal(verifyMetaSignature(body, signature, secret), true);
   assert.equal(verifyMetaSignature(`${body}x`, signature, secret), false);
+  assert.equal(verifyMetaSignature(body, `${signature}zz`, secret), false);
+  assert.equal(verifyMetaSignature(body, signature.slice(0,-1), secret), false);
+});
+
+test("Messenger excludes echoes and delivery/read notifications from new leads", () => {
+  const rows=extractMessengerReferrals({entry:[{messaging:[
+    {sender:{id:'page-id'},message:{mid:'echo-1',is_echo:true,text:'QA outbound'}},
+    {sender:{id:'test-user'},delivery:{mids:['delivered-1']}},
+    {sender:{id:'test-user'},read:{watermark:123}},
+    {sender:{id:'test-user'},timestamp:'invalid',message:{mid:'invalid-time'}},
+    {sender:{id:'test-user'},timestamp:1789000000000,message:{mid:'incoming-1',text:'QA TEST Display Works'}},
+  ]}]},'synthetic-secret');
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].eventReference,'incoming-1');
+  assert.equal(rows[0].adId,null);
+  assert.equal(JSON.stringify(rows).includes('QA TEST Display Works'),false);
 });
 
 test("duplicate conversation events produce one stable hashed conversation key", () => {

@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 
 const fixtures = {
@@ -53,19 +54,40 @@ const fixtures = {
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `horizontal overflow ${width}`);
       await page.screenshot({ path: path.join(out, `export-${width}.png`), fullPage: true });
     }
-    await page.getByRole('radio', { name: /ค่าใช้จ่ายจริง/ }).click();
-    const csvDownload = page.waitForEvent('download');
-    await page.getByRole('button', { name: 'ดาวน์โหลด CSV' }).click();
-    const csv = await csvDownload;
-    assert.match(csv.suggestedFilename(), /^display-works-erp-expenses-\d{4}-\d{2}-\d{2}\.csv$/);
-    assert.match(fs.readFileSync(await csv.path(), 'utf8'), /EXP-1/);
+    const radios=page.getByRole('radio');
+    await radios.nth(0).focus();
+    await page.keyboard.press('ArrowDown');
+    assert.equal(await radios.nth(1).getAttribute('aria-checked'),'true');
+    assert.equal(await radios.nth(1).evaluate(element=>element===document.activeElement),true);
+    await page.keyboard.press('End');
+    assert.equal(await radios.nth(4).getAttribute('aria-checked'),'true');
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await radios.nth(0).getAttribute('aria-checked'),'true');
+    for (const [index,kind,marker] of [[0,'documents','QT-1'],[1,'expenses','EXP-1'],[2,'customers','ลูกค้าทดสอบ'],[3,'products','ป้าย'],[4,'suppliers','ผู้ขายทดสอบ']]) {
+      await radios.nth(index).click();
+      const csvDownload=page.waitForEvent('download');
+      await page.getByRole('button',{name:'ดาวน์โหลด CSV'}).click();
+      const csv=await csvDownload;
+      assert(csv.suggestedFilename().startsWith(`display-works-erp-${kind}-`));
+      const csvPath=path.join(out,`${kind}.csv`);
+      await csv.saveAs(csvPath);
+      assert(fs.readFileSync(csvPath,'utf8').includes(marker));
+    }
     const backupDownload = page.waitForEvent('download');
     await page.getByRole('button', { name: 'สร้างไฟล์สำรอง' }).click();
     const backup = await backupDownload;
-    const payload = JSON.parse(fs.readFileSync(await backup.path(), 'utf8'));
+    await backup.saveAs(path.join(out,'backup.json'));
+    const payload = JSON.parse(fs.readFileSync(path.join(out,'backup.json'), 'utf8'));
     assert.equal(payload.counts.documents, 1);
     assert.equal(payload.counts.expenseAttachments, 1);
     assert.match(payload.sha256, /^[a-f0-9]{64}$/);
-    console.log('PASS: export UI at 320/768/1280, expense CSV download, complete JSON backup; synthetic data only.');
+    const {sha256,...unsigned}=payload;
+    assert.equal(createHash('sha256').update(JSON.stringify(unsigned)).digest('hex'),sha256);
+    await page.route('**/rest/v1/erp_expenses?**',route=>route.fulfill({status:403,contentType:'application/json',body:'{"message":"QA denied"}'}));
+    await radios.nth(1).click();
+    await page.getByRole('button',{name:'ดาวน์โหลด CSV'}).click();
+    await page.waitForFunction(()=>document.title.startsWith('error:'));
+    assert(await page.getByRole('button',{name:'ดาวน์โหลด CSV'}).isEnabled());
+    console.log('PASS: 320/768/1280 layout, keyboard radio navigation, five real CSV downloads, JSON digest, denied-export recovery; synthetic data only.');
   } finally { if (browser) await browser.close(); server.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

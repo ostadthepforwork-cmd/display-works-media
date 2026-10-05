@@ -230,7 +230,7 @@ function customerFacingLineItem(item: any) {
   };
 }
 
-const INTERNAL_ONLY_TEXT_PATTERN = /ต้นทุน|ราคาทุน|กำไร|ผู้จำหน่าย|supplier|(?:^|\W)cost(?:\W|$)|(?:^|\W)margin(?:\W|$)/i;
+const INTERNAL_ONLY_TEXT_PATTERN = /ต้นทุน|ราคาทุน|กำไร|ผู้จำหน่าย|supplier|(?:^|\W)(?:cost(?:[_\s-]*(?:snapshot|price|unit))?|unit[_\s-]*cost|internal[_\s-]*expenses?|profit|margin)(?:\W|$)/i;
 
 function customerFacingText(value?: string) {
   return String(value || "")

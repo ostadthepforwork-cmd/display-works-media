@@ -1092,6 +1092,21 @@ body:has(.admin-app-shell) { overflow-x: clip; }
   opacity: 1;
 }
 
+/* Marketing controls sit on dark surfaces, including inside ERP's light wrapper. */
+.admin-app-shell .mk-dashboard :is(input, select, textarea) {
+  background: #101827!important;
+  border-color: #475569!important;
+  color: #f8fafc!important;
+  -webkit-text-fill-color: #f8fafc!important;
+  color-scheme: dark!important;
+}
+
+.admin-app-shell .mk-dashboard :is(input, textarea)::placeholder {
+  color: #cbd5e1!important;
+  -webkit-text-fill-color: #cbd5e1!important;
+  opacity: 1;
+}
+
 @media (max-width: 700px) {
   .admin-app-shell .admin-system-stats b { font-size: 17px!important; }
   .admin-app-shell .erp-pagination,

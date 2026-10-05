@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { authCookieOptions, REMEMBER_SESSION_COOKIE } from "@/lib/auth-cookie-options";
 import { cookies } from "next/headers";
 import { checkAdminAuthorization } from "@/lib/admin-authorization";
 import { bangkokDateFromTimestamp, marketingDateRangeFromUrl } from "@/lib/marketing-date-range";
@@ -107,7 +108,7 @@ async function makeSupabase() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
+              cookieStore.set(name, value, authCookieOptions(options, cookieStore.get(REMEMBER_SESSION_COOKIE)?.value, value)),
             );
           } catch {}
         },

@@ -41,6 +41,8 @@ const SENSITIVE_PATH_PATTERNS = [
 export function isSensitiveProbePath(pathname: string) {
   if (!pathname) return false;
   const cleanPath = pathname.split("?")[0] || "/";
+  // This exact application route is public; credential files and subpaths are not.
+  if (cleanPath === "/reset-password" || cleanPath === "/reset-password/") return false;
   return SENSITIVE_PATH_PATTERNS.some((pattern) => pattern.test(cleanPath));
 }
 
