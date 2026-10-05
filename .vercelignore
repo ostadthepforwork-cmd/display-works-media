@@ -1,0 +1,6 @@
+.env*
+.playwright-cli/
+output/
+artifacts/
+playwright-report/
+test-results/
