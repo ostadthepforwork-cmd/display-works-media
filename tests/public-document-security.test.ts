@@ -7,6 +7,13 @@ const actionsSource = readFileSync("src/app/doc/[id]/DocActions.tsx", "utf8");
 const cssSource = readFileSync("src/app/doc/[id]/document.css", "utf8");
 const adminSource = readFileSync("src/app/admin/page.tsx", "utf8");
 
+test("document accents use the requested brand orange on screen and print", () => {
+  assert.doesNotMatch(cssSource, /#(?:c64f00|ff5500)/i);
+  assert.match(cssSource, /\.doc-summary-total\s*\{[^}]*background: #FF6B00;/);
+  assert.match(cssSource, /\.doc-summary-total\s*\{[^}]*background: #FF6B00 !important;/);
+  assert.doesNotMatch(adminSource, /#FF5500/i);
+});
+
 test("public document reads use explicit customer-facing allowlists", () => {
   const pageBody = pageSource.slice(pageSource.indexOf("export default async function PublicDocumentPage"));
   const chainBody = pageSource.slice(pageSource.indexOf("async function loadDocumentChain"), pageSource.indexOf("export default async function PublicDocumentPage"));

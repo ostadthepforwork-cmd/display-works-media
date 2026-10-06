@@ -98,7 +98,7 @@ body {
 
 .doc-toolbar button.primary {
   border-color: #b94700;
-  background: #c64f00;
+  background: #FF6B00;
   color: #fff;
 }
 
@@ -202,7 +202,7 @@ body {
   font-family: "Prompt", Arial, sans-serif;
   font-size: 10pt;
   font-weight: 700;
-  color: #ff5500;
+  color: #FF6B00;
   letter-spacing: 0.15em;
 }
 
@@ -217,7 +217,7 @@ body {
 
 .doc-section-kicker {
   font-family: "Prompt", Arial, sans-serif;
-  color: #ff5500;
+  color: #FF6B00;
   font-size: 8pt;
   font-weight: 800;
   letter-spacing: 0.15em;
@@ -260,7 +260,7 @@ body {
 
 .doc-meta-row span:first-child {
   font-family: "Prompt", Arial, sans-serif;
-  color: #ff5500;
+  color: #FF6B00;
   font-weight: 700;
 }
 
@@ -312,7 +312,7 @@ body {
 /* ลำดับ */
 .doc-table .num {
   font-family: "Prompt", Arial, sans-serif;
-  color: #ff5500;
+  color: #FF6B00;
   font-size: 11pt;
   font-weight: 900;
   text-align: center;
@@ -420,7 +420,7 @@ body {
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
-  background: #c64f00;
+  background: #FF6B00;
   color: #fff;
   font-family: "Prompt", Arial, sans-serif;
   font-weight: 900;
@@ -508,7 +508,7 @@ body {
 .doc-footer-line {
   height: 2px;
   margin-bottom: 10px;
-  background: #ff5500;
+  background: #FF6B00;
 }
 
 @media (min-width: 821px) {
@@ -678,7 +678,7 @@ html[data-doc-printing="true"] .doc-a4 {
   }
 
   .doc-summary-total {
-    background: #c64f00 !important;
+    background: #FF6B00 !important;
     color: #fff !important;
   }
 
@@ -690,6 +690,6 @@ html[data-doc-printing="true"] .doc-a4 {
   }
 
   .doc-footer-line {
-    background: #ff5500 !important;
+    background: #FF6B00 !important;
   }
 }

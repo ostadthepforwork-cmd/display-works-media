@@ -28,6 +28,7 @@ async function main() {
       for (const suffix of ['', '-long']) {
         await page.goto(`${base}/doc/${type}${suffix}`);
         await page.locator('article').waitFor();
+        assert.equal(await page.locator('.doc-summary-total').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 107, 0)', 'Requested brand orange');
         await page.evaluate(async () => {
           await document.fonts.ready;
           await Promise.all([...document.images].map(image => image.decode().catch(() => {})));

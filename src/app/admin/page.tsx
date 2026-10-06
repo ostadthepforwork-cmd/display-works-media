@@ -586,7 +586,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     const item = customerFacingLineItem(rawItem);
     return `
     <tr style="border-bottom:1px solid #e5e7eb;vertical-align:top;">
-      <td style="padding:9px 6px;text-align:center;font-weight:700;font-size:13px;color:#FF5500;border-right:1px solid #e5e7eb;">${String(i + 1).padStart(2, "0")}</td>
+      <td style="padding:9px 6px;text-align:center;font-weight:700;font-size:13px;color:#FF6B00;border-right:1px solid #e5e7eb;">${String(i + 1).padStart(2, "0")}</td>
       <td style="padding:9px 10px;border-right:1px solid #e5e7eb;">
         <div style="font-weight:700;font-size:11px;color:#1e293b;">${customerFacingText(item.name) || "-"}</div>
         ${customerFacingText(item.subTitle) ? `<div style="font-size:9.5px;color:#94a3b8;margin-top:2px;">${customerFacingText(item.subTitle)}</div>` : ""}
@@ -597,7 +597,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       <td style="padding:9px 6px;text-align:center;font-size:11px;color:#1e293b;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.qty)}</td>
       <td style="padding:9px 6px;text-align:center;font-size:10px;color:#94a3b8;border-right:1px solid #e5e7eb;">${item.unit}</td>
       <td style="padding:9px 8px;text-align:right;font-size:11px;color:#475569;font-weight:500;border-right:1px solid #e5e7eb;">${fmtMoney(item.price)}</td>
-      <td style="padding:9px 8px;text-align:right;font-size:11px;font-weight:700;color:#FF5500;">${fmtMoney(lineAmount(item))}</td>
+      <td style="padding:9px 8px;text-align:right;font-size:11px;font-weight:700;color:#FF6B00;">${fmtMoney(lineAmount(item))}</td>
     </tr>`;
   }).join("");
 
@@ -635,7 +635,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
     <tr style="border-bottom:1px solid #f1f5f9;">
       <td colspan="2" style="padding:7px 12px;color:#64748b;font-size:9px;line-height:1.5;">${publicDepositNote}</td>
     </tr>` : ""}` : ""}
-    <tr style="background:#FF5500;">
+    <tr style="background:#FF6B00;">
       <td style="padding:9px 12px;font-weight:800;font-size:12px;color:#fff;text-align:left;">
         ${finalTotalLabel}<br/><span style="font-size:8px;font-weight:400;opacity:.85;">${lbl.sub}</span>
       </td>
@@ -692,7 +692,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
                onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';">
           <!-- Fallback if image not found -->
           <div id="logoFallback" style="display:none;align-items:center;gap:8px;">
-            <div style="background:#FF5500;color:#fff;font-weight:800;font-size:16px;
+            <div style="background:#FF6B00;color:#fff;font-weight:800;font-size:16px;
                         padding:5px 10px;border-radius:6px;letter-spacing:1px;line-height:1;">DW</div>
             <div>
               <div style="font-size:14px;font-weight:800;color:#0f172a;letter-spacing:.5px;line-height:1;">DISPLAY WORKS MEDIA</div>
@@ -712,10 +712,10 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       <!-- Doc type right -->
       <div style="text-align:right;position:relative;padding-right:14px;">
         <div style="font-size:34px;font-weight:800;color:#0f172a;letter-spacing:2px;line-height:1;">${lbl.en}</div>
-        <div style="font-size:11px;font-weight:500;color:#FF5500;letter-spacing:3px;margin-top:4px;">${lbl.sub}</div>
+        <div style="font-size:11px;font-weight:500;color:#FF6B00;letter-spacing:3px;margin-top:4px;">${lbl.sub}</div>
         <!-- Orange accent bar -->
         <div style="position:absolute;right:-2px;top:0;width:5px;height:58px;
-                    background:#FF5500;border-radius:2px;transform:skewX(-8deg);opacity:.85;"></div>
+                    background:#FF6B00;border-radius:2px;transform:skewX(-8deg);opacity:.85;"></div>
       </div>
     </div>
 
@@ -725,7 +725,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       <!-- To / client -->
       <div style="padding-right:20px;border-right:1px solid #e2e8f0;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
-          <span style="color:#FF5500;font-weight:800;font-size:12px;">TO</span>
+          <span style="color:#FF6B00;font-weight:800;font-size:12px;">TO</span>
           <span style="color:#cbd5e1;font-size:10px;">/</span>
           <span style="color:#94a3b8;font-size:10px;font-weight:500;">ลูกค้า</span>
         </div>
@@ -741,9 +741,9 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
       <!-- Meta right -->
       <div style="padding-left:20px;display:flex;flex-direction:column;justify-content:center;gap:0;">
         ${[
-          ["QUOTATION NO.", doc.docNo, "#FF5500"],
+          ["QUOTATION NO.", doc.docNo, "#FF6B00"],
           ["DATE", fmtDate(doc.date), "#64748b"],
-          [lbl.valid.toUpperCase(), fmtDate(doc.dueDate), "#FF5500"],
+          [lbl.valid.toUpperCase(), fmtDate(doc.dueDate), "#FF6B00"],
           ["SALE PERSON", doc.salesPerson || company.salesPerson || "-", "#64748b"],
         ].map(([k, v, c]) => `
           <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px dashed #f1f5f9;
@@ -792,7 +792,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
 
         <!-- Remarks -->
         <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;background:#f8fafc;">
-          <div style="color:#FF5500;font-weight:700;font-size:8.5px;letter-spacing:1.5px;
+          <div style="color:#FF6B00;font-weight:700;font-size:8.5px;letter-spacing:1.5px;
                       text-transform:uppercase;margin-bottom:6px;">REMARKS / หมายเหตุ</div>
           <ul style="list-style:disc;padding-left:14px;color:#64748b;font-size:9.5px;line-height:1.8;">
             ${noteItems}
@@ -803,7 +803,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
         <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;background:#fff;
                     display:flex;justify-content:space-between;align-items:center;min-height:100px;">
           <div style="flex:1;min-width:0;padding-right:10px;">
-            <div style="color:#FF5500;font-weight:700;font-size:8.5px;letter-spacing:1.5px;
+            <div style="color:#FF6B00;font-weight:700;font-size:8.5px;letter-spacing:1.5px;
                         text-transform:uppercase;margin-bottom:6px;">PAYMENT INFORMATION</div>
             <div style="font-size:10.5px;margin-bottom:2px;">
               <span style="color:#94a3b8;">ชื่อบัญชี:</span>
@@ -894,15 +894,15 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   </div>
 
   <!-- ═══ FOOTER ════════════════════════════════════════════ -->
-  <div style="margin-top:24px;padding-top:12px;border-top:2px solid #FF5500;
+  <div style="margin-top:24px;padding-top:12px;border-top:2px solid #FF6B00;
               display:flex;justify-content:space-between;align-items:flex-end;">
     <div style="font-size:9px;color:#94a3b8;font-style:italic;">
       Thank you for your business.
     </div>
     <div style="text-align:right;position:relative;padding-right:12px;">
       <div style="font-size:9px;font-weight:800;font-style:italic;color:#0f172a;letter-spacing:1px;">MAKE YOUR</div>
-      <div style="font-size:13px;font-weight:800;color:#FF5500;letter-spacing:1px;line-height:1.1;">BRAND SEEN</div>
-      <div style="position:absolute;right:0;bottom:0;width:3px;height:30px;background:#FF5500;
+      <div style="font-size:13px;font-weight:800;color:#FF6B00;letter-spacing:1px;line-height:1.1;">BRAND SEEN</div>
+      <div style="position:absolute;right:0;bottom:0;width:3px;height:30px;background:#FF6B00;
                   border-radius:1px;transform:skewX(-8deg);"></div>
     </div>
   </div>
