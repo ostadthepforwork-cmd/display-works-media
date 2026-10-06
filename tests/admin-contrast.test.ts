@@ -151,3 +151,15 @@ test("Marketing form ink and surface stay paired inside the light ERP wrapper", 
   assert.match(systemCss, /\.admin-app-shell \.mk-dashboard :is\(input, select, textarea\)\s*\{[^}]*background: #101827!important;[^}]*color: #f8fafc!important;[^}]*-webkit-text-fill-color: #f8fafc!important;/);
   assert.match(systemCss, /\.admin-app-shell \.mk-dashboard :is\(input, textarea\)::placeholder\s*\{[^}]*color: #cbd5e1!important;/);
 });
+
+test("audited CMS, document, and expense text has explicit surface contracts", () => {
+  assert.match(pageSource, /className="doc-customer-name"/);
+  assert.match(pageSource, /className="cms-editor-section"/);
+  assert.match(pageSource, /aria-pressed=\{activeTab === t.id\}/);
+  assert.match(systemCss, /\.expense-page :is\(h2, h3, strong\)[\s\S]*?-webkit-text-fill-color: #f8fafc!important/);
+  assert.match(systemCss, /\.blog-form-tabs button\[aria-pressed="true"\][\s\S]*?var\(--color-admin-accent-ink\)/);
+  assert.match(systemCss, /\.mk-segmented button.active[\s\S]*?-webkit-text-fill-color: #111827!important/);
+  assert.match(systemCss, /\.mk-mobile-tabs button.active[\s\S]*?background: #c2410c!important/);
+  assert.match(tokens, /--text-admin-xs: 12px/);
+  assert.match(systemCss, /font-size: 12px!important;\s*line-height: 1\.55!important/);
+});

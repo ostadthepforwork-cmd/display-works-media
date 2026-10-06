@@ -46,7 +46,7 @@ body:has(.admin-app-shell) { overflow-x: clip; }
 .admin-brand-lockup img { width: 34px; height: 30px; object-fit: contain; }
 .admin-brand-lockup span { display: grid; line-height: 1.1; }
 .admin-brand-lockup strong { color: var(--color-admin-ink-strong); font-family: var(--font-admin-display); font-size: 15px; }
-.admin-brand-lockup small { color: var(--color-admin-muted); font-size: 9px; margin-top: 3px; }
+.admin-brand-lockup small { color: var(--color-admin-muted); font-size: 12px; line-height: 1.5; margin-top: 3px; }
 
 .admin-primary-nav { display: flex; gap: var(--space-admin-3xs); }
 .admin-primary-nav button {
@@ -1093,6 +1093,145 @@ body:has(.admin-app-shell) { overflow-x: clip; }
 }
 
 /* Marketing controls sit on dark surfaces, including inside ERP's light wrapper. */
+.admin-app-shell .mk-dashboard .mk-segmented button.active {
+  background: #f8fafc!important;
+  color: #111827!important;
+  -webkit-text-fill-color: #111827!important;
+}
+
+.admin-app-shell .mk-dashboard .mk-mobile-tabs button.active {
+  background: #c2410c!important;
+  border-color: #c2410c!important;
+  color: #ffffff!important;
+  -webkit-text-fill-color: #ffffff!important;
+}
+
+.admin-app-shell .mk-dashboard :is(.mk-mini, .mk-source, .mk-meter-row) :is(strong, b) {
+  color: #f8fafc!important;
+  -webkit-text-fill-color: #f8fafc!important;
+}
+
+.admin-app-shell .erp-admin-content .expense-page {
+  color: #e5e7eb!important;
+  -webkit-text-fill-color: currentColor;
+  color-scheme: dark;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.admin-app-shell .erp-admin-content .expense-page :is(h2, h3, strong),
+.admin-app-shell .erp-admin-content .expense-page .evidence-head {
+  color: #f8fafc!important;
+  -webkit-text-fill-color: #f8fafc!important;
+}
+
+.admin-app-shell .erp-admin-content .expense-page :is(label, small, .evidence-empty, .expense-empty) {
+  color: #cbd5e1!important;
+  -webkit-text-fill-color: #cbd5e1!important;
+  font-size: 13px!important;
+  line-height: 1.55;
+}
+
+.admin-app-shell .erp-admin-content .expense-page :is(input, select, textarea) {
+  background: #0d131d!important;
+  color: #f8fafc!important;
+  -webkit-text-fill-color: #f8fafc!important;
+  color-scheme: dark!important;
+}
+
+.admin-app-shell .erp-admin-content .expense-page select option {
+  background: #0d131d!important;
+  color: #f8fafc!important;
+  -webkit-text-fill-color: #f8fafc!important;
+}
+
+.admin-app-shell .article-editor-modal .blog-form-tabs {
+  background: var(--color-admin-paper-soft)!important;
+  border-color: var(--color-admin-rule)!important;
+}
+
+.admin-app-shell .article-editor-modal .blog-form-tabs button {
+  color: var(--color-admin-ink)!important;
+  -webkit-text-fill-color: var(--color-admin-ink)!important;
+  min-height: 44px;
+}
+
+.admin-app-shell .article-editor-modal .blog-form-tabs button[aria-pressed="true"] {
+  background: var(--color-admin-accent-soft)!important;
+  color: var(--color-admin-accent-ink)!important;
+  -webkit-text-fill-color: var(--color-admin-accent-ink)!important;
+}
+
+.admin-app-shell .article-editor-modal .cms-editor-section,
+.admin-app-shell .article-editor-modal .cms-editor-section :is(label, span, div) {
+  color: var(--color-admin-ink)!important;
+  -webkit-text-fill-color: var(--color-admin-ink)!important;
+}
+
+.admin-app-shell .article-editor-modal .cms-publish-control input[type="checkbox"] {
+  appearance: auto!important;
+  width: 18px!important;
+  min-width: 18px!important;
+  height: 18px!important;
+  min-height: 18px!important;
+  padding: 0!important;
+  flex: 0 0 18px;
+  accent-color: #c2410c;
+}
+
+.admin-app-shell .article-editor-modal .cms-publish-control > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-app-shell .article-editor-modal .cms-publish-control > span {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.admin-app-shell .article-editor-modal .blog-form-content button:not(:disabled):not(.rich-editor-shell *) {
+  background: var(--color-admin-paper-soft)!important;
+  color: var(--color-admin-ink)!important;
+  -webkit-text-fill-color: var(--color-admin-ink)!important;
+}
+
+.admin-app-shell .erp-document-page .doc-customer-name {
+  color: var(--color-admin-ink)!important;
+  -webkit-text-fill-color: var(--color-admin-ink)!important;
+}
+
+.admin-app-shell .erp-customer-page .customer-segment-badge {
+  color: var(--color-admin-accent-ink)!important;
+  -webkit-text-fill-color: var(--color-admin-accent-ink)!important;
+}
+
+.admin-app-shell .erp-customer-page .customer-business-badge {
+  color: var(--color-admin-positive)!important;
+  -webkit-text-fill-color: var(--color-admin-positive)!important;
+}
+
+/* Legacy inline captions share a readable floor, without resizing display headings. */
+.admin-app-shell :is(.erp-operational-page, .cms-manager-page, .cms-blog-manager, .article-editor-modal, .mk-dashboard)
+  :is([style*="font-size: 8px"], [style*="font-size: 9px"], [style*="font-size: 10px"], [style*="font-size: 11px"]) {
+  font-size: 12px!important;
+  line-height: 1.55!important;
+}
+
+.admin-app-shell :is(.admin-home-metrics span, .admin-system-card small, .admin-home-tasks small, .mk-nav-desc, .mk-spark-caption, .mk-chart-sub) {
+  font-size: 12px!important;
+  line-height: 1.55!important;
+}
+
+.admin-app-shell .admin-module-trigger {
+  color: var(--color-admin-accent-ink)!important;
+  -webkit-text-fill-color: var(--color-admin-accent-ink)!important;
+}
+
+.admin-app-shell .admin-bottom-nav .nav-btn span:last-child {
+  font-size: 12px!important;
+  line-height: 1.5!important;
+}
+
 .admin-app-shell .mk-dashboard :is(input, select, textarea) {
   background: #101827!important;
   border-color: #475569!important;

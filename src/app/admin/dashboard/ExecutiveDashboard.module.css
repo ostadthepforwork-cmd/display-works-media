@@ -1,6 +1,6 @@
 /* Hallmark · pre-emit critique: P5 H5 E4 S5 R4 V4 · genre: modern-minimal · macrostructure: executive workbench · tone: clear and composed · anchor hue: orange · studied: yes · DNA-source: user image · contrast: pass (40–41) · mobile: pass (34,49–57) */
 @import './tokens.css';
-.dashboard { --line:#253441; --muted:#a3b1c2; color:#f2f5fa; width:100%; max-width:1600px; margin:0 auto; font-size:13px; line-height:1.5; letter-spacing:0; }
+.dashboard { --line:#253441; --muted:#a3b1c2; color:#f2f5fa; width:100%; max-width:1600px; margin:0 auto; font-size:14px; line-height:1.55; letter-spacing:0; }
 .dashboard *, .dialog * { box-sizing:border-box; }
 .dashboard h1 {font-size:27px;line-height:1.25;font-weight:750;margin:0 0 5px;letter-spacing:0;}
 .dashboard h2,.dialog h2 {font-size:16px;font-weight:700;margin:0;display:flex;align-items:center;gap:9px;letter-spacing:0;}
@@ -435,6 +435,8 @@
 .dashboard th {background:var(--color-paper-soft);border-bottom:var(--rule-thin) solid var(--color-rule-strong);text-transform:none;}
 .dashboard tbody tr {transition:background-color var(--dur-short) var(--ease-out);}
 .rowAction {border-radius:50%!important;}
+.dashboard :is(.metadata,.kpiBottom,.muted,.legend,.footnote,.badge,.pager,.documentGrid small,.category small,.expenseMetrics small,.detailMetrics small,.alerts small,.structure span,.structure b,.costClasses button,.chartTabs button,.segmented button,.chartDetail) {font-size:12px!important;line-height:1.55;}
+.dashboard table,.dashboard th {font-size:13px!important;line-height:1.55;}
 
 @media(max-width:1200px){
   .header {padding-top:var(--space-lg);}

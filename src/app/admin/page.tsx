@@ -6482,8 +6482,8 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
             <div style={{ fontSize: 12, color: "#888", lineHeight: 2 }}>
               {(c.customerSegment || c.businessType) && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
-                  {c.customerSegment && <span style={{ color: "#FFB076", border: "1px solid rgba(255,107,0,0.35)", background: "rgba(255,107,0,0.12)", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>{c.customerSegment}</span>}
-                  {c.businessType && <span style={{ color: "#A7F3D0", border: "1px solid rgba(16,185,129,0.28)", background: "rgba(16,185,129,0.10)", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>{c.businessType}</span>}
+                  {c.customerSegment && <span className="customer-segment-badge" style={{ color: "var(--color-admin-accent-ink)", border: "1px solid rgba(255,107,0,0.35)", background: "var(--color-admin-accent-soft)", borderRadius: 8, padding: "2px 8px", fontWeight: 700 }}>{c.customerSegment}</span>}
+                  {c.businessType && <span className="customer-business-badge" style={{ color: "var(--color-admin-positive)", border: "1px solid rgba(16,185,129,0.28)", background: "var(--color-admin-positive-soft)", borderRadius: 8, padding: "2px 8px", fontWeight: 700 }}>{c.businessType}</span>}
                 </div>
               )}
               {c.phone && <div>📞 {maskPhone(c.phone)}</div>}{c.email && <div>✉️ {maskEmail(c.email)}</div>}
@@ -7700,7 +7700,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                   <div className="doc-mobile-card-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                     <div>
                       <div style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 700, color: dt.color }}>{doc.docNo}</div>
-                      <div style={{ fontSize: 13, color: "#e2e8f0", marginTop: 2 }}>{doc.customerName || "-"}</div>
+                      <div className="doc-customer-name" style={{ fontSize: 14, color: "var(--color-admin-ink)", marginTop: 2 }}>{doc.customerName || "-"}</div>
                       <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>ครบกำหนด {fmtDate(doc.dueDate)}</div>
                     </div>
                     <div style={{ textAlign: "right" as const }}>
@@ -9184,7 +9184,7 @@ function BlogForm({ data, onSave, onCancel, showToast, saving }: any) {
       {/* Sidebar Tabs */}
       <div className="blog-form-tabs" style={{ width: 130, background: "#0D1320", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px", flexShrink: 0 }}>
         {tabs.map(t => (
-          <button type="button" key={t.id} onClick={() => setActiveTab(t.id)} style={{ background: activeTab === t.id ? "rgba(255,107,0,0.15)" : "transparent", border: activeTab === t.id ? "1px solid rgba(255,107,0,0.3)" : "1px solid transparent", borderRadius: 8, padding: "10px 8px", color: activeTab === t.id ? "#FF6B00" : "#888", fontSize: 12, cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.15s" }}>
+          <button type="button" key={t.id} aria-pressed={activeTab === t.id} onClick={() => setActiveTab(t.id)} style={{ background: activeTab === t.id ? "rgba(255,107,0,0.15)" : "transparent", border: activeTab === t.id ? "1px solid rgba(255,107,0,0.3)" : "1px solid transparent", borderRadius: 8, padding: "10px 8px", color: activeTab === t.id ? "#FF6B00" : "#888", fontSize: 13, cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.15s" }}>
             {t.label}
           </button>
         ))}
@@ -9268,7 +9268,7 @@ function BlogForm({ data, onSave, onCancel, showToast, saving }: any) {
         {activeTab === "seo" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* SEO Score Checklist */}
-            <div style={{ background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: 14 }}>
+            <div className="cms-editor-section" style={{ background: "var(--color-admin-paper-soft)", border: "1px solid var(--color-admin-rule)", borderRadius: 8, padding: 14 }}>
               <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>SEO Checklist</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {seoScore.checks.map((c, i) => (
@@ -9348,7 +9348,7 @@ function BlogForm({ data, onSave, onCancel, showToast, saving }: any) {
               <label style={labelStyle}>FAQ Builder <span style={{ color: "#6B7280", fontWeight: 400 }}>(สร้าง FAQ Schema อัตโนมัติ)</span></label>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {(Array.isArray(f.faqs) ? f.faqs : []).map((faq: any, i: number) => (
-                  <div key={i} style={{ background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div className="cms-editor-section" key={i} style={{ background: "var(--color-admin-paper-soft)", border: "1px solid var(--color-admin-rule)", borderRadius: 8, padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: 11, color: "#6B7280", fontWeight: 700 }}>FAQ #{i + 1}</span>
                       <button type="button" onClick={() => removeFaq(i)} style={{ background: "rgba(239,68,68,0.15)", border: "none", color: "#ef4444", borderRadius: 4, padding: "2px 8px", cursor: "pointer", fontSize: 11 }}>ลบ</button>
@@ -9368,7 +9368,7 @@ function BlogForm({ data, onSave, onCancel, showToast, saving }: any) {
         {/* ── TAB: PUBLISH ── */}
         {activeTab === "publish" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: 16 }}>
+            <div className="cms-editor-section cms-publish-control" style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--color-admin-paper-soft)", border: "1px solid var(--color-admin-rule)", borderRadius: 8, padding: 16 }}>
               <input type="checkbox" id="published" checked={f.published} onChange={e => setF(p => ({ ...p, published: e.target.checked }))} style={{ width: 18, height: 18, cursor: "pointer" }} />
               <div>
                 <label htmlFor="published" style={{ fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#fff" }}>เผยแพร่บทความนี้</label>
@@ -9379,7 +9379,7 @@ function BlogForm({ data, onSave, onCancel, showToast, saving }: any) {
               </span>
             </div>
 
-            <div style={{ background: "#0D1320", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: 16 }}>
+            <div className="cms-editor-section" style={{ background: "var(--color-admin-paper-soft)", border: "1px solid var(--color-admin-rule)", borderRadius: 8, padding: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>📊 สรุปก่อนบันทึก</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {[
