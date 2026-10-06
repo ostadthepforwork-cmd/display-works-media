@@ -4467,8 +4467,7 @@ export default function AdminPage() {
           }
           .modal-backdrop .rich-editor-surface,
           .modal-backdrop .rich-editor-surface * {
-            color: #f8fafc !important;
-            -webkit-text-fill-color: #f8fafc !important;
+            -webkit-text-fill-color: currentColor;
           }
           .marketing-main input[type="date"],
           .marketing-main input[type="month"],
@@ -8720,7 +8719,7 @@ function RichEditor({ value, onChange, showToast }: { value: string; onChange: (
         {/* Color */}
         <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#ccc", fontSize: 12, marginBottom: 0 }}>
           <span>A</span>
-          <input type="color" defaultValue="#ffffff" onChange={e => exec("foreColor", e.target.value)}
+          <input type="color" defaultValue="#111827" onChange={e => exec("foreColor", e.target.value)}
             style={{ width: 20, height: 20, padding: 0, border: "none", borderRadius: 3, cursor: "pointer", background: "none" }} />
         </label>
         <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#ccc", fontSize: 12, marginBottom: 0 }}>

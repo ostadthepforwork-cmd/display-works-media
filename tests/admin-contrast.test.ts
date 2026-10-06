@@ -163,3 +163,10 @@ test("audited CMS, document, and expense text has explicit surface contracts", (
   assert.match(tokens, /--text-admin-xs: 12px/);
   assert.match(systemCss, /font-size: 12px!important;\s*line-height: 1\.55!important/);
 });
+
+test("CMS body uses readable ink without an inverse mobile blanket override", () => {
+  assert.match(systemCss, /\.article-editor-modal \.rich-editor-surface\s*\{[^}]*background: #ffffff!important;[^}]*color: #111827!important;/);
+  assert.match(systemCss, /\.rich-editor-surface \*\s*\{[^}]*-webkit-text-fill-color: currentColor!important;/);
+  assert.doesNotMatch(pageSource, /\.modal-backdrop \.rich-editor-surface \*\s*\{[^}]*color: #f8fafc/);
+  assert.match(pageSource, /type="color" defaultValue="#111827"/);
+});

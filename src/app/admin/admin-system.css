@@ -1195,6 +1195,30 @@ body:has(.admin-app-shell) { overflow-x: clip; }
   -webkit-text-fill-color: var(--color-admin-ink)!important;
 }
 
+.admin-app-shell .article-editor-modal .rich-editor-surface {
+  background: #ffffff!important;
+  color: #111827!important;
+  -webkit-text-fill-color: #111827!important;
+}
+
+.admin-app-shell .article-editor-modal .rich-editor-surface * {
+  -webkit-text-fill-color: currentColor!important;
+}
+
+.admin-app-shell .article-editor-modal .rich-editor-surface :is(p, li, blockquote, td, th) {
+  color: #111827!important;
+}
+
+.admin-app-shell .article-editor-modal .rich-editor-toolbar :is(button, label) {
+  color: #111827!important;
+  -webkit-text-fill-color: #111827!important;
+}
+
+.admin-app-shell .article-editor-modal .rich-editor-toolbar button[aria-label="Clear article content"] {
+  color: #b91c1c!important;
+  -webkit-text-fill-color: #b91c1c!important;
+}
+
 .admin-app-shell .erp-document-page .doc-customer-name {
   color: var(--color-admin-ink)!important;
   -webkit-text-fill-color: var(--color-admin-ink)!important;

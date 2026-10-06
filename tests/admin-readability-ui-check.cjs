@@ -13,7 +13,7 @@ const fixture = {
   erp_document_items: ['quote', 'bill', 'invoice', 'receipt'].map(type => ({ id: `qa-item-${type}`, document_id: `qa-${type}`, name: 'QA Product', qty: 1, price: 100, cost_snapshot: 40 })),
   erp_expense_categories: [{ id: 'qa-category', name: 'QA Rent', active: true, code: 'QA', default_class: 'operating' }],
   erp_expenses: [],
-  posts: [],
+  posts: [{ id: 'qa-article', title: 'QA Readability', slug: 'qa-readability', published: false, date: '2026-10-06', body: '<h2>QA Heading</h2><p>Readable paragraph with <strong>bold text</strong>.</p><ul><li>Readable list item</li></ul><p style="color: #e2e8f0">Legacy light ink</p><p><font color="#ffffff">Legacy white ink</font></p><p style="color: #b91c1c">Authored red ink</p>' }],
 };
 
 async function main() {
@@ -95,7 +95,7 @@ async function main() {
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${name}: page overflow`);
       checks.push({ name, ...value });
     };
-    for (const width of [1440, 390]) {
+    for (const width of [1440, 819, 390]) {
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.goto(`${base}/admin?section=erp`);
       await page.getByRole('navigation', { name: 'เมนู ERP' }).getByRole('button', { name: 'ค่าใช้จ่าย', exact: true }).click();
@@ -121,6 +121,19 @@ async function main() {
       await page.screenshot({ path: path.join(out, `cms-${width}.png`), fullPage: false });
       await page.keyboard.press('Escape');
       assert.equal(await page.getByRole('dialog').count(), 0);
+      await page.getByRole('button', { name: 'Edit article: QA Readability', exact: true }).click();
+      const editor = page.locator('.rich-editor-surface');
+      await editor.getByText('Readable paragraph with', { exact: false }).waitFor();
+      await check('.rich-editor-surface p', `CMS paragraph ${width}`);
+      await check('.rich-editor-surface li', `CMS list ${width}`);
+      await check('.rich-editor-toolbar button[aria-label="Bold"]', `CMS toolbar ${width}`);
+      await check('.rich-editor-surface p:nth-of-type(2)', `CMS legacy light ink ${width}`);
+      await check('.rich-editor-surface p:nth-of-type(3)', `CMS legacy white ink ${width}`);
+      assert.equal(await editor.locator('strong').innerText(), 'bold text', 'Bold formatting is preserved');
+      assert((await editor.innerText()).includes('Legacy white ink'), 'Existing article text is preserved');
+      await editor.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: path.join(out, `cms-body-${width}.png`), fullPage: false, animations: 'disabled' });
+      await page.keyboard.press('Escape');
       await page.goto(`${base}/admin?section=marketing`);
       const ads = page.getByRole('button', { name: /Ads Performance/ }).filter({ visible: true });
       await ads.first().click();
