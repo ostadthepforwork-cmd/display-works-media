@@ -78,6 +78,11 @@ test("screen preview scaling cannot affect A4 print output", () => {
   assert.match(cssSource, /@media print[\s\S]*?html\[data-doc-printing="true"\] \.doc-a4,/);
 });
 
+test("document accents cannot be overridden with the old dark orange", () => {
+  assert.doesNotMatch(cssSource, /#b94700\s*!?\s*(?:important)?\s*\}/i);
+  assert.doesNotMatch(pageSource, /#ff5500/i);
+});
+
 test("document spacing follows toolbar height when status text wraps", () => {
   assert.match(actionsSource, /new ResizeObserver\(updateToolbarHeight\)/);
   assert.match(actionsSource, /observer\.disconnect\(\)/);

@@ -537,7 +537,7 @@ export default async function PublicDocumentPage({ params, searchParams }: PageP
                     <td className="center">{fmtQty(item.qty)}</td>
                     <td className="center">{item.unit}</td>
                     <td className="right">{fmtMoney(item.price)}</td>
-                    <td className="right"><strong style={{ color: "#ff5500" }}>{fmtMoney(lineAmount(item))}</strong></td>
+                    <td className="right"><strong style={{ color: "#FF6B00" }}>{fmtMoney(lineAmount(item))}</strong></td>
                   </tr>
                 );
               })}

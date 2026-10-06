@@ -616,8 +616,6 @@ html[data-doc-printing="true"] .doc-a4 {
 }
 
 /* ─── PRINT ──────────────────────────────────────────────────────────────── */
-.doc-title p,.doc-section-kicker,.doc-meta-row span:first-child,.doc-table .num{color:#b94700}
-.doc-table td.right strong{color:#b94700!important}
 @page {
   size: A4 portrait;
   margin: 12mm 12mm 15mm;

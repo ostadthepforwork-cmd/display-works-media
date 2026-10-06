@@ -29,6 +29,15 @@ async function main() {
         await page.goto(`${base}/doc/${type}${suffix}`);
         await page.locator('article').waitFor();
         assert.equal(await page.locator('.doc-summary-total').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 107, 0)', 'Requested brand orange');
+        for (const media of ['screen', 'print']) {
+          await page.emulateMedia({ media });
+          for (const selector of ['.doc-title p', '.doc-section-kicker', '.doc-meta-row span:first-child', '.doc-table .num', '.doc-table td.right strong']) {
+            const colors = await page.locator(selector).evaluateAll(elements => elements.map(el => getComputedStyle(el).color));
+            assert(colors.length > 0, `Missing accent: ${selector}`);
+            assert(colors.every(color => color === 'rgb(255, 107, 0)'), `${media} ${selector}: ${colors.join(', ')}`);
+          }
+        }
+        await page.emulateMedia({ media: 'screen' });
         await page.evaluate(async () => {
           await document.fonts.ready;
           await Promise.all([...document.images].map(image => image.decode().catch(() => {})));
