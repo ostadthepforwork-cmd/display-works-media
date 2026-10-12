@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   allowedDevOrigins: ["127.0.0.1"],
   poweredByHeader: false,
+  turbopack: {
+    // Use the official browser bundle to avoid legacy CJS interop in Paged.js dependencies.
+    resolveAlias: { pagedjs: { browser: "./node_modules/pagedjs/dist/paged.js" } },
+  },
   experimental: {
     staticGenerationRetryCount: 1,
     staticGenerationMaxConcurrency: 4,

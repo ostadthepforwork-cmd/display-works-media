@@ -19,11 +19,18 @@ export function prepareDocumentPreview(source: HTMLElement) {
   shell.appendChild(target);
   let active = true;
   let previewer: Previewer | undefined;
+  const dispose = () => {
+    // Pagination can fail before Paged.js creates its page/style elements.
+    try { previewer?.chunker.destroy(); } catch {}
+    try { previewer?.polisher.destroy(); } catch {}
+  };
   const ready = (async () => {
     await document.fonts.ready;
     await Promise.all(Array.from(source.querySelectorAll("img")).map(img => img.decode().catch(() => {})));
     if (!active) return;
-    const { Previewer } = await import("pagedjs");
+    const paged = await import("pagedjs");
+    const Previewer = paged.Previewer || (window as Window & { Paged?: typeof paged }).Paged?.Previewer;
+    if (!Previewer) throw new Error("Paged.js browser engine unavailable");
     if (!active) return;
     const content = source.cloneNode(true) as HTMLElement;
     content.className = "doc-paged-document";
@@ -34,10 +41,9 @@ export function prepareDocumentPreview(source: HTMLElement) {
     document.documentElement.dataset.docPaginated = "true";
     target.dataset.ready = "true";
   })().catch(error => {
-    target.remove();
-    previewer?.chunker.destroy();
-    previewer?.polisher.destroy();
     console.error("Document pagination failed", error);
+    target.remove();
+    dispose();
     throw error;
   });
 
@@ -48,8 +54,7 @@ export function prepareDocumentPreview(source: HTMLElement) {
       source.classList.remove("doc-preview-source");
       delete document.documentElement.dataset.docPaginated;
       target.remove();
-      previewer?.chunker.destroy();
-      previewer?.polisher.destroy();
+      dispose();
     },
   };
 }

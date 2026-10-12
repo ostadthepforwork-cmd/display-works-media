@@ -11,6 +11,8 @@ test("A4 preview uses paged media and only clones sanitized customer HTML", () =
   assert.doesNotMatch(source, /supabase|localStorage|service_role/);
   assert.match(source, /chunker.destroy\(\)/);
   assert.match(source, /polisher.destroy\(\)/);
+  const config = readFileSync("next.config.ts", "utf8");
+  assert.match(config, /pagedjs\/dist\/paged\.js/);
 });
 
 test("print waits for pagination and ERP preview opens the same public renderer", () => {
