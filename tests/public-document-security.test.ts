@@ -84,7 +84,8 @@ test("document accents cannot be overridden with the old dark orange", () => {
 });
 
 test("both print paths use A4 and allow content to flow across pages", () => {
-  assert.match(adminSource, /@page\{size:A4 portrait;margin:12mm 12mm 15mm;\}/);
+  assert.match(adminSource, /@page\{size:A4 portrait;margin:12mm 12mm 20mm;/);
+  assert.match(adminSource, /@bottom-left\{content:"Thank you for your business\."/);
   assert.match(adminSource, /min-height:0!important;display:block!important/);
   assert.match(cssSource, /@media print[\s\S]*min-height: 0 !important;\s*display: block !important;/);
   assert.match(cssSource, /\.doc-table thead\s*\{\s*display: table-header-group;/);

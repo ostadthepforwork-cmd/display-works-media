@@ -36,6 +36,17 @@ async function main() {
         assert.equal(await source.locator('.doc-summary-total').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 107, 0)', 'Requested brand orange');
         const sheets = page.locator('.doc-paged-preview .pagedjs_sheet');
         const pageCount = await sheets.count();
+        assert.equal(await page.locator('.doc-paged-preview .doc-repeated-footer .doc-footer').count(), pageCount, 'Every A4 page needs a footer');
+        for (const sheet of await sheets.all()) {
+          assert((await sheet.locator('.doc-repeated-footer .doc-footer').textContent()).includes('Thank you for your business.'));
+          const positions = await sheet.evaluate(el => {
+            const footer = el.querySelector('.doc-repeated-footer').getBoundingClientRect();
+            const content = el.querySelector('.pagedjs_page_content').getBoundingClientRect();
+            const page = el.getBoundingClientRect();
+            return { separated: footer.top >= content.bottom - 1, inside: footer.bottom <= page.bottom };
+          });
+          assert(positions.separated && positions.inside, 'Footer must stay in the reserved margin, not overlap content');
+        }
         assert(suffix ? pageCount > 1 : pageCount >= 1);
         for (const size of await sheets.evaluateAll(elements => elements.map(el => ({ width: el.offsetWidth, height: el.offsetHeight })))) {
           assert(Math.abs(size.width / size.height - 210 / 297) < 0.002, `Not an A4 preview: ${JSON.stringify(size)}`);
@@ -70,7 +81,10 @@ async function main() {
         const rows = await source.locator('.doc-table tbody tr').count();
         assert.equal(rows, expectedRows);
         const pdf = path.join(output, `${type}${suffix}.pdf`);
+        await page.emulateMedia({ media: 'print' });
+        assert.equal(await source.evaluate(el => getComputedStyle(el).display), 'none', 'Do not print the unpaginated source');
         await page.pdf({ path: pdf, printBackground: true, preferCSSPageSize: true });
+        await page.emulateMedia({ media: 'screen' });
         assert(fs.statSync(pdf).size > 1000, 'Nonempty PDF');
         results.push({ type, suffix, rows, previewPages: pageCount });
       }
@@ -81,10 +95,12 @@ async function main() {
     const adminSource = fs.readFileSync('src/app/admin/page.tsx', 'utf8');
     const printTemplate = adminSource.slice(adminSource.indexOf('function printDocument('));
     const printStyles = printTemplate.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const legacyPage = await browser.newPage();
     for (const count of [6, 75]) {
       const rows = Array.from({ length: count }, (_, i) => `<tr><td>Legacy Item ${i + 1}</td><td>Multiline product detail<br>Size and material</td><td>100.00</td></tr>`).join('');
-      await page.setContent(`<style>${printStyles}</style><div class="page"><h1>QA QUOTATION</h1><table><thead><tr><th>ITEM</th><th>DETAIL</th><th>AMOUNT</th></tr></thead><tbody>${rows}</tbody></table><section>QA TOTAL</section></div>`);
-      await page.pdf({ path: path.join(output, `legacy-${count}.pdf`), printBackground: true, preferCSSPageSize: true });
+      await legacyPage.setContent(`<style>${printStyles}</style><div class="print-footer">Thank you for your business.</div><div class="page"><h1>QA QUOTATION</h1><table><thead><tr><th>ITEM</th><th>DETAIL</th><th>AMOUNT</th></tr></thead><tbody>${rows}</tbody></table><section>QA TOTAL</section></div>`);
+      await legacyPage.emulateMedia({ media: 'print' });
+      await legacyPage.pdf({ path: path.join(output, `legacy-${count}.pdf`), printBackground: true, preferCSSPageSize: true });
     }
     console.log(JSON.stringify({ syntheticOnly: true, results, queryAllowlist: true }));
   } finally {

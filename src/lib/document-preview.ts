@@ -2,7 +2,6 @@ import type { Previewer } from "pagedjs";
 
 const PAGE_STYLES = `
   @page { size: A4 portrait; margin: 18mm 12mm 15mm;
-    @bottom-center { content: counter(page) " / " counter(pages); font: 8pt Arial; color: #64748b; }
   }
   .doc-paged-document { font-family: Sarabun, Prompt, Arial, sans-serif; font-size: 11pt; line-height: 1.4; }
   .doc-paged-document .doc-main { display: block; }
@@ -34,9 +33,23 @@ export function prepareDocumentPreview(source: HTMLElement) {
     if (!active) return;
     const content = source.cloneNode(true) as HTMLElement;
     content.className = "doc-paged-document";
+    // Reserve the page margin for the footer, outside the paginated content.
+    const footer = content.querySelector(".doc-footer");
+    footer?.remove();
     previewer = new Previewer();
     await previewer.preview(content.outerHTML, [{ [window.location.href]: PAGE_STYLES }], target);
     if (!active) return;
+    const sheets = target.querySelectorAll(".pagedjs_sheet");
+    sheets.forEach((sheet, index) => {
+      const repeatedFooter = document.createElement("div");
+      repeatedFooter.className = "doc-repeated-footer";
+      if (footer) repeatedFooter.appendChild(footer.cloneNode(true));
+      const pageNumber = document.createElement("span");
+      pageNumber.className = "doc-page-number";
+      pageNumber.textContent = `${index + 1} / ${sheets.length}`;
+      repeatedFooter.appendChild(pageNumber);
+      sheet.appendChild(repeatedFooter);
+    });
     source.classList.add("doc-preview-source");
     document.documentElement.dataset.docPaginated = "true";
     target.dataset.ready = "true";

@@ -520,7 +520,7 @@ body {
 }
 
 /* ─── ERROR ──────────────────────────────────────────────────────────────── */
-.doc-public-shell > .doc-a4.doc-preview-source {
+html[data-doc-paginated="true"] .doc-public-shell > .doc-a4.doc-preview-source {
   display: none !important;
 }
 
@@ -528,6 +528,31 @@ body {
   position: absolute;
   left: -20000px;
   width: 210mm;
+}
+
+.doc-repeated-footer {
+  position: absolute;
+  bottom: 5mm;
+  left: 12mm;
+  right: 12mm;
+  height: 8mm;
+  font-family: Sarabun, Arial, sans-serif;
+  font-size: 8pt;
+  color: #64748b;
+}
+
+.doc-repeated-footer .doc-footer {
+  padding: 0;
+}
+
+.doc-repeated-footer .doc-footer-line {
+  margin-bottom: 4px;
+}
+
+.doc-page-number {
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
 
 @media screen {
@@ -547,9 +572,17 @@ body {
 @page doc-preview-print {
   size: A4 portrait;
   margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
 }
 
 @media print {
+  html[data-doc-paginated="true"] body {
+    page: doc-preview-print;
+  }
+  .doc-a4:not(.doc-preview-source) .doc-footer {
+    display: none;
+  }
   .doc-paged-preview .pagedjs_page {
     page: doc-preview-print;
     break-after: page;
@@ -562,7 +595,7 @@ body {
   .doc-paged-preview .pagedjs_sheet {
     transform: none !important;
   }
-  .doc-public-shell > .doc-a4.doc-preview-source {
+  html[data-doc-paginated="true"] .doc-public-shell > .doc-a4.doc-preview-source {
     display: none !important;
   }
 }
@@ -666,6 +699,18 @@ html[data-doc-printing="true"] .doc-a4 {
 @page {
   size: A4 portrait;
   margin: 12mm 12mm 15mm;
+  @bottom-left {
+    content: "Thank you for your business.";
+    font: 8pt Arial;
+    color: #64748b;
+    border-top: 2px solid #FF6B00;
+  }
+  @bottom-right {
+    content: counter(page);
+    font: 8pt Arial;
+    color: #64748b;
+    border-top: 2px solid #FF6B00;
+  }
 }
 
 @media print {

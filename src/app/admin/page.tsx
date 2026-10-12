@@ -641,13 +641,17 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   body{font-family:'Prompt','Sarabun',sans-serif;font-size:12px;color:#1e293b;background:#f1f5f9;}
   .page{background:#fff;width:210mm;min-height:297mm;padding:18mm 12mm 15mm;margin:0 auto;
         box-shadow:0 10px 40px rgba(0,0,0,.12);display:flex;flex-direction:column;justify-content:space-between;}
-  @page{size:A4 portrait;margin:12mm 12mm 15mm;}
+  @page{size:A4 portrait;margin:12mm 12mm 20mm;
+    @bottom-left{content:"Thank you for your business.";font:8pt Arial;color:#64748b;border-top:2px solid #FF6B00;}
+    @bottom-right{content:counter(page);font:8pt Arial;color:#64748b;border-top:2px solid #FF6B00;}
+  }
   @media print{
     body{background:#fff!important;}
     .page{width:100%!important;min-height:0!important;display:block!important;box-shadow:none!important;padding:0!important;margin:0!important;}
     thead{display:table-header-group;}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     tr,section{page-break-inside:avoid;break-inside:avoid;}
+    .print-footer{display:none!important;}
   }
 </style>
 </head>
@@ -869,7 +873,7 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   </div>
 
   <!-- ═══ FOOTER ════════════════════════════════════════════ -->
-  <div style="margin-top:24px;padding-top:12px;border-top:2px solid #FF6B00;
+  <div class="print-footer" style="margin-top:24px;padding-top:12px;border-top:2px solid #FF6B00;
               display:flex;justify-content:space-between;align-items:flex-end;">
     <div style="font-size:9px;color:#94a3b8;font-style:italic;">
       Thank you for your business.

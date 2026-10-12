@@ -13,6 +13,10 @@ test("A4 preview uses paged media and only clones sanitized customer HTML", () =
   assert.match(source, /polisher.destroy\(\)/);
   const config = readFileSync("next.config.ts", "utf8");
   assert.match(config, /pagedjs\/dist\/paged\.js/);
+  assert.match(source, /footer\?\.remove\(\)/);
+  assert.match(source, /sheets.forEach/);
+  assert.match(source, /footer.cloneNode\(true\)/);
+  assert.match(source, /sheet.appendChild\(repeatedFooter\)/);
 });
 
 test("print waits for pagination and ERP preview opens the same public renderer", () => {
