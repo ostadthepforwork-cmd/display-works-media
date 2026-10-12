@@ -17,6 +17,9 @@ test("A4 preview uses paged media and only clones sanitized customer HTML", () =
   assert.match(source, /sheets.forEach/);
   assert.match(source, /footer.cloneNode\(true\)/);
   assert.match(source, /sheet.appendChild\(repeatedFooter\)/);
+  assert.match(source, /header\?\.remove\(\)/);
+  assert.match(source, /header.cloneNode\(true\)/);
+  assert.match(source, /sheet.appendChild\(repeatedHeader\)/);
 });
 
 test("print waits for pagination and ERP preview opens the same public renderer", () => {
@@ -26,4 +29,7 @@ test("print waits for pagination and ERP preview opens the same public renderer"
   const preview = admin.slice(admin.indexOf("const previewDocumentPdf"), admin.indexOf("const [emailModal"));
   assert.match(preview, /publicDocumentUrl/);
   assert.doesNotMatch(preview, /printDocument\(/);
+  const print = admin.slice(admin.indexOf("function printDocument("), admin.indexOf("doc = sanitizeForPrint(doc)"));
+  assert.match(print, /publicDocumentUrl/);
+  assert.match(print, /searchParams.set\("print", "1"\)/);
 });

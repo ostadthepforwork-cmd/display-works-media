@@ -36,14 +36,17 @@ async function main() {
         assert.equal(await source.locator('.doc-summary-total').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 107, 0)', 'Requested brand orange');
         const sheets = page.locator('.doc-paged-preview .pagedjs_sheet');
         const pageCount = await sheets.count();
+        assert.equal(await page.locator('.doc-paged-preview .doc-repeated-header .doc-head').count(), pageCount, 'Every A4 page needs a header');
         assert.equal(await page.locator('.doc-paged-preview .doc-repeated-footer .doc-footer').count(), pageCount, 'Every A4 page needs a footer');
         for (const sheet of await sheets.all()) {
+          assert((await sheet.locator('.doc-repeated-header').textContent()).includes(`QA-${type}`));
           assert((await sheet.locator('.doc-repeated-footer .doc-footer').textContent()).includes('Thank you for your business.'));
           const positions = await sheet.evaluate(el => {
             const footer = el.querySelector('.doc-repeated-footer').getBoundingClientRect();
             const content = el.querySelector('.pagedjs_page_content').getBoundingClientRect();
+            const header = el.querySelector('.doc-repeated-header').getBoundingClientRect();
             const page = el.getBoundingClientRect();
-            return { separated: footer.top >= content.bottom - 1, inside: footer.bottom <= page.bottom };
+            return { separated: footer.top >= content.bottom - 1 && header.bottom < content.top, inside: footer.bottom <= page.bottom && header.top >= page.top };
           });
           assert(positions.separated && positions.inside, 'Footer must stay in the reserved margin, not overlap content');
         }

@@ -527,6 +527,12 @@ function applyErpDocumentShadow(doc: any) {
 // ============================================================
 function printDocument(doc: any, customers: any[], company: any, options: any = {}) {
   const autoPrint = options.autoPrint !== false;
+  if (typeof doc.id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(doc.id)) {
+    const url = new URL(publicDocumentUrl(doc.id, doc.updatedAt || Date.now()));
+    if (autoPrint) url.searchParams.set("print", "1");
+    window.open(url.toString(), "_blank", "noopener,noreferrer");
+    return;
+  }
   doc = sanitizeForPrint(doc);
   customers = sanitizeForPrint(customers);
   company = sanitizeForPrint(company);

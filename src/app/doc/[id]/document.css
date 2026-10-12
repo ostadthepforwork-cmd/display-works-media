@@ -541,6 +541,23 @@ html[data-doc-paginated="true"] .doc-public-shell > .doc-a4.doc-preview-source {
   color: #64748b;
 }
 
+.doc-repeated-header {
+  position: absolute;
+  top: 8mm;
+  left: 12mm;
+  right: 12mm;
+  font-family: Sarabun, Prompt, Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.4;
+}
+
+.doc-repeated-reference {
+  margin-top: 8px;
+  font-size: 10pt;
+  font-weight: 700;
+  color: #1e293b;
+}
+
 .doc-repeated-footer .doc-footer {
   padding: 0;
 }
