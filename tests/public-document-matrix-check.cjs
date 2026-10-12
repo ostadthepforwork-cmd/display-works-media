@@ -25,16 +25,37 @@ async function main() {
     const page = await browser.newPage();
     const results = [];
     for (const type of ['quote', 'bill', 'invoice', 'receipt']) {
-      for (const suffix of ['', '-long']) {
+      for (const suffix of ['', '-detailed', '-long']) {
+        const expectedRows = suffix === '-long' ? 75 : suffix === '-detailed' ? 6 : 2;
         await page.goto(`${base}/doc/${type}${suffix}`);
         await page.locator('article').waitFor();
-        assert((await page.locator('article').innerText()).includes('Requested deposit 50% before production'), 'Payment terms remain visible as notes');
-        assert(!/DEPOSIT PAID|BALANCE DUE/.test(await page.locator('.doc-summary').innerText()), 'Notes must not imply received payment');
-        assert.equal(await page.locator('.doc-summary-total').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 107, 0)', 'Requested brand orange');
+        await page.locator('.doc-paged-preview[data-ready="true"]').waitFor({ timeout: 30000 });
+        const source = page.locator('.doc-a4');
+        assert((await source.textContent()).includes('Requested deposit 50% before production'), 'Payment terms remain visible as notes');
+        assert(!/DEPOSIT PAID|BALANCE DUE/.test(await source.locator('.doc-summary').textContent()), 'Notes must not imply received payment');
+        assert.equal(await source.locator('.doc-summary-total').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 107, 0)', 'Requested brand orange');
+        const sheets = page.locator('.doc-paged-preview .pagedjs_sheet');
+        const pageCount = await sheets.count();
+        assert(suffix ? pageCount > 1 : pageCount >= 1);
+        for (const size of await sheets.evaluateAll(elements => elements.map(el => ({ width: el.offsetWidth, height: el.offsetHeight })))) {
+          assert(Math.abs(size.width / size.height - 210 / 297) < 0.002, `Not an A4 preview: ${JSON.stringify(size)}`);
+        }
+        assert.equal(await page.locator('.doc-paged-preview .doc-table tbody tr').count(), expectedRows, 'Preview must retain every item exactly once');
+        if (type === 'quote' && suffix === '-detailed') {
+          for (const width of [1280, 390]) {
+            await page.setViewportSize({ width, height: 900 });
+            await page.screenshot({ path: path.join(output, `a4-preview-${width}.png`), fullPage: true });
+            assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Preview overflows horizontally');
+            for (const size of await page.locator('.doc-paged-preview .pagedjs_page').evaluateAll(elements => elements.map(el => ({ width: el.getBoundingClientRect().width, height: el.getBoundingClientRect().height })))) {
+              assert(Math.abs(size.width / size.height - 210 / 297) < 0.002, 'Responsive page lost A4 proportions');
+            }
+          }
+          await page.setViewportSize({ width: 1280, height: 900 });
+        }
         for (const media of ['screen', 'print']) {
           await page.emulateMedia({ media });
           for (const selector of ['.doc-title p', '.doc-section-kicker', '.doc-meta-row span:first-child', '.doc-table .num', '.doc-table td.right strong']) {
-            const colors = await page.locator(selector).evaluateAll(elements => elements.map(el => getComputedStyle(el).color));
+            const colors = await source.locator(selector).evaluateAll(elements => elements.map(el => getComputedStyle(el).color));
             assert(colors.length > 0, `Missing accent: ${selector}`);
             assert(colors.every(color => color === 'rgb(255, 107, 0)'), `${media} ${selector}: ${colors.join(', ')}`);
           }
@@ -46,12 +67,12 @@ async function main() {
           document.documentElement.dataset.docPrinting = 'true';
         });
         assert(!/PRIVATE_[A-Z_]+/.test(await page.content()), `${type}${suffix}: internal data in HTML`);
-        const rows = await page.locator('.doc-table tbody tr').count();
-        assert.equal(rows, suffix ? 75 : 2);
+        const rows = await source.locator('.doc-table tbody tr').count();
+        assert.equal(rows, expectedRows);
         const pdf = path.join(output, `${type}${suffix}.pdf`);
         await page.pdf({ path: pdf, printBackground: true, preferCSSPageSize: true });
         assert(fs.statSync(pdf).size > 1000, 'Nonempty PDF');
-        results.push({ type, long: !!suffix, rows });
+        results.push({ type, suffix, rows, previewPages: pageCount });
       }
     }
     const audit = await (await fetch(`${base}/audit`)).json();

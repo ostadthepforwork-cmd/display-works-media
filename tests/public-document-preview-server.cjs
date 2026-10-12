@@ -19,7 +19,7 @@ const server = http.createServer(async (req, res) => {
     const type = types.find(value => id.startsWith(value)) || 'quote';
     let rows;
     if (table === 'erp_documents') rows = [{ id, type, doc_no: `QA-${type}`, customer_name: 'QA Customer', date: '2026-10-05', due_date: '2026-10-15', notes: 'Customer note\nRequested deposit 50% before production\ncost_snapshot PRIVATE_SENTINEL\nต้นทุน PRIVATE_THAI_SENTINEL', payment_note: 'unit_cost PRIVATE_PAYMENT', deposit_note: 'internal_expenses PRIVATE_DEPOSIT', discount: 0, vat: true, vat_rate: 7 }];
-    else if (table === 'erp_document_items') rows = Array.from({length:id.endsWith('-long')?75:2}, (_,i)=>({ id:`item-${i}`, name:`QA Item ${i+1}`, sub_title:'supplier PRIVATE_SUPPLIER', detail:'Customer detail\nprofit PRIVATE_PROFIT\ncost_price PRIVATE_COST_PRICE', unit:'piece', qty:1, price:100, sort_order:i }));
+    else if (table === 'erp_document_items') rows = Array.from({length:id.endsWith('-long')?75:id.endsWith('-detailed')?6:2}, (_,i)=>({ id:`item-${i}`, name:`QA Item ${i+1}`, sub_title:id.endsWith('-detailed')?'PP Broad Signage Directory Board':'supplier PRIVATE_SUPPLIER', detail:(id.endsWith('-detailed')?'Size 1.03 m x 2.44 m\nLamination and PP Broad 5 mm\nCustomer detail':'Customer detail')+'\nprofit PRIVATE_PROFIT\ncost_price PRIVATE_COST_PRICE', unit:'piece', qty:1, price:100, sort_order:i }));
     else if (table === 'erp_company') rows = [{ name:'QA Display Works', address:'QA Company Address', phone:'QA Phone', email:'qa@example.invalid' }];
     else rows = [];
     res.setHeader('Content-Type','application/json');
@@ -29,7 +29,7 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/document.css') { res.setHeader('Content-Type','text/css'); return res.end(fs.readFileSync('src/app/doc/[id]/document.css')); }
   if (url.pathname === '/actions.js') { res.setHeader('Content-Type','text/javascript'); return res.end(fs.readFileSync(path.join(out,'actions.js'))); }
   if (url.pathname === '/audit') { res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({queries})); }
-  const match = /^\/doc\/(quote|bill|invoice|receipt)(-long)?$/.exec(url.pathname);
+  const match = /^\/doc\/(quote|bill|invoice|receipt)(-long|-detailed)?$/.exec(url.pathname);
   if (!match) { res.writeHead(404); return res.end('Not found'); }
   try {
     const page = require(path.join(out,'page.cjs'));

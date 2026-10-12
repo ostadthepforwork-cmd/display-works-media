@@ -520,6 +520,53 @@ body {
 }
 
 /* ─── ERROR ──────────────────────────────────────────────────────────────── */
+.doc-public-shell > .doc-a4.doc-preview-source {
+  display: none !important;
+}
+
+.doc-paged-preview:not([data-ready="true"]) {
+  position: absolute;
+  left: -20000px;
+  width: 210mm;
+}
+
+@media screen {
+  .doc-paged-preview .pagedjs_page {
+    width: calc(210mm * var(--doc-preview-scale, 1)) !important;
+    height: calc(297mm * var(--doc-preview-scale, 1)) !important;
+    margin: 0 auto 24px !important;
+    background: #fff;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.14);
+  }
+  .doc-paged-preview .pagedjs_sheet {
+    transform: scale(var(--doc-preview-scale, 1));
+    transform-origin: top left;
+  }
+}
+
+@page doc-preview-print {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  .doc-paged-preview .pagedjs_page {
+    page: doc-preview-print;
+    break-after: page;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+  .doc-paged-preview .pagedjs_page:last-child {
+    break-after: auto;
+  }
+  .doc-paged-preview .pagedjs_sheet {
+    transform: none !important;
+  }
+  .doc-public-shell > .doc-a4.doc-preview-source {
+    display: none !important;
+  }
+}
+
 .doc-error {
   max-width: 720px;
   margin: 80px auto;

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Printer, Share2 } from "lucide-react";
+import { prepareDocumentPreview } from "@/lib/document-preview";
 
 type DocActionsProps = {
   title: string;
@@ -25,6 +26,7 @@ function updateDocumentScale() {
   }
 
   const vw = window.innerWidth;
+  document.documentElement.style.setProperty("--doc-preview-scale", String(Math.min((vw - 32) / A4_WIDTH_PX, 1)));
   if (vw < 820) {
     const scale = Math.min((vw - 24) / A4_WIDTH_PX, 1);
     document.documentElement.style.setProperty("--doc-scale", String(scale));
@@ -43,6 +45,17 @@ function updateDocumentScale() {
 export default function DocActions({ title, autoPrint = false }: DocActionsProps) {
   const [statusMessage, setStatusMessage] = useState("");
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const previewReadyRef = useRef<Promise<void>>(Promise.resolve());
+
+  useEffect(() => {
+    const source = toolbarRef.current?.closest(".doc-public-shell")?.querySelector<HTMLElement>(".doc-a4");
+    if (!source) return;
+    const preview = prepareDocumentPreview(source);
+    previewReadyRef.current = preview.ready.catch(() => {
+      setStatusMessage("ไม่สามารถแบ่งหน้าตัวอย่างได้ ยังพิมพ์เอกสารเป็น A4 ได้");
+    });
+    return () => preview.destroy();
+  }, [title]);
 
   useEffect(() => {
     const toolbar = toolbarRef.current;
@@ -102,6 +115,7 @@ export default function DocActions({ title, autoPrint = false }: DocActionsProps
 
   const printDocument = useCallback(async () => {
     setStatusMessage("กำลังเตรียมเอกสารสำหรับบันทึกเป็น PDF...");
+    await previewReadyRef.current;
     document.documentElement.dataset.docPrinting = "true";
     clearDocumentScale();
     await waitForDocumentAssets();

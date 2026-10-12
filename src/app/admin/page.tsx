@@ -7427,7 +7427,8 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   };
 
   const previewDocumentPdf = (doc) => {
-    printDocument(doc, customers, company, { autoPrint: false, allDocuments });
+    const url = publicDocumentUrl(doc.id, doc.updatedAt || Date.now());
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const [emailModal, setEmailModal] = useState<any>(null);
