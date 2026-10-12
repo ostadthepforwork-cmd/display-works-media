@@ -51,4 +51,35 @@ for (const path of ["src/app/admin/page.tsx", "src/app/doc/[id]/page.tsx"]) {
     const notesOnly = calculate({ ...base, orderId: "source" }, [{ id: "source", notes: "มัดจำ 50%" }]);
     assert.equal(notesOnly.depositPaid, 0);
   });
+
+  test(`${path}: clearing both payment fields leaves notes as conditions only`, () => {
+    const result = calculate({ ...base, items: [{ qty: 1, price: 17964 }], wht: true, whtRate: 3, paymentAmount: 0, depositPaid: 0, notes: "ชำระเงินมัดจำ 50% ก่อนเริ่มดำเนินการผลิต" });
+    assert.equal(result.depositPaid, 0);
+    assert.equal(result.netPay, 17425.08);
+    assert.equal(result.balanceDue, 17425.08);
+  });
 }
+
+test("ERP shadow cannot replace a database zero with a stale payment", () => {
+  const source = readFileSync("src/app/admin/page.tsx", "utf8");
+  const ast = ts.createSourceFile("admin.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const fn = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === "applyErpDocumentShadow")!;
+  const js = ts.transpileModule(fn.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  const apply = runInNewContext(`${js}\napplyErpDocumentShadow`, {
+    loadErpDocumentShadow: () => ({ quote: { paymentAmount: 8712.54, depositPaid: 8712.54 } }),
+    normalizeInternalExpenses: (value: unknown) => value,
+  });
+  const result = apply({ id: "quote", paymentAmount: 0, depositPaid: 0 });
+  assert.equal(result.paymentAmount, 0);
+  assert.equal(result.depositPaid, 0);
+  assert.equal(apply({ id: "quote" }).paymentAmount, 8712.54);
+});
+
+test("deposit editor displays and updates both explicit payment fields", () => {
+  const source = readFileSync("src/app/admin/page.tsx", "utf8");
+  const form = source.slice(source.indexOf("function DocForm("));
+  assert.match(form, /paymentAmount: docDepositInfo\(baseDoc\).depositPaid/);
+  assert.match(form, /depositPaid: docDepositInfo\(baseDoc\).depositPaid/);
+  const field = form.slice(form.indexOf('label="เงินมัดจำที่ลูกค้าชำระแล้ว"'), form.indexOf('label="วันที่รับมัดจำ"'));
+  assert.match(field, /depositPaid: value, paymentAmount: value/);
+});

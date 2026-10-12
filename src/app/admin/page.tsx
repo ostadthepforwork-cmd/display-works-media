@@ -498,10 +498,10 @@ function applyErpDocumentShadow(doc: any) {
     marketingAdSet: doc.marketingAdSet || shadow.marketingAdSet || "",
     marketingAd: doc.marketingAd || shadow.marketingAd || "",
     paymentType: doc.paymentType || shadow.paymentType || "",
-    paymentAmount: Number(doc.paymentAmount || 0) > 0 ? doc.paymentAmount : (shadow.paymentAmount ?? doc.paymentAmount ?? 0),
+    paymentAmount: doc.paymentAmount ?? shadow.paymentAmount ?? 0,
     paymentDate: doc.paymentDate || shadow.paymentDate || "",
     paymentNote: doc.paymentNote || shadow.paymentNote || "",
-    depositPaid: Number(doc.depositPaid || 0) > 0 ? doc.depositPaid : (shadow.depositPaid ?? doc.depositPaid ?? 0),
+    depositPaid: doc.depositPaid ?? shadow.depositPaid ?? 0,
     depositDate: doc.depositDate || shadow.depositDate || "",
     depositNote: doc.depositNote || shadow.depositNote || "",
     internalExpenses: normalizeInternalExpenses(doc.internalExpenses || doc.internal_expenses || shadow.internalExpenses || []),
@@ -7948,6 +7948,8 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
     orderId: "",
     overrideAddress: "",
     ...baseDoc,
+    paymentAmount: docDepositInfo(baseDoc).depositPaid,
+    depositPaid: docDepositInfo(baseDoc).depositPaid,
     items: Array.isArray(baseDoc.items) ? baseDoc.items : [],
     internalExpenses: normalizeInternalExpenses(baseDoc.internalExpenses || baseDoc.internal_expenses || []),
   }));
@@ -8445,7 +8447,10 @@ function DocForm({ doc, type, customers, products, onSave, onCancel, allDocument
         {/* เงินมัดจำ */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Field label="เงินมัดจำที่ลูกค้าชำระแล้ว">
-            <input type="number" value={f.depositPaid || 0} onChange={setN("depositPaid")} min="0" step="0.01" placeholder="0.00" />
+            <input type="number" value={f.depositPaid || 0} onChange={e => {
+              const value = Math.max(0, Number(e.target.value) || 0);
+              setF(prev => ({ ...prev, depositPaid: value, paymentAmount: value }));
+            }} min="0" step="0.01" placeholder="0.00" />
           </Field>
           <Field label="วันที่รับมัดจำ">
             <input type="date" value={f.depositDate || ""} onChange={set("depositDate")} />
