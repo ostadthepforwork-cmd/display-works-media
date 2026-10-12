@@ -310,31 +310,6 @@ const docDepositInfo = (doc: any) => {
   };
 };
 
-const parseDepositFromText = (doc: any, netPay: number) => {
-  const text = [doc?.depositNote, doc?.deposit_note, doc?.notes]
-    .filter(Boolean)
-    .join("\n");
-  if (!/(มัดจำ|deposit)/i.test(text)) return { depositPaid: 0, depositDate: "", depositNote: "" };
-
-  const percent =
-    text.match(/(?:มัดจำ|deposit)[^\d]{0,24}(\d+(?:\.\d+)?)\s*%/i)?.[1]
-    || text.match(/(\d+(?:\.\d+)?)\s*%[^\n]{0,24}(?:มัดจำ|deposit)/i)?.[1];
-  if (percent) {
-    const paid = netPay * (Math.min(100, Math.max(0, Number(percent))) / 100);
-    return { depositPaid: paid, depositDate: "", depositNote: `ชำระมัดจำ ${fmtMoney(Number(percent))}%` };
-  }
-
-  const amount =
-    text.match(/(?:มัดจำ|deposit)[^\d]{0,24}(\d[\d,]*(?:\.\d+)?)/i)?.[1]
-    || text.match(/(\d[\d,]*(?:\.\d+)?)[^\n]{0,16}(?:บาท|THB)[^\n]{0,24}(?:มัดจำ|deposit)/i)?.[1];
-  if (amount) {
-    const paid = Math.min(netPay, Math.max(0, Number(String(amount).replace(/,/g, "")) || 0));
-    return { depositPaid: paid, depositDate: "", depositNote: "ชำระมัดจำตามหมายเหตุ" };
-  }
-
-  return { depositPaid: 0, depositDate: "", depositNote: "", paymentType: "" };
-};
-
 const resolveDepositInfo = (doc: any, documents: any[] = []) => {
   const docsById = new Map((documents || []).filter(Boolean).map((d: any) => [String(d.id), d]));
   const seen = new Set<string>();
@@ -365,10 +340,7 @@ const calcDocTotal = (doc: any, documents: any[] = []) => {
   const total       = afterDisc + vatAmt;
   const whtAmt      = doc.wht  ? afterDisc * ((doc.whtRate || 0) / 100)  : 0;
   const netPay      = total - whtAmt;
-  let { depositPaid, depositDate, depositNote, paymentType } = resolveDepositInfo(doc, documents);
-  if (depositPaid <= 0) {
-    ({ depositPaid, depositDate, depositNote } = parseDepositFromText(doc, netPay));
-  }
+  const { depositPaid, depositDate, depositNote, paymentType } = resolveDepositInfo(doc, documents);
   const cappedDepositPaid = Math.min(netPay, Math.max(0, depositPaid));
   const balanceDue  = Math.max(0, netPay - cappedDepositPaid);
   const paymentStatus = cappedDepositPaid <= 0 ? "unpaid" : balanceDue > 0 ? "partial_paid" : "paid";
@@ -669,9 +641,12 @@ function printDocument(doc: any, customers: any[], company: any, options: any = 
   body{font-family:'Prompt','Sarabun',sans-serif;font-size:12px;color:#1e293b;background:#f1f5f9;}
   .page{background:#fff;width:210mm;min-height:297mm;padding:18mm 12mm 15mm;margin:0 auto;
         box-shadow:0 10px 40px rgba(0,0,0,.12);display:flex;flex-direction:column;justify-content:space-between;}
+  @page{size:A4 portrait;margin:12mm 12mm 15mm;}
   @media print{
     body{background:#fff!important;}
-    .page{width:100%!important;box-shadow:none!important;padding:10mm 5mm!important;margin:0!important;}
+    .page{width:100%!important;min-height:0!important;display:block!important;box-shadow:none!important;padding:0!important;margin:0!important;}
+    thead{display:table-header-group;}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     tr,section{page-break-inside:avoid;break-inside:avoid;}
   }
 </style>

@@ -28,6 +28,8 @@ async function main() {
       for (const suffix of ['', '-long']) {
         await page.goto(`${base}/doc/${type}${suffix}`);
         await page.locator('article').waitFor();
+        assert((await page.locator('article').innerText()).includes('Requested deposit 50% before production'), 'Payment terms remain visible as notes');
+        assert(!/DEPOSIT PAID|BALANCE DUE/.test(await page.locator('.doc-summary').innerText()), 'Notes must not imply received payment');
         assert.equal(await page.locator('.doc-summary-total').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 107, 0)', 'Requested brand orange');
         for (const media of ['screen', 'print']) {
           await page.emulateMedia({ media });
@@ -55,6 +57,14 @@ async function main() {
     const audit = await (await fetch(`${base}/audit`)).json();
     assert(audit.queries.length > 0);
     assert(audit.queries.every(query => query.fields !== '*' && !/cost|profit|margin|supplier|internal/i.test(query.fields)), 'Public query allowlist');
+    const adminSource = fs.readFileSync('src/app/admin/page.tsx', 'utf8');
+    const printTemplate = adminSource.slice(adminSource.indexOf('function printDocument('));
+    const printStyles = printTemplate.match(/<style>([\s\S]*?)<\/style>/)[1];
+    for (const count of [6, 75]) {
+      const rows = Array.from({ length: count }, (_, i) => `<tr><td>Legacy Item ${i + 1}</td><td>Multiline product detail<br>Size and material</td><td>100.00</td></tr>`).join('');
+      await page.setContent(`<style>${printStyles}</style><div class="page"><h1>QA QUOTATION</h1><table><thead><tr><th>ITEM</th><th>DETAIL</th><th>AMOUNT</th></tr></thead><tbody>${rows}</tbody></table><section>QA TOTAL</section></div>`);
+      await page.pdf({ path: path.join(output, `legacy-${count}.pdf`), printBackground: true, preferCSSPageSize: true });
+    }
     console.log(JSON.stringify({ syntheticOnly: true, results, queryAllowlist: true }));
   } finally {
     await browser?.close();

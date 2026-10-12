@@ -18,7 +18,7 @@ const server = http.createServer(async (req, res) => {
     const id = (url.searchParams.get('id') || url.searchParams.get('document_id') || '').replace(/^eq\./, '');
     const type = types.find(value => id.startsWith(value)) || 'quote';
     let rows;
-    if (table === 'erp_documents') rows = [{ id, type, doc_no: `QA-${type}`, customer_name: 'QA Customer', date: '2026-10-05', due_date: '2026-10-15', notes: 'Customer note\ncost_snapshot PRIVATE_SENTINEL\nต้นทุน PRIVATE_THAI_SENTINEL', payment_note: 'unit_cost PRIVATE_PAYMENT', deposit_note: 'internal_expenses PRIVATE_DEPOSIT', discount: 0, vat: true, vat_rate: 7 }];
+    if (table === 'erp_documents') rows = [{ id, type, doc_no: `QA-${type}`, customer_name: 'QA Customer', date: '2026-10-05', due_date: '2026-10-15', notes: 'Customer note\nRequested deposit 50% before production\ncost_snapshot PRIVATE_SENTINEL\nต้นทุน PRIVATE_THAI_SENTINEL', payment_note: 'unit_cost PRIVATE_PAYMENT', deposit_note: 'internal_expenses PRIVATE_DEPOSIT', discount: 0, vat: true, vat_rate: 7 }];
     else if (table === 'erp_document_items') rows = Array.from({length:id.endsWith('-long')?75:2}, (_,i)=>({ id:`item-${i}`, name:`QA Item ${i+1}`, sub_title:'supplier PRIVATE_SUPPLIER', detail:'Customer detail\nprofit PRIVATE_PROFIT\ncost_price PRIVATE_COST_PRICE', unit:'piece', qty:1, price:100, sort_order:i }));
     else if (table === 'erp_company') rows = [{ name:'QA Display Works', address:'QA Company Address', phone:'QA Phone', email:'qa@example.invalid' }];
     else rows = [];

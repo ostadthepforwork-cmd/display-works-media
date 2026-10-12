@@ -83,6 +83,13 @@ test("document accents cannot be overridden with the old dark orange", () => {
   assert.doesNotMatch(pageSource, /#ff5500/i);
 });
 
+test("both print paths use A4 and allow content to flow across pages", () => {
+  assert.match(adminSource, /@page\{size:A4 portrait;margin:12mm 12mm 15mm;\}/);
+  assert.match(adminSource, /min-height:0!important;display:block!important/);
+  assert.match(cssSource, /@media print[\s\S]*min-height: 0 !important;\s*display: block !important;/);
+  assert.match(cssSource, /\.doc-table thead\s*\{\s*display: table-header-group;/);
+});
+
 test("document spacing follows toolbar height when status text wraps", () => {
   assert.match(actionsSource, /new ResizeObserver\(updateToolbarHeight\)/);
   assert.match(actionsSource, /observer\.disconnect\(\)/);

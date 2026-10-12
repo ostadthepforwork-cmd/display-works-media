@@ -658,7 +658,8 @@ html[data-doc-printing="true"] .doc-a4 {
   .doc-a4 {
     width: 100% !important;
     min-width: 0 !important;
-    min-height: 270mm !important;
+    min-height: 0 !important;
+    display: block !important;
     margin: 0 !important;
     padding: 6mm 0 0 !important;
     box-shadow: none !important;
@@ -678,6 +679,10 @@ html[data-doc-printing="true"] .doc-a4 {
   .doc-summary-total {
     background: #FF6B00 !important;
     color: #fff !important;
+  }
+
+  .doc-table thead {
+    display: table-header-group;
   }
 
   .doc-table tr,
