@@ -144,8 +144,8 @@ test("admin layout loads shared tokens and dashboard controls stay bounded", () 
   assert.match(dashboardCss, /\.filters>select \{width:auto!important;min-width:150px/);
   assert.match(charts, /size && <LineChart width=\{size\.width\} height=\{size\.height\}/);
   assert.match(charts, /chartSize && <ComposedChart width=\{chartSize\.width\} height=\{chartSize\.height\}/);
-  assert.match(charts, /<ol className=\{s.financialFlow\}>/);
-  assert.match(dashboardCss, /\[data-tone=revenue\] \.financialRow strong \{color:var\(--color-accent-ink\)/);
+  assert.match(charts, /comparisonSize && <BarChart layout="vertical"/);
+  assert.match(dashboardCss, /\.comparisonValues[^\n]*color:var\(--color-ink-strong\)/);
 });
 
 test("Marketing form ink and surface stay paired inside the light ERP wrapper", () => {

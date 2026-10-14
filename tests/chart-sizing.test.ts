@@ -8,7 +8,7 @@ test('dashboard chart dimensions come from a positive observed container', async
   assert.match(source, /new ResizeObserver\(measure\)/);
   assert.match(source, /observer\.disconnect\(\)/);
   assert.match(source, /chartSize && <ComposedChart width=/);
-  assert.match(source, /<ol className=\{s.financialFlow\}>/);
-  assert.doesNotMatch(source, /waterfallSize|<BarChart/);
+  assert.match(source, /comparisonSize && <BarChart layout="vertical"/);
+  assert.doesNotMatch(source, /waterfallSize/);
   assert.doesNotMatch(source, /ResponsiveContainer/);
 });

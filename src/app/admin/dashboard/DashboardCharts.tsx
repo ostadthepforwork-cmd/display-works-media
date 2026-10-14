@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ChartColumnIncreasing, FileText } from 'lucide-react';
-import { Area, CartesianGrid, ComposedChart, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts';
 import { businessTrend } from '@/lib/executive-dashboard';
 import { DashboardPeriod, Resolution } from '@/lib/dashboard-period';
 import { money, shortDate, rangeText } from './presentation';
@@ -37,12 +37,13 @@ export function DashboardCharts({ trend, period, resolution, onResolution, onBuc
   revenue:number; cost:number; gross:number; operating:number|null; after:number|null;
 }) {
   const {ref: chartRef, size: chartSize} = useChartSize();
+  const {ref: comparisonRef, size: comparisonSize} = useChartSize();
   const [showData,setShowData]=useState(false),[selected,setSelected]=useState(0);
   const [metric,setMetric]=useState<'all'|'revenue'|'gross'|'operating'>('all');
   const bucket=trend.buckets[Math.min(selected,trend.buckets.length-1)];
   const financial=dashboardWaterfall(revenue,cost,gross,operating,after);
-  const financialLabels = ['ยอดใบเสร็จรวม VAT', 'หักต้นทุนประมาณการ', 'กำไรขั้นต้นประมาณการ', 'หักค่าใช้จ่ายดำเนินงาน', 'กำไรประมาณการหลังค่าใช้จ่าย'];
-  const financialMax = Math.max(1, ...financial.map(row => Math.abs(row.amount ?? 0)));
+  const financialLabels = ['ยอดขาย', 'ต้นทุน', 'กำไรขั้นต้น', 'ค่าใช้จ่าย', 'กำไรหลังหัก'];
+  const comparison = financial.map((row, index) => ({...row, label:financialLabels[index], amount:row.amount === null ? null : row.kind === 'deduction' ? Math.abs(row.amount) : row.amount, value:row.amount === null ? 0 : row.kind === 'deduction' ? Math.abs(row.amount) : row.amount}));
   return <div className={s.analytics}>
     <section className={s.section}><div className={s.sectionHead}><h2><ChartColumnIncreasing size={20} className={s.green}/>แนวโน้มธุรกิจ</h2><select aria-label="ความละเอียดกราฟ" value={resolution} onChange={e=>{onResolution(e.target.value as Resolution);setSelected(0);}}>{Object.entries(resolutions).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>
       <div className={s.chartTabs} aria-label="ชุดข้อมูลกราฟ">{([['all','ทั้งหมด'],['revenue','ยอดใบเสร็จ'],['gross','กำไรขั้นต้น'],['operating','ค่าใช้จ่าย']] as const).map(([key,label])=><button key={key} aria-pressed={metric===key} onClick={()=>setMetric(key)}>{label}</button>)}</div>
@@ -58,21 +59,18 @@ export function DashboardCharts({ trend, period, resolution, onResolution, onBuc
       <div className={s.chartActions}><button aria-expanded={showData} onClick={()=>setShowData(v=>!v)}><FileText size={15}/>ข้อมูลกราฟ</button>{showData&&<select aria-label="ช่วงข้อมูลกราฟ" value={Math.min(selected,trend.buckets.length-1)} onChange={e=>setSelected(Number(e.target.value))}>{trend.buckets.map((row,i)=><option key={row.from} value={i}>{row.from} – {row.to}</option>)}</select>}</div>
       {showData&&bucket&&<div className={s.chartDetail}><span>ยอดใบเสร็จ <b>{money(bucket.revenue)}</b></span><span>ต้นทุน <b>{money(bucket.cost)}</b></span><span>กำไรประมาณการ <b>{money(bucket.gross)}</b></span><span>Operating <b>{money(bucket.operating)}</b></span><button onClick={()=>onBucket({from:bucket.from,to:bucket.to})}>ดูเอกสาร<ArrowRight size={14}/></button></div>}
     </section>
-    <section className={s.section} aria-label="สรุปยอดขายและกำไร"><div className={s.sectionHead}><h2><ChartColumnIncreasing size={20} className={s.blue}/>สรุปยอดขายและกำไร</h2></div><p className={s.subtitle}>{rangeText(period)}</p>
-      <ol className={s.financialFlow}>
-        {financial.map((row, index) => {
-          const negative = row.amount !== null && row.amount < 0;
-          const tone = row.amount === null ? 'neutral' : negative ? 'negative' : row.kind === 'profit' ? 'positive' : row.kind === 'revenue' ? 'revenue' : 'neutral';
-          const label = negative && row.kind === 'subtotal' ? 'ขาดทุนขั้นต้นประมาณการ' : negative && row.kind === 'profit' ? 'ขาดทุนประมาณการหลังค่าใช้จ่าย' : financialLabels[index];
-          return <li key={row.label} data-kind={row.kind} data-tone={tone}>
-            <span className={s.financialStep} aria-hidden="true">{index + 1}</span>
-            <div className={s.financialBody}>
-              <div className={s.financialRow}><span>{label}</span><strong>{row.amount === null ? 'ยังไม่มีข้อมูล' : money(row.amount === 0 ? 0 : row.amount)}</strong></div>
-              <div className={s.financialTrack} aria-hidden="true"><span style={{width:`${Math.abs(row.amount ?? 0) / financialMax * 100}%`}} /></div>
-            </div>
-          </li>;
-        })}
-      </ol>
+    <section className={s.section} aria-label="สรุปยอดขายและกำไร"><div className={s.sectionHead}><h2><ChartColumnIncreasing size={20} className={s.blue}/>ยอดขาย ต้นทุน และกำไร</h2></div><p className={s.subtitle}>{rangeText(period)} · บาท</p>
+      <div ref={comparisonRef} className={s.profitComparison} aria-label="กราฟแท่งเปรียบเทียบยอดขาย ต้นทุน และกำไร">{comparisonSize && <BarChart layout="vertical" width={comparisonSize.width} height={comparisonSize.height} data={comparison} margin={{top:8,right:102,left:0,bottom:8}} accessibilityLayer>
+        <CartesianGrid stroke="var(--color-chart-grid)" horizontal={false}/>
+        <XAxis type="number" axisLine={false} tickLine={false} tickCount={3} tick={{fill:'var(--color-ink-muted)',fontSize:11}} tickFormatter={value=>Number(value).toLocaleString('th-TH',{maximumFractionDigits:0})}/>
+        <YAxis type="category" dataKey="label" width={84} axisLine={false} tickLine={false} tick={{fill:'var(--color-ink)',fontSize:12}}/>
+        <ReferenceLine x={0} stroke="var(--color-rule-strong)"/>
+        <Tooltip cursor={{fill:'var(--color-paper-soft)'}} contentStyle={{background:'var(--color-paper-strong)',border:'1px solid var(--color-rule)',borderRadius:8,fontSize:13}} formatter={(_value,_name,item)=>item.payload.amount===null?'ยังไม่มีข้อมูล':money(item.payload.amount)}/>
+        <Bar dataKey="value" name="จำนวนเงิน" maxBarSize={26} radius={[0,4,4,0]} isAnimationActive={false}>
+          {comparison.map(row=><Cell key={row.label} fill={row.kind==='deduction'||(row.amount!==null&&row.amount<0)?'var(--color-negative)':row.kind==='profit'?'var(--color-positive)':row.kind==='revenue'?'var(--color-accent)':'var(--color-chart-neutral)'}/>)}
+        </Bar>
+      </BarChart>}{comparisonSize && <div className={s.comparisonValues} aria-hidden="true">{comparison.map(row=><span key={row.label}>{row.amount===null?'ยังไม่มีข้อมูล':row.amount.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>)}</div>}</div>
+      <dl className={s.chartAccessibleData}>{comparison.map(row=><div key={row.label}><dt>{row.label}</dt><dd>{row.amount===null?'ยังไม่มีข้อมูล':money(row.amount)}</dd></div>)}</dl>
       <p className={s.footnote}>ฐานรวม VAT · ผลประมาณการ ไม่ใช่กำไรสุทธิ · ไม่หักต้นทุนตรงซ้ำ</p>
     </section>
   </div>;

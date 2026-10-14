@@ -11,11 +11,10 @@ test('financial flow preserves the exact screenshot totals and distinguishes zer
 
 test('financial flow is readable without hover, uses Thai labels and retains estimate caveat',()=>{
   const source=readFileSync('src/app/admin/dashboard/DashboardCharts.tsx','utf8');
-  assert.match(source,/<ol className=\{s.financialFlow\}>/);
-  assert.match(source,/หักต้นทุนประมาณการ/);
-  assert.match(source,/หักค่าใช้จ่ายดำเนินงาน/);
-  assert.match(source,/row.amount === null \? 'ยังไม่มีข้อมูล'/);
-  assert.match(source,/row.amount === 0 \? 0 : row.amount/);
+  assert.match(source,/<BarChart layout="vertical"/);
+  assert.match(source,/s.comparisonValues/);
+  assert.match(source,/ยอดขาย ต้นทุน และกำไร/);
+  assert.match(source,/row.amount\s*===\s*null\s*\?\s*'ยังไม่มีข้อมูล'/);
   assert.match(source,/ไม่ใช่กำไรสุทธิ/);
-  assert.doesNotMatch(source,/<BarChart/);
+  assert.doesNotMatch(source,/<ol className=\{s.financialFlow\}>/);
 });
