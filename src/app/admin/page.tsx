@@ -7193,7 +7193,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
   const filtered = documents.filter(d =>
     !d.deleted &&
     (filterStatus === "all" || normalizeDocumentStatusForUi(d.status, d.type, d.paymentStatus) === filterStatus) &&
-    ([d.docNo, d.customerName].some((value) => String(value || "").includes(search)))
+    ([d.docNo, d.customerName, d.projectName].some((value) => String(value || "").includes(search)))
   );
   const mobileDocuments = filtered.slice(0, mobileVisibleCount);
   useEffect(() => {
@@ -7564,7 +7564,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
           <table className="doc-table" style={{ width: "100%", borderCollapse: "collapse", borderRadius: 12, overflow: "visible" }}>
             <thead>
               <tr style={{ background: "#1A2233" }}>
-                {["เลขที่เอกสาร", "ลูกค้า", "วันที่", "วันครบกำหนด", "ยอดรวม", "สถานะ", "จัดการ"].map((h, i, arr) => (
+                {["เลขที่เอกสาร", "ลูกค้า", "ชื่องาน", "วันที่", "วันครบกำหนด", "ยอดรวม", "สถานะ", "จัดการ"].map((h, i, arr) => (
                   <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, color: "#A8B0C0", fontWeight: 500,
                     borderRadius: i === 0 ? "12px 0 0 0" : i === arr.length - 1 ? "0 12px 0 0" : 0 }}>{h}</th>
                 ))}
@@ -7577,6 +7577,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                   <tr className="doc-table-row" key={doc.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                     <td className="doc-number" style={{ padding: "12px 16px", fontSize: 13, fontFamily: "monospace", color: dt.color }}>{doc.docNo}</td>
                     <td className="doc-customer" style={{ padding: "12px 16px", fontSize: 13 }}>{doc.customerName || "-"}</td>
+                    <td className="doc-project" style={{ padding: "12px 16px", fontSize: 13, minWidth: 140, maxWidth: 260, overflowWrap: "anywhere", color: "var(--color-admin-ink)" }}>{doc.projectName || "-"}</td>
                     <td className="doc-date" style={{ padding: "12px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.date)}</td>
                     <td className="doc-date" style={{ padding: "12px 16px", fontSize: 12, color: "#888" }}>{fmtDate(doc.dueDate)}</td>
                     <td className="doc-total" style={{ padding: "12px 16px", fontSize: 14, fontWeight: 600 }}>
@@ -7713,6 +7714,7 @@ function DocumentPage({ type, documents, allDocuments, setDocuments, customers, 
                     <div>
                       <div style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 700, color: dt.color }}>{doc.docNo}</div>
                       <div className="doc-customer-name" style={{ fontSize: 14, color: "var(--color-admin-ink)", marginTop: 2 }}>{doc.customerName || "-"}</div>
+                      <div className="doc-project-name" style={{ fontSize: 13, color: "var(--color-admin-ink)", marginTop: 4, overflowWrap: "anywhere" }}>ชื่องาน: {doc.projectName || "-"}</div>
                       <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>ครบกำหนด {fmtDate(doc.dueDate)}</div>
                     </div>
                     <div style={{ textAlign: "right" as const }}>
