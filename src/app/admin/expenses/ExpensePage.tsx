@@ -126,6 +126,10 @@ function errorMessage(error: unknown) {
       DESCRIPTION_REQUIRED: "กรุณาระบุรายละเอียดค่าใช้จ่าย",
       PAID_AT_REQUIRED: "กรุณาระบุวันที่ชำระเงิน",
       WITHHOLDING_EXCEEDS_TOTAL: "ยอดหัก ณ ที่จ่ายต้องไม่เกินยอดรวม",
+      INVALID_AMOUNT: "ยอดก่อน VAT ต้องเป็นจำนวนเงินไม่ติดลบและทศนิยมไม่เกิน 2 ตำแหน่ง",
+      INVALID_VAT_AMOUNT: "ยอด VAT ต้องเป็นจำนวนเงินไม่ติดลบและทศนิยมไม่เกิน 2 ตำแหน่ง",
+      INVALID_WITHHOLDING_AMOUNT: "ยอดหัก ณ ที่จ่ายต้องเป็นจำนวนเงินไม่ติดลบและทศนิยมไม่เกิน 2 ตำแหน่ง",
+      INVALID_EXPENSE_DATE: "กรุณาระบุวันที่ค่าใช้จ่ายให้ถูกต้อง",
     };
     return messages[error.code] || "ข้อมูลค่าใช้จ่ายไม่ถูกต้อง";
   }

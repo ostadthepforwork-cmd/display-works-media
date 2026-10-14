@@ -83,6 +83,17 @@ test("rejects negative, malformed, and excessive withholding values", () => {
   assert.equal(addExpenseMoney("999999999999.99", "0.01"), "1000000000000.00");
 });
 
+test("accepts grouped amounts and sends exact ungrouped decimal strings to the save RPC", () => {
+  const args = buildErpExpenseSaveArguments(draft({ amount: "17,453.25", vatAmount: "0", withholdingAmount: "0", paymentStatus: "paid", paidAt: "2026-10-14" }));
+  assert.equal(args.p_expense.amount, "17453.25");
+  assert.equal(args.p_expense.total_amount, "17453.25");
+  assert.equal(addExpenseMoney("17,453.25", "1,221.73"), "18674.98");
+  assert.equal(addExpenseMoney("999,999,999,999.99", "0.01"), "1000000000000.00");
+  for (const amount of ["17,45.25", "1,2,3", "17453,25", "17,453.250", "0,000", "-17,453.25"]) {
+    assert.throws(() => buildErpExpenseSaveArguments(draft({ amount })), (error: unknown) => error instanceof ExpenseValidationError && error.code === "INVALID_AMOUNT");
+  }
+});
+
 test("builds edit revision and archive/void intent without trusting expense number", () => {
   const args = buildErpExpenseSaveArguments(draft({
     id: "44444444-4444-4444-8444-444444444444",

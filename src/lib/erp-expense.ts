@@ -51,6 +51,7 @@ export type ExpenseSaveResult = {
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MONEY_PATTERN = /^(?:0|[1-9]\d*)(?:\.(\d{1,2}))?$/;
+const GROUPED_MONEY_PATTERN = /^[1-9]\d{0,2}(?:,\d{3})+(?:\.\d{1,2})?$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export class ExpenseValidationError extends Error {
@@ -74,7 +75,9 @@ function optionalUuid(value: unknown, code: string) {
 }
 
 export function normalizeExpenseMoney(value: unknown, field = "amount") {
-  const raw = String(value ?? "").trim();
+  const input = String(value ?? "").trim();
+  // Remove separators only after checking their grouping, never silently repair malformed amounts.
+  const raw = GROUPED_MONEY_PATTERN.test(input) ? input.replace(/,/g, "") : input;
   const match = raw.match(MONEY_PATTERN);
   if (!match) {
     throw new ExpenseValidationError(`INVALID_${field.toUpperCase()}`, `${field} must be a nonnegative decimal with at most two places`);
