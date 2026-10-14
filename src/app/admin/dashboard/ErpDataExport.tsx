@@ -28,7 +28,7 @@ const TABLES: Array<[keyof ErpBackupTables, string, string]> = [
 ];
 
 const SIMPLE_EXPORTS: Record<Exclude<ExportKind, 'documents' | 'expenses'>, { table: keyof ErpBackupTables; columns: Array<[string, string]> }> = {
-  customers: { table: 'customers', columns: [['ชื่อ', 'name'], ['ผู้ติดต่อ', 'contact'], ['โทรศัพท์', 'phone'], ['อีเมล', 'email'], ['ที่อยู่', 'address'], ['เลขผู้เสียภาษี', 'tax_id'], ['กลุ่มลูกค้า', 'customer_segment'], ['ประเภทธุรกิจ', 'business_type'], ['สร้างเมื่อ', 'created_at']] },
+  customers: { table: 'customers', columns: [['ชื่อ', 'name'], ['ผู้ติดต่อ', 'contact'], ['โทรศัพท์', 'phone'], ['อีเมล', 'email'], ['ที่อยู่', 'address'], ['จังหวัด', 'province'], ['รหัสไปรษณีย์', 'postal_code'], ['เลขผู้เสียภาษี', 'tax_id'], ['กลุ่มลูกค้า', 'customer_segment'], ['ประเภทธุรกิจ', 'business_type'], ['สร้างเมื่อ', 'created_at']] },
   products: { table: 'products', columns: [['ชื่อสินค้า/บริการ', 'name'], ['หน่วย', 'unit'], ['ต้นทุน', 'cost'], ['ราคาขาย', 'price'], ['ผู้ขาย', 'supplier_name'], ['ฐานต้นทุน', 'cost_unit'], ['ฐานราคา', 'price_unit'], ['สร้างเมื่อ', 'created_at']] },
   suppliers: { table: 'suppliers', columns: [['ชื่อผู้ขาย', 'name'], ['ผู้ติดต่อ', 'contact'], ['โทรศัพท์', 'phone'], ['อีเมล', 'email'], ['ที่อยู่', 'address'], ['เลขผู้เสียภาษี', 'tax_id'], ['หมายเหตุ', 'notes'], ['สร้างเมื่อ', 'created_at']] },
 };

@@ -6,6 +6,7 @@ import { buildMarketingExportFiles } from "@/lib/marketing-export";
 import { formatLocalDateInput, shiftDateInput } from "@/lib/local-date";
 import { isReportDoc } from "@/lib/erp-reporting";
 import { classifyCrawler, crawlerCategoryLabel, type CrawlerCategory } from "@/lib/admin-display";
+import { customerProvince, customerPostalCode } from "@/lib/customer-geography";
 
 type MarketingKpiDashboardProps = {
   documents?: any[];
@@ -224,27 +225,9 @@ const isInRange = (value: unknown, startDate: string, endDate: string, mode: Dat
 const marketingDateFromRow = (row: any) =>
   row?.date || row?.createdAt || row?.created_at || row?.updatedAt || row?.updated_at || "";
 
-const thaiProvinces = [
-  "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท",
-  "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม", "นครราชสีมา",
-  "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์",
-  "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี",
-  "เพชรบูรณ์", "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง",
-  "ระยอง", "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร", "สงขลา", "สตูล", "สมุทรปราการ",
-  "สมุทรสงคราม", "สมุทรสาคร", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์",
-  "หนองคาย", "หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี",
-];
-
 const unknownLabel = "ไม่ระบุ";
 
-const inferProvince = (record: any) => {
-  const explicit = String(record?.province || record?.customerProvince || record?.customer_province || "").trim();
-  if (explicit) return explicit === "กรุงเทพฯ" ? "กรุงเทพมหานคร" : explicit;
-  const address = String(record?.address || record?.overrideAddress || record?.override_address || "").replace(/กรุงเทพฯ/g, "กรุงเทพมหานคร");
-  if (!address) return unknownLabel;
-  if (/กรุงเทพ/.test(address)) return "กรุงเทพมหานคร";
-  return thaiProvinces.find((province) => address.includes(province)) || unknownLabel;
-};
+const inferProvince = customerProvince;
 
 const inferDistrict = (record: any) => {
   const explicit = String(record?.district || record?.amphoe || record?.area || record?.customerDistrict || record?.customer_district || "").trim();
@@ -1532,6 +1515,7 @@ export default function MarketingKpiDashboard({
   const customerSegmentRows = summarizeRows(customers, (customer) => customer.customerSegment || customer.customer_segment || "ไม่ระบุ");
   const customerBusinessRows = summarizeRows(customers, (customer) => customer.businessType || customer.business_type || "ไม่ระบุ").slice(0, 8);
   const customerProvinceRows = summarizeRows(customers, inferProvince).slice(0, 8);
+  const customerPostalRows = summarizeRows(customers, customerPostalCode).slice(0, 8);
   const customerDistrictRows = summarizeRows(customers, inferDistrict).slice(0, 8);
   const customerProductRows = (() => {
     const map = new Map<string, { label: string; docs: Set<string>; qty: number; revenue: number; profit: number }>();
@@ -3116,6 +3100,23 @@ export default function MarketingKpiDashboard({
                       </div>
                     )) : <div className="mk-empty">ยังไม่มีข้อมูลเขต/อำเภอลูกค้า</div>}
                   </div>
+                </div>
+              </div>
+
+              <div className="mk-panel" style={{ marginTop: 16, boxShadow: "none" }}>
+                <h2>รหัสไปรษณีย์ลูกค้า</h2>
+                <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
+                  {customerPostalRows.length ? customerPostalRows.map((row, index) => (
+                    <div key={row.label}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontWeight: 900 }}>
+                        <span>{index + 1}. {row.label}</span>
+                        <span>{row.value} ราย</span>
+                      </div>
+                      <div className="mk-budget" style={{ height: 10, margin: "8px 0 0" }}>
+                        <span style={{ width: `${Math.max(3, row.value / maxRows(customerPostalRows) * 100)}%`, background: customerChartColors[index % customerChartColors.length] }} />
+                      </div>
+                    </div>
+                  )) : <div className="mk-empty">ยังไม่มีข้อมูลรหัสไปรษณีย์ลูกค้า</div>}
                 </div>
               </div>
 

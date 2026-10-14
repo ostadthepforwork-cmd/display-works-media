@@ -14,6 +14,7 @@ import { requestBlogRevalidation } from '@/lib/revalidation-client';
 import { createCanonicalBlogSlug } from '@/lib/blog-slug';
 import { escapeHtml as escapeRichText, sanitizeHtml } from '@/lib/sanitize-html';
 import { maskContactName, maskEmail, maskPhone, maskTaxId } from '@/lib/admin-display';
+import { THAI_PROVINCES, validateCustomerLocation } from '@/lib/customer-geography';
 import MarketingKpiDashboard from './MarketingKpiDashboard';
 import ExpensePage from './expenses/ExpensePage';
 import ExpenseDashboard from './expenses/ExpenseDashboard';
@@ -1028,6 +1029,8 @@ export default function AdminPage() {
           email: c.email, address: c.address, taxId: c.tax_id,
           customerSegment: c.customer_segment || "",
           businessType: c.business_type || "",
+          province: c.province || "",
+          postalCode: c.postal_code || "",
         })));
 
         // map products
@@ -6401,9 +6404,9 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 12;
-  const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", taxId: "", customerSegment: "B2B", businessType: "" };
+  const blank = { id: "", name: "", contact: "", phone: "", email: "", address: "", province: "", postalCode: "", taxId: "", customerSegment: "B2B", businessType: "" };
   const filtered = customers.filter(c =>
-    [c.name, c.contact, c.phone, c.customerSegment, c.businessType].some((value) => String(value || "").includes(search))
+    [c.name, c.contact, c.phone, c.customerSegment, c.businessType, c.province, c.postalCode].some((value) => String(value || "").includes(search))
   );
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const visibleCustomers = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -6411,6 +6414,8 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
   useEffect(() => setPage((current) => Math.min(current, pageCount)), [pageCount]);
   const save = async (form) => {
     if (!form.name.trim()) return showToast("กรุณาใส่ชื่อลูกค้า", "error");
+    const locationError = validateCustomerLocation(form);
+    if (locationError) return showToast(locationError, "error");
     if (form.taxId && !/^\d{13}$/.test(form.taxId.replace(/-/g, "")))
       return showToast("เลขผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก", "error");
     const row = {
@@ -6422,6 +6427,8 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
       tax_id: form.taxId,
       customer_segment: form.customerSegment || "",
       business_type: form.businessType || "",
+      province: String(form.province || "").trim() || null,
+      postal_code: String(form.postalCode || "").trim() || null,
     };
     if (form.id) {
       const { error } = await supabase.from("erp_customers").update(row).eq("id", form.id);
@@ -6489,6 +6496,7 @@ function CustomerPage({ customers, setCustomers, documents = [], products = [], 
 }
 function CustomerForm({ data, onSave, onCancel }: any) {
   const [f, setF] = useState(data);
+  const [locationError, setLocationError] = useState("");
   const set = (k) => (e) => setF(prev => ({ ...prev, [k]: e.target.value }));
   const businessTypes = ["ร้านค้า", "ร้านอาหาร", "คาเฟ่/เครื่องดื่ม", "คลินิก/ความงาม", "อีเวนต์/ออกบูธ", "แบรนด์สินค้า", "องค์กร/บริษัท", "โรงเรียน/สถาบัน", "อื่น ๆ"];
   return (
@@ -6514,9 +6522,28 @@ function CustomerForm({ data, onSave, onCancel }: any) {
         <Field label="อีเมล"><input value={f.email} onChange={set("email")} /></Field>
       </div>
       <Field label="ที่อยู่"><textarea value={f.address} onChange={set("address")} rows={2} style={{ resize: "vertical" }} /></Field>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12 }}>
+        <Field label="จังหวัด">
+          <select aria-label="จังหวัด" autoComplete="address-level1" value={f.province || ""} onChange={set("province")}>
+            <option value="">ไม่ระบุจังหวัด</option>
+            {THAI_PROVINCES.map(province => <option key={province} value={province}>{province}</option>)}
+          </select>
+        </Field>
+        <Field label="รหัสไปรษณีย์">
+          <input aria-label="รหัสไปรษณีย์" type="text" inputMode="numeric" autoComplete="postal-code" maxLength={5} value={f.postalCode || ""} onChange={e => {
+            setF(prev => ({ ...prev, postalCode: e.target.value }));
+            setLocationError("");
+          }} placeholder="เช่น 22110" aria-invalid={Boolean(locationError)} aria-describedby={locationError ? "customer-location-error" : undefined} />
+        </Field>
+      </div>
+      {locationError && <div id="customer-location-error" role="alert" style={{ color: "var(--color-admin-negative, #b91c1c)", fontSize: 14 }}>{locationError}</div>}
       <Field label="เลขประจำตัวผู้เสียภาษี"><input value={f.taxId} onChange={set("taxId")} /></Field>
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-        <Btn onClick={() => onSave(f)} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
+        <Btn onClick={() => {
+          const error = validateCustomerLocation(f);
+          setLocationError(error);
+          if (!error) onSave(f);
+        }} color="#FF6B00" style={{ flex: 1 }}>บันทึก</Btn>
         <Btn onClick={onCancel} outline style={{ flex: 1 }}>ยกเลิก</Btn>
       </div>
     </div>
