@@ -1,7 +1,6 @@
 /* Hallmark · pre-emit critique: P5 H5 E4 S5 R4 V4 · genre: modern-minimal · macrostructure: executive workbench · tone: clear and composed · anchor hue: orange · studied: yes · DNA-source: user image · contrast: pass (40–41) · mobile: pass (34,49–57) */
 @import './tokens.css';
 .profitComparison {height:310px;min-width:0;width:100%;position:relative;}
-.comparisonValues {position:absolute;top:8px;bottom:38px;right:4px;width:98px;display:grid;grid-template-rows:repeat(5,1fr);align-items:center;text-align:right;pointer-events:none;font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--color-ink-strong);}
 .chartAccessibleData {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 .financialFlow {list-style:none;padding:0;margin:18px 0 0;display:grid;gap:15px;}
 .financialFlow li {display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;align-items:start;--flow-color:var(--color-chart-neutral);}
