@@ -1,5 +1,21 @@
 /* Hallmark · pre-emit critique: P5 H5 E4 S5 R4 V4 · genre: modern-minimal · macrostructure: executive workbench · tone: clear and composed · anchor hue: orange · studied: yes · DNA-source: user image · contrast: pass (40–41) · mobile: pass (34,49–57) */
 @import './tokens.css';
+.financialFlow {list-style:none;padding:0;margin:18px 0 0;display:grid;gap:15px;}
+.financialFlow li {display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;align-items:start;--flow-color:var(--color-chart-neutral);}
+.financialFlow li[data-tone=revenue] {--flow-color:var(--color-accent);}
+.financialFlow li[data-tone=negative] {--flow-color:var(--color-negative);}
+.financialFlow li[data-tone=positive] {--flow-color:var(--color-positive);}
+.financialFlow li[data-kind=subtotal],.financialFlow li[data-kind=profit] {border-top:1px solid var(--color-rule);padding-top:13px;}
+.financialStep {display:grid;place-items:center;width:24px;height:24px;border:1px solid var(--color-rule-strong);border-radius:50%;color:var(--color-ink-muted);font-size:12px;}
+.financialBody {min-width:0;}
+.financialRow {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:baseline;color:var(--color-ink);font-size:13px;line-height:1.5;}
+.financialRow>span {overflow-wrap:anywhere;}
+.financialRow strong {font-variant-numeric:tabular-nums;white-space:nowrap;font-size:14px;color:var(--flow-color);}
+.financialFlow li[data-tone=revenue] .financialRow strong {color:var(--color-accent-ink);}
+.financialFlow li[data-kind=profit] .financialRow {font-weight:700;}
+.financialTrack {height:7px;margin-top:8px;border-radius:3px;background:var(--color-chart-grid);overflow:hidden;}
+.financialTrack>span {display:block;height:100%;background:var(--flow-color);border-radius:3px;}
+@media(max-width:480px){.financialFlow li{grid-template-columns:20px minmax(0,1fr);gap:8px;}.financialStep{width:20px;height:20px;}.financialRow strong{font-size:13px;}}
 .dashboard { --line:#253441; --muted:#a3b1c2; color:#f2f5fa; width:100%; max-width:1600px; margin:0 auto; font-size:14px; line-height:1.55; letter-spacing:0; }
 .dashboard *, .dialog * { box-sizing:border-box; }
 .dashboard h1 {font-size:27px;line-height:1.25;font-weight:750;margin:0 0 5px;letter-spacing:0;}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ChartColumnIncreasing, FileText } from 'lucide-react';
-import { Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, CartesianGrid, ComposedChart, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts';
 import { businessTrend } from '@/lib/executive-dashboard';
 import { DashboardPeriod, Resolution } from '@/lib/dashboard-period';
 import { money, shortDate, rangeText } from './presentation';
@@ -37,11 +37,12 @@ export function DashboardCharts({ trend, period, resolution, onResolution, onBuc
   revenue:number; cost:number; gross:number; operating:number|null; after:number|null;
 }) {
   const {ref: chartRef, size: chartSize} = useChartSize();
-  const {ref: waterfallRef, size: waterfallSize} = useChartSize();
   const [showData,setShowData]=useState(false),[selected,setSelected]=useState(0);
   const [metric,setMetric]=useState<'all'|'revenue'|'gross'|'operating'>('all');
   const bucket=trend.buckets[Math.min(selected,trend.buckets.length-1)];
   const financial=dashboardWaterfall(revenue,cost,gross,operating,after);
+  const financialLabels = ['ยอดใบเสร็จรวม VAT', 'หักต้นทุนประมาณการ', 'กำไรขั้นต้นประมาณการ', 'หักค่าใช้จ่ายดำเนินงาน', 'กำไรประมาณการหลังค่าใช้จ่าย'];
+  const financialMax = Math.max(1, ...financial.map(row => Math.abs(row.amount ?? 0)));
   return <div className={s.analytics}>
     <section className={s.section}><div className={s.sectionHead}><h2><ChartColumnIncreasing size={20} className={s.green}/>แนวโน้มธุรกิจ</h2><select aria-label="ความละเอียดกราฟ" value={resolution} onChange={e=>{onResolution(e.target.value as Resolution);setSelected(0);}}>{Object.entries(resolutions).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>
       <div className={s.chartTabs} aria-label="ชุดข้อมูลกราฟ">{([['all','ทั้งหมด'],['revenue','ยอดใบเสร็จ'],['gross','กำไรขั้นต้น'],['operating','ค่าใช้จ่าย']] as const).map(([key,label])=><button key={key} aria-pressed={metric===key} onClick={()=>setMetric(key)}>{label}</button>)}</div>
@@ -57,14 +58,22 @@ export function DashboardCharts({ trend, period, resolution, onResolution, onBuc
       <div className={s.chartActions}><button aria-expanded={showData} onClick={()=>setShowData(v=>!v)}><FileText size={15}/>ข้อมูลกราฟ</button>{showData&&<select aria-label="ช่วงข้อมูลกราฟ" value={Math.min(selected,trend.buckets.length-1)} onChange={e=>setSelected(Number(e.target.value))}>{trend.buckets.map((row,i)=><option key={row.from} value={i}>{row.from} – {row.to}</option>)}</select>}</div>
       {showData&&bucket&&<div className={s.chartDetail}><span>ยอดใบเสร็จ <b>{money(bucket.revenue)}</b></span><span>ต้นทุน <b>{money(bucket.cost)}</b></span><span>กำไรประมาณการ <b>{money(bucket.gross)}</b></span><span>Operating <b>{money(bucket.operating)}</b></span><button onClick={()=>onBucket({from:bucket.from,to:bucket.to})}>ดูเอกสาร<ArrowRight size={14}/></button></div>}
     </section>
-    <section className={s.section}><div className={s.sectionHead}><h2><ChartColumnIncreasing size={20} className={s.blue}/>โครงสร้างผลประมาณการ</h2></div><p className={s.subtitle}>{rangeText(period)}</p>
-      <div ref={waterfallRef} className={s.waterfall} aria-label="Waterfall โครงสร้างกำไร">{waterfallSize && <BarChart width={waterfallSize.width} height={waterfallSize.height} data={financial} margin={{top:14,right:8,left:0,bottom:0}} accessibilityLayer>
-        <CartesianGrid stroke="var(--color-chart-grid)" vertical={false}/><XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill:'var(--color-ink-muted)',fontSize:10}} interval={0}/><YAxis width={44} axisLine={false} tickLine={false} tick={{fill:'var(--color-ink-muted)',fontSize:10}} tickFormatter={v=>Intl.NumberFormat('en',{notation:'compact'}).format(Number(v))}/>
-        <ReferenceLine y={0} stroke="var(--color-rule-strong)"/><Tooltip cursor={{fill:'var(--color-paper-soft)'}} contentStyle={{background:'var(--color-paper-strong)',border:'1px solid var(--color-rule)',borderRadius:8,color:'var(--color-ink)',boxShadow:'0 12px 30px var(--color-panel-shadow)'}} formatter={(_value,_name,item)=>money(item.payload.amount)} />
-        <Bar dataKey="range" name="จำนวนเงิน" maxBarSize={48} radius={[5,5,2,2]} isAnimationActive={false}>{financial.map(row=><Cell key={row.label} fill={row.kind==='deduction'?'var(--color-negative)':row.kind==='subtotal'?'var(--color-chart-neutral)':'var(--color-accent)'}/>)}</Bar>
-      </BarChart>}</div>
-      <dl className={s.waterfallValues}>{financial.map(row=><div key={row.label}><dt>{row.label}</dt><dd className={row.amount!==null&&row.amount<0?s.negative:''}>{money(row.amount)}</dd></div>)}</dl>
-      <p className={s.footnote}>ฐานรวม VAT · ผลประมาณการ ไม่ใช่กำไรสุทธิ · ไม่หัก Direct ซ้ำ</p>
+    <section className={s.section} aria-label="สรุปยอดขายและกำไร"><div className={s.sectionHead}><h2><ChartColumnIncreasing size={20} className={s.blue}/>สรุปยอดขายและกำไร</h2></div><p className={s.subtitle}>{rangeText(period)}</p>
+      <ol className={s.financialFlow}>
+        {financial.map((row, index) => {
+          const negative = row.amount !== null && row.amount < 0;
+          const tone = row.amount === null ? 'neutral' : negative ? 'negative' : row.kind === 'profit' ? 'positive' : row.kind === 'revenue' ? 'revenue' : 'neutral';
+          const label = negative && row.kind === 'subtotal' ? 'ขาดทุนขั้นต้นประมาณการ' : negative && row.kind === 'profit' ? 'ขาดทุนประมาณการหลังค่าใช้จ่าย' : financialLabels[index];
+          return <li key={row.label} data-kind={row.kind} data-tone={tone}>
+            <span className={s.financialStep} aria-hidden="true">{index + 1}</span>
+            <div className={s.financialBody}>
+              <div className={s.financialRow}><span>{label}</span><strong>{row.amount === null ? 'ยังไม่มีข้อมูล' : money(row.amount === 0 ? 0 : row.amount)}</strong></div>
+              <div className={s.financialTrack} aria-hidden="true"><span style={{width:`${Math.abs(row.amount ?? 0) / financialMax * 100}%`}} /></div>
+            </div>
+          </li>;
+        })}
+      </ol>
+      <p className={s.footnote}>ฐานรวม VAT · ผลประมาณการ ไม่ใช่กำไรสุทธิ · ไม่หักต้นทุนตรงซ้ำ</p>
     </section>
   </div>;
 }
